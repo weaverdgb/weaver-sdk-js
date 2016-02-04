@@ -1,0 +1,30 @@
+{
+  "name": "weaver-sdk-js",
+  "homepage": "https://github.com/weaverplatform/weaver-sdk-js",
+  "authors": [
+    "Mohamad Alamili <mohamad@sysunite.com>"
+  ],
+  "description": "Weaver SDK for JavaScript",
+  "main": "dist/weaver-sdk.js",
+  "moduleType": [
+    "globals",
+    "node"
+  ],
+  "keywords": [
+    "weaver",
+    "sdk",
+    "javascript"
+  ],
+  "license": "GPL-3.0",
+  "ignore": [
+    "**/.*",
+    "icon.png",
+    "package.json",
+    "Gruntfile.coffee",
+    "node_modules",
+    "bower_components",
+    "src",
+    "test",
+    "tmp"
+  ]
+}
