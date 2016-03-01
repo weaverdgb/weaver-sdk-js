@@ -22,10 +22,17 @@ module.exports = (grunt) ->
           expand: true
           ext: '.js'
 
+      concat: {
+        main: {
+          src: ['tmp/**/*.js'],
+          dest: 'dist/weaver-sdk.js'
+        }
+      },
+
       browserify:
         main:
           src: 'tmp/**/*.js'
-          dest: 'dist/weaver-sdk.js'
+          dest: 'dist/weaver-sdk.full.js'
           options:
             plugin: [
               [
@@ -60,4 +67,5 @@ module.exports = (grunt) ->
   grunt.registerTask('default', ['clean', 'coffee', 'browserify', 'copy:toAngular', 'watch'])
 
   # Dist
-  grunt.registerTask('dist', ['clean', 'coffee', 'browserify', 'uglify'])
+  #grunt.registerTask('dist', ['clean', 'coffee', 'browserify', 'uglify'])
+  grunt.registerTask('dist', ['clean', 'coffee', 'concat', 'browserify'])

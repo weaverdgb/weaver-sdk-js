@@ -37,9 +37,9 @@ var weaver = new Weaver('https://weaver-server.herokuapp.com');
 var john = weaver.add({name: 'John Doe', age: 27, male: true});
 ```
 
-##### Loading an entity
+##### Getting an entity
 ```javascript
-weaver.load('id_01', {eagerness: 1}).then(function(entity){
+weaver.get('id_01', {eagerness: 1}).then(function(entity){
 	...
 });
 ```
