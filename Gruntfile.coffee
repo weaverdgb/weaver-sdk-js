@@ -26,12 +26,35 @@ module.exports = (grunt) ->
         main:
           src: 'tmp/**/*.js'
           dest: 'dist/weaver-sdk.js'
+          options:
+            plugin: [
+              [
+                'remapify', [
+                  'src': '**/*.js'
+                  'expose': ''
+                  'cwd': './tmp/'
+                ]
+              ]
+            ]   
           
       uglify:
         build:
           src: 'dist/weaver-sdk.js',
           dest: 'dist/weaver-sdk.min.js'
+
+      copy:
+        toAngular:
+          files: [
+            {src: ['dist/**'], dest: '../weaver-app-angular/weaver-sdk-js/', filter:'isFile', expand:true}
+            {src: ['dist/**'], dest: '../weaver-studio/weaver-sdk-js/', filter:'isFile', expand:true}
+          ]
+
+      watch:
+        options:
+          spawn: false
+        files: ['**/*.coffee', '!_SpecRunner.html', '!.grunt']
+        tasks: ['default']
   )
   
   # Default task
-  grunt.registerTask('default', ['clean', 'coffee', 'browserify', 'uglify'])
+  grunt.registerTask('default', ['clean', 'coffee', 'browserify', 'copy:toAngular', 'watch'])
