@@ -12,17 +12,17 @@ A library that gives you access to the Weaver platform from your JavaScript app.
 ##### Read
 - entity.id()
 - entity.type()
-- entity.links()
 - entity.values()
+- entity.links()
 - entity.isFetched({eagerness})
 - entity.fetch({eagerness})
 
-##### Save
+##### Persist
 - entity.push(key, value)
 - entity.push(entity)
 - entity.remove(key)
-- entity.remove(entity) 
-- entity.destroy()
+- entity.remove(entity)
+- entity.destroy({force}) (not yet implemented)
 
 
 ## Examples
@@ -91,13 +91,15 @@ john.friends.push(lisa.id());
 
 
 ## Todo
+- implement destroy
+- error handling
 - repository weaver under $
 - add more tests
 
 ## Future work
+- fetch incoming links
 - add created and updated metadata
 - add date field
 - enable paging
-- fetch incoming links
 - authentication
 - querying data

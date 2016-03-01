@@ -18,75 +18,75 @@ beforeEach('clear repository', ->
 
 describe 'Weaver: Creating entity', ->
 
-  mohamad = weaver.entity({name:'Mohamad Alamili', age: 28, isMale: true}, 'person')
+  mohamad = weaver.add({name:'Mohamad Alamili', age: 28, isMale: true}, 'person')
 
   it 'should have all properties', ->
     mohamad.should.have.property('name')
     mohamad.name.should.equal('Mohamad Alamili')
     mohamad.age.should.equal(28)
     mohamad.isMale.should.be.true
-    
+
   it 'should have property $', ->
     mohamad.should.have.property('$')
 
   it 'should be set as fetched', ->
     mohamad.$.fetched.should.be.true
-    
-    
+
+
 describe 'Weaver: Linking entity', ->
 
   bastiaan = null
-  
+
   it 'should link to another entity', ->
-    bastiaan = weaver.entity({name:'Bastiaan Bijl', age: 29}, 'human')
-    mohamad.link('friend', bastiaan)
-  
+    bastiaan = weaver.add({name:'Bastiaan Bijl', age: 29}, 'human')
+    mohamad.push('friend', bastiaan)
+
     mohamad.should.have.property('friend')
     mohamad.friend.should.equal(bastiaan)
 
-    
+
   gijs = null
-  
+
   it 'should link to other entities as collection', ->
-    gijs = weaver.entity({name:'Gijs van der Ent', age: 35}, 'human')
+    gijs = weaver.add({name:'Gijs van der Ent', age: 35}, 'human')
 
     # TODO: make this a method
-    friends = weaver.entity({}, '_COLLECTION')
-    friends.link(bastiaan.$.id, bastiaan)
-    friends.link(gijs.$.id, gijs)
-    mohamad.link('friends', friends)
-    bastiaan.link('colleague', gijs)
-    
+    friends = weaver.add({}, '_COLLECTION')
+    friends.push(bastiaan.$.id, bastiaan)
+    friends.push(gijs.$.id, gijs)
+    mohamad.push('friends', friends)
+    bastiaan.push('colleague', gijs)
+
     # EXP
-    gijs.link('buddy', mohamad)
-    
+    gijs.push('buddy', mohamad)
+
     mohamad.should.have.property('friends')
-    mohamad.friends.values()[0].should.equal(bastiaan)
-    mohamad.friends.values()[1].should.equal(gijs)
+    mohamad.friends.values()[bastiaan.id()].should.equal(bastiaan)
+    mohamad.friends.values()[gijs.id()].should.equal(gijs)
 
 
 describe 'Weaver: Loading entity', ->
 
   it 'should fetch from server lazy', ->
     id = mohamad.$.id
-    #promise = weaver.load(id, {eagerness: -1})
-  
+    #promise = weaver.get(id, {eagerness: -1})
+
     #promise.should.eventually.have.property('name')
     #promise.should.eventually.have.property('$')
     #promise.should.eventually.not.have.property('friends')
-  
+
 #    promise.then((mohamad) ->
 #      #console.log(mohamad)
 #      console.log(mohamad.id())
 #     # mohamad.name.should.equal('Mohamad Alamili')
 #     # mohamad.$.fetched.should.be.false
 #    )
-  
+
   return
   it 'should fetch from server', ->
     id = mohamad.$.id
-    promise = weaver.load(id, {eagerness: -1})
-    
+    promise = weaver.get(id, {eagerness: -1})
+
     promise.should.eventually.have.property('name')
     promise.should.eventually.have.property('$')
     promise.should.eventually.have.property('friends')

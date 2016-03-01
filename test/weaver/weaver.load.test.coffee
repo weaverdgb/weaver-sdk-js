@@ -42,7 +42,7 @@ describe 'Weaver: Loading an entity', ->
       mockRead(object)
 
       # Load
-      weaver.load('0').then((entity) ->
+      weaver.get('0').then((entity) ->
         # Assert returned value
         entity.$.fetched.should.be.true
         entity.name.should.equal('Mohamad Alamili')
@@ -80,7 +80,7 @@ describe 'Weaver: Loading an entity', ->
       weaver.repository.add(repoEntity)
       
       # Load
-      weaver.load('0').then((entity) ->
+      weaver.get('0').then((entity) ->
                 
         # Assert returned value
         entity.should.equal(repoEntity)
@@ -139,7 +139,7 @@ describe 'Weaver: Loading an entity', ->
     weaver.repository.add(cpuEntity)
 
     # Load
-    weaver.load('0').then((entity) ->
+    weaver.get('0').then((entity) ->
 
       # Assert returned value
       entity.computer.processor.should.equal(cpuEntity)
@@ -208,7 +208,7 @@ describe 'Weaver: Loading an entity', ->
     manufacturer.produces = processor
 
     # Load
-    weaver.load('0').then((entity) ->
+    weaver.get('0').then((entity) ->
 
       # Assert returned value
       entity.computer.processor.should.equal(processor)
@@ -283,7 +283,7 @@ describe 'Weaver: Loading an entity', ->
     D.link  = F
 
     # Load
-    weaver.load('0').then((entity) ->
+    weaver.get('0').then((entity) ->
 
       # Assert returned value
       entity.link.link.should.equal(C)
@@ -335,7 +335,7 @@ describe 'Weaver: Loading an entity', ->
     mockRead(object)
 
     # Load
-    weaver.load('0', {eagerness: -1}).then((entity) ->
+    weaver.get('0', {eagerness: -1}).then((entity) ->
 
       # Assert repository content
       weaver.repository.size().should.equal(3)
@@ -370,7 +370,7 @@ describe 'Weaver: Loading an entity', ->
     D.link  = F
 
     # Load
-    weaver.load('2').then((entity) ->
+    weaver.get('2').then((entity) ->
 
       # Assert returned value
       entity.should.equal(C)

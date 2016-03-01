@@ -1,99 +1,103 @@
+# Libs
 io      = require('socket.io-client')
 cuid    = require('cuid')
 Promise = require('bluebird')
 
+# Dependencies
 Entity  = require('./entity')
-  
+
+# Helper class for weaver to maintain a local cache of all loaded entities
 module.exports =
 class Repository
-  
+
   constructor: (@weaver) ->
     @entities  = {}
     @listeners = {}
-    
+
   contains: (id) ->
     @entities[id]?
-    
-  isEmpty: ->
-    @size() is 0  
-    
-  size: ->
-    (key for own key of @entities).length
 
   get: (id) ->
     @entities[id]
-    
-  clear: ->
-    @entities = {}
-    
+
   add: (entity) ->
     @entities[entity.id()] = entity
     entity
 
+  size: ->
+    (key for own key of @entities).length
+
+  isEmpty: ->
+    @size() is 0
+
+  clear: ->
+    @entities = {}
+
   store: (entity) ->
-    connections = []    
+    connections = []
     added = {}
+
     addConnections = (parent) ->
-      added[parent.id()] = true 
-      for child in parent.entities()
-        connections.push({subject: parent, predicate: child.key, object: child.value})
-        
-        if not added[child.value.id()]?
-          addConnections(child.value)
-        
+      added[parent.id()] = true
+      for key, child of parent.links()
+        connections.push({subject: parent, predicate: key, object: child})
+
+        if not added[child.id()]?
+          addConnections(child)
+
     addConnections(entity)
-    
-    
+
+
     # Might have no connections, in which case we just add and return
     if connections.length is 0
       if not @contains(entity.id())
         @track(@add(entity))
+    else
+      # Process
+      processing = {}
+      for connection in connections
 
-    # Process
-    processing = {}
-    for connection in connections
-
-      # Not yet in repository
-      if not @contains(connection.subject.id())
-        repoSubject = connection.subject.withoutEntities()
-        processing[repoSubject.id()] = true
-        @track(@add(repoSubject))
-      else
-        repoSubject = @get(connection.subject.id())
-        repoObject = @get(connection.object.id())
-
-        if repoSubject.$.fetched and repoObject? and repoObject.$.fetched and not processing[repoSubject.id()]
-          continue
-        else
+        # Not yet in repository
+        if not @contains(connection.subject.id())
+          repoSubject = connection.subject.withoutEntities()
           processing[repoSubject.id()] = true
+          @track(@add(repoSubject))
+        else
+          repoSubject = @get(connection.subject.id())
+          repoObject = @get(connection.object.id())
 
-          # Transfer state to repo subject
-          if connection.subject.$.fetched
-            repoSubject.$.fetched = true
+          if repoSubject.$.fetched and repoObject? and repoObject.$.fetched and not processing[repoSubject.id()]
+            continue
+          else
+            processing[repoSubject.id()] = true
+
+            # Transfer state to repo subject
+            if connection.subject.$.fetched
+              repoSubject.$.fetched = true
 
 
-      # Process object
-      if not @contains(connection.object.id())
-        repoObject = connection.object.withoutEntities()
-        @track(@add(repoObject))
-        processing[repoObject.id()] = true
-      else
-        repoObject = @get(connection.object.id())
-        processing[repoObject.id()] = true
+        # Process object
+        if not @contains(connection.object.id())
+          repoObject = connection.object.withoutEntities()
+          @track(@add(repoObject))
+          processing[repoObject.id()] = true
+        else
+          repoObject = @get(connection.object.id())
+          processing[repoObject.id()] = true
 
-        # Transfer state to repo object
-        if connection.object.$.fetched
-          repoObject.$.fetched = true
-  
-          
-      # Create link
-      repoSubject[connection.predicate] = repoObject
-      
-    
+          # Transfer state to repo object
+          if connection.object.$.fetched
+            repoObject.$.fetched = true
+
+
+        # Create link
+        repoSubject[connection.predicate] = repoObject
+
+
     # Return entity
     @get(entity.id())
-        
-    
+
+
   track: (entity) ->
 
     # Updates
@@ -111,5 +115,5 @@ class Repository
       else
         delete entity[payload.attribute]
     )
-    
+
     entity

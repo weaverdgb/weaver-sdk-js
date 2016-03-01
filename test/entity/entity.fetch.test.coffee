@@ -68,7 +68,7 @@ describe 'Entity: Fetching an entity', ->
 
       currentEntity = null
       # Load
-      weaver.load('0', {eagerness: 0}).then((entity) ->
+      weaver.get('0', {eagerness: 0}).then((entity) ->
         # Assert returned value
         entity.$.fetched.should.be.false
         entity.id().should.equal('0')
