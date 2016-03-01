@@ -1,7 +1,9 @@
+# Libs
 io          = require('socket.io-client')
 cuid        = require('cuid')
 Promise     = require('bluebird')
 
+# Dependencies
 Socket      = require('./socket')
 Entity      = require('./entity')
 Repository  = require('./repository')
@@ -30,7 +32,7 @@ class Weaver
     )
 
     
-  # Returns entity in local repository
+  # Returns an entity in the local repository
   local: (id) ->
     @repository.get(id)
 
@@ -42,7 +44,7 @@ class Weaver
     opts.eagerness = 1 if not opts.eagerness?
     
     if @repository.contains(id) and @repository.get(id).isFetched(opts.eagerness)
-      done(Promise.resolve(@repository.get(id)))
+      Promise.resolve(@repository.get(id))
     else
       # Server read
       @socket.read(id, opts).bind(@).then((object) ->

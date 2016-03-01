@@ -1,8 +1,8 @@
-$ = require("./test-suite")()
+$ = require("./../test-suite")()
 cuid = require('cuid')
-Entity = require('../src/entity')
+Entity = require('../../src/entity')
 
-describe 'Fetching an entity', ->    
+describe 'Entity: Fetching an entity', ->    
   
   it 'should not fetch if already fetched', ->
     return

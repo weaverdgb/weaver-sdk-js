@@ -1,10 +1,10 @@
-$ = require("./test-suite")()
+$ = require("./../test-suite")()
 sinon   = require("sinon")
 Promise = require("bluebird")
-Entity = require('../src/entity')
-Weaver = require('../src/weaver')
+Entity = require('../../src/entity')
+Weaver = require('../../src/weaver')
 
-describe 'Fetching an entity', ->
+describe 'Entity: Fetching an entity', ->
   
   weaver   = new Weaver('http://mockserver')
   socket   = null

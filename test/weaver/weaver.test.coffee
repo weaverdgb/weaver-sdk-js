@@ -1,9 +1,9 @@
-$ = require("./test-suite")()
+$ = require("./../test-suite")()
 
 redis = new require('ioredis')()
 
 # Weaver
-Weaver = require('./../src/weaver')
+Weaver = require('./../../src/weaver')
 weaver = new Weaver('http://localhost:9487')
 mohamad = null
 
@@ -16,7 +16,7 @@ beforeEach('clear repository', ->
 )
 
 
-describe 'Creating entity', ->
+describe 'Weaver: Creating entity', ->
 
   mohamad = weaver.entity({name:'Mohamad Alamili', age: 28, isMale: true}, 'person')
 
@@ -33,7 +33,7 @@ describe 'Creating entity', ->
     mohamad.$.fetched.should.be.true
     
     
-describe 'Linking entity', ->
+describe 'Weaver: Linking entity', ->
 
   bastiaan = null
   
@@ -65,7 +65,7 @@ describe 'Linking entity', ->
     mohamad.friends.values()[1].should.equal(gijs)
 
 
-describe 'Loading entity', ->
+describe 'Weaver: Loading entity', ->
 
   it 'should fetch from server lazy', ->
     id = mohamad.$.id
@@ -102,7 +102,7 @@ describe 'Loading entity', ->
 
 
 
-describe 'Creating an entity', ->
+describe 'Weaver: Creating an entity', ->
 
   it 'should set type as _ROOT if left empty', ->
     return
@@ -129,7 +129,7 @@ describe 'Creating an entity', ->
     return
 
 
-describe 'Loading an entity', ->
+describe 'Weaver: Loading an entity', ->
 
   it 'should not load an entity if already available in the repository', ->
     return

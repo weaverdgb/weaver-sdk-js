@@ -3,11 +3,11 @@ Weaver SDK for JavaScript
 
 ## API
 
-### Class: Weaver
+### Object: Weaver
 - weaver.add(data, type, id)
 - weaver.get(id, {eagerness})
 
-### Class: Entity
+### Object: Entity
 
 ##### Read
 - entity.id()
@@ -15,16 +15,14 @@ Weaver SDK for JavaScript
 - entity.links()
 - entity.values()
 - entity.isFetched({eagerness})
-
-##### Sync
 - entity.fetch({eagerness})
-- entity.push(key, value)
-- entity.remove(key)
-- entity.destroy()
 
-##### Convenience
-- entity.remove(entity) for entity.remove(entity.id(), entity)
-- entity.push(entity) for entity.push(entity.id(), entity)
+##### Save
+- entity.push(key, value)
+- entity.push(entity)
+- entity.remove(key)
+- entity.remove(entity) 
+- entity.destroy()
 
 
 ## Examples
@@ -47,12 +45,12 @@ weaver.load('cil9cvoae00003k6mz1mvt3gz', {eagerness: 1}).then(function(entity){
 });
 ```
 
-##### Fetching entity
+##### Fetching an entity
 ```javascript
 john.fetch({eagerness: 3});
 ```
 
-##### Updating entity
+##### Updating an entity
 ```javascript
 john.color = 'Red';
 john.push('color');
@@ -92,15 +90,14 @@ john.friends.push(lisa.id());
 ```
 
 
-## TODO
+## Todo
 - repository weaver under $
-- refactor
-- restructure tests
+- add more tests
 
 ## Future work
-- created and updated metadata
-- date field
-- paging
-- incoming links
-- auth
-- querying
+- add created and updated metadata
+- add date field
+- enable paging
+- fetch incoming links
+- authentication
+- querying data

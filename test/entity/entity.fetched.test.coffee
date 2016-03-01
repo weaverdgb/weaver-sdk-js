@@ -1,7 +1,7 @@
-$ = require("./test-suite")()
-Entity = require('../src/entity')
+$ = require("./../test-suite")()
+Entity = require('../../src/entity')
 
-describe 'Testing if an entity is fetched', ->
+describe 'Entity: Testing if an entity is fetched', ->
 
   construct = (fetched) ->
     new Entity({}, null, fetched)
