@@ -39,9 +39,8 @@ var john = weaver.add({name: 'John Doe', age: 27, male: true});
 
 ##### Loading an entity
 ```javascript
-var lisa = null;
 weaver.load('id_01', {eagerness: 1}).then(function(entity){
-  lisa = entity;
+	...
 });
 ```
 

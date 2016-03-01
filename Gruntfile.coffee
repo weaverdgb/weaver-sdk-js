@@ -2,15 +2,15 @@ module.exports = (grunt) ->
 
   # Load all grunt tasks
   require('load-grunt-tasks')(grunt)
-  
+
   # Task configuration
   grunt.initConfig(
       clean:
         before:
           src: ['dist', 'tmp']
         after:
-          src: ['dist', 'tmp'] 
-    
+          src: ['dist', 'tmp']
+
       coffee:
         main:
           options:
@@ -35,8 +35,8 @@ module.exports = (grunt) ->
                   'cwd': './tmp/'
                 ]
               ]
-            ]   
-          
+            ]
+
       uglify:
         build:
           src: 'dist/weaver-sdk.js',
@@ -55,6 +55,9 @@ module.exports = (grunt) ->
         files: ['**/*.coffee', '!_SpecRunner.html', '!.grunt']
         tasks: ['default']
   )
-  
+
   # Default task
   grunt.registerTask('default', ['clean', 'coffee', 'browserify', 'copy:toAngular', 'watch'])
+
+  # Dist
+  grunt.registerTask('dist', ['clean', 'coffee', 'browserify', 'uglify'])
