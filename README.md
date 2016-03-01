@@ -19,7 +19,12 @@ Weaver SDK for JavaScript
 ##### Sync
 - entity.fetch({eagerness})
 - entity.push(key, value)
+- entity.remove(key)
 - entity.destroy()
+
+##### Convenience
+- entity.remove(entity) for entity.remove(entity.id(), entity)
+- entity.push(entity) for entity.push(entity.id(), entity)
 
 
 ## Examples
@@ -69,14 +74,33 @@ john.push('friend');
 john.push('friend', lisa);
 ```
 
+##### Linking to multiple entities
+```javascript
+john.friends = weaver.add();
+john.friends.push(lisa)
+```
+
+###### or
+```javascript
+john.friends.push(lisa.id(), lisa);
+```
+
+###### or
+```javascript
+john.friends[lisa.id()] = lisa;
+john.friends.push(lisa.id());
+```
+
 
 ## TODO
-- rename fetched to incomplete
 - repository weaver under $
 - refactor
 - restructure tests
 
 ## Future work
+- created and updated metadata
+- date field
 - paging
-- reverse relations
+- incoming links
 - auth
+- querying
