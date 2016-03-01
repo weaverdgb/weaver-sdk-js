@@ -12,7 +12,7 @@ Weaver SDK for JavaScript
 ##### Read
 - entity.id()
 - entity.type()
-- entity.entities()
+- entity.links()
 - entity.values()
 - entity.isFetched({eagerness})
 
