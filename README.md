@@ -1,4 +1,4 @@
-# weaver-sdk-js
+# Weaver SDK for JavaScript
 A library that gives you access to the Weaver platform from your JavaScript app.
 
 ## API
