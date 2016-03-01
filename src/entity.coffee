@@ -165,9 +165,11 @@ class Entity
     else
 
       # Update local
-      if not @[attribute]?
+      if not @[attribute]? and value?
         @[attribute] = value
 
+      if not value?
+        value = @[attribute]
 
       if isEntity(value)
         @$.weaver.socket.emit('link', {id: @$.id, key: attribute, target: value.id()})
@@ -183,8 +185,14 @@ class Entity
       delete @[key.id()]
       @$.weaver.socket.emit('unlink', {id: @$.id, key: key.id()})
     else
+
+      value = @[key]
       delete @[key]
-      @$.weaver.socket.emit('unlink', {id: @$.id, key})
+
+      if isEntity(value)
+        @$.weaver.socket.emit('unlink', {id: @$.id, key: key})
+      else
+        @$.weaver.socket.emit('update', {id: @$.id, attribute:key, value: null})
 
 
   # Core

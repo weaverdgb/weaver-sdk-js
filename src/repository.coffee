@@ -108,12 +108,17 @@ class Repository
         delete entity[payload.attribute]
     )
 
-    # Links
-    @weaver.socket.on(entity.$.id + ':updated', (payload) ->
-      if payload.value?
-        entity[payload.attribute] = payload.value
-      else
-        delete entity[payload.attribute]
+    # Link
+    self = @
+    @weaver.socket.on(entity.$.id + ':linked', (payload) ->
+      self.weaver.get(payload.target).then((newLink) ->
+        entity[payload.key] = newLink
+      )
+    )
+
+    # Unlink
+    @weaver.socket.on(entity.$.id + ':unlinked', (payload) ->
+      delete entity[payload.key]
     )
 
     entity
