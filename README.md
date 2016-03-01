@@ -4,8 +4,8 @@ Weaver SDK for JavaScript
 ## API
 
 ### Class: Weaver
-- weaver.entity(data, type, id)
-- weaver.load(id, {eagerness})
+- weaver.add(data, type, id)
+- weaver.get(id, {eagerness})
 
 ### Class: Entity
 
