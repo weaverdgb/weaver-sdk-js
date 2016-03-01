@@ -34,13 +34,13 @@ var weaver = new Weaver('https://weaver-server.herokuapp.com');
 
 ##### Creating an entity
 ```javascript
-var john = weaver.entity({name: 'John Doe', age: 27, male: true});
+var john = weaver.add({name: 'John Doe', age: 27, male: true});
 ```
 
 ##### Loading an entity
 ```javascript
 var lisa = null;
-weaver.load('cil9cvoae00003k6mz1mvt3gz', {eagerness: 1}).then(function(entity){
+weaver.load('id_01', {eagerness: 1}).then(function(entity){
   lisa = entity;
 });
 ```
