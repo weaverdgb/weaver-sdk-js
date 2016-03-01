@@ -19,7 +19,7 @@ Weaver SDK for JavaScript
 ##### Sync
 - entity.fetch({eagerness})
 - entity.push(key, value)
-- entity.delete()
+- entity.destroy()
 
 
 ## Examples
