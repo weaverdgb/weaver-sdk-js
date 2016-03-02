@@ -9,7 +9,7 @@ isReference = (object) ->
   object['_REF']?
 
 isEntity = (value) ->
-  typeof value.isEntity is 'function' and value.isEntity()
+  typeof value.$isEntity is 'function' and value.$isEntity()
 
 # Entity class exposing entity features
 module.exports =
@@ -35,8 +35,8 @@ class Entity
 
     # Create references
     register = (value) ->
-      entity = Entity.create(value).weaver(weaver)
-      references[entity.id()] = entity
+      entity = Entity.create(value).$weaver(weaver)
+      references[entity.$id()] = entity
 
       for key, value of entity when key isnt '$'
         if isObject(value) and not value['_REF']?
@@ -68,7 +68,7 @@ class Entity
     fetched = true if not fetched?
 
     # Store any non-content of this entity under the $ variable
-    @$ = {id, type, fetched}
+    @$ = {id, type, fetched, listeners: {}}
 
     # Copy keys from data
     @[key] = value for key, value of data
@@ -77,19 +77,19 @@ class Entity
 
   # Core
   # Get ID
-  id: ->
+  $id: ->
     @$.id
 
 
   # Core
   # Get type
-  type: ->
+  $type: ->
     @$.type
 
 
   # Core
   # Get all values that are not entities
-  values: ->
+  $values: ->
     values = {}
     values[key] = value for own key, value of @ when key isnt '$' and key isnt isEntity(value)
     values
@@ -97,7 +97,7 @@ class Entity
 
   # Core
   # Get all entities
-  links: ->
+  $links: ->
     links = {}
     links[key] = value for own key, value of @ when isEntity(value)
     links
@@ -105,7 +105,7 @@ class Entity
 
   # Core
   # Test wether this entity is fetched given the eagerness
-  isFetched: (eagerness, visited) ->
+  $isFetched: (eagerness, visited) ->
     # Default
     eagerness = 1 if not eagerness?
 
@@ -113,7 +113,7 @@ class Entity
     visited = {} if not visited?
 
     # Early return because of visited before
-    if visited[@id()]? and eagerness > -1 and visited[@id()] >= eagerness
+    if visited[@$id()]? and eagerness > -1 and visited[@$id()] >= eagerness
       return true
 
     # It is exists, it must be fetched
@@ -129,61 +129,60 @@ class Entity
       return false
 
     fetched = true
-    for key, subEntity of @links()
+    for key, subEntity of @$links()
       if eagerness is -1
-        if not visited[subEntity.id()]?
-          fetched = fetched and subEntity.isFetched(eagerness - 1, visited)
+        if not visited[subEntity.$id()]?
+          fetched = fetched and subEntity.$isFetched(eagerness - 1, visited)
       else
-        fetched = fetched and subEntity.isFetched(eagerness - 1, visited)
+        fetched = fetched and subEntity.$isFetched(eagerness - 1, visited)
 
     # Save eagerness
     if fetched
-      visited[@id()] = eagerness
+      visited[@$id()] = eagerness
 
     return fetched
 
 
   # Core
   # Fetch entity further given eagerness
-  fetch: (opts) ->
+  $fetch: (opts) ->
     @$.weaver.get(@$.id, opts)
 
 
   # Core
   # Pushes key to server
-  push: (attribute, value) ->
+  $push: (attribute, value) ->
 
     # Convenience method for entity.id -> entity
     if isEntity(attribute)
 
       # Update local
-      if not @[attribute.id()]?
-        @[attribute.id()] = attribute
+      if not @[attribute.$id()]?
+        @[attribute.$id()] = attribute
 
-      @$.weaver.socket.emit('link', {id: @$.id, key: attribute.id(), target: attribute.id()})
+      @$.weaver.socket.emit('link', {id: @$.id, key: attribute.$id(), target: attribute.$id()})
 
     else
 
       # Update local
-      if not @[attribute]? and value?
-        @[attribute] = value
-
-      if not value?
+      if value?
+        @[attribute] = value if @[attribute] isnt value
+      else
         value = @[attribute]
 
       if isEntity(value)
-        @$.weaver.socket.emit('link', {id: @$.id, key: attribute, target: value.id()})
+        @$.weaver.socket.emit('link', {id: @$.id, key: attribute, target: value.$id()})
       else
         @$.weaver.socket.emit('update', {id: @$.id, attribute, value: @[attribute]})
 
 
   # Core
   # Removes key from server
-  remove: (key) ->
+  $remove: (key) ->
     # Convenience method for entity.id -> entity
     if isEntity(key)
-      delete @[key.id()]
-      @$.weaver.socket.emit('unlink', {id: @$.id, key: key.id()})
+      delete @[key.$id()]
+      @$.weaver.socket.emit('unlink', {id: @$.id, key: key.$id()})
     else
 
       value = @[key]
@@ -192,23 +191,37 @@ class Entity
       if isEntity(value)
         @$.weaver.socket.emit('unlink', {id: @$.id, key: key})
       else
-        @$.weaver.socket.emit('update', {id: @$.id, attribute:key, value: null})
+        @$.weaver.socket.emit('update', {id: @$.id, attribute: key, value: null})
 
 
   # Core
   # Removes entity from server and any linked entities
-  destroy: ->
+  $destroy: ->
     @$.weaver.socket.emit('delete', {id: @$.id})
 
 
+  # Core
+  # Triggers when any change happens
+  $on: (key, callback) ->
+    if not @$.listeners[key]?
+      @$.listeners[key] = []
 
-  weaver: (weaver) ->
+    @$.listeners[key].push(callback)
+
+
+  $fire: (key) ->
+    if @$.listeners[key]?
+      for callback in @$.listeners[key]
+        callback.call(key)
+
+
+  $weaver: (weaver) ->
     @$.weaver = weaver
     @
 
-  isEntity: ->
+  $isEntity: ->
     true
 
-  withoutEntities: ->
-    delete @[key] for key, val of @links()
+  $withoutEntities: ->
+    delete @[key] for key, val of @$links()
     @

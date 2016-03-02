@@ -6,27 +6,27 @@ Entity = require('../../src/entity')
 Weaver = require('../../src/weaver')
 
 describe 'Weaver: Loading an entity', ->
-  
+
   weaver   = new Weaver('http://mockserver')
   socket   = null
   mockRead = null
-  
+
   beforeEach ->
     weaver.repository.clear()
     socket = sinon.mock(weaver.socket)
-    
+
     mockRead = (object) ->
       socket.expects('read').once().returns(Promise.resolve(object))
-     
+
   afterEach ->
     socket.restore()
-  
+
 
   it 'should load nested object with empty repository', ->
-      return            
+      return
 
       # Server response
-      object = 
+      object =
         _META:
           id: '0'
           type: 'user'
@@ -38,7 +38,7 @@ describe 'Weaver: Loading an entity', ->
             type: 'human'
             fetched: false
           name: 'Bastiaan Bijl'
-          
+
       mockRead(object)
 
       # Load
@@ -46,8 +46,8 @@ describe 'Weaver: Loading an entity', ->
         # Assert returned value
         entity.$.fetched.should.be.true
         entity.name.should.equal('Mohamad Alamili')
-        entity.friend.id().should.equal('1')
-        
+        entity.friend.$id().should.equal('1')
+
         # Assert repository content
         weaver.repository.size().should.equal(2)
         weaver.repository.get('0').should.equal(entity)
@@ -56,11 +56,11 @@ describe 'Weaver: Loading an entity', ->
 
 
 
-      
+
   it 'should load nested object with non empty repository', ->
       return
       # Server response
-      object = 
+      object =
         _META:
           id: '0'
           type: 'user'
@@ -72,25 +72,25 @@ describe 'Weaver: Loading an entity', ->
             type: 'human'
             fetched: false
           name: 'Bastiaan Bijl'
-          
+
       mockRead(object)
-          
+
       # Repository
       repoEntity = new Entity({existing: true}, 'user', false, '0')
       weaver.repository.add(repoEntity)
-      
+
       # Load
       weaver.get('0').then((entity) ->
-                
+
         # Assert returned value
         entity.should.equal(repoEntity)
         entity.$.fetched.should.be.true
         entity.existing.should.be.true
-        entity.friend.id().should.equal('1')
+        entity.friend.$id().should.equal('1')
 
         # Name is not transferred
         expect(entity.name).to.be.undefined
-        
+
         # Assert repository content
         weaver.repository.size().should.equal(2)
         weaver.repository.get('0').should.equal(entity)
@@ -130,7 +130,7 @@ describe 'Weaver: Loading an entity', ->
               type: 'thing'
               fetched: false
             name: '5V low speed'
-            
+
 
     mockRead(object)
 
@@ -143,7 +143,7 @@ describe 'Weaver: Loading an entity', ->
 
       # Assert returned value
       entity.computer.processor.should.equal(cpuEntity)
-      entity.computer.processor.fan.id().should.equal('4')
+      entity.computer.processor.fan.$id().should.equal('4')
 
       # Assert repository content
       weaver.repository.size().should.equal(5)
@@ -162,7 +162,7 @@ describe 'Weaver: Loading an entity', ->
   it 'should load nested object with mixed repository case extreme', ->
   # Server:     (A)+ -> (B)+ -> (C)+ -> (D)+ -> (E)-
   # Repository: (X)+ -> (C)-
-    
+
   # Server response
     object =
       _META:
@@ -204,7 +204,7 @@ describe 'Weaver: Loading an entity', ->
 
     processor    = new Entity({existing: true, manufactured: 'israel'}, 'thing', false, '2')
     weaver.repository.add(processor)
-    
+
     manufacturer.produces = processor
 
     # Load
@@ -212,7 +212,7 @@ describe 'Weaver: Loading an entity', ->
 
       # Assert returned value
       entity.computer.processor.should.equal(processor)
-      entity.computer.processor.fan.id().should.equal('3')
+      entity.computer.processor.fan.$id().should.equal('3')
 
       # Assert repository content
       weaver.repository.size().should.equal(6)
@@ -226,7 +226,7 @@ describe 'Weaver: Loading an entity', ->
       weaver.repository.get('4').should.equal(manufacturer.produces.fan.motor)
       weaver.repository.get('666').should.equal(manufacturer)
     )
-    
+
 
 
 
@@ -235,7 +235,7 @@ describe 'Weaver: Loading an entity', ->
   # Server:     (A)+ -> (B)+ -> (C)+ -> (D)-
   # Repository: (C)+ -> (D)+ -> (F)-
   #                  -> (E)+
-    
+
   # Server response
     object =
       _META:
@@ -273,7 +273,7 @@ describe 'Weaver: Loading an entity', ->
 
     E = new Entity({name: 'E'}, 'object', true, '4')
     weaver.repository.add(E)
-  
+
     F = new Entity({name: 'F'}, 'object', false, '5')
     weaver.repository.add(F)
 
@@ -303,13 +303,13 @@ describe 'Weaver: Loading an entity', ->
       weaver.repository.get('4').should.equal(entity.link.link.link2)
       weaver.repository.get('5').should.equal(entity.link.link.link.link)
       weaver.repository.get('5').should.equal(C.link.link)
-    )  
-    
+    )
+
   it 'should load circular refs', ->
   # Server:     (A)+ -> (B)+ -> (C)+ -> (D)-
   # Repository: (C)+ -> (D)+ -> (F)-
   #                  -> (E)+
-    
+
   # Server response
     object =
       _META:
@@ -342,12 +342,12 @@ describe 'Weaver: Loading an entity', ->
       weaver.repository.get('0').name.should.equal('A')
       weaver.repository.get('1').name.should.equal('B')
       weaver.repository.get('2').name.should.equal('C')
-      weaver.repository.get('0').should.equal(weaver.repository.get('2').link) 
+      weaver.repository.get('0').should.equal(weaver.repository.get('2').link)
     )
 
-    
+
   it 'should not load from server if available in repository', ->
-    
+
     # Server response
     socket.expects('read').never()
 
@@ -360,7 +360,7 @@ describe 'Weaver: Loading an entity', ->
 
     E = new Entity({name: 'E'}, 'object', true, '4')
     weaver.repository.add(E)
-  
+
     F = new Entity({name: 'F'}, 'object', false, '5')
     weaver.repository.add(F)
 
@@ -389,7 +389,7 @@ describe 'Weaver: Loading an entity', ->
       weaver.repository.get('5').should.equal(entity.link.link)
       weaver.repository.get('5').should.equal(C.link.link)
     )
-    
+
 
 
 

@@ -21,7 +21,7 @@ class Repository
     @entities[id]
 
   add: (entity) ->
-    @entities[entity.id()] = entity
+    @entities[entity.$id()] = entity
     entity
 
   size: ->
@@ -38,11 +38,11 @@ class Repository
     added = {}
 
     addConnections = (parent) ->
-      added[parent.id()] = true
-      for key, child of parent.links()
+      added[parent.$id()] = true
+      for key, child of parent.$links()
         connections.push({subject: parent, predicate: key, object: child})
 
-        if not added[child.id()]?
+        if not added[child.$id()]?
           addConnections(child)
 
     addConnections(entity)
@@ -50,7 +50,7 @@ class Repository
 
     # Might have no connections, in which case we just add and return
     if connections.length is 0
-      if not @contains(entity.id())
+      if not @contains(entity.$id())
         @track(@add(entity))
     else
       # Process
@@ -58,18 +58,18 @@ class Repository
       for connection in connections
 
         # Not yet in repository
-        if not @contains(connection.subject.id())
-          repoSubject = connection.subject.withoutEntities()
-          processing[repoSubject.id()] = true
+        if not @contains(connection.subject.$id())
+          repoSubject = connection.subject.$withoutEntities()
+          processing[repoSubject.$id()] = true
           @track(@add(repoSubject))
         else
-          repoSubject = @get(connection.subject.id())
-          repoObject = @get(connection.object.id())
+          repoSubject = @get(connection.subject.$id())
+          repoObject = @get(connection.object.$id())
 
-          if repoSubject.$.fetched and repoObject? and repoObject.$.fetched and not processing[repoSubject.id()]
+          if repoSubject.$.fetched and repoObject? and repoObject.$.fetched and not processing[repoSubject.$id()]
             continue
           else
-            processing[repoSubject.id()] = true
+            processing[repoSubject.$id()] = true
 
             # Transfer state to repo subject
             if connection.subject.$.fetched
@@ -77,13 +77,13 @@ class Repository
 
 
         # Process object
-        if not @contains(connection.object.id())
-          repoObject = connection.object.withoutEntities()
+        if not @contains(connection.object.$id())
+          repoObject = connection.object.$withoutEntities()
           @track(@add(repoObject))
-          processing[repoObject.id()] = true
+          processing[repoObject.$id()] = true
         else
-          repoObject = @get(connection.object.id())
-          processing[repoObject.id()] = true
+          repoObject = @get(connection.object.$id())
+          processing[repoObject.$id()] = true
 
           # Transfer state to repo object
           if connection.object.$.fetched
@@ -95,7 +95,7 @@ class Repository
 
 
     # Return entity
-    @get(entity.id())
+    @get(entity.$id())
 
 
   track: (entity) ->
@@ -106,6 +106,8 @@ class Repository
         entity[payload.attribute] = payload.value
       else
         delete entity[payload.attribute]
+
+      entity.$fire(payload.attribute)
     )
 
     # Link
@@ -114,11 +116,15 @@ class Repository
       self.weaver.get(payload.target).then((newLink) ->
         entity[payload.key] = newLink
       )
+
+      entity.$fire(payload.key)
     )
 
     # Unlink
     @weaver.socket.on(entity.$.id + ':unlinked', (payload) ->
       delete entity[payload.key]
+
+      entity.$fire(payload.key)
     )
 
     entity

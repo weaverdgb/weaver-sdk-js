@@ -10,19 +10,22 @@ A library that gives you access to the Weaver platform from your JavaScript app.
 ### Object: Entity
 
 ##### Read
-- entity.id()
-- entity.type()
-- entity.values()
-- entity.links()
-- entity.isFetched({eagerness})
-- entity.fetch({eagerness})
+- entity.$id()
+- entity.$type()
+- entity.$values()
+- entity.$links()
+- entity.$isFetched({eagerness})
+- entity.$fetch({eagerness})
 
 ##### Persist
-- entity.push(key, value)
-- entity.push(entity)
-- entity.remove(key)
-- entity.remove(entity)
-- entity.destroy({force}) (not yet implemented)
+- entity.$push(key, value)
+- entity.$push(entity)
+- entity.$remove(key)
+- entity.$remove(entity)
+- entity.$destroy({force}) (not yet implemented)
+
+##### Events
+- entity.$on('key', callback)
 
 
 ## Examples
@@ -46,50 +49,51 @@ weaver.get('id_01', {eagerness: 1}).then(function(entity){
 
 ##### Fetching an entity
 ```javascript
-john.fetch({eagerness: 3});
+john.$fetch({eagerness: 3});
 ```
 
 ##### Updating an entity
 ```javascript
 john.color = 'Red';
-john.push('color');
+john.$push('color');
 ```
 
 ###### or
 ```javascript
-john.push('color', 'Red');
+john.$push('color', 'Red');
 ```
 
 ##### Linking to another entity
 ```javascript
 john.friend = lisa;
-john.push('friend');
+john.$push('friend');
 ```
 
 ###### or
 ```javascript
-john.push('friend', lisa);
+john.$push('friend', lisa);
 ```
 
 ##### Linking to multiple entities
 ```javascript
 john.friends = weaver.add();
-john.friends.push(lisa)
+john.friends.$push(lisa)
 ```
 
 ###### or
 ```javascript
-john.friends.push(lisa.id(), lisa);
+john.friends.$push(lisa.id(), lisa);
 ```
 
 ###### or
 ```javascript
 john.friends[lisa.id()] = lisa;
-john.friends.push(lisa.id());
+john.friends.$push(lisa.id());
 ```
 
 
 ## Todo
+- further implement local listening and removing
 - implement destroy
 - error handling
 - repository weaver under $

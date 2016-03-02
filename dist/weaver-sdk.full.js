@@ -12090,7 +12090,7 @@ function toArray(list, index) {
       register = function(value) {
         var entity, key, _results;
         entity = Entity.create(value).weaver(weaver);
-        references[entity.id()] = entity;
+        references[entity.$id()] = entity;
         _results = [];
         for (key in entity) {
           value = entity[key];
@@ -12137,7 +12137,8 @@ function toArray(list, index) {
       this.$ = {
         id: id,
         type: type,
-        fetched: fetched
+        fetched: fetched,
+        listeners: {}
       };
       for (key in data) {
         value = data[key];
@@ -12145,15 +12146,15 @@ function toArray(list, index) {
       }
     }
 
-    Entity.prototype.id = function() {
+    Entity.prototype.$id = function() {
       return this.$.id;
     };
 
-    Entity.prototype.type = function() {
+    Entity.prototype.$type = function() {
       return this.$.type;
     };
 
-    Entity.prototype.values = function() {
+    Entity.prototype.$values = function() {
       var key, value, values;
       values = {};
       for (key in this) {
@@ -12166,7 +12167,7 @@ function toArray(list, index) {
       return values;
     };
 
-    Entity.prototype.links = function() {
+    Entity.prototype.$links = function() {
       var key, links, value;
       links = {};
       for (key in this) {
@@ -12179,7 +12180,7 @@ function toArray(list, index) {
       return links;
     };
 
-    Entity.prototype.isFetched = function(eagerness, visited) {
+    Entity.prototype.$isFetched = function(eagerness, visited) {
       var fetched, key, subEntity, _ref;
       if (eagerness == null) {
         eagerness = 1;
@@ -12187,7 +12188,7 @@ function toArray(list, index) {
       if (visited == null) {
         visited = {};
       }
-      if ((visited[this.id()] != null) && eagerness > -1 && visited[this.id()] >= eagerness) {
+      if ((visited[this.$id()] != null) && eagerness > -1 && visited[this.$id()] >= eagerness) {
         return true;
       }
       if (eagerness === 0) {
@@ -12204,7 +12205,7 @@ function toArray(list, index) {
       for (key in _ref) {
         subEntity = _ref[key];
         if (eagerness === -1) {
-          if (visited[subEntity.id()] == null) {
+          if (visited[subEntity.$id()] == null) {
             fetched = fetched && subEntity.isFetched(eagerness - 1, visited);
           }
         } else {
@@ -12212,37 +12213,38 @@ function toArray(list, index) {
         }
       }
       if (fetched) {
-        visited[this.id()] = eagerness;
+        visited[this.$id()] = eagerness;
       }
       return fetched;
     };
 
-    Entity.prototype.fetch = function(opts) {
+    Entity.prototype.$fetch = function(opts) {
       return this.$.weaver.get(this.$.id, opts);
     };
 
-    Entity.prototype.push = function(attribute, value) {
+    Entity.prototype.$push = function(attribute, value) {
       if (isEntity(attribute)) {
-        if (this[attribute.id()] == null) {
-          this[attribute.id()] = attribute;
+        if (this[attribute.$id()] == null) {
+          this[attribute.$id()] = attribute;
         }
         return this.$.weaver.socket.emit('link', {
           id: this.$.id,
-          key: attribute.id(),
-          target: attribute.id()
+          key: attribute.$id(),
+          target: attribute.$id()
         });
       } else {
-        if ((this[attribute] == null) && (value != null)) {
-          this[attribute] = value;
-        }
-        if (value == null) {
+        if (value != null) {
+          if (this[attribute] !== value) {
+            this[attribute] = value;
+          }
+        } else {
           value = this[attribute];
         }
         if (isEntity(value)) {
           return this.$.weaver.socket.emit('link', {
             id: this.$.id,
             key: attribute,
-            target: value.id()
+            target: value.$id()
           });
         } else {
           return this.$.weaver.socket.emit('update', {
@@ -12254,13 +12256,13 @@ function toArray(list, index) {
       }
     };
 
-    Entity.prototype.remove = function(key) {
+    Entity.prototype.$remove = function(key) {
       var value;
       if (isEntity(key)) {
-        delete this[key.id()];
+        delete this[key.$id()];
         return this.$.weaver.socket.emit('unlink', {
           id: this.$.id,
-          key: key.id()
+          key: key.$id()
         });
       } else {
         value = this[key];
@@ -12280,22 +12282,42 @@ function toArray(list, index) {
       }
     };
 
-    Entity.prototype.destroy = function() {
+    Entity.prototype.$destroy = function() {
       return this.$.weaver.socket.emit('delete', {
         id: this.$.id
       });
     };
 
-    Entity.prototype.weaver = function(weaver) {
+    Entity.prototype.$on = function(key, callback) {
+      if (this.$.listeners[key] == null) {
+        this.$.listeners[key] = [];
+      }
+      return this.$.listeners[key].push(callback);
+    };
+
+    Entity.prototype.$fire = function(key) {
+      var callback, _i, _len, _ref, _results;
+      if (this.$.listeners[key] != null) {
+        _ref = this.$.listeners[key];
+        _results = [];
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          callback = _ref[_i];
+          _results.push(callback.call(key));
+        }
+        return _results;
+      }
+    };
+
+    Entity.prototype.$weaver = function(weaver) {
       this.$.weaver = weaver;
       return this;
     };
 
-    Entity.prototype.isEntity = function() {
+    Entity.prototype.$isEntity = function() {
       return true;
     };
 
-    Entity.prototype.withoutEntities = function() {
+    Entity.prototype.$withoutEntities = function() {
       var key, val, _ref;
       _ref = this.links();
       for (key in _ref) {
@@ -12340,7 +12362,7 @@ function toArray(list, index) {
     };
 
     Repository.prototype.add = function(entity) {
-      this.entities[entity.id()] = entity;
+      this.entities[entity.$id()] = entity;
       return entity;
     };
 
@@ -12372,7 +12394,7 @@ function toArray(list, index) {
       added = {};
       addConnections = function(parent) {
         var child, key, _ref, _results;
-        added[parent.id()] = true;
+        added[parent.$id()] = true;
         _ref = parent.links();
         _results = [];
         for (key in _ref) {
@@ -12382,7 +12404,7 @@ function toArray(list, index) {
             predicate: key,
             object: child
           });
-          if (added[child.id()] == null) {
+          if (added[child.$id()] == null) {
             _results.push(addConnections(child));
           } else {
             _results.push(void 0);
@@ -12392,36 +12414,36 @@ function toArray(list, index) {
       };
       addConnections(entity);
       if (connections.length === 0) {
-        if (!this.contains(entity.id())) {
+        if (!this.contains(entity.$id())) {
           this.track(this.add(entity));
         }
       } else {
         processing = {};
         for (_i = 0, _len = connections.length; _i < _len; _i++) {
           connection = connections[_i];
-          if (!this.contains(connection.subject.id())) {
+          if (!this.contains(connection.subject.$id())) {
             repoSubject = connection.subject.withoutEntities();
-            processing[repoSubject.id()] = true;
+            processing[repoSubject.$id()] = true;
             this.track(this.add(repoSubject));
           } else {
-            repoSubject = this.get(connection.subject.id());
-            repoObject = this.get(connection.object.id());
-            if (repoSubject.$.fetched && (repoObject != null) && repoObject.$.fetched && !processing[repoSubject.id()]) {
+            repoSubject = this.get(connection.subject.$id());
+            repoObject = this.get(connection.object.$id());
+            if (repoSubject.$.fetched && (repoObject != null) && repoObject.$.fetched && !processing[repoSubject.$id()]) {
               continue;
             } else {
-              processing[repoSubject.id()] = true;
+              processing[repoSubject.$id()] = true;
               if (connection.subject.$.fetched) {
                 repoSubject.$.fetched = true;
               }
             }
           }
-          if (!this.contains(connection.object.id())) {
+          if (!this.contains(connection.object.$id())) {
             repoObject = connection.object.withoutEntities();
             this.track(this.add(repoObject));
-            processing[repoObject.id()] = true;
+            processing[repoObject.$id()] = true;
           } else {
-            repoObject = this.get(connection.object.id());
-            processing[repoObject.id()] = true;
+            repoObject = this.get(connection.object.$id());
+            processing[repoObject.$id()] = true;
             if (connection.object.$.fetched) {
               repoObject.$.fetched = true;
             }
@@ -12429,26 +12451,29 @@ function toArray(list, index) {
           repoSubject[connection.predicate] = repoObject;
         }
       }
-      return this.get(entity.id());
+      return this.get(entity.$id());
     };
 
     Repository.prototype.track = function(entity) {
       var self;
       this.weaver.socket.on(entity.$.id + ':updated', function(payload) {
         if (payload.value != null) {
-          return entity[payload.attribute] = payload.value;
+          entity[payload.attribute] = payload.value;
         } else {
-          return delete entity[payload.attribute];
+          delete entity[payload.attribute];
         }
+        return entity.fire(payload.attribute);
       });
       self = this;
       this.weaver.socket.on(entity.$.id + ':linked', function(payload) {
-        return self.weaver.get(payload.target).then(function(newLink) {
+        self.weaver.get(payload.target).then(function(newLink) {
           return entity[payload.key] = newLink;
         });
+        return entity.fire(payload.key);
       });
       this.weaver.socket.on(entity.$.id + ':unlinked', function(payload) {
-        return delete entity[payload.key];
+        delete entity[payload.key];
+        return entity.fire(payload.key);
       });
       return entity;
     };
@@ -12539,7 +12564,7 @@ function toArray(list, index) {
     Weaver.prototype.add = function(data, type, id) {
       var entity;
       entity = new Entity(data, type, true, id).weaver(this);
-      this.socket.create(type, entity.id(), data);
+      this.socket.create(type, entity.$id(), data);
       return this.repository.store(entity);
     };
 

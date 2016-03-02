@@ -39,7 +39,7 @@ describe 'Weaver: Linking entity', ->
 
   it 'should link to another entity', ->
     bastiaan = weaver.add({name:'Bastiaan Bijl', age: 29}, 'human')
-    mohamad.push('friend', bastiaan)
+    mohamad.$push('friend', bastiaan)
 
     mohamad.should.have.property('friend')
     mohamad.friend.should.equal(bastiaan)
@@ -52,17 +52,17 @@ describe 'Weaver: Linking entity', ->
 
     # TODO: make this a method
     friends = weaver.add({}, '_COLLECTION')
-    friends.push(bastiaan.$.id, bastiaan)
-    friends.push(gijs.$.id, gijs)
-    mohamad.push('friends', friends)
-    bastiaan.push('colleague', gijs)
+    friends.$push(bastiaan.$.id, bastiaan)
+    friends.$push(gijs.$.id, gijs)
+    mohamad.$push('friends', friends)
+    bastiaan.$push('colleague', gijs)
 
     # EXP
-    gijs.push('buddy', mohamad)
+    gijs.$push('buddy', mohamad)
 
     mohamad.should.have.property('friends')
-    mohamad.friends.values()[bastiaan.id()].should.equal(bastiaan)
-    mohamad.friends.values()[gijs.id()].should.equal(gijs)
+    mohamad.friends.$values()[bastiaan.$id()].should.equal(bastiaan)
+    mohamad.friends.$values()[gijs.$id()].should.equal(gijs)
 
 
 describe 'Weaver: Loading entity', ->
@@ -77,7 +77,7 @@ describe 'Weaver: Loading entity', ->
 
 #    promise.then((mohamad) ->
 #      #console.log(mohamad)
-#      console.log(mohamad.id())
+#      console.log(mohamad.$id())
 #     # mohamad.name.should.equal('Mohamad Alamili')
 #     # mohamad.$.fetched.should.be.false
 #    )

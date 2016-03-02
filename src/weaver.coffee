@@ -19,10 +19,10 @@ class Weaver
   # Core
   # Adds a new entity to Weaver
   add: (data, type, id) ->
-    entity = new Entity(data, type, true, id).weaver(@)
+    entity = new Entity(data, type, true, id).$weaver(@)
 
     # Save to server
-    @socket.create(type, entity.id(), data)
+    @socket.create(type, entity.$id(), data)
 
     # Save in repository and return
     @repository.store(entity)
@@ -35,7 +35,7 @@ class Weaver
     opts = {} if not opts?
     opts.eagerness = 1 if not opts.eagerness?
 
-    if @repository.contains(id) and @repository.get(id).isFetched(opts.eagerness)
+    if @repository.contains(id) and @repository.get(id).$isFetched(opts.eagerness)
       Promise.resolve(@repository.get(id))
     else
       # Server read
@@ -61,7 +61,6 @@ class Weaver
   # Returns an entity in the local repository
   local: (id) ->
     @repository.get(id)
-
 
 
 # Browser export
