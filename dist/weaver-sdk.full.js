@@ -12064,7 +12064,7 @@ function toArray(list, index) {
   };
 
   isEntity = function(value) {
-    return typeof value.isEntity === 'function' && value.isEntity();
+    return typeof value.$isEntity === 'function' && value.$isEntity();
   };
 
   module.exports = Entity = (function() {
@@ -12089,7 +12089,7 @@ function toArray(list, index) {
       references = {};
       register = function(value) {
         var entity, key, _results;
-        entity = Entity.create(value).weaver(weaver);
+        entity = Entity.create(value).$weaver(weaver);
         references[entity.$id()] = entity;
         _results = [];
         for (key in entity) {
@@ -12201,15 +12201,15 @@ function toArray(list, index) {
         return false;
       }
       fetched = true;
-      _ref = this.links();
+      _ref = this.$links();
       for (key in _ref) {
         subEntity = _ref[key];
         if (eagerness === -1) {
           if (visited[subEntity.$id()] == null) {
-            fetched = fetched && subEntity.isFetched(eagerness - 1, visited);
+            fetched = fetched && subEntity.$isFetched(eagerness - 1, visited);
           }
         } else {
-          fetched = fetched && subEntity.isFetched(eagerness - 1, visited);
+          fetched = fetched && subEntity.$isFetched(eagerness - 1, visited);
         }
       }
       if (fetched) {
@@ -12319,7 +12319,7 @@ function toArray(list, index) {
 
     Entity.prototype.$withoutEntities = function() {
       var key, val, _ref;
-      _ref = this.links();
+      _ref = this.$links();
       for (key in _ref) {
         val = _ref[key];
         delete this[key];
@@ -12395,7 +12395,7 @@ function toArray(list, index) {
       addConnections = function(parent) {
         var child, key, _ref, _results;
         added[parent.$id()] = true;
-        _ref = parent.links();
+        _ref = parent.$links();
         _results = [];
         for (key in _ref) {
           child = _ref[key];
@@ -12422,7 +12422,7 @@ function toArray(list, index) {
         for (_i = 0, _len = connections.length; _i < _len; _i++) {
           connection = connections[_i];
           if (!this.contains(connection.subject.$id())) {
-            repoSubject = connection.subject.withoutEntities();
+            repoSubject = connection.subject.$withoutEntities();
             processing[repoSubject.$id()] = true;
             this.track(this.add(repoSubject));
           } else {
@@ -12438,7 +12438,7 @@ function toArray(list, index) {
             }
           }
           if (!this.contains(connection.object.$id())) {
-            repoObject = connection.object.withoutEntities();
+            repoObject = connection.object.$withoutEntities();
             this.track(this.add(repoObject));
             processing[repoObject.$id()] = true;
           } else {
@@ -12462,18 +12462,18 @@ function toArray(list, index) {
         } else {
           delete entity[payload.attribute];
         }
-        return entity.fire(payload.attribute);
+        return entity.$fire(payload.attribute);
       });
       self = this;
       this.weaver.socket.on(entity.$.id + ':linked', function(payload) {
         self.weaver.get(payload.target).then(function(newLink) {
           return entity[payload.key] = newLink;
         });
-        return entity.fire(payload.key);
+        return entity.$fire(payload.key);
       });
       this.weaver.socket.on(entity.$.id + ':unlinked', function(payload) {
         delete entity[payload.key];
-        return entity.fire(payload.key);
+        return entity.$fire(payload.key);
       });
       return entity;
     };
@@ -12563,7 +12563,7 @@ function toArray(list, index) {
 
     Weaver.prototype.add = function(data, type, id) {
       var entity;
-      entity = new Entity(data, type, true, id).weaver(this);
+      entity = new Entity(data, type, true, id).$weaver(this);
       this.socket.create(type, entity.$id(), data);
       return this.repository.store(entity);
     };
@@ -12575,7 +12575,7 @@ function toArray(list, index) {
       if (opts.eagerness == null) {
         opts.eagerness = 1;
       }
-      if (this.repository.contains(id) && this.repository.get(id).isFetched(opts.eagerness)) {
+      if (this.repository.contains(id) && this.repository.get(id).$isFetched(opts.eagerness)) {
         return Promise.resolve(this.repository.get(id));
       } else {
         return this.socket.read(id, opts).bind(this).then(function(object) {
