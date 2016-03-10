@@ -1,6 +1,6 @@
 {
-  "name": "weaver-sdk-js",
-  "version": "0.0.2",
+  "name": "weaver-sdk",
+  "version": "0.0.3",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -8,7 +8,7 @@
     "email": "mohamad@sysunite.com"
   },
   "readme": "README.md",
-  "main": "js/weaver.js",
+  "main": "lib/weaver.js",
   "license": "GPL-3.0",
   "repository": {},
   "dependencies": {
@@ -39,6 +39,7 @@
     "node": ">=0.8"
   },
   "scripts": {
+    "prepublish": "coffee -o lib -c src",
     "test": "./node_modules/.bin/mocha --compilers coffee:coffee-script/register --recursive $(find test -path '*test.coffee')"
   }
 }
