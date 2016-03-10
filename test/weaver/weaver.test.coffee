@@ -4,7 +4,9 @@ redis = new require('ioredis')()
 
 # Weaver
 Weaver = require('./../../src/weaver')
-weaver = new Weaver('http://localhost:9487')
+weaver = new Weaver()
+weaver.connect('http://localhost:9487')
+
 mohamad = null
 
 before('clear database', ->

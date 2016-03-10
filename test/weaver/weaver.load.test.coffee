@@ -7,19 +7,20 @@ Weaver = require('../../src/weaver')
 
 describe 'Weaver: Loading an entity', ->
 
-  weaver   = new Weaver('http://mockserver')
-  socket   = null
+  weaver   = new Weaver()
+  weaver.connect('http://mockserver')
+  channel   = null
   mockRead = null
 
   beforeEach ->
     weaver.repository.clear()
-    socket = sinon.mock(weaver.socket)
+    channel = sinon.mock(weaver.channel)
 
     mockRead = (object) ->
-      socket.expects('read').once().returns(Promise.resolve(object))
+      channel.expects('read').once().returns(Promise.resolve(object))
 
   afterEach ->
-    socket.restore()
+    channel.restore()
 
 
   it 'should load nested object with empty repository', ->
@@ -349,7 +350,7 @@ describe 'Weaver: Loading an entity', ->
   it 'should not load from server if available in repository', ->
 
     # Server response
-    socket.expects('read').never()
+    channel.expects('read').never()
 
     # Repository
     C = new Entity({name: 'C'}, 'object', true, '2')

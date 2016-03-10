@@ -6,19 +6,20 @@ Weaver = require('../../src/weaver')
 
 describe 'Entity: Fetching an entity', ->
 
-  weaver   = new Weaver('http://mockserver')
-  socket   = null
+  weaver   = new Weaver()
+  weaver.connect('http://mockserver')
+  channel  = null
   mockRead = null
 
   beforeEach ->
     weaver.repository.clear()
-    socket = sinon.mock(weaver.socket)
+    channel = sinon.mock(weaver.channel)
 
     mockRead = (object) ->
-      socket.expects('read').once().returns(Promise.resolve(object))
+      channel.expects('read').once().returns(Promise.resolve(object))
 
   afterEach ->
-    socket.restore()
+    channel.restore()
 
 
 

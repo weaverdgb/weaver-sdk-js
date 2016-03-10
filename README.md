@@ -4,6 +4,13 @@ A library that gives you access to the Weaver platform from your JavaScript app.
 ## API
 
 ### Object: Weaver
+
+##### Initialize
+- weaver = new Weaver()
+- weaver.connect(socketUrl)
+- weaver.database(localDatabase)
+
+##### Interact
 - weaver.add(data, type, id)
 - weaver.get(id, {eagerness})
 
@@ -30,9 +37,16 @@ A library that gives you access to the Weaver platform from your JavaScript app.
 
 ## Examples
 
-##### Creating a new Weaver instance
+##### Creating a new Weaver instance connected to a socket
 ```javascript
-var weaver = new Weaver('https://weaver-server.herokuapp.com');
+var weaver = new Weaver();
+weaver.connect('https://weaver-server.herokuapp.com');
+```
+
+##### Creating a new Weaver instance connected to a local database
+```javascript
+var weaver = new Weaver();
+weaver.database(database);
 ```
 
 ##### Creating an entity

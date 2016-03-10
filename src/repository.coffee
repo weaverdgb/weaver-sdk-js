@@ -101,7 +101,7 @@ class Repository
   track: (entity) ->
 
     # Updates
-    @weaver.socket.on(entity.$.id + ':updated', (payload) ->
+    @weaver.channel.onUpdate(entity.$.id, (payload) ->
       if payload.value?
         entity[payload.attribute] = payload.value
       else
@@ -112,7 +112,7 @@ class Repository
 
     # Link
     self = @
-    @weaver.socket.on(entity.$.id + ':linked', (payload) ->
+    @weaver.channel.onLinked(entity.$.id, (payload) ->
       self.weaver.get(payload.target).then((newLink) ->
         entity[payload.key] = newLink
       )
@@ -121,7 +121,7 @@ class Repository
     )
 
     # Unlink
-    @weaver.socket.on(entity.$.id + ':unlinked', (payload) ->
+    @weaver.channel.onUnlinked(entity.$.id, (payload) ->
       delete entity[payload.key]
 
       entity.$fire(payload.key)

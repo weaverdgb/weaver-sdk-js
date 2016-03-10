@@ -160,7 +160,7 @@ class Entity
       if not @[attribute.$id()]?
         @[attribute.$id()] = attribute
 
-      @$.weaver.socket.emit('link', {id: @$.id, key: attribute.$id(), target: attribute.$id()})
+      @$.weaver.channel.link({id: @$.id, key: attribute.$id(), target: attribute.$id()})
 
     else
 
@@ -171,9 +171,9 @@ class Entity
         value = @[attribute]
 
       if isEntity(value)
-        @$.weaver.socket.emit('link', {id: @$.id, key: attribute, target: value.$id()})
+        @$.weaver.channel.link({id: @$.id, key: attribute, target: value.$id()})
       else
-        @$.weaver.socket.emit('update', {id: @$.id, attribute, value: @[attribute]})
+        @$.weaver.channel.update({id: @$.id, attribute, value: @[attribute]})
 
 
   # Core
@@ -182,23 +182,22 @@ class Entity
     # Convenience method for entity.id -> entity
     if isEntity(key)
       delete @[key.$id()]
-      @$.weaver.socket.emit('unlink', {id: @$.id, key: key.$id()})
+      @$.weaver.channel.unlink({id: @$.id, key: key.$id()})
     else
 
       value = @[key]
       delete @[key]
 
       if isEntity(value)
-        @$.weaver.socket.emit('unlink', {id: @$.id, key: key})
+        @$.weaver.channel.unlink({id: @$.id, key: key})
       else
-        @$.weaver.socket.emit('update', {id: @$.id, attribute: key, value: null})
+        @$.weaver.channel.update({id: @$.id, attribute: key, value: null})
 
 
   # Core
   # Removes entity from server and any linked entities
   $destroy: ->
-    @$.weaver.socket.emit('delete', {id: @$.id})
-
+    @$.weaver.channel.delete({id: @$.id})
 
   # Core
   # Triggers when any change happens

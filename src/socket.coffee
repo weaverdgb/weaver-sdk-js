@@ -9,11 +9,32 @@ class Socket
   constructor: (@address) ->
     @io = io.connect(@address, {reconnection: true})
 
-  read: (id, opts) ->
-    @emit('read', {id, opts})
+  read: (payload) ->
+    @emit('read', payload)
 
-  create: (type, id, data) ->
-    @emit('create', {type, id, data})
+  create: (payload) ->
+    @emit('create', payload)
+
+  update: (payload) ->
+    @emit('update', payload)
+
+  link: (payload) ->
+    @emit('link', payload)
+
+  unlink: (payload) ->
+    @emit('unlink', payload)
+
+  delete: (payload) ->
+    @emit('delete', payload)
+
+  onUpdate: (id, callback) ->
+    @on(id + ':updated', callback)
+
+  onLinked: (id, callback) ->
+    @on(id + ':linked', callback)
+
+  onUnlinked: (id, callback) ->
+    @on(id + ':unlinked', callback)
 
   # TODO: Handle errors from server
   emit: (key, body) ->

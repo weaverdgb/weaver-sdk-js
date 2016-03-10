@@ -12,9 +12,18 @@ Repository  = require('./repository')
 module.exports =
 class Weaver
 
-  constructor: (@address) ->
-    @socket     = new Socket(@address)
+  constructor: ->
     @repository = new Repository(@)
+
+  # Core
+  # Create a socket connection to use for getting and adding entities
+  connect: (address) ->
+    @channel = new Socket(address)
+
+  # Core
+  # Set a database to use for getting and adding entities
+  database: (database) ->
+    @channel = database
 
   # Core
   # Adds a new entity to Weaver
@@ -22,7 +31,7 @@ class Weaver
     entity = new Entity(data, type, true, id).$weaver(@)
 
     # Save to server
-    @socket.create(type, entity.$id(), data)
+    @channel.create({type, id:entity.$id(), data})
 
     # Save in repository and return
     @repository.store(entity)
@@ -39,7 +48,7 @@ class Weaver
       Promise.resolve(@repository.get(id))
     else
       # Server read
-      @socket.read(id, opts).bind(@).then((object) ->
+      @channel.read({id, opts}).bind(@).then((object) ->
 
         # Transform the object into a nested Entity object
         entity = Entity.build(object, @)
@@ -52,7 +61,8 @@ class Weaver
   # Utility
   # Prints the entity to the console after loading is finished
   print: (id, opts) ->
-    @get(id, opts).then((entity) ->
+    @get(id, opts).bind(@).then((entity) ->
+      @result = entity
       console.log(entity)
     )
 
