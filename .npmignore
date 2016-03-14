@@ -1,0 +1,6 @@
+.DS_Store
+.idea
+Gruntfile.coffee
+tmp
+test
+dist

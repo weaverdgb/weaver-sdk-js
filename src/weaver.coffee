@@ -19,11 +19,13 @@ class Weaver
   # Create a socket connection to use for getting and adding entities
   connect: (address) ->
     @channel = new Socket(address)
+    @
 
   # Core
   # Set a database to use for getting and adding entities
   database: (database) ->
     @channel = database
+    @
 
   # Core
   # Adds a new entity to Weaver
