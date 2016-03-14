@@ -12,6 +12,7 @@ A library that gives you access to the Weaver platform from your JavaScript app.
 
 ##### Interact
 - weaver.add(data, type, id)
+- weaver.collection(data, id)
 - weaver.get(id, {eagerness})
 
 ### Object: Entity

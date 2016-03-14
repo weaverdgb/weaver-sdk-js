@@ -43,6 +43,10 @@ class Weaver
     # Save in repository and return
     @repository.store(entity)
 
+  # Core
+  # Creates an Entity of type $COLLECTION
+  collection: (data, id) ->
+    @add(data, '$COLLECTION', id)
 
   # Core
   # Loads an entity either from the local repository or from the server
@@ -69,10 +73,8 @@ class Weaver
   # Prints the entity to the console after loading is finished
   print: (id, opts) ->
     @get(id, opts).bind(@).then((entity) ->
-      @result = entity
       console.log(entity)
     )
-
 
   # Utility
   # Returns an entity in the local repository

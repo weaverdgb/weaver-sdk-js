@@ -106,7 +106,7 @@ describe 'Weaver: Loading entity', ->
 
 describe 'Weaver: Creating an entity', ->
 
-  it 'should set type as _ROOT if left empty', ->
+  it 'should set type as $ROOT if left empty', ->
     return
 
   it 'should set type if given', ->
