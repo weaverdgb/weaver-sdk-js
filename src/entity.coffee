@@ -62,7 +62,7 @@ class Entity
     id = cuid() if not id?
 
     # Type is default root if not specified
-    type = '_ROOT' if not type?
+    type = '$ROOT' if not type?
 
     # Locally created is always fetched
     fetched = true if not fetched?
@@ -104,7 +104,7 @@ class Entity
 
 
   # Core
-  # Test wether this entity is fetched given the eagerness
+  # Test whether this entity is fetched given the eagerness
   $isFetched: (eagerness, visited) ->
     # Default
     eagerness = 1 if not eagerness?
@@ -128,17 +128,16 @@ class Entity
     if not @$.fetched
       return false
 
+    # Save eagerness
+    visited[@$id()] = eagerness
+
     fetched = true
     for key, subEntity of @$links()
       if eagerness is -1
         if not visited[subEntity.$id()]?
-          fetched = fetched and subEntity.$isFetched(eagerness - 1, visited)
+          fetched = fetched and subEntity.$isFetched(eagerness, visited)
       else
         fetched = fetched and subEntity.$isFetched(eagerness - 1, visited)
-
-    # Save eagerness
-    if fetched
-      visited[@$id()] = eagerness
 
     return fetched
 
@@ -160,7 +159,8 @@ class Entity
       if not @[attribute.$id()]?
         @[attribute.$id()] = attribute
 
-      @$.weaver.channel.link({id: @$.id, key: attribute.$id(), target: attribute.$id()})
+      if @$.weaver.channel?
+        @$.weaver.channel.link({id: @$.id, key: attribute.$id(), target: attribute.$id()})
 
     else
 
@@ -170,10 +170,11 @@ class Entity
       else
         value = @[attribute]
 
-      if isEntity(value)
-        @$.weaver.channel.link({id: @$.id, key: attribute, target: value.$id()})
-      else
-        @$.weaver.channel.update({id: @$.id, attribute, value: @[attribute]})
+      if @$.weaver.channel?
+        if isEntity(value)
+          @$.weaver.channel.link({id: @$.id, key: attribute, target: value.$id()})
+        else
+          @$.weaver.channel.update({id: @$.id, attribute, value: @[attribute]})
 
 
   # Core
@@ -182,22 +183,26 @@ class Entity
     # Convenience method for entity.id -> entity
     if isEntity(key)
       delete @[key.$id()]
-      @$.weaver.channel.unlink({id: @$.id, key: key.$id()})
+
+      if @$.weaver.channel?
+        @$.weaver.channel.unlink({id: @$.id, key: key.$id()})
     else
 
       value = @[key]
       delete @[key]
 
-      if isEntity(value)
-        @$.weaver.channel.unlink({id: @$.id, key: key})
-      else
-        @$.weaver.channel.update({id: @$.id, attribute: key, value: null})
+      if @$.weaver.channel?
+        if isEntity(value)
+          @$.weaver.channel.unlink({id: @$.id, key: key})
+        else
+          @$.weaver.channel.update({id: @$.id, attribute: key, value: null})
 
 
   # Core
   # Removes entity from server and any linked entities
   $destroy: ->
-    @$.weaver.channel.delete({id: @$.id})
+    if @$.weaver.channel?
+      @$.weaver.channel.delete({id: @$.id})
 
   # Core
   # Triggers when any change happens

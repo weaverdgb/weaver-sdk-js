@@ -2,8 +2,8 @@ $ = require("./../test-suite")()
 cuid = require('cuid')
 Entity = require('../../src/entity')
 
-describe 'Entity: Fetching an entity', ->    
-  
+describe 'Entity: Fetching an entity', ->
+
   it 'should not fetch if already fetched', ->
     return
 
@@ -33,8 +33,3 @@ describe 'Entity: Fetching an entity', ->
 
   it 'should correctly fetch a sub entity', ->
     return
-
-  # TRICKY
-  it 'should correctly fetch circular references within the entity', ->
-    return
-  

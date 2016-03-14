@@ -22,6 +22,65 @@ describe 'Entity: Fetching an entity', ->
     channel.restore()
 
 
+  it 'should correctly fetch circular references for a local entity', ->
+    add = (type, data) ->
+      data = {} if not data?
+      entity = new Entity(data, type).$weaver(weaver)
+      weaver.repository.add(entity)
+      entity
+
+    # Data
+    dataset = add('dataset')
+    dataset.objects = add('$COLLECTION')
+
+    object = add('object')
+    dataset.objects.$push(object)
+
+    object.properties = add('$COLLECTION')
+    property = add('property', {subject: object, predicate: 'hasName', value: 'Mohamad'})
+    object.properties.$push(property)
+
+    weaver.get(dataset.$id(), {eagerness: -1}).should.eventually.equal(dataset)
+
+
+  it 'should correctly fetch circular references for a server entity', ->
+    response =
+      _META:
+        id: '0'
+        type: 'dataset'
+        fetched: true
+      objects:
+        _META:
+          id: '1'
+          type: '$COLLECTION'
+          fetched: true
+        2:
+          _META:
+            id: '2'
+            type: 'object'
+            fetched: true
+          properties:
+            _META:
+              id: '3'
+              type: '$COLLECTION'
+              fetched: true
+            4:
+              _META:
+                id: '4'
+                type: 'property'
+                fetched: true
+              predicate: 'hasName'
+              value: 'Mohamad'
+              subject:
+                _REF: '2'
+
+    mockRead(response)
+
+    # Fetch first, then it is loaded in memory and try to get it again
+    weaver.get('0', {eagerness: -1}).then((loaded) ->
+      weaver.get('0', {eagerness: -1}).should.eventually.equal(loaded)
+    )
+
 
   it 'should load nested object with empty repository', ->
 
