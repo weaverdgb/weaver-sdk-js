@@ -12,6 +12,11 @@ Repository  = require('./repository')
 module.exports =
 class Weaver
 
+  # Expose classes
+  @Entity     = Entity
+  @Socket     = Socket
+  @Repository = Repository
+
   constructor: ->
     @repository = new Repository(@)
 
