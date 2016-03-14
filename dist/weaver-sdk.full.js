@@ -12129,7 +12129,7 @@ function toArray(list, index) {
         id = cuid();
       }
       if (type == null) {
-        type = '_ROOT';
+        type = '$ROOT';
       }
       if (fetched == null) {
         fetched = true;
@@ -12200,20 +12200,18 @@ function toArray(list, index) {
       if (!this.$.fetched) {
         return false;
       }
+      visited[this.$id()] = eagerness;
       fetched = true;
       _ref = this.$links();
       for (key in _ref) {
         subEntity = _ref[key];
         if (eagerness === -1) {
           if (visited[subEntity.$id()] == null) {
-            fetched = fetched && subEntity.$isFetched(eagerness - 1, visited);
+            fetched = fetched && subEntity.$isFetched(eagerness, visited);
           }
         } else {
           fetched = fetched && subEntity.$isFetched(eagerness - 1, visited);
         }
-      }
-      if (fetched) {
-        visited[this.$id()] = eagerness;
       }
       return fetched;
     };
@@ -12227,11 +12225,13 @@ function toArray(list, index) {
         if (this[attribute.$id()] == null) {
           this[attribute.$id()] = attribute;
         }
-        return this.$.weaver.channel.link({
-          id: this.$.id,
-          key: attribute.$id(),
-          target: attribute.$id()
-        });
+        if (this.$.weaver.channel != null) {
+          return this.$.weaver.channel.link({
+            id: this.$.id,
+            key: attribute.$id(),
+            target: attribute.$id()
+          });
+        }
       } else {
         if (value != null) {
           if (this[attribute] !== value) {
@@ -12240,18 +12240,20 @@ function toArray(list, index) {
         } else {
           value = this[attribute];
         }
-        if (isEntity(value)) {
-          return this.$.weaver.channel.link({
-            id: this.$.id,
-            key: attribute,
-            target: value.$id()
-          });
-        } else {
-          return this.$.weaver.channel.update({
-            id: this.$.id,
-            attribute: attribute,
-            value: this[attribute]
-          });
+        if (this.$.weaver.channel != null) {
+          if (isEntity(value)) {
+            return this.$.weaver.channel.link({
+              id: this.$.id,
+              key: attribute,
+              target: value.$id()
+            });
+          } else {
+            return this.$.weaver.channel.update({
+              id: this.$.id,
+              attribute: attribute,
+              value: this[attribute]
+            });
+          }
         }
       }
     };
@@ -12260,32 +12262,38 @@ function toArray(list, index) {
       var value;
       if (isEntity(key)) {
         delete this[key.$id()];
-        return this.$.weaver.channel.unlink({
-          id: this.$.id,
-          key: key.$id()
-        });
+        if (this.$.weaver.channel != null) {
+          return this.$.weaver.channel.unlink({
+            id: this.$.id,
+            key: key.$id()
+          });
+        }
       } else {
         value = this[key];
         delete this[key];
-        if (isEntity(value)) {
-          return this.$.weaver.channel.unlink({
-            id: this.$.id,
-            key: key
-          });
-        } else {
-          return this.$.weaver.channel.update({
-            id: this.$.id,
-            attribute: key,
-            value: null
-          });
+        if (this.$.weaver.channel != null) {
+          if (isEntity(value)) {
+            return this.$.weaver.channel.unlink({
+              id: this.$.id,
+              key: key
+            });
+          } else {
+            return this.$.weaver.channel.update({
+              id: this.$.id,
+              attribute: key,
+              value: null
+            });
+          }
         }
       }
     };
 
     Entity.prototype.$destroy = function() {
-      return this.$.weaver.channel["delete"]({
-        id: this.$.id
-      });
+      if (this.$.weaver.channel != null) {
+        return this.$.weaver.channel["delete"]({
+          id: this.$.id
+        });
+      }
     };
 
     Entity.prototype.$on = function(key, callback) {
@@ -12576,6 +12584,12 @@ function toArray(list, index) {
   Repository = require('./repository');
 
   module.exports = Weaver = (function() {
+    Weaver.Entity = Entity;
+
+    Weaver.Socket = Socket;
+
+    Weaver.Repository = Repository;
+
     function Weaver() {
       this.repository = new Repository(this);
     }
@@ -12601,6 +12615,10 @@ function toArray(list, index) {
       return this.repository.store(entity);
     };
 
+    Weaver.prototype.collection = function(data, id) {
+      return this.add(data, '$COLLECTION', id);
+    };
+
     Weaver.prototype.get = function(id, opts) {
       if (opts == null) {
         opts = {};
@@ -12624,7 +12642,6 @@ function toArray(list, index) {
 
     Weaver.prototype.print = function(id, opts) {
       return this.get(id, opts).bind(this).then(function(entity) {
-        this.result = entity;
         return console.log(entity);
       });
     };
