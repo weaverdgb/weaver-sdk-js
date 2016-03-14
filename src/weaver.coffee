@@ -45,8 +45,8 @@ class Weaver
 
   # Core
   # Creates an Entity of type $COLLECTION
-  collection: (data, id) ->
-    @add(data, '$COLLECTION', id)
+  collection: (id) ->
+    @add({}, '$COLLECTION', id)
 
   # Core
   # Loads an entity either from the local repository or from the server

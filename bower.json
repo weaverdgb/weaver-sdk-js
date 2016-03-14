@@ -1,7 +1,7 @@
 {
-  "name": "weaver-sdk-js",
+  "name": "weaver-sdk",
   "main": "dist/weaver-sdk.full.js",
-  "version": "0.0.6",
+  "version": "0.0.10",
   "homepage": "https://github.com/weaverplatform/weaver-sdk-js",
   "authors": [
     "Mohamad Alamili <mohamad@sysunite.com>"
