@@ -12227,7 +12227,7 @@ function toArray(list, index) {
         if (this[attribute.$id()] == null) {
           this[attribute.$id()] = attribute;
         }
-        return this.$.weaver.socket.emit('link', {
+        return this.$.weaver.channel.link({
           id: this.$.id,
           key: attribute.$id(),
           target: attribute.$id()
@@ -12241,13 +12241,13 @@ function toArray(list, index) {
           value = this[attribute];
         }
         if (isEntity(value)) {
-          return this.$.weaver.socket.emit('link', {
+          return this.$.weaver.channel.link({
             id: this.$.id,
             key: attribute,
             target: value.$id()
           });
         } else {
-          return this.$.weaver.socket.emit('update', {
+          return this.$.weaver.channel.update({
             id: this.$.id,
             attribute: attribute,
             value: this[attribute]
@@ -12260,7 +12260,7 @@ function toArray(list, index) {
       var value;
       if (isEntity(key)) {
         delete this[key.$id()];
-        return this.$.weaver.socket.emit('unlink', {
+        return this.$.weaver.channel.unlink({
           id: this.$.id,
           key: key.$id()
         });
@@ -12268,12 +12268,12 @@ function toArray(list, index) {
         value = this[key];
         delete this[key];
         if (isEntity(value)) {
-          return this.$.weaver.socket.emit('unlink', {
+          return this.$.weaver.channel.unlink({
             id: this.$.id,
             key: key
           });
         } else {
-          return this.$.weaver.socket.emit('update', {
+          return this.$.weaver.channel.update({
             id: this.$.id,
             attribute: key,
             value: null
@@ -12283,7 +12283,7 @@ function toArray(list, index) {
     };
 
     Entity.prototype.$destroy = function() {
-      return this.$.weaver.socket.emit('delete', {
+      return this.$.weaver.channel["delete"]({
         id: this.$.id
       });
     };
@@ -12456,7 +12456,7 @@ function toArray(list, index) {
 
     Repository.prototype.track = function(entity) {
       var self;
-      this.weaver.socket.on(entity.$.id + ':updated', function(payload) {
+      this.weaver.channel.onUpdate(entity.$.id, function(payload) {
         if (payload.value != null) {
           entity[payload.attribute] = payload.value;
         } else {
@@ -12465,13 +12465,13 @@ function toArray(list, index) {
         return entity.$fire(payload.attribute);
       });
       self = this;
-      this.weaver.socket.on(entity.$.id + ':linked', function(payload) {
+      this.weaver.channel.onLinked(entity.$.id, function(payload) {
         self.weaver.get(payload.target).then(function(newLink) {
           return entity[payload.key] = newLink;
         });
         return entity.$fire(payload.key);
       });
-      this.weaver.socket.on(entity.$.id + ':unlinked', function(payload) {
+      this.weaver.channel.onUnlinked(entity.$.id, function(payload) {
         delete entity[payload.key];
         return entity.$fire(payload.key);
       });
@@ -12500,19 +12500,40 @@ function toArray(list, index) {
       });
     }
 
-    Socket.prototype.read = function(id, opts) {
-      return this.emit('read', {
-        id: id,
-        opts: opts
-      });
+    Socket.prototype.read = function(payload) {
+      return this.emit('read', payload);
     };
 
-    Socket.prototype.create = function(type, id, data) {
-      return this.emit('create', {
-        type: type,
-        id: id,
-        data: data
-      });
+    Socket.prototype.create = function(payload) {
+      return this.emit('create', payload);
+    };
+
+    Socket.prototype.update = function(payload) {
+      return this.emit('update', payload);
+    };
+
+    Socket.prototype.link = function(payload) {
+      return this.emit('link', payload);
+    };
+
+    Socket.prototype.unlink = function(payload) {
+      return this.emit('unlink', payload);
+    };
+
+    Socket.prototype["delete"] = function(payload) {
+      return this.emit('delete', payload);
+    };
+
+    Socket.prototype.onUpdate = function(id, callback) {
+      return this.on(id + ':updated', callback);
+    };
+
+    Socket.prototype.onLinked = function(id, callback) {
+      return this.on(id + ':linked', callback);
+    };
+
+    Socket.prototype.onUnlinked = function(id, callback) {
+      return this.on(id + ':unlinked', callback);
     };
 
     Socket.prototype.emit = function(key, body) {
@@ -12555,16 +12576,28 @@ function toArray(list, index) {
   Repository = require('./repository');
 
   module.exports = Weaver = (function() {
-    function Weaver(address) {
-      this.address = address;
-      this.socket = new Socket(this.address);
+    function Weaver() {
       this.repository = new Repository(this);
     }
+
+    Weaver.prototype.connect = function(address) {
+      this.channel = new Socket(address);
+      return this;
+    };
+
+    Weaver.prototype.database = function(database) {
+      this.channel = database;
+      return this;
+    };
 
     Weaver.prototype.add = function(data, type, id) {
       var entity;
       entity = new Entity(data, type, true, id).$weaver(this);
-      this.socket.create(type, entity.$id(), data);
+      this.channel.create({
+        type: type,
+        id: entity.$id(),
+        data: data
+      });
       return this.repository.store(entity);
     };
 
@@ -12578,7 +12611,10 @@ function toArray(list, index) {
       if (this.repository.contains(id) && this.repository.get(id).$isFetched(opts.eagerness)) {
         return Promise.resolve(this.repository.get(id));
       } else {
-        return this.socket.read(id, opts).bind(this).then(function(object) {
+        return this.channel.read({
+          id: id,
+          opts: opts
+        }).bind(this).then(function(object) {
           var entity;
           entity = Entity.build(object, this);
           return this.repository.store(entity);
@@ -12587,7 +12623,8 @@ function toArray(list, index) {
     };
 
     Weaver.prototype.print = function(id, opts) {
-      return this.get(id, opts).then(function(entity) {
+      return this.get(id, opts).bind(this).then(function(entity) {
+        this.result = entity;
         return console.log(entity);
       });
     };
