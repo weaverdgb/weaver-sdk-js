@@ -12278,10 +12278,9 @@ function toArray(list, index) {
               key: key
             });
           } else {
-            return this.$.weaver.channel.update({
+            return this.$.weaver.channel.remove({
               id: this.$.id,
-              attribute: key,
-              value: null
+              attribute: key
             });
           }
         }
@@ -12290,7 +12289,7 @@ function toArray(list, index) {
 
     Entity.prototype.$destroy = function() {
       if (this.$.weaver.channel != null) {
-        return this.$.weaver.channel["delete"]({
+        return this.$.weaver.channel.destroy({
           id: this.$.id
         });
       }
@@ -12528,8 +12527,12 @@ function toArray(list, index) {
       return this.emit('unlink', payload);
     };
 
-    Socket.prototype["delete"] = function(payload) {
-      return this.emit('delete', payload);
+    Socket.prototype.destroy = function(payload) {
+      return this.emit('destroy', payload);
+    };
+
+    Socket.prototype.remove = function(payload) {
+      return this.emit('remove', payload);
     };
 
     Socket.prototype.onUpdate = function(id, callback) {
@@ -12615,8 +12618,8 @@ function toArray(list, index) {
       return this.repository.store(entity);
     };
 
-    Weaver.prototype.collection = function(data, id) {
-      return this.add(data, '$COLLECTION', id);
+    Weaver.prototype.collection = function(id) {
+      return this.add({}, '$COLLECTION', id);
     };
 
     Weaver.prototype.get = function(id, opts) {
