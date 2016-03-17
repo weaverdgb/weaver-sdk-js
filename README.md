@@ -30,7 +30,7 @@ A library that gives you access to the Weaver platform from your JavaScript app.
 - entity.$push(entity)
 - entity.$remove(key)
 - entity.$remove(entity)
-- entity.$destroy({force}) (not yet implemented)
+- entity.$destroy()
 
 ##### Events
 - entity.$on('key', callback)
@@ -106,10 +106,26 @@ john.friends[lisa.id()] = lisa;
 john.friends.$push(lisa.id());
 ```
 
+##### Removing entity key
+```javascript
+john.age = '28';
+john.$remove('age');
+```
+
+###### or
+```javascript
+john.friend = lisa;
+john.$remove('friend');
+```
+
+##### Destroying an entity
+```javascript
+john.$destroy();
+```
+
 
 ## Todo
 - further implement local listening and removing
-- implement destroy
 - error handling
 - repository weaver under $
 - add more tests
