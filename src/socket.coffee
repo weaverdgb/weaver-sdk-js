@@ -24,8 +24,11 @@ class Socket
   unlink: (payload) ->
     @emit('unlink', payload)
 
-  delete: (payload) ->
-    @emit('delete', payload)
+  destroy: (payload) ->
+    @emit('destroy', payload)
+
+  remove: (payload) ->
+    @emit('remove', payload)
 
   onUpdate: (id, callback) ->
     @on(id + ':updated', callback)

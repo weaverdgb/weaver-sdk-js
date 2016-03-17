@@ -195,14 +195,14 @@ class Entity
         if isEntity(value)
           @$.weaver.channel.unlink({id: @$.id, key: key})
         else
-          @$.weaver.channel.update({id: @$.id, attribute: key, value: null})
+          @$.weaver.channel.remove({id: @$.id, attribute: key})
 
 
   # Core
   # Removes entity from server and any linked entities
   $destroy: ->
     if @$.weaver.channel?
-      @$.weaver.channel.delete({id: @$.id})
+      @$.weaver.channel.destroy({id: @$.id})
 
   # Core
   # Triggers when any change happens
