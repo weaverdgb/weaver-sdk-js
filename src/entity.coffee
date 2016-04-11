@@ -159,8 +159,22 @@ class Entity
       if not @[attribute.$id()]?
         @[attribute.$id()] = attribute
 
+      subjId = null
+      if attribute.subject?
+        subjId = attribute.subject.$id()
+
       if @$.weaver.channel?
-        @$.weaver.channel.link({id: @$.id, key: attribute.$id(), target: attribute.$id()})
+        payload =
+          source:
+            id: @.$id()
+            type: @.$type()
+            subject: subjId
+          key: attribute.$id()
+          target:
+            id: attribute.$id()
+            type: attribute.$type()
+
+        @$.weaver.channel.link(payload)
 
     else
 
@@ -172,9 +186,22 @@ class Entity
 
       if @$.weaver.channel?
         if isEntity(value)
-          @$.weaver.channel.link({id: @$.id, key: attribute, target: value.$id()})
+          payload =
+            source:
+              id: @.$id()
+              type: @.$type()
+            key: attribute
+            target:
+              id: value.$id()
+              type: value.$type()
+
+          @$.weaver.channel.link(payload)
         else
-          @$.weaver.channel.update({id: @$.id, attribute, value: @[attribute]})
+          payload =
+            id: @.$id()
+            attribute: attribute
+            value: @[attribute]
+          @$.weaver.channel.update(payload)
 
 
   # Core

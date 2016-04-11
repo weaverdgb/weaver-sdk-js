@@ -52,8 +52,7 @@ module.exports = (grunt) ->
       copy:
         toAngular:
           files: [
-            {src: ['dist/**'], dest: '../weaver-app-angular/weaver-sdk-js/', filter:'isFile', expand:true}
-            {src: ['dist/**'], dest: '../weaver-studio/weaver-sdk-js/', filter:'isFile', expand:true}
+            {src: ['dist/**'], dest: '../weaver-data-workbench/sdk_temp/', filter:'isFile', expand:true}
           ]
 
       watch:
