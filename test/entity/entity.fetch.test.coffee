@@ -49,30 +49,35 @@ describe 'Entity: Fetching an entity', ->
         id: '0'
         type: 'dataset'
         fetched: true
-      objects:
-        _META:
-          id: '1'
-          type: '$COLLECTION'
-          fetched: true
-        2:
+      _DATA:
+        objects:
           _META:
-            id: '2'
-            type: 'object'
+            id: '1'
+            type: '$COLLECTION'
             fetched: true
-          properties:
-            _META:
-              id: '3'
-              type: '$COLLECTION'
-              fetched: true
-            4:
+          _DATA:
+            2:
               _META:
-                id: '4'
-                type: 'property'
+                id: '2'
+                type: 'object'
                 fetched: true
-              predicate: 'hasName'
-              value: 'Mohamad'
-              subject:
-                _REF: '2'
+              _DATA:
+                properties:
+                  _META:
+                    id: '3'
+                    type: '$COLLECTION'
+                    fetched: true
+                  _DATA:
+                    4:
+                      _META:
+                        id: '4'
+                        type: 'property'
+                        fetched: true
+                      _DATA:
+                        predicate: 'hasName'
+                        value: 'Mohamad'
+                        subject:
+                          _REF: '2'
 
     mockRead(response)
 
@@ -90,33 +95,38 @@ describe 'Entity: Fetching an entity', ->
           id: '0'
           type: 'user'
           fetched: false
-        name: 'Mohamad Alamili'
+        _DATA:
+          name: 'Mohamad Alamili'
 
       fetchEagerness1 =
         _META:
           id: '0'
           type: 'user'
           fetched: true
-        name: 'Mohamad Alamili'
-        friend:
-          _META:
-            id: '1'
-            type: 'human'
-            fetched: false
-          name: 'Bastiaan Bijl'
+        _DATA:
+          name: 'Mohamad Alamili'
+          friend:
+            _META:
+              id: '1'
+              type: 'human'
+              fetched: false
+            _DATA:
+              name: 'Bastiaan Bijl'
 
       fetchEagerness2 =
         _META:
           id: '0'
           type: 'user'
           fetched: true
-        name: 'Mohamad Alamili'
-        friend:
-          _META:
-            id: '1'
-            type: 'human'
-            fetched: true
-          name: 'Bastiaan Bijl'
+        _DATA:
+          name: 'Mohamad Alamili'
+          friend:
+            _META:
+              id: '1'
+              type: 'human'
+              fetched: true
+            _DATA:
+              name: 'Bastiaan Bijl'
 
 
       mockRead(fetchEagerness0)

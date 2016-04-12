@@ -32,13 +32,15 @@ describe 'Weaver: Loading an entity', ->
           id: '0'
           type: 'user'
           fetched: true
-        name: 'Mohamad Alamili'
-        friend:
-          _META:
-            id: '1'
-            type: 'human'
-            fetched: false
-          name: 'Bastiaan Bijl'
+        _DATA:
+          name: 'Mohamad Alamili'
+          friend:
+            _META:
+              id: '1'
+              type: 'human'
+              fetched: false
+            _DATA:
+              name: 'Bastiaan Bijl'
 
       mockRead(object)
 
@@ -66,13 +68,15 @@ describe 'Weaver: Loading an entity', ->
           id: '0'
           type: 'user'
           fetched: true
-        name: 'Mohamad Alamili'
-        friend:
-          _META:
-            id: '1'
-            type: 'human'
-            fetched: false
-          name: 'Bastiaan Bijl'
+        _DATA:
+          name: 'Mohamad Alamili'
+          friend:
+            _META:
+              id: '1'
+              type: 'human'
+              fetched: false
+            _DATA:
+              name: 'Bastiaan Bijl'
 
       mockRead(object)
 
@@ -106,31 +110,36 @@ describe 'Weaver: Loading an entity', ->
         id: '0'
         type: 'user'
         fetched: true
-      name: 'Mohamad Alamili'
-      friend:
-        _META:
-          id: '1'
-          type: 'human'
-          fetched: true
-        name: 'Bastiaan Bijl'
-      computer:
-        _META:
-          id: '2'
-          type: 'thing'
-          fetched: true
-        name: 'Dead Silent Blazing Fast'
-        processor:
+      _DATA:
+        name: 'Mohamad Alamili'
+        friend:
           _META:
-            id: '3'
+            id: '1'
+            type: 'human'
+            fetched: true
+          _DATA:
+            name: 'Bastiaan Bijl'
+        computer:
+          _META:
+            id: '2'
             type: 'thing'
             fetched: true
-          name: 'Intel CPU'
-          fan:
-            _META:
-              id: '4'
-              type: 'thing'
-              fetched: false
-            name: '5V low speed'
+          _DATA:
+            name: 'Dead Silent Blazing Fast'
+            processor:
+              _META:
+                id: '3'
+                type: 'thing'
+                fetched: true
+              _DATA:
+                name: 'Intel CPU'
+                fan:
+                  _META:
+                    id: '4'
+                    type: 'thing'
+                    fetched: false
+                  _DATA:
+                    name: '5V low speed'
 
 
     mockRead(object)
@@ -170,31 +179,36 @@ describe 'Weaver: Loading an entity', ->
         id: '0'
         type: 'user'
         fetched: true
-      name: 'Mohamad Alamili'
-      computer:
-        _META:
-          id: '1'
-          type: 'thing'
-          fetched: true
-        name: 'Dead Silent Blazing Fast'
-        processor:
+      _DATA:
+        name: 'Mohamad Alamili'
+        computer:
           _META:
-            id: '2'
+            id: '1'
             type: 'thing'
             fetched: true
-          name: 'Intel CPU'
-          fan:
-            _META:
-              id: '3'
-              type: 'thing'
-              fetched: true
-            name: '5V low speed'
-            motor:
+          _DATA:
+            name: 'Dead Silent Blazing Fast'
+            processor:
               _META:
-                id: '4'
+                id: '2'
                 type: 'thing'
-                fetched: false
-                name: 'DC Brushless'
+                fetched: true
+              _DATA:
+                name: 'Intel CPU'
+                fan:
+                  _META:
+                    id: '3'
+                    type: 'thing'
+                    fetched: true
+                  _DATA:
+                    name: '5V low speed'
+                    motor:
+                      _META:
+                        id: '4'
+                        type: 'thing'
+                        fetched: false
+                      _DATA:
+                        name: 'DC Brushless'
 
 
     mockRead(object)
@@ -243,25 +257,29 @@ describe 'Weaver: Loading an entity', ->
         id: '0'
         type: 'object'
         fetched: true
-      name: 'A'
-      link:
-        _META:
-          id: '1'
-          type: 'object'
-          fetched: true
-        name: 'B'
+      _DATA:
+        name: 'A'
         link:
           _META:
-            id: '2'
+            id: '1'
             type: 'object'
             fetched: true
-          name: 'C'
-          link:
-            _META:
-              id: '3'
-              type: 'object'
-              fetched: false
-            name: 'D'
+          _DATA:
+            name: 'B'
+            link:
+              _META:
+                id: '2'
+                type: 'object'
+                fetched: true
+              _DATA:
+                name: 'C'
+                link:
+                  _META:
+                    id: '3'
+                    type: 'object'
+                    fetched: false
+                  _DATA:
+                    name: 'D'
 
     mockRead(object)
 
@@ -317,21 +335,24 @@ describe 'Weaver: Loading an entity', ->
         id: '0'
         type: 'object'
         fetched: true
-      name: 'A'
-      link:
-        _META:
-          id: '1'
-          type: 'object'
-          fetched: true
-        name: 'B'
+      _DATA:
+        name: 'A'
         link:
           _META:
-            id: '2'
+            id: '1'
             type: 'object'
             fetched: true
-          name: 'C'
-          link:
-            _REF: '0'
+          _DATA:
+            name: 'B'
+            link:
+              _META:
+                id: '2'
+                type: 'object'
+                fetched: true
+              _DATA:
+                name: 'C'
+                link:
+                  _REF: '0'
 
     mockRead(object)
 

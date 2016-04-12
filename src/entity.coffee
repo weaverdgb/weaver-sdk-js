@@ -21,10 +21,7 @@ class Entity
     type    = object['_META'].type
     fetched = object['_META'].fetched
     id      = object['_META'].id
-
-    # Data
-    data = {}
-    data[key] = value for own key, value of object when key isnt '_META'
+    data    = object['_DATA']
 
     new Entity(data, type, fetched, id)
 
