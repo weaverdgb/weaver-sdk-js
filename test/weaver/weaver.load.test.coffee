@@ -32,14 +32,15 @@ describe 'Weaver: Loading an entity', ->
           id: '0'
           type: 'user'
           fetched: true
-        _DATA:
+        _ATTRIBUTES:
           name: 'Mohamad Alamili'
+        _RELATIONS:
           friend:
             _META:
               id: '1'
               type: 'human'
               fetched: false
-            _DATA:
+            _ATTRIBUTES:
               name: 'Bastiaan Bijl'
 
       mockRead(object)
@@ -68,14 +69,15 @@ describe 'Weaver: Loading an entity', ->
           id: '0'
           type: 'user'
           fetched: true
-        _DATA:
+        _ATTRIBUTES:
           name: 'Mohamad Alamili'
+        _RELATIONS:
           friend:
             _META:
               id: '1'
               type: 'human'
               fetched: false
-            _DATA:
+            _ATTRIBUTES:
               name: 'Bastiaan Bijl'
 
       mockRead(object)
@@ -110,35 +112,38 @@ describe 'Weaver: Loading an entity', ->
         id: '0'
         type: 'user'
         fetched: true
-      _DATA:
+      _ATTRIBUTES:
         name: 'Mohamad Alamili'
+      _RELATIONS:
         friend:
           _META:
             id: '1'
             type: 'human'
             fetched: true
-          _DATA:
+          _ATTRIBUTES:
             name: 'Bastiaan Bijl'
         computer:
           _META:
             id: '2'
             type: 'thing'
             fetched: true
-          _DATA:
+          _ATTRIBUTES:
             name: 'Dead Silent Blazing Fast'
+          _RELATIONS:
             processor:
               _META:
                 id: '3'
                 type: 'thing'
                 fetched: true
-              _DATA:
+              _ATTRIBUTES:
                 name: 'Intel CPU'
+              _RELATIONS:
                 fan:
                   _META:
                     id: '4'
                     type: 'thing'
                     fetched: false
-                  _DATA:
+                  _ATTRIBUTES:
                     name: '5V low speed'
 
 
@@ -179,35 +184,39 @@ describe 'Weaver: Loading an entity', ->
         id: '0'
         type: 'user'
         fetched: true
-      _DATA:
+      _ATTRIBUTES:
         name: 'Mohamad Alamili'
+      _RELATIONS:
         computer:
           _META:
             id: '1'
             type: 'thing'
             fetched: true
-          _DATA:
+          _ATTRIBUTES:
             name: 'Dead Silent Blazing Fast'
+          _RELATIONS:
             processor:
               _META:
                 id: '2'
                 type: 'thing'
                 fetched: true
-              _DATA:
+              _ATTRIBUTES:
                 name: 'Intel CPU'
+              _RELATIONS:
                 fan:
                   _META:
                     id: '3'
                     type: 'thing'
                     fetched: true
-                  _DATA:
+                  _ATTRIBUTES:
                     name: '5V low speed'
+                  _RELATIONS:
                     motor:
                       _META:
                         id: '4'
                         type: 'thing'
                         fetched: false
-                      _DATA:
+                      _ATTRIBUTES:
                         name: 'DC Brushless'
 
 
@@ -257,28 +266,31 @@ describe 'Weaver: Loading an entity', ->
         id: '0'
         type: 'object'
         fetched: true
-      _DATA:
+      _ATTRIBUTES:
         name: 'A'
+      _RELATIONS:
         link:
           _META:
             id: '1'
             type: 'object'
             fetched: true
-          _DATA:
+          _ATTRIBUTES:
             name: 'B'
+          _RELATIONS:
             link:
               _META:
                 id: '2'
                 type: 'object'
                 fetched: true
-              _DATA:
+              _ATTRIBUTES:
                 name: 'C'
+              _RELATIONS:
                 link:
                   _META:
                     id: '3'
                     type: 'object'
                     fetched: false
-                  _DATA:
+                  _ATTRIBUTES:
                     name: 'D'
 
     mockRead(object)
@@ -335,22 +347,25 @@ describe 'Weaver: Loading an entity', ->
         id: '0'
         type: 'object'
         fetched: true
-      _DATA:
+      _ATTRIBUTES:
         name: 'A'
+      _RELATIONS:
         link:
           _META:
             id: '1'
             type: 'object'
             fetched: true
-          _DATA:
+          _ATTRIBUTES:
             name: 'B'
+          _RELATIONS:
             link:
               _META:
                 id: '2'
                 type: 'object'
                 fetched: true
-              _DATA:
+              _ATTRIBUTES:
                 name: 'C'
+              _RELATIONS:
                 link:
                   _REF: '0'
 

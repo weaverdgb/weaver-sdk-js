@@ -49,33 +49,34 @@ describe 'Entity: Fetching an entity', ->
         id: '0'
         type: 'dataset'
         fetched: true
-      _DATA:
+      _RELATIONS:
         objects:
           _META:
             id: '1'
             type: '$COLLECTION'
             fetched: true
-          _DATA:
+          _RELATIONS:
             2:
               _META:
                 id: '2'
                 type: 'object'
                 fetched: true
-              _DATA:
+              _RELATIONS:
                 properties:
                   _META:
                     id: '3'
                     type: '$COLLECTION'
                     fetched: true
-                  _DATA:
+                  _RELATIONS:
                     4:
                       _META:
                         id: '4'
                         type: 'property'
                         fetched: true
-                      _DATA:
+                      _ATTRIBUTES:
                         predicate: 'hasName'
                         value: 'Mohamad'
+                      _RELATIONS:
                         subject:
                           _REF: '2'
 
@@ -95,7 +96,7 @@ describe 'Entity: Fetching an entity', ->
           id: '0'
           type: 'user'
           fetched: false
-        _DATA:
+        _ATTRIBUTES:
           name: 'Mohamad Alamili'
 
       fetchEagerness1 =
@@ -103,14 +104,15 @@ describe 'Entity: Fetching an entity', ->
           id: '0'
           type: 'user'
           fetched: true
-        _DATA:
+        _ATTRIBUTES:
           name: 'Mohamad Alamili'
+        _RELATIONS:
           friend:
             _META:
               id: '1'
               type: 'human'
               fetched: false
-            _DATA:
+            _ATTRIBUTES:
               name: 'Bastiaan Bijl'
 
       fetchEagerness2 =
@@ -118,14 +120,15 @@ describe 'Entity: Fetching an entity', ->
           id: '0'
           type: 'user'
           fetched: true
-        _DATA:
+        _ATTRIBUTES:
           name: 'Mohamad Alamili'
+        _RELATIONS:
           friend:
             _META:
               id: '1'
               type: 'human'
               fetched: true
-            _DATA:
+            _ATTRIBUTES:
               name: 'Bastiaan Bijl'
 
 

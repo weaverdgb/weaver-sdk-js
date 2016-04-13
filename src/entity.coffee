@@ -21,7 +21,13 @@ class Entity
     type    = object['_META'].type
     fetched = object['_META'].fetched
     id      = object['_META'].id
-    data    = object['_DATA']
+    data    = object['_ATTRIBUTES']
+
+    # Init if not set
+    data = {} if not data?
+
+    # Copy Relations
+    data[key] = value for key, value of object['_RELATIONS'] if object['_RELATIONS']?
 
     new Entity(data, type, fetched, id)
 

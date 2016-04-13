@@ -12069,11 +12069,21 @@ function toArray(list, index) {
 
   module.exports = Entity = (function() {
     Entity.create = function(object) {
-      var data, fetched, id, type;
+      var data, fetched, id, key, type, value, _ref;
       type = object['_META'].type;
       fetched = object['_META'].fetched;
       id = object['_META'].id;
-      data = object['_DATA'];
+      data = object['_ATTRIBUTES'];
+      if (data == null) {
+        data = {};
+      }
+      if (object['_RELATIONS'] != null) {
+        _ref = object['_RELATIONS'];
+        for (key in _ref) {
+          value = _ref[key];
+          data[key] = value;
+        }
+      }
       return new Entity(data, type, fetched, id);
     };
 
