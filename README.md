@@ -91,7 +91,7 @@ john.$push('friend', lisa);
 
 ##### Linking to multiple entities
 ```javascript
-john.friends = weaver.add();
+john.friends = weaver.collection();
 john.friends.$push(lisa)
 ```
 
