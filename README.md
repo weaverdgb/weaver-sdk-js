@@ -22,6 +22,7 @@ A library that gives you access to the Weaver platform from your JavaScript app.
 - entity.$type()
 - entity.$values()
 - entity.$links()
+- entity.$linksArray()
 - entity.$isFetched({eagerness})
 - entity.$fetch({eagerness})
 
