@@ -107,6 +107,12 @@ class Entity
 
 
   # Core
+  # Get all entities in an array
+  $linksArray: ->
+    (value for own key, value of @ when isEntity(value))
+
+
+  # Core
   # Test whether this entity is fetched given the eagerness
   $isFetched: (eagerness, visited) ->
     # Default
