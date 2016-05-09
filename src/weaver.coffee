@@ -7,6 +7,7 @@ Promise     = require('bluebird')
 Socket      = require('./socket')
 Entity      = require('./entity')
 Repository  = require('./repository')
+View        = require('./model/view')
 
 # Main class exposing all features
 module.exports =
@@ -68,6 +69,12 @@ class Weaver
         # Store entity and sub-entities in the repository and return it
         @repository.store(entity)
       )
+
+
+  getView: (id) ->
+    @get(id, -1).then((entity) ->
+      new View(entity)
+    )
 
 
   # Utility
