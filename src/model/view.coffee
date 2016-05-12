@@ -11,7 +11,7 @@ class View
     if @entity.$type() isnt '$VIEW'
       throw new Error('entity should be $VIEW')
 
-  populated: (id) ->
+  retrieved: (id) ->
     @members[id]?
 
 
@@ -22,7 +22,7 @@ class View
       promises = []
 
       memberIds.forEach((memberId) =>
-        if not @populated(memberId)
+        if not @retrieved(memberId)
           promises.push(@weaver.get(memberId, {eagerness : 1}).bind(@).then((entity) ->
             @members[memberId] = entity
           ))

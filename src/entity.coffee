@@ -168,20 +168,11 @@ class Entity
       if not @[attribute.$id()]?
         @[attribute.$id()] = attribute
 
-      # todo: why is subject a reserved word?
-      subjId = null
-      if attribute.subject?
-        if isEntity(attribute.subject)
-          subjId = attribute.subject.$id()
-        else
-          subjId = attribute.subject
-
       if @$.weaver.channel?
         payload =
           source:
             id: @.$id()
             type: @.$type()
-            subject: subjId
           key: attribute.$id()
           target:
             id: attribute.$id()

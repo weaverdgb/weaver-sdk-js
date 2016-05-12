@@ -39,8 +39,16 @@ class Weaver
     entity = new Entity(data, type, true, id).$weaver(@)
 
     # Save to server
-    # TODO: Can data contain an entity? That is, friend: bas
-    @channel.create({type, id:entity.$id(), data})
+    relations  = {}
+    attributes = {}
+
+    isEntity = (value) ->
+      typeof value.$isEntity is 'function' and value.$isEntity()
+
+    attributes[key] = value for key, value of data when not isEntity(value)
+    relations[key]  = value.$id() for key, value of data when isEntity(value)
+
+    @channel.create({type, id:entity.$id(), attributes, relations})
 
     # Save in repository and return
     @repository.store(entity)
