@@ -17,6 +17,7 @@ class View
 
   populate: ->
 
+    console.log('read view from db with id'+@entity.$id())
     @weaver.channel.queryFromView({id: @entity.$id()}).bind(@).then((memberIds) ->
 
       promises = []

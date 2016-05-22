@@ -12391,7 +12391,8 @@ if (WebSocket) ws.prototype = WebSocket.prototype;
     };
 
     View.prototype.populate = function() {
-      return this.weaver.channel.populate({
+      console.log('read view from db with id' + this.entity.$id());
+      return this.weaver.channel.queryFromView({
         id: this.entity.$id()
       }).bind(this).then(function(memberIds) {
         var promises;
@@ -12643,8 +12644,8 @@ if (WebSocket) ws.prototype = WebSocket.prototype;
       return this.io.on(event, callback);
     };
 
-    Socket.prototype.populate = function(payload) {
-      return this.emit('populate', payload);
+    Socket.prototype.queryFromView = function(payload) {
+      return this.emit('queryFromView', payload);
     };
 
     return Socket;
