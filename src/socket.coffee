@@ -34,10 +34,10 @@ class Socket
     @emit('wipe', {})
 
   bootstrapFromUrl: (url) ->
-    @emit('wipe', url)
+    @emit('bootstrapFromUrl', url)
 
   bootstrapFromJson: (json) ->
-    @emit('wipe', json)
+    @emit('bootstrapFromJson', json)
 
   onUpdate: (id, callback) ->
     @on(id + ':updated', callback)

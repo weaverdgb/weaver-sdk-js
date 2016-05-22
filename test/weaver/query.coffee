@@ -1,14 +1,12 @@
-require("./test-suite")()
+require("../test-suite")()
 fs = require('fs')
-WeaverServer = require('weaver-server')
-VirtuosoConnector  = require('weaver-connector-virtuoso')
 WeaverCommons = require('weaver-commons-js')
 Filter             = WeaverCommons.Filter
 Promise = require('bluebird')
 
 describe 'Create an object using Virtuoso connector', ->
 
-  Weaver = null
+  weaver = null
 
   json = null
 
@@ -35,7 +33,7 @@ describe 'Create an object using Virtuoso connector', ->
 
   it 'Wipe', ->
 
-    server.operations.wipe().should.be.fulfilled
+    weaver.channel.wipe().should.be.fulfilled
 
 
 
@@ -44,7 +42,7 @@ describe 'Create an object using Virtuoso connector', ->
   it 'Bootstrap', ->
 
 
-    server.operations.bootstrapFromJson(json).should.be.fulfilled
+    weaver.channel.bootstrapFromJson(json).should.be.fulfilled
 
 
   it 'Query for everything', ->
@@ -58,9 +56,15 @@ describe 'Create an object using Virtuoso connector', ->
 
     filters.push(filter)
 
-    memberIds = server.operations.queryFromFilters(filters)
-    memberIds.then((res)->
-      console.log(res)
+    memberIds = weaver.channel.queryFromFilters(filters)
+    memberIds.then(
+
+      (res)->
+        console.log(res)
+
+      (error)->
+        console.log(error)
+
     )
     memberIds.should.eventually.contain('cioirey6z000c3k6miexs76bq')    # mens
     memberIds.should.eventually.contain('cioirfiha000h3k6m6ju81fzo')    # aap
@@ -79,9 +83,14 @@ describe 'Create an object using Virtuoso connector', ->
 
     filters.push(filter)
 
-    memberIds = server.operations.queryFromFilters(filters)
-    memberIds.then((res)->
-      console.log(res)
+    memberIds = weaver.channel.queryFromFilters(filters)
+    memberIds.then(
+
+      (res)->
+        console.log(res)
+
+      (error)->
+        console.log(error)
     )
     memberIds.should.eventually.not.contain('cioirey6z000c3k6miexs76bq')    # mens
     memberIds.should.eventually.not.contain('cioirfiha000h3k6m6ju81fzo')    # aap
@@ -100,9 +109,14 @@ describe 'Create an object using Virtuoso connector', ->
 
     filters.push(filter)
 
-    memberIds = server.operations.queryFromFilters(filters)
-    memberIds.then((res)->
-      console.log(res)
+    memberIds = weaver.channel.queryFromFilters(filters)
+    memberIds.then(
+
+      (res)->
+        console.log(res)
+
+      (error)->
+        console.log(error)
     )
     memberIds.should.eventually.not.contain('cioirey6z000c3k6miexs76bq')    # mens
     memberIds.should.eventually.not.contain('cioirfiha000h3k6m6ju81fzo')    # aap

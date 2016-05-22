@@ -1,6 +1,6 @@
 {
   "name": "weaver-sdk",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -33,7 +33,8 @@
     "mocha": "^2.2.5",
     "chai": "^3.0.0",
     "sinon": "^1.15.4",
-    "chai-as-promised": "^5.1.0"
+    "chai-as-promised": "^5.1.0" ,
+    "weaver-commons-js": "0.0.1"
   },
   "engines": {
     "node": ">=0.8"
