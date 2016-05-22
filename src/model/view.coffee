@@ -17,7 +17,7 @@ class View
 
   populate: ->
 
-    @weaver.channel.populate({id: @entity.$id()}).bind(@).then((memberIds) ->
+    @weaver.channel.queryFromView({id: @entity.$id()}).bind(@).then((memberIds) ->
 
       promises = []
 

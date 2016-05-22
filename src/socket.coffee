@@ -55,5 +55,5 @@ class Socket
   on: (event, callback) ->
     @io.on(event, callback)
 
-  populate: (payload) ->
-    @emit('populate', payload)
+  queryFromView: (payload) ->
+    @emit('queryFromView', payload)
