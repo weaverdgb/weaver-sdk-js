@@ -35,3 +35,25 @@ class View
     )
 
 
+  populateFromFilters: (filters) ->
+
+    filtersJson = JSON.stringify(filters)
+
+    console.log('read view from db with id'+@entity.$id())
+    @weaver.channel.queryFromFilters(filtersJson).bind(@).then((memberIds) ->
+
+      promises = []
+
+      memberIds.forEach((memberId) =>
+        if not @retrieved(memberId)
+          promises.push(@weaver.get(memberId, {eagerness : 1}).bind(@).then((entity) ->
+            @members[memberId] = entity
+          ))
+      )
+
+      Promise.all(promises).bind(@).then(->
+        return @members
+      )
+    )
+
+
