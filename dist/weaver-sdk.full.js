@@ -12391,11 +12391,44 @@ if (WebSocket) ws.prototype = WebSocket.prototype;
     };
 
     View.prototype.populate = function() {
-      return this.weaver.channel.populate({
+      console.log('read view from db with id' + this.entity.$id());
+      return this.weaver.channel.queryFromView({
         id: this.entity.$id()
       }).bind(this).then(function(memberIds) {
         var promises;
         promises = [];
+        if ((memberIds == null) || typeof memberIds !== 'object') {
+          console.error('the populate from view did not return an array result');
+          return this.members;
+        }
+        memberIds.forEach((function(_this) {
+          return function(memberId) {
+            if (!_this.retrieved(memberId)) {
+              return promises.push(_this.weaver.get(memberId, {
+                eagerness: 1
+              }).bind(_this).then(function(entity) {
+                return this.members[memberId] = entity;
+              }));
+            }
+          };
+        })(this));
+        return Promise.all(promises).bind(this).then(function() {
+          return this.members;
+        });
+      });
+    };
+
+    View.prototype.populateFromFilters = function(filters) {
+      var filtersJson;
+      filtersJson = JSON.stringify(filters);
+      console.log('read view from db with id' + this.entity.$id());
+      return this.weaver.channel.queryFromFilters(filtersJson).bind(this).then(function(memberIds) {
+        var promises;
+        promises = [];
+        if ((memberIds == null) || typeof memberIds !== 'object') {
+          console.error('the populate from view did not return an array result');
+          return this.members;
+        }
         memberIds.forEach((function(_this) {
           return function(memberId) {
             if (!_this.retrieved(memberId)) {
@@ -12614,6 +12647,18 @@ if (WebSocket) ws.prototype = WebSocket.prototype;
       return this.emit('remove', payload);
     };
 
+    Socket.prototype.wipe = function() {
+      return this.emit('wipe', {});
+    };
+
+    Socket.prototype.bootstrapFromUrl = function(url) {
+      return this.emit('bootstrapFromUrl', url);
+    };
+
+    Socket.prototype.bootstrapFromJson = function(json) {
+      return this.emit('bootstrapFromJson', json);
+    };
+
     Socket.prototype.onUpdate = function(id, callback) {
       return this.on(id + ':updated', callback);
     };
@@ -12643,8 +12688,12 @@ if (WebSocket) ws.prototype = WebSocket.prototype;
       return this.io.on(event, callback);
     };
 
-    Socket.prototype.populate = function(payload) {
-      return this.emit('populate', payload);
+    Socket.prototype.queryFromView = function(payload) {
+      return this.emit('queryFromView', payload);
+    };
+
+    Socket.prototype.queryFromFilters = function(payload) {
+      return this.emit('queryFromFilters', payload);
     };
 
     return Socket;

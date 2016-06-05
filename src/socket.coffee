@@ -30,6 +30,15 @@ class Socket
   remove: (payload) ->
     @emit('remove', payload)
 
+  wipe: () ->
+    @emit('wipe', {})
+
+  bootstrapFromUrl: (url) ->
+    @emit('bootstrapFromUrl', url)
+
+  bootstrapFromJson: (json) ->
+    @emit('bootstrapFromJson', json)
+
   onUpdate: (id, callback) ->
     @on(id + ':updated', callback)
 
@@ -55,5 +64,8 @@ class Socket
   on: (event, callback) ->
     @io.on(event, callback)
 
-  populate: (payload) ->
-    @emit('populate', payload)
+  queryFromView: (payload) ->
+    @emit('queryFromView', payload)
+
+  queryFromFilters: (payload) ->
+    @emit('queryFromFilters', payload)
