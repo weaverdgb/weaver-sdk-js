@@ -1,13 +1,12 @@
 {
   "name": "weaver-sdk",
-  "version": "0.1.2",
+  "version": "0.1.6",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
     "url": "https://github.com/weaverplatform/weaver-sdk-js",
     "email": "mohamad@sysunite.com"
   },
-  "readme": "README.md",
   "main": "lib/weaver.js",
   "license": "GPL-3.0",
   "repository": {},
