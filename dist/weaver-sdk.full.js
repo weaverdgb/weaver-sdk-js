@@ -12401,6 +12401,9 @@ if (WebSocket) ws.prototype = WebSocket.prototype;
           console.error('the populate from view did not return an array result');
           return this.members;
         }
+        if (memberIds[0] == null) {
+          return this.members;
+        }
         memberIds.forEach((function(_this) {
           return function(memberId) {
             if (!_this.retrieved(memberId)) {
@@ -12427,6 +12430,9 @@ if (WebSocket) ws.prototype = WebSocket.prototype;
         promises = [];
         if ((memberIds == null) || typeof memberIds !== 'object') {
           console.error('the populate from view did not return an array result');
+          return this.members;
+        }
+        if (memberIds[0] == null) {
           return this.members;
         }
         memberIds.forEach((function(_this) {
