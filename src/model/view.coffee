@@ -26,7 +26,10 @@ class View
         console.error('the populate from view did not return an array result')
         return @members
       
-
+      # if no results
+      if not memberIds[0]?
+        return @members
+        
       memberIds.forEach((memberId) =>
         if not @retrieved(memberId)
           promises.push(@weaver.get(memberId, {eagerness : 1}).bind(@).then((entity) ->
