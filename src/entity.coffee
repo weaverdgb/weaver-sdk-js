@@ -199,12 +199,17 @@ class Entity
               id: value.$id()
               type: value.$type()
 
-          @$.weaver.channel.link(payload)
+          @$.weaver.channel.update(payload)
         else
           payload =
-            id: @.$id()
+            source:
+              id: @.$id()
+              type: @.$type()
             attribute: attribute
-            value: @[attribute]
+            target:
+              value: value
+              datatype: ''
+
           @$.weaver.channel.update(payload)
 
 

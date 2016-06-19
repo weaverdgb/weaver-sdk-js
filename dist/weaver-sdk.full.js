@@ -12275,12 +12275,18 @@ if (WebSocket) ws.prototype = WebSocket.prototype;
                 type: value.$type()
               }
             };
-            return this.$.weaver.channel.link(payload);
+            return this.$.weaver.channel.update(payload);
           } else {
             payload = {
-              id: this.$id(),
+              source: {
+                id: this.$id(),
+                type: this.$type()
+              },
               attribute: attribute,
-              value: this[attribute]
+              target: {
+                value: value,
+                datatype: ''
+              }
             };
             return this.$.weaver.channel.update(payload);
           }
