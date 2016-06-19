@@ -1,6 +1,6 @@
 {
   "name": "weaver-sdk",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -11,13 +11,13 @@
   "license": "GPL-3.0",
   "repository": {},
   "dependencies": {
-    "bluebird": "~2.9.34",
-    "cuid": "~1.2.4",
-    "socket.io-client": "~1.3.5"
+    "bluebird": "~3.4.1",
+    "cuid": "~1.3.8",
+    "socket.io-client": "~1.4.6"
   },
   "devDependencies": {
     "coffee-script": "1.9.3",
-    "grunt": "~0.4.5",
+    "grunt": "~1.0.1",
     "browserify": "^13.0.0",
     "grunt-browserify": "^4.0.1",
     "remapify": "^2.1.0",

@@ -1,7 +1,7 @@
 {
   "name": "weaver-sdk",
   "main": "dist/weaver-sdk.full.js",
-  "version": "0.1.10",
+  "version": "0.1.11",
   "homepage": "https://github.com/weaverplatform/weaver-sdk-js",
   "authors": [
     "Mohamad Alamili <mohamad@sysunite.com>"
@@ -33,8 +33,10 @@
     "tmp"
   ],
   "dependencies": {
-    "bluebird": "~2.9.34",
-    "cuid": "~1.2.4",
-    "socket.io-client": "~1.3.5"
+    "bluebird": "~3.4.1",
+    "cuid": "~1.3.8",
+    "socket.io-client": "~1.4.6"
   }
 }
+
+
