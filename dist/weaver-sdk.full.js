@@ -12708,6 +12708,10 @@ if (WebSocket) ws.prototype = WebSocket.prototype;
       return this.emit('queryFromFilters', payload);
     };
 
+    Socket.prototype.nativeQuery = function(payload) {
+      return this.emit('nativeQuery', payload);
+    };
+
     return Socket;
 
   })();
