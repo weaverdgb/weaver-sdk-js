@@ -69,3 +69,6 @@ class Socket
 
   queryFromFilters: (payload) ->
     @emit('queryFromFilters', payload)
+
+  nativeQuery: (payload) ->
+    @emit('nativeQuery', payload)
