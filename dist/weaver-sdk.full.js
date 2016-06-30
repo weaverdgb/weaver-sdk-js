@@ -12269,7 +12269,7 @@ if (WebSocket) ws.prototype = WebSocket.prototype;
                 id: this.$id(),
                 type: this.$type()
               },
-              key: attribute,
+              attribute: attribute,
               target: {
                 id: value.$id(),
                 type: value.$type()

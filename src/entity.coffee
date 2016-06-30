@@ -194,7 +194,7 @@ class Entity
             source:
               id: @.$id()
               type: @.$type()
-            key: attribute
+            attribute: attribute
             target:
               id: value.$id()
               type: value.$type()
