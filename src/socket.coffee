@@ -64,6 +64,9 @@ class Socket
   on: (event, callback) ->
     @io.on(event, callback)
 
+  disconnect: ->
+    @io.disconnect()
+
   queryFromView: (payload) ->
     @emit('queryFromView', payload)
 

@@ -28,6 +28,12 @@ class Weaver
     @
 
   # Core
+  # Disconnect the socket connection
+  disconnect: ->
+    @channel.disconnect()
+    @
+
+  # Core
   # Set a database to use for getting and adding entities
   database: (database) ->
     @channel = database
