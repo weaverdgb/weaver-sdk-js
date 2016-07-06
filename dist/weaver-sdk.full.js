@@ -12712,6 +12712,10 @@ if (WebSocket) ws.prototype = WebSocket.prototype;
       return this.io.on(event, callback);
     };
 
+    Socket.prototype.disconnect = function() {
+      return this.io.disconnect();
+    };
+
     Socket.prototype.queryFromView = function(payload) {
       return this.emit('queryFromView', payload);
     };
@@ -12761,6 +12765,11 @@ if (WebSocket) ws.prototype = WebSocket.prototype;
 
     Weaver.prototype.connect = function(address) {
       this.channel = new Socket(address);
+      return this;
+    };
+
+    Weaver.prototype.disconnect = function() {
+      this.channel.disconnect();
       return this;
     };
 
