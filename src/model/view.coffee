@@ -14,6 +14,12 @@ class View
   retrieved: (id) ->
     @members[id]?
 
+  skipPrefix: (id) ->
+    if id.indexOf(':') > -1
+      id.substring(id.indexOf(':')+1)
+    else
+      id
+
 
   populate: ->
 
@@ -22,15 +28,17 @@ class View
 
       promises = []
 
-      if not memberIds? or typeof memberIds isnt 'object' # actually array      
+      if not memberIds? or typeof memberIds isnt 'object' # actually array
         console.error('the populate from view did not return an array result')
         return @members
-      
+
       # if no results
       if not memberIds[0]?
         return @members
-        
+
       memberIds.forEach((memberId) =>
+        memberId = @skipPrefix(memberId)
+        console.log(memberId)
         if not @retrieved(memberId)
           promises.push(@weaver.get(memberId, {eagerness : 1}).bind(@).then((entity) ->
             @members[memberId] = entity
@@ -52,7 +60,7 @@ class View
 
       promises = []
 
-      if not memberIds? or typeof memberIds isnt 'object' # actually array      
+      if not memberIds? or typeof memberIds isnt 'object' # actually array
         console.error('the populate from view did not return an array result')
         return @members
 
@@ -61,6 +69,8 @@ class View
         return @members
 
       memberIds.forEach((memberId) =>
+        memberId = @skipPrefix(memberId)
+        console.log(memberId)
         if not @retrieved(memberId)
           promises.push(@weaver.get(memberId, {eagerness : 1}).bind(@).then((entity) ->
             @members[memberId] = entity
