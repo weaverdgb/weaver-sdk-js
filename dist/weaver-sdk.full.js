@@ -12275,14 +12275,14 @@ if (WebSocket) ws.prototype = WebSocket.prototype;
                 type: value.$type()
               }
             };
-            return this.$.weaver.channel.update(payload);
+            return this.$.weaver.channel.link(payload);
           } else {
             payload = {
               source: {
                 id: this.$id(),
                 type: this.$type()
               },
-              attribute: attribute,
+              key: attribute,
               target: {
                 value: value,
                 datatype: ''
@@ -12396,6 +12396,14 @@ if (WebSocket) ws.prototype = WebSocket.prototype;
       return this.members[id] != null;
     };
 
+    View.prototype.skipPrefix = function(id) {
+      if (id.indexOf(':') > -1) {
+        return id.substring(id.indexOf(':') + 1);
+      } else {
+        return id;
+      }
+    };
+
     View.prototype.populate = function() {
       console.log('read view from db with id' + this.entity.$id());
       return this.weaver.channel.queryFromView({
@@ -12412,6 +12420,8 @@ if (WebSocket) ws.prototype = WebSocket.prototype;
         }
         memberIds.forEach((function(_this) {
           return function(memberId) {
+            memberId = _this.skipPrefix(memberId);
+            console.log(memberId);
             if (!_this.retrieved(memberId)) {
               return promises.push(_this.weaver.get(memberId, {
                 eagerness: 1
@@ -12443,6 +12453,8 @@ if (WebSocket) ws.prototype = WebSocket.prototype;
         }
         memberIds.forEach((function(_this) {
           return function(memberId) {
+            memberId = _this.skipPrefix(memberId);
+            console.log(memberId);
             if (!_this.retrieved(memberId)) {
               return promises.push(_this.weaver.get(memberId, {
                 eagerness: 1
@@ -12700,6 +12712,10 @@ if (WebSocket) ws.prototype = WebSocket.prototype;
       return this.io.on(event, callback);
     };
 
+    Socket.prototype.disconnect = function() {
+      return this.io.disconnect();
+    };
+
     Socket.prototype.queryFromView = function(payload) {
       return this.emit('queryFromView', payload);
     };
@@ -12749,6 +12765,11 @@ if (WebSocket) ws.prototype = WebSocket.prototype;
 
     Weaver.prototype.connect = function(address) {
       this.channel = new Socket(address);
+      return this;
+    };
+
+    Weaver.prototype.disconnect = function() {
+      this.channel.disconnect();
       return this;
     };
 

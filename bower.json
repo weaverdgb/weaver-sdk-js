@@ -1,7 +1,7 @@
 {
   "name": "weaver-sdk",
   "main": "dist/weaver-sdk.full.js",
-  "version": "0.1.13",
+  "version": "0.2.0",
   "homepage": "https://github.com/weaverplatform/weaver-sdk-js",
   "authors": [
     "Mohamad Alamili <mohamad@sysunite.com>"
@@ -38,5 +38,3 @@
     "socket.io-client": "~1.4.6"
   }
 }
-
-
