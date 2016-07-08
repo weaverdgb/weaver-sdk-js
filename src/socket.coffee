@@ -50,16 +50,14 @@ class Socket
 
   # TODO: Handle errors from server
   emit: (key, body) ->
-    deferred = Promise.defer()
-
-    @io.emit(key, body, (response) ->
-      if response is 0
-        deferred.resolve()
-      else
-        deferred.resolve(response)
+    new Promise((resolve, reject) =>
+      @io.emit(key, body, (response) ->
+        if response is 0
+          resolve()
+        else
+          resolve(response)
+      )
     )
-
-    deferred.promise
 
   on: (event, callback) ->
     @io.on(event, callback)

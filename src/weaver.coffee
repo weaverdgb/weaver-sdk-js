@@ -7,7 +7,7 @@ Promise     = require('bluebird')
 Socket      = require('./socket')
 Entity      = require('./entity')
 Repository  = require('./repository')
-View        = require('./model/view')
+WeaverCommons = require('weaver-commons-js')
 
 # Main class exposing all features
 module.exports =
@@ -86,8 +86,8 @@ class Weaver
 
 
   getView: (id) ->
-    @get(id, -1).then((entity) ->
-      new View(entity)
+    @get(id, -1).then((viewEntity) ->
+      new WeaverCommons.model.View(viewEntity)
     )
 
 
