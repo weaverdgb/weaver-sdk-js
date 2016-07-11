@@ -1,17 +1,11 @@
 $ = require("./../test-suite")()
 
-redis = new require('ioredis')()
-
 # Weaver
 Weaver = require('./../../src/weaver')
 weaver = new Weaver()
-weaver.connect('http://localhost:9487')
+weaver.connect(WEAVER_ADDRESS)
 
 mohamad = null
-
-before('clear database', ->
-  redis.flushall()
-)
 
 beforeEach('clear repository', ->
   weaver.repository.clear()
