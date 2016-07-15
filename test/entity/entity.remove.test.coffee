@@ -4,10 +4,10 @@ Promise = require("bluebird")
 Entity = require('../../src/entity')
 Weaver = require('../../src/weaver')
 
-describe 'Entity: Removing, unlinking and destroying', ->
+describe.skip 'Entity: Removing, unlinking and destroying', ->
 
   weaver   = new Weaver()
-  weaver.connect('http://localhost:9487')
+  weaver.connect(WEAVER_ADDRESS)
 
   beforeEach ->
     weaver.repository.clear()
