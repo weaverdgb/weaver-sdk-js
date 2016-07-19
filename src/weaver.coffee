@@ -42,7 +42,7 @@ class Weaver
   # Core
   # Adds a new entity to Weaver
   # Returns both the entity created and the promise to create it
-  adds: (data, type, id) ->
+  _add: (data, type, id) ->
     entity = new Entity(data, type, true, id).$weaver(@)
 
     # Save to server
@@ -65,11 +65,11 @@ class Weaver
  
   # Returns the promise part of the adds functionality  
   addPromise: (data, type, id) ->
-    @adds(data, type, id).createPromise
+    @_add(data, type, id).createPromise
 
   # Returns the entity part of the adds functionality  
   add: (data, type, id) ->
-    @adds(data, type, id).entity
+    @_add(data, type, id).entity
 
   # Core
   # Creates an Entity of type $COLLECTION
