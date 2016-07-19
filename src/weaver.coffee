@@ -59,6 +59,9 @@ class Weaver
     # Save in repository and return
     @repository.store(entity)
 
+  addPromise: (data, type, id) ->
+    Promise.resolve(@add(data, type, id))
+
   # Core
   # Creates an Entity of type $COLLECTION
   collection: (id) ->
