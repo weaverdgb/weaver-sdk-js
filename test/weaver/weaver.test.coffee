@@ -100,6 +100,10 @@ describe 'Weaver: addPromise', ->
     returnValue = weaver.addPromise({ name: 'a test'})
     expect(returnValue).to.be.an.instanceof(Promise)
 
+  it 'should reject on error', ->
+    weaver.disconnect()
+    weaver.addPromise({name: 'fail'}).should.be.rejected
+    weaver.connect(WEAVER_ADDRESS)
 
 describe 'Weaver: Creating an entity', ->
 
