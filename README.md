@@ -12,6 +12,7 @@ A library that gives you access to the Weaver platform from your JavaScript app.
 
 ##### Interact
 - weaver.add(data, type, id)
+- weaver.addPromise(data, type, id): Same as weaver.add, but returns a promise which is fulfilled through the server.
 - weaver.collection(data, id)
 - weaver.get(id, {eagerness})
 

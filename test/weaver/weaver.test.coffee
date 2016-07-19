@@ -95,8 +95,15 @@ describe 'Weaver: Loading entity', ->
       mohamad.friends.values()[1].name.should.equal('Gijs van der Ent')
     )
 
+describe 'Weaver: addPromise', ->
+  it 'should return a promise', ->
+    returnValue = weaver.addPromise({ name: 'a test'})
+    expect(returnValue).to.be.an.instanceof(Promise)
 
-
+  it 'should reject on error', ->
+    weaver.disconnect()
+    weaver.addPromise({name: 'fail'}).should.be.rejected
+    weaver.connect(WEAVER_ADDRESS)
 
 describe 'Weaver: Creating an entity', ->
 
