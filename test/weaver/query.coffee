@@ -4,49 +4,29 @@ WeaverCommons = require('weaver-commons-js')
 Filter             = WeaverCommons.Filter
 Promise = require('bluebird')
 
-describe 'Create an object using Virtuoso connector', ->
+describe.skip 'Create an object using Virtuoso connector', ->
 
   weaver = null
-
   json = null
 
-
   before ->
-
-
     json = fs.readFileSync('./test/weaver/bas.json', 'utf8')          # todo make more dymamically powerful
 
     Weaver = require('./../../src/weaver')
     weaver = new Weaver()
-    weaver.connect('http://localhost:9487')
-
-
-
-
-
-
-
+    weaver.connect(WEAVER_ADDRESS)
 
   # for a description of the payload see
   # https://github.com/weaverplatform/weaverplatform/blob/master/weaver-sdk-payloads.md
 
-
   it 'Wipe', ->
-
     weaver.channel.wipe().should.be.fulfilled
 
-
-
-
-
   it 'Bootstrap', ->
-
-
     weaver.channel.bootstrapFromJson(json).should.be.fulfilled
 
 
   it 'Query for everything', ->
-
     filters = []
 
     Filter filter = new Filter('rdfs:label')

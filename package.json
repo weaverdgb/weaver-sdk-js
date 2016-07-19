@@ -1,6 +1,6 @@
 {
   "name": "weaver-sdk",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -42,6 +42,6 @@
   },
   "scripts": {
     "prepublish": "coffee -o lib -c src",
-    "test": "./node_modules/.bin/mocha --compilers coffee:coffee-script/register --recursive $(find test -path '*test.coffee')"
+    "test": "./node_modules/.bin/mocha && ./node_modules/.bin/istanbul report"
   }
 }

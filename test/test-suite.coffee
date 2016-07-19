@@ -17,3 +17,5 @@ module.exports = ->
   global.expect = chai.expect
   global.assert = chai.assert
   global.should = chai.should
+
+  global.WEAVER_ADDRESS = process.env.WEAVER_ADDRESS or 'http://192.168.99.100:9487'
