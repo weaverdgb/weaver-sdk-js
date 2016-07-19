@@ -41,7 +41,8 @@ class Weaver
 
   # Core
   # Adds a new entity to Weaver
-  add: (data, type, id) ->
+  # Returns both the entity created and the promise to create it
+  adds: (data, type, id) ->
     entity = new Entity(data, type, true, id).$weaver(@)
 
     # Save to server
@@ -54,13 +55,21 @@ class Weaver
     attributes[key] = value for key, value of data when not isEntity(value)
     relations[key]  = value.$id() for key, value of data when isEntity(value)
 
-    @channel.create({type, id:entity.$id(), attributes, relations})
+    createPromise = @channel.create({type, id:entity.$id(), attributes, relations})
 
     # Save in repository and return
-    @repository.store(entity)
-
+    { 
+      entity: @repository.store(entity)
+      createPromise: createPromise
+    }
+ 
+  # Returns the promise part of the adds functionality  
   addPromise: (data, type, id) ->
-    Promise.resolve(@add(data, type, id))
+    @adds(data, type, id).createPromise
+
+  # Returns the entity part of the adds functionality  
+  add: (data, type, id) ->
+    @adds(data, type, id).entity
 
   # Core
   # Creates an Entity of type $COLLECTION
