@@ -11,6 +11,18 @@ beforeEach('clear repository', ->
   weaver.repository.clear()
 )
 
+describe 'Authentication', ->
+  it 'should send a token', ->
+    weaver.disconnect()
+    weaver.channel = { authenticate: sinon.stub() };
+    weaver.channel.authenticate.returns(Promise.resolve({ read: true, write: false}))
+
+    promise = weaver.authenticate('test123')
+    expect(weaver.channel.authenticate.callCount).to.equal(1)
+    expect(weaver.channel.authenticate.firstCall.args[0]).to.equal('test123')
+    promise.should.eventually.equal({ read: true, write: false })
+
+    weaver.connect(WEAVER_ADDRESS)
 
 describe 'Weaver: Creating entity', ->
 

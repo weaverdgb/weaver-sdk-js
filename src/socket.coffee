@@ -15,6 +15,9 @@ class Socket
   create: (payload) ->
     @emit('create', payload)
 
+  authenticate: (payload) ->
+    @emit('authenticate', payload)
+
   update: (payload) ->
     @emit('update', payload)
 

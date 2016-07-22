@@ -9,6 +9,7 @@ A library that gives you access to the Weaver platform from your JavaScript app.
 - weaver = new Weaver()
 - weaver.connect(socketUrl)
 - weaver.database(localDatabase)
+- weaver.authenticate(token)
 
 ##### Interact
 - weaver.add(data, type, id)
@@ -52,6 +53,22 @@ var weaver = new Weaver();
 weaver.database(database);
 ```
 
+##### Authenticating using a token 
+
+Authentication is optional (but enforced if the server is configured so)
+
+```javascript
+weaver.authenticate('token123')
+```
+
+Returns a promise with a javascript object containing information about whether the client is authorized to perform the following operations:
+```javascript
+{
+  read: true,
+  write: false
+}
+
+```
 ##### Creating an entity
 ```javascript
 var john = weaver.add({name: 'John Doe', age: 27, male: true});

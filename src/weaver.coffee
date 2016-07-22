@@ -33,6 +33,11 @@ class Weaver
     @channel.disconnect()
     @
 
+  # Core 
+  # Send authentication info
+  authenticate: (token) ->
+    @channel.authenticate(token)
+
   # Core
   # Set a database to use for getting and adding entities
   database: (database) ->
