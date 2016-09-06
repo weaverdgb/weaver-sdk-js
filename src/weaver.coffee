@@ -33,7 +33,7 @@ class Weaver
     @channel.disconnect()
     @
 
-  # Core 
+  # Core
   # Send authentication info
   authenticate: (token) ->
     @channel.authenticate(token)
@@ -63,16 +63,16 @@ class Weaver
     createPromise = @channel.create({type, id:entity.$id(), attributes, relations})
 
     # Save in repository and return
-    { 
+    {
       entity: @repository.store(entity)
       createPromise: createPromise
     }
- 
-  # Returns the promise part of the adds functionality  
+
+  # Returns the promise part of the adds functionality
   addPromise: (data, type, id) ->
     @_add(data, type, id).createPromise
 
-  # Returns the entity part of the adds functionality  
+  # Returns the entity part of the adds functionality
   add: (data, type, id) ->
     @_add(data, type, id).entity
 
@@ -84,29 +84,28 @@ class Weaver
   # Core
   # Loads an entity either from the local repository or from the server
   get: (id, opts) ->
-    # Default options
-    opts = {} if not opts?
-    opts.eagerness = 1 if not opts.eagerness?
+      # Default options
+      opts = {} if not opts?
+      opts.eagerness = 1 if not opts.eagerness?
 
-    if @repository.contains(id) and @repository.get(id).$isFetched(opts.eagerness)
-      Promise.resolve(@repository.get(id))
-    else
-      # Server read
-      @channel.read({id, opts}).bind(@).then((object) ->
+      if @repository.contains(id) and @repository.get(id).$isFetched(opts.eagerness)
+        Promise.resolve(@repository.get(id))
+      else
+        # Server read
+        @channel.read({id, opts}).bind(@).then((object) ->
 
-        # Transform the object into a nested Entity object
-        entity = Entity.build(object, @)
+          # Transform the object into a nested Entity object
+          entity = Entity.build(object, @)
 
-        # Store entity and sub-entities in the repository and return it
-        @repository.store(entity)
-      )
+          # Store entity and sub-entities in the repository and return it
+          @repository.store(entity)
 
+    )
 
   getView: (id) ->
     @get(id, -1).then((viewEntity) ->
       new WeaverCommons.model.View(viewEntity)
     )
-
 
   # Utility
   # Prints the entity to the console after loading is finished

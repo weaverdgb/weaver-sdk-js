@@ -53,10 +53,15 @@ class Socket
 
   # TODO: Handle errors from server
   emit: (key, body) ->
+
+    isError = (object) ->
+      return false if not object?
+      Object.keys(object).length is 3 and object.code? and object.payload? and object.message?
+
     new Promise((resolve, reject) =>
       @io.emit(key, body, (response) ->
-        if response is 0
-          resolve()
+        if isError(response)
+          reject(new Error(response.message))
         else
           resolve(response)
       )
