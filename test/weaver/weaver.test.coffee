@@ -121,19 +121,22 @@ describe 'Weaver: addPromise', ->
 describe 'Weaver: Creating an entity', ->
 
   it 'should set type as $ROOT if left empty', ->
-    return
+    root = weaver.add()
+    root.$type().should.equal('$ROOT')
 
   it 'should set type if given', ->
-    return
+    darkMatter = weaver.add({name: 'dark matter'}, '$DARK_MATTER')
+    darkMatter.$type().should.equal('$DARK_MATTER')
 
   it 'should generate a unique ID', ->
     return
 
-  it 'should store a created entity in the repository', ->
-    return
-
   it 'should allow for empty entities to be created', ->
     return
+
+  it 'should store a created entity in the repository', ->
+    creation = weaver.add({once:'more'},'$for', 'measure')
+    weaver.repository.get('measure').should.equal(creation)
 
   it 'should allow for strings, numbers and booleans as keys', ->
     return
@@ -146,6 +149,9 @@ describe 'Weaver: Creating an entity', ->
 
 
 describe 'Weaver: Loading an entity', ->
+
+  it 'should give an exception if an entity is non-existent', ->
+    return
 
   it 'should not load an entity if already available in the repository', ->
     return
