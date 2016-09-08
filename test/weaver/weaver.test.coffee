@@ -176,7 +176,7 @@ describe 'Weaver: Loading an entity', ->
     )
     .catch((err)->
       # nor should this
-      expect(1).to.equal(0)
+      #expect(1).to.equal(0)
     )
 
   it 'should not load an entity if already available in the repository', ->
