@@ -61,7 +61,7 @@ class Socket
     new Promise((resolve, reject) =>
       @io.emit(key, body, (response) ->
         if isError(response)
-          reject(new Error(response.message))
+          reject(new Error(response.code + ' - ' + response.message))
         else
           resolve(response)
       )

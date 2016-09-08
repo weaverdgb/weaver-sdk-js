@@ -164,9 +164,12 @@ describe 'Weaver: Creating an entity', ->
 
 describe 'Weaver: Loading an entity', ->
 
-  it 'should give an exception if an entity is non-existent', ->
-    redHerring = weaver.get('non-existent-entity')
-    expect(-> redHerring.test()).to.throw()
+  it 'should give an exception if an entity is non-existent', (done)->
+    weaver.get('non-existent-entity')
+    .catch((err)->
+      expect(err.message).to.equal(new Error('404 - Entity not found').message)
+      done()
+    )
 
   it 'should not load an entity if already available in the repository', ->
     return
