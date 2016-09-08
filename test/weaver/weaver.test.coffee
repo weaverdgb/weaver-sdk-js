@@ -129,17 +129,31 @@ describe 'Weaver: Creating an entity', ->
     darkMatter.$type().should.equal('$DARK_MATTER')
 
   it 'should generate a unique ID', ->
-    return
+    entityIds = []
+    for i in [0..1000]
+      entity = weaver.add()
+      entityIds.push(entity.$id())
+
+    for ent in entityIds
+      lastEntityId = entityIds.pop()
+      entityIds.should.not.contain(lastEntityId)
+
 
   it 'should allow for empty entities to be created', ->
-    return
+    ent = weaver.add()
+    ent.should.have.property.$id
+    ent.should.have.property.$type
 
   it 'should store a created entity in the repository', ->
     creation = weaver.add({once:'more'},'$for', 'measure')
     weaver.repository.get('measure').should.equal(creation)
 
   it 'should allow for strings, numbers and booleans as keys', ->
-    return
+    dictionary =
+      boolean: true
+      number: 0
+      string: 'string'
+    weaver.add({dictionary: dictionary})
 
   it 'should give an error if an object or array is passed as a key', ->
     return
@@ -151,7 +165,7 @@ describe 'Weaver: Creating an entity', ->
 describe 'Weaver: Loading an entity', ->
 
   it 'should give an exception if an entity is non-existent', ->
-    redHerring = weaver.print('non-existent-entity')
+    redHerring = weaver.get('non-existent-entity')
     expect(-> redHerring.test()).to.throw()
 
   it 'should not load an entity if already available in the repository', ->

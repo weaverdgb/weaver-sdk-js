@@ -84,23 +84,23 @@ class Weaver
   # Core
   # Loads an entity either from the local repository or from the server
   get: (id, opts) ->
-      # Default options
-      opts = {} if not opts?
-      opts.eagerness = 1 if not opts.eagerness?
+    # Default options
+    opts = {} if not opts?
+    opts.eagerness = 1 if not opts.eagerness?
 
-      if @repository.contains(id) and @repository.get(id).$isFetched(opts.eagerness)
-        Promise.resolve(@repository.get(id))
-      else
-        # Server read
-        @channel.read({id, opts}).bind(@).then((object) ->
+    if @repository.contains(id) and @repository.get(id).$isFetched(opts.eagerness)
+      Promise.resolve(@repository.get(id))
+    else
+      # Server read
+      @channel.read({id, opts}).bind(@).then((object) ->
 
-          # Transform the object into a nested Entity object
-          entity = Entity.build(object, @)
+        # Transform the object into a nested Entity object
+        entity = Entity.build(object, @)
 
-          # Store entity and sub-entities in the repository and return it
-          @repository.store(entity)
+        # Store entity and sub-entities in the repository and return it
+        @repository.store(entity)
 
-    )
+      )
 
   getView: (id) ->
     @get(id, -1).then((viewEntity) ->
