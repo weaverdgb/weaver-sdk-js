@@ -165,10 +165,18 @@ describe 'Weaver: Creating an entity', ->
 describe 'Weaver: Loading an entity', ->
 
   it 'should give an exception if an entity is non-existent', (done)->
-    weaver.get('non-existent-entity')
-    .catch((err)->
-      expect(err.message).to.equal(new Error('404 - Entity not found').message)
+    weaver.get('non-existent-entity').then( (res)->
+      expect(res.message).to.equal('Entity not found')
+      expect(res.code).to.equal(404)
+      expect(res.isError()).to.equal(true)
       done()
+    ,(rej)->
+      # this should never be reached
+      expect('money').to.equal('happiness')
+    )
+    .catch((err)->
+      # nor should this
+      expect(1).to.equal(0)
     )
 
   it 'should not load an entity if already available in the repository', ->

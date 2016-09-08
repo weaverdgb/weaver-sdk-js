@@ -18,6 +18,11 @@ class Weaver
   @Socket     = Socket
   @Repository = Repository
 
+  isError     = (object) ->
+
+    object? and Object.keys(object).length is 3 and object.code? and object.payload? and object.message?
+
+
   constructor: ->
     @repository = new Repository(@)
 
@@ -92,14 +97,16 @@ class Weaver
       Promise.resolve(@repository.get(id))
     else
       # Server read
-      @channel.read({id, opts}).bind(@).then((object) ->
+      @channel.read({id, opts}).bind(@).then((object)->
+
+        if object? and object.isError? and object.isError() == true
+          return Promise.resolve(object)
 
         # Transform the object into a nested Entity object
         entity = Entity.build(object, @)
 
         # Store entity and sub-entities in the repository and return it
         @repository.store(entity)
-
       )
 
   getView: (id) ->
