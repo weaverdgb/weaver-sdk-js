@@ -25,7 +25,7 @@
  * 
  */
 /**
- * bluebird build version 3.4.1
+ * bluebird build version 3.4.6
  * Features enabled: core, race, call_get, generators, map, nodeify, promisify, props, reduce, settle, some, using, timers, filter, any, each
 */
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.Promise=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof _dereq_=="function"&&_dereq_;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof _dereq_=="function"&&_dereq_;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
@@ -439,7 +439,7 @@ Promise.prototype["break"] = Promise.prototype.cancel = function() {
 
     var promise = this;
     var child = promise;
-    while (promise.isCancellable()) {
+    while (promise._isCancellable()) {
         if (!promise._cancelBy(child)) {
             if (child._isFollowing()) {
                 child._followee().cancel();
@@ -450,7 +450,7 @@ Promise.prototype["break"] = Promise.prototype.cancel = function() {
         }
 
         var parent = promise._cancellationParent;
-        if (parent == null || !parent.isCancellable()) {
+        if (parent == null || !parent._isCancellable()) {
             if (promise._isFollowing()) {
                 promise._followee().cancel();
             } else {
@@ -459,6 +459,7 @@ Promise.prototype["break"] = Promise.prototype.cancel = function() {
             break;
         } else {
             if (promise._isFollowing()) promise._followee().cancel();
+            promise._setWillBeCancelled();
             child = promise;
             promise = parent;
         }
@@ -496,8 +497,7 @@ Promise.prototype._cancelBranched = function() {
 };
 
 Promise.prototype._cancel = function() {
-    if (!this.isCancellable()) return;
-
+    if (!this._isCancellable()) return;
     this._setCancelled();
     async.invoke(this._cancelPromises, this, undefined);
 };
@@ -508,6 +508,10 @@ Promise.prototype._cancelPromises = function() {
 
 Promise.prototype._unsetOnCancel = function() {
     this._onCancelField = undefined;
+};
+
+Promise.prototype._isCancellable = function() {
+    return this.isPending() && !this._isCancelled();
 };
 
 Promise.prototype.isCancellable = function() {
@@ -541,7 +545,7 @@ Promise.prototype._invokeOnCancel = function() {
 };
 
 Promise.prototype._invokeInternalOnCancel = function() {
-    if (this.isCancellable()) {
+    if (this._isCancellable()) {
         this._doInvokeOnCancel(this._onCancel(), true);
         this._unsetOnCancel();
     }
@@ -680,6 +684,8 @@ var unhandledRejectionHandled;
 var possiblyUnhandledRejection;
 var bluebirdFramePattern =
     /[\\\/]bluebird[\\\/]js[\\\/](release|debug|instrumented)/;
+var nodeFramePattern = /\((?:timers\.js):\d+:\d+\)/;
+var parseLinePattern = /[\/<\(](.+?):(\d+):(\d+)\)?\s*$/;
 var stackFramePattern = null;
 var formatStack = null;
 var indentStackFrames = false;
@@ -767,14 +773,16 @@ Promise.prototype._warn = function(message, shouldUseOwnTrace, promise) {
 Promise.onPossiblyUnhandledRejection = function (fn) {
     var domain = getDomain();
     possiblyUnhandledRejection =
-        typeof fn === "function" ? (domain === null ? fn : domain.bind(fn))
+        typeof fn === "function" ? (domain === null ?
+                                            fn : util.domainBind(domain, fn))
                                  : undefined;
 };
 
 Promise.onUnhandledRejectionHandled = function (fn) {
     var domain = getDomain();
     unhandledRejectionHandled =
-        typeof fn === "function" ? (domain === null ? fn : domain.bind(fn))
+        typeof fn === "function" ? (domain === null ?
+                                            fn : util.domainBind(domain, fn))
                                  : undefined;
 };
 
@@ -810,14 +818,37 @@ Promise.hasLongStackTraces = function () {
 
 var fireDomEvent = (function() {
     try {
-        var event = document.createEvent("CustomEvent");
-        event.initCustomEvent("testingtheevent", false, true, {});
-        util.global.dispatchEvent(event);
-        return function(name, event) {
-            var domEvent = document.createEvent("CustomEvent");
-            domEvent.initCustomEvent(name.toLowerCase(), false, true, event);
-            return !util.global.dispatchEvent(domEvent);
-        };
+        if (typeof CustomEvent === "function") {
+            var event = new CustomEvent("CustomEvent");
+            util.global.dispatchEvent(event);
+            return function(name, event) {
+                var domEvent = new CustomEvent(name.toLowerCase(), {
+                    detail: event,
+                    cancelable: true
+                });
+                return !util.global.dispatchEvent(domEvent);
+            };
+        } else if (typeof Event === "function") {
+            var event = new Event("CustomEvent");
+            util.global.dispatchEvent(event);
+            return function(name, event) {
+                var domEvent = new Event(name.toLowerCase(), {
+                    cancelable: true
+                });
+                domEvent.detail = event;
+                return !util.global.dispatchEvent(domEvent);
+            };
+        } else {
+            var event = document.createEvent("CustomEvent");
+            event.initCustomEvent("testingtheevent", false, true, {});
+            util.global.dispatchEvent(event);
+            return function(name, event) {
+                var domEvent = document.createEvent("CustomEvent");
+                domEvent.initCustomEvent(name.toLowerCase(), false, true,
+                    event);
+                return !util.global.dispatchEvent(domEvent);
+            };
+        }
     } catch (e) {}
     return function() {
         return false;
@@ -974,7 +1005,7 @@ function cancellationExecute(executor, resolve, reject) {
 }
 
 function cancellationAttachCancellationCallback(onCancel) {
-    if (!this.isCancellable()) return this;
+    if (!this._isCancellable()) return this;
 
     var previousOnCancel = this._onCancel();
     if (previousOnCancel !== undefined) {
@@ -1065,8 +1096,41 @@ function checkForgottenReturns(returnValue, promiseCreated, name, promise,
         if ((promise._bitField & 65535) === 0) return;
 
         if (name) name = name + " ";
+        var handlerLine = "";
+        var creatorLine = "";
+        if (promiseCreated._trace) {
+            var traceLines = promiseCreated._trace.stack.split("\n");
+            var stack = cleanStack(traceLines);
+            for (var i = stack.length - 1; i >= 0; --i) {
+                var line = stack[i];
+                if (!nodeFramePattern.test(line)) {
+                    var lineMatches = line.match(parseLinePattern);
+                    if (lineMatches) {
+                        handlerLine  = "at " + lineMatches[1] +
+                            ":" + lineMatches[2] + ":" + lineMatches[3] + " ";
+                    }
+                    break;
+                }
+            }
+
+            if (stack.length > 0) {
+                var firstUserLine = stack[0];
+                for (var i = 0; i < traceLines.length; ++i) {
+
+                    if (traceLines[i] === firstUserLine) {
+                        if (i > 0) {
+                            creatorLine = "\n" + traceLines[i - 1];
+                        }
+                        break;
+                    }
+                }
+
+            }
+        }
         var msg = "a promise was created in a " + name +
-            "handler but was not returned from it";
+            "handler " + handlerLine + "but was not returned from it, " +
+            "see http://goo.gl/rRqMUw" +
+            creatorLine;
         promise._warn(msg, true, promiseCreated);
     }
 }
@@ -1588,8 +1652,8 @@ function PromiseMapSeries(promises, fn) {
 }
 
 Promise.prototype.each = function (fn) {
-    return this.mapSeries(fn)
-            ._then(promiseAllThis, undefined, undefined, this, undefined);
+    return PromiseReduce(this, fn, INTERNAL, 0)
+              ._then(promiseAllThis, undefined, undefined, this, undefined);
 };
 
 Promise.prototype.mapSeries = function (fn) {
@@ -1597,12 +1661,13 @@ Promise.prototype.mapSeries = function (fn) {
 };
 
 Promise.each = function (promises, fn) {
-    return PromiseMapSeries(promises, fn)
-            ._then(promiseAllThis, undefined, undefined, promises, undefined);
+    return PromiseReduce(promises, fn, INTERNAL, 0)
+              ._then(promiseAllThis, undefined, undefined, promises, undefined);
 };
 
 Promise.mapSeries = PromiseMapSeries;
 };
+
 
 },{}],12:[function(_dereq_,module,exports){
 "use strict";
@@ -1880,7 +1945,7 @@ function finallyHandler(reasonOrValue) {
             var maybePromise = tryConvertToPromise(ret, promise);
             if (maybePromise instanceof Promise) {
                 if (this.cancelPromise != null) {
-                    if (maybePromise.isCancelled()) {
+                    if (maybePromise._isCancelled()) {
                         var reason =
                             new CancellationError("late cancellation observer");
                         promise._attachExtraTrace(reason);
@@ -2106,9 +2171,13 @@ PromiseSpawn.prototype._continue = function (result) {
             this._yieldedPromise = maybePromise;
             maybePromise._proxy(this, null);
         } else if (((bitField & 33554432) !== 0)) {
-            this._promiseFulfilled(maybePromise._value());
+            Promise._async.invoke(
+                this._promiseFulfilled, this, maybePromise._value()
+            );
         } else if (((bitField & 16777216) !== 0)) {
-            this._promiseRejected(maybePromise._reason());
+            Promise._async.invoke(
+                this._promiseRejected, this, maybePromise._reason()
+            );
         } else {
             this._promiseCancelled();
         }
@@ -2155,7 +2224,8 @@ Promise.spawn = function (generatorFunction) {
 },{"./errors":12,"./util":36}],17:[function(_dereq_,module,exports){
 "use strict";
 module.exports =
-function(Promise, PromiseArray, tryConvertToPromise, INTERNAL) {
+function(Promise, PromiseArray, tryConvertToPromise, INTERNAL, async,
+         getDomain) {
 var util = _dereq_("./util");
 var canEvaluate = util.canEvaluate;
 var tryCatch = util.tryCatch;
@@ -2197,25 +2267,35 @@ if (canEvaluate) {
         var name = "Holder$" + total;
 
 
-        var code = "return function(tryCatch, errorObj, Promise) {           \n\
+        var code = "return function(tryCatch, errorObj, Promise, async) {    \n\
             'use strict';                                                    \n\
             function [TheName](fn) {                                         \n\
                 [TheProperties]                                              \n\
                 this.fn = fn;                                                \n\
+                this.asyncNeeded = true;                                     \n\
                 this.now = 0;                                                \n\
             }                                                                \n\
+                                                                             \n\
+            [TheName].prototype._callFunction = function(promise) {          \n\
+                promise._pushContext();                                      \n\
+                var ret = tryCatch(this.fn)([ThePassedArguments]);           \n\
+                promise._popContext();                                       \n\
+                if (ret === errorObj) {                                      \n\
+                    promise._rejectCallback(ret.e, false);                   \n\
+                } else {                                                     \n\
+                    promise._resolveCallback(ret);                           \n\
+                }                                                            \n\
+            };                                                               \n\
+                                                                             \n\
             [TheName].prototype.checkFulfillment = function(promise) {       \n\
                 var now = ++this.now;                                        \n\
                 if (now === [TheTotal]) {                                    \n\
-                    promise._pushContext();                                  \n\
-                    var callback = this.fn;                                  \n\
-                    var ret = tryCatch(callback)([ThePassedArguments]);      \n\
-                    promise._popContext();                                   \n\
-                    if (ret === errorObj) {                                  \n\
-                        promise._rejectCallback(ret.e, false);               \n\
+                    if (this.asyncNeeded) {                                  \n\
+                        async.invoke(this._callFunction, this, promise);     \n\
                     } else {                                                 \n\
-                        promise._resolveCallback(ret);                       \n\
+                        this._callFunction(promise);                         \n\
                     }                                                        \n\
+                                                                             \n\
                 }                                                            \n\
             };                                                               \n\
                                                                              \n\
@@ -2224,7 +2304,7 @@ if (canEvaluate) {
             };                                                               \n\
                                                                              \n\
             return [TheName];                                                \n\
-        }(tryCatch, errorObj, Promise);                                      \n\
+        }(tryCatch, errorObj, Promise, async);                               \n\
         ";
 
         code = code.replace(/\[TheName\]/g, name)
@@ -2233,8 +2313,8 @@ if (canEvaluate) {
             .replace(/\[TheProperties\]/g, assignment)
             .replace(/\[CancellationCode\]/g, cancellationCode);
 
-        return new Function("tryCatch", "errorObj", "Promise", code)
-                           (tryCatch, errorObj, Promise);
+        return new Function("tryCatch", "errorObj", "Promise", "async", code)
+                           (tryCatch, errorObj, Promise, async);
     };
 
     var holderClasses = [];
@@ -2275,6 +2355,7 @@ Promise.join = function () {
                             maybePromise._then(callbacks[i], reject,
                                                undefined, ret, holder);
                             promiseSetters[i](maybePromise, holder);
+                            holder.asyncNeeded = false;
                         } else if (((bitField & 33554432) !== 0)) {
                             callbacks[i].call(ret,
                                               maybePromise._value(), holder);
@@ -2287,7 +2368,14 @@ Promise.join = function () {
                         callbacks[i].call(ret, maybePromise, holder);
                     }
                 }
+
                 if (!ret._isFateSealed()) {
+                    if (holder.asyncNeeded) {
+                        var domain = getDomain();
+                        if (domain !== null) {
+                            holder.fn = util.domainBind(domain, holder.fn);
+                        }
+                    }
                     ret._setAsyncGuaranteed();
                     ret._setOnCancel(holder);
                 }
@@ -2315,22 +2403,26 @@ var getDomain = Promise._getDomain;
 var util = _dereq_("./util");
 var tryCatch = util.tryCatch;
 var errorObj = util.errorObj;
-var EMPTY_ARRAY = [];
+var async = Promise._async;
 
 function MappingPromiseArray(promises, fn, limit, _filter) {
     this.constructor$(promises);
     this._promise._captureStackTrace();
     var domain = getDomain();
-    this._callback = domain === null ? fn : domain.bind(fn);
+    this._callback = domain === null ? fn : util.domainBind(domain, fn);
     this._preservedValues = _filter === INTERNAL
         ? new Array(this.length())
         : null;
     this._limit = limit;
     this._inFlight = 0;
-    this._queue = limit >= 1 ? [] : EMPTY_ARRAY;
-    this._init$(undefined, -2);
+    this._queue = [];
+    async.invoke(this._asyncInit, this, undefined);
 }
 util.inherits(MappingPromiseArray, PromiseArray);
+
+MappingPromiseArray.prototype._asyncInit = function() {
+    this._init$(undefined, -2);
+};
 
 MappingPromiseArray.prototype._init = function () {};
 
@@ -2736,7 +2828,8 @@ Promise.prototype.caught = Promise.prototype["catch"] = function (fn) {
             if (util.isObject(item)) {
                 catchInstances[j++] = item;
             } else {
-                return apiRejection("expecting an object but got " + util.classString(item));
+                return apiRejection("expecting an object but got " +
+                    "A catch statement predicate " + util.classString(item));
             }
         }
         catchInstances.length = j;
@@ -2900,7 +2993,8 @@ Promise.prototype._then = function (
 
         async.invoke(settler, target, {
             handler: domain === null ? handler
-                : (typeof handler === "function" && domain.bind(handler)),
+                : (typeof handler === "function" &&
+                    util.domainBind(domain, handler)),
             promise: promise,
             receiver: receiver,
             value: value
@@ -2959,6 +3053,10 @@ Promise.prototype._unsetCancelled = function() {
 Promise.prototype._setCancelled = function() {
     this._bitField = this._bitField | 65536;
     this._fireEvent("promiseCancelled", this);
+};
+
+Promise.prototype._setWillBeCancelled = function() {
+    this._bitField = this._bitField | 8388608;
 };
 
 Promise.prototype._setAsyncGuaranteed = function() {
@@ -3032,11 +3130,11 @@ Promise.prototype._addCallbacks = function (
         this._receiver0 = receiver;
         if (typeof fulfill === "function") {
             this._fulfillmentHandler0 =
-                domain === null ? fulfill : domain.bind(fulfill);
+                domain === null ? fulfill : util.domainBind(domain, fulfill);
         }
         if (typeof reject === "function") {
             this._rejectionHandler0 =
-                domain === null ? reject : domain.bind(reject);
+                domain === null ? reject : util.domainBind(domain, reject);
         }
     } else {
         var base = index * 4 - 4;
@@ -3044,11 +3142,11 @@ Promise.prototype._addCallbacks = function (
         this[base + 3] = receiver;
         if (typeof fulfill === "function") {
             this[base + 0] =
-                domain === null ? fulfill : domain.bind(fulfill);
+                domain === null ? fulfill : util.domainBind(domain, fulfill);
         }
         if (typeof reject === "function") {
             this[base + 1] =
-                domain === null ? reject : domain.bind(reject);
+                domain === null ? reject : util.domainBind(domain, reject);
         }
     }
     this._setLength(index + 1);
@@ -3365,9 +3463,9 @@ _dereq_("./cancel")(Promise, PromiseArray, apiRejection, debug);
 _dereq_("./direct_resolve")(Promise);
 _dereq_("./synchronous_inspection")(Promise);
 _dereq_("./join")(
-    Promise, PromiseArray, tryConvertToPromise, INTERNAL, debug);
+    Promise, PromiseArray, tryConvertToPromise, INTERNAL, async, getDomain);
 Promise.Promise = Promise;
-Promise.version = "3.4.0";
+Promise.version = "3.4.6";
 _dereq_('./map.js')(Promise, PromiseArray, apiRejection, tryConvertToPromise, INTERNAL, debug);
 _dereq_('./call_get.js')(Promise);
 _dereq_('./using.js')(Promise, apiRejection, tryConvertToPromise, createContext, INTERNAL, debug);
@@ -3537,7 +3635,7 @@ PromiseArray.prototype._resolve = function (value) {
 };
 
 PromiseArray.prototype._cancel = function() {
-    if (this._isResolved() || !this._promise.isCancellable()) return;
+    if (this._isResolved() || !this._promise._isCancellable()) return;
     this._values = null;
     this._promise._cancel();
 };
@@ -4188,27 +4286,37 @@ var tryCatch = util.tryCatch;
 function ReductionPromiseArray(promises, fn, initialValue, _each) {
     this.constructor$(promises);
     var domain = getDomain();
-    this._fn = domain === null ? fn : domain.bind(fn);
+    this._fn = domain === null ? fn : util.domainBind(domain, fn);
     if (initialValue !== undefined) {
         initialValue = Promise.resolve(initialValue);
         initialValue._attachCancellationCallback(this);
     }
     this._initialValue = initialValue;
     this._currentCancellable = null;
-    this._eachValues = _each === INTERNAL ? [] : undefined;
+    if(_each === INTERNAL) {
+        this._eachValues = Array(this._length);
+    } else if (_each === 0) {
+        this._eachValues = null;
+    } else {
+        this._eachValues = undefined;
+    }
     this._promise._captureStackTrace();
     this._init$(undefined, -5);
 }
 util.inherits(ReductionPromiseArray, PromiseArray);
 
 ReductionPromiseArray.prototype._gotAccum = function(accum) {
-    if (this._eachValues !== undefined && accum !== INTERNAL) {
+    if (this._eachValues !== undefined && 
+        this._eachValues !== null && 
+        accum !== INTERNAL) {
         this._eachValues.push(accum);
     }
 };
 
 ReductionPromiseArray.prototype._eachComplete = function(value) {
-    this._eachValues.push(value);
+    if (this._eachValues !== null) {
+        this._eachValues.push(value);
+    }
     return this._eachValues;
 };
 
@@ -4351,7 +4459,8 @@ if (util.isNode && typeof MutationObserver === "undefined") {
     schedule = util.isRecentNode
                 ? function(fn) { GlobalSetImmediate.call(global, fn); }
                 : function(fn) { ProcessNextTick.call(process, fn); };
-} else if (typeof NativePromise === "function") {
+} else if (typeof NativePromise === "function" &&
+           typeof NativePromise.resolve === "function") {
     var nativePromise = NativePromise.resolve();
     schedule = function(fn) {
         nativePromise.then(fn);
@@ -4359,7 +4468,7 @@ if (util.isNode && typeof MutationObserver === "undefined") {
 } else if ((typeof MutationObserver !== "undefined") &&
           !(typeof window !== "undefined" &&
             window.navigator &&
-            window.navigator.standalone)) {
+            (window.navigator.standalone || window.cordova))) {
     schedule = (function() {
         var div = document.createElement("div");
         var opts = {attributes: true};
@@ -4645,13 +4754,20 @@ var isResolved = PromiseInspection.prototype.isResolved = function () {
     return (this._bitField & 50331648) !== 0;
 };
 
-PromiseInspection.prototype.isCancelled =
-Promise.prototype._isCancelled = function() {
+PromiseInspection.prototype.isCancelled = function() {
+    return (this._bitField & 8454144) !== 0;
+};
+
+Promise.prototype.__isCancelled = function() {
     return (this._bitField & 65536) === 65536;
 };
 
+Promise.prototype._isCancelled = function() {
+    return this._target().__isCancelled();
+};
+
 Promise.prototype.isCancelled = function() {
-    return this._target()._isCancelled();
+    return (this._target()._bitField & 8454144) !== 0;
 };
 
 Promise.prototype.isPending = function() {
@@ -4810,6 +4926,7 @@ var delay = Promise.delay = function (ms, value) {
         if (debug.cancellation()) {
             ret._setOnCancel(new HandleWrapper(handle));
         }
+        ret._captureStackTrace();
     }
     ret._setAsyncGuaranteed();
     return ret;
@@ -5430,6 +5547,10 @@ function getNativePromise() {
     }
 }
 
+function domainBind(self, cb) {
+    return self.bind(cb);
+}
+
 var ret = {
     isClass: isClass,
     isIdentifier: isIdentifier,
@@ -5462,7 +5583,8 @@ var ret = {
     isNode: isNode,
     env: env,
     global: globalObject,
-    getNativePromise: getNativePromise
+    getNativePromise: getNativePromise,
+    domainBind: domainBind
 };
 ret.isRecentNode = ret.isNode && (function() {
     var version = process.versions.node.split(".").map(Number);
@@ -5601,9 +5723,6 @@ var currentQueue;
 var queueIndex = -1;
 
 function cleanUpNextTick() {
-    if (!draining || !currentQueue) {
-        return;
-    }
     draining = false;
     if (currentQueue.length) {
         queue = currentQueue.concat(queue);
@@ -12931,27 +13050,297 @@ function toArray(list, index) {
 
 },{}],52:[function(require,module,exports){
 // Generated by CoffeeScript 1.10.0
+
+/*
+payload_individual_property = {
+     [
+       {"_ATTRIBUTES": {
+         "predicate": "knows",
+       },
+       "_META": {
+         "type": "$INDIVIDUAL_PROPERTY",
+         "id": "a437190a-c1f2-4702-803a-c3c72fee258f"
+       },
+       "_RELATIONS":{
+         "object": {
+           "_REF": "0"
+         },
+         "subject": {
+           "_REF": "1"
+         }
+       }
+     }
+   ]
+ }
+ */
+
 (function() {
-  var Filter, Individual, IndividualProperty, ValueProperty;
+  var EntityIndividualProperty, IndividualProperty;
 
-  Individual = require('./model/individual');
+  IndividualProperty = require('../operations/create/request/individual-property');
 
-  IndividualProperty = require('./model/individualProperty');
+  module.exports = EntityIndividualProperty = (function() {
+    function EntityIndividualProperty(opts) {
+      var indiProp;
+      if (typeof opts === 'string') {
+        opts = JSON.parse(opts);
+      }
+      if (opts.individualProperty != null) {
+        this._ATTRIBUTES = {};
+        this._META = {};
+        this._RELATIONS = {};
+        this._RELATIONS.subject = {};
+        this._RELATIONS.object = {};
+        indiProp = new IndividualProperty(opts.individualProperty);
+        if (indiProp.isValid) {
+          try {
+            this._ATTRIBUTES.predicate = indiProp.getPredicate();
+          } catch (undefined) {}
+          try {
+            this._META.type = '$INDIVIDUAL_PROPERTY';
+          } catch (undefined) {}
+          try {
+            this._META.id = indiProp.id;
+          } catch (undefined) {}
+          try {
+            this._RELATIONS.subject._REF = indiProp.relations.subject();
+          } catch (undefined) {}
+          try {
+            this._RELATIONS.object._REF = indiProp.relations.object();
+          } catch (undefined) {}
+        }
+      }
+      if ((opts.id != null) && (opts.predicate != null) && (opts.subject != null) && (opts.object != null)) {
+        this._ATTRIBUTES = {};
+        this._META = {};
+        this._RELATIONS = {};
+        this._RELATIONS.subject = {};
+        this._RELATIONS.object = {};
+        try {
+          this._ATTRIBUTES.predicate = opts.predicate;
+        } catch (undefined) {}
+        try {
+          this._META.type = '$INDIVIDUAL_PROPERTY';
+        } catch (undefined) {}
+        try {
+          this._META.id = opts.id;
+        } catch (undefined) {}
+        try {
+          this._RELATIONS.subject._REF = opts.subject;
+        } catch (undefined) {}
+        try {
+          this._RELATIONS.object._REF = opts.object;
+        } catch (undefined) {}
+      }
+      if (opts.entity_individual_property != null) {
+        try {
+          this.individual_property = new IndividualProperty({
+            type: '$INDIVIDUAL_PROPERTY',
+            id: opts.entity_individual_property._META.id,
+            attributes: {
+              type: '$INDIVIDUAL_PROPERTY',
+              predicate: opts.entity_individual_property._ATTRIBUTES.predicate
+            },
+            relations: {
+              subject: opts.entity_individual_property._RELATIONS.subject._REF,
+              object: opts.entity_individual_property._RELATIONS.object._REF
+            }
+          });
+        } catch (undefined) {}
+      }
+    }
 
-  ValueProperty = require('./model/valueProperty');
+    return EntityIndividualProperty;
 
-  Filter = require('./model/filter');
-
-  module.exports = {
-    Individual: Individual,
-    IndividualProperty: IndividualProperty,
-    ValueProperty: ValueProperty,
-    Filter: Filter
-  };
+  })();
 
 }).call(this);
 
-},{"./model/filter":53,"./model/individual":54,"./model/individualProperty":55,"./model/valueProperty":56}],53:[function(require,module,exports){
+},{"../operations/create/request/individual-property":59}],53:[function(require,module,exports){
+// Generated by CoffeeScript 1.10.0
+
+/*
+{
+     [
+       {
+         "_ATTRIBUTES": {
+           "name": "0"
+         },
+         "_META": {
+           "type": "$INDIVIDUAL",
+           "id": "0"
+         }
+       }
+     ]
+   }
+ */
+
+(function() {
+  var EntityIndividual, Individual;
+
+  Individual = require('../operations/create/request/individual');
+
+  module.exports = EntityIndividual = (function() {
+    function EntityIndividual(opts) {
+      var indi;
+      if (typeof opts === 'string') {
+        opts = JSON.parse(opts);
+      }
+      if (opts.individual != null) {
+        this._ATTRIBUTES = {};
+        this._META = {};
+        indi = new Individual(opts.individual);
+        if (indi.isValid) {
+          try {
+            this._ATTRIBUTES.name = indi.attributes.name;
+          } catch (undefined) {}
+          try {
+            this._META.type = indi.type;
+          } catch (undefined) {}
+          try {
+            this._META.id = indi.id;
+          } catch (undefined) {}
+        }
+      }
+      if ((opts.name != null) && (opts.id != null)) {
+        this._ATTRIBUTES = {};
+        this._META = {};
+        try {
+          this._ATTRIBUTES.name = opts.name;
+        } catch (undefined) {}
+        try {
+          this._META.type = '$INDIVIDUAL';
+        } catch (undefined) {}
+        try {
+          this._META.id = opts.id;
+        } catch (undefined) {}
+      }
+      if (opts.entity_individual != null) {
+        try {
+          this.individual = new Individual({
+            type: "$INDIVIDUAL",
+            id: opts.entity_individual._META.id,
+            attributes: {
+              "name": opts.entity_individual._ATTRIBUTES.name
+            },
+            relations: ""
+          });
+        } catch (undefined) {}
+      }
+    }
+
+    return EntityIndividual;
+
+  })();
+
+}).call(this);
+
+},{"../operations/create/request/individual":60}],54:[function(require,module,exports){
+// Generated by CoffeeScript 1.10.0
+
+/*
+payload_value_property = {
+     [
+       {
+         "_ATTRIBUTES": {
+           "predicate": "$LABEL",
+           "object": "Port"
+         },
+         "_META": {
+           "type": "$VALUE_PROPERTY",
+           "id": "4f838d1a-40fc-4848-bc84-743972c0b161"
+         },
+         "_RELATIONS": {
+           "subject": {
+             "_REF": "0"
+           }
+         }
+       }
+     ]
+   }
+ */
+
+(function() {
+  var EntityValueProperty, ValueProperty;
+
+  ValueProperty = require('../operations/create/request/value-property');
+
+  module.exports = EntityValueProperty = (function() {
+    function EntityValueProperty(opts) {
+      var valueProp;
+      if (typeof opts === 'string') {
+        opts = JSON.parse(opts);
+      }
+      if (opts.valueProperty != null) {
+        this._ATTRIBUTES = {};
+        this._META = {};
+        this._RELATIONS = {};
+        this._RELATIONS.subject = {};
+        valueProp = new ValueProperty(opts.valueProperty);
+        if (valueProp.isValid) {
+          try {
+            this._ATTRIBUTES.predicate = valueProp.getPredicate();
+          } catch (undefined) {}
+          try {
+            this._ATTRIBUTES.object = valueProp.getValue();
+          } catch (undefined) {}
+          try {
+            this._META.type = '$VALUE_PROPERTY';
+          } catch (undefined) {}
+          try {
+            this._META.id = valueProp.id;
+          } catch (undefined) {}
+          try {
+            this._RELATIONS.subject._REF = valueProp.getSubjectId();
+          } catch (undefined) {}
+        }
+      }
+      if ((opts.id != null) && (opts.predicate != null) && (opts.subject != null) && (opts.object != null)) {
+        this._ATTRIBUTES = {};
+        this._META = {};
+        this._RELATIONS = {};
+        this._RELATIONS.subject = {};
+        try {
+          this._ATTRIBUTES.predicate = opts.predicate;
+        } catch (undefined) {}
+        try {
+          this._ATTRIBUTES.object = opts.object;
+        } catch (undefined) {}
+        try {
+          this._META.type = '$VALUE_PROPERTY';
+        } catch (undefined) {}
+        try {
+          this._META.id = opts.id;
+        } catch (undefined) {}
+        try {
+          this._RELATIONS.subject._REF = opts.subject;
+        } catch (undefined) {}
+      }
+      if (opts.entity_value_property != null) {
+        try {
+          this.value_property = new ValueProperty({
+            type: opts.entity_value_property._META.type,
+            id: opts.entity_value_property._META.id,
+            attributes: {
+              predicate: opts.entity_value_property._ATTRIBUTES.predicate,
+              object: opts.entity_value_property._ATTRIBUTES.object,
+              type: "$VALUE_PROPERTY"
+            },
+            relations: {
+              subject: opts.entity_value_property._RELATIONS.subject._REF
+            }
+          });
+        } catch (undefined) {}
+      }
+    }
+
+    return EntityValueProperty;
+
+  })();
+
+}).call(this);
+
+},{"../operations/create/request/value-property":62}],55:[function(require,module,exports){
 // Generated by CoffeeScript 1.10.0
 (function() {
   var Filter;
@@ -12965,7 +13354,7 @@ function toArray(list, index) {
     Filter.prototype.addIndividualCondition = function(operation, individual) {
       return this.conditions.push({
         operation: operation,
-        individual: individual.id,
+        value: individual.id,
         conditiontype: 'individual'
       });
     };
@@ -12974,14 +13363,14 @@ function toArray(list, index) {
       return this.conditions.push({
         operation: operation,
         value: value,
-        conditiontype: 'value'
+        conditiontype: 'string'
       });
     };
 
     Filter.prototype.addViewCondition = function(operation, view) {
       return this.conditions.push({
         operation: operation,
-        view: view.id,
+        value: view.id,
         conditiontype: 'view'
       });
     };
@@ -12992,34 +13381,360 @@ function toArray(list, index) {
 
 }).call(this);
 
-},{}],54:[function(require,module,exports){
+},{}],56:[function(require,module,exports){
 // Generated by CoffeeScript 1.10.0
 (function() {
-  var Individual;
+  var Promise, View;
 
-  module.exports = Individual = (function() {
-    function Individual(id) {
-      this.id = id;
+  Promise = require('bluebird');
+
+  module.exports = View = (function() {
+    function View(entity1) {
+      this.entity = entity1;
+      this.members = {};
+      this.weaver = this.entity.$.weaver;
+      if (this.entity.$type() !== '$VIEW') {
+        throw new Error('entity should be $VIEW');
+      }
     }
 
-    return Individual;
+    View.prototype.retrieved = function(id) {
+      return this.members[id] != null;
+    };
+
+    View.prototype.skipPrefix = function(id) {
+      if (id.indexOf(':') > -1) {
+        return id.substring(id.indexOf(':') + 1);
+      } else {
+        return id;
+      }
+    };
+
+    View.prototype.populate = function() {
+      return this.weaver.channel.queryFromView({
+        id: this.entity.$id()
+      }).bind(this).then(function(memberIds) {
+        var promises;
+        promises = [];
+        if ((memberIds == null) || typeof memberIds !== 'object') {
+          console.error('the populate from view did not return an array result');
+          return this.members;
+        }
+        if (memberIds[0] == null) {
+          return this.members;
+        }
+        memberIds.forEach((function(_this) {
+          return function(memberId) {
+            memberId = _this.skipPrefix(memberId);
+            if (!_this.retrieved(memberId)) {
+              return promises.push(_this.weaver.get(memberId, {
+                eagerness: 1
+              }).bind(_this).then(function(entity) {
+                return this.members[memberId] = entity;
+              }));
+            }
+          };
+        })(this));
+        return Promise.all(promises).bind(this).then(function() {
+          return this.members;
+        });
+      });
+    };
+
+    View.prototype.populateFromFilters = function(filters) {
+      var filtersJson;
+      filtersJson = JSON.stringify(filters);
+      return this.weaver.channel.queryFromFilters(filtersJson).bind(this).then(function(memberIds) {
+        var promises;
+        promises = [];
+        if ((memberIds == null) || typeof memberIds !== 'object') {
+          console.error('the populate from view did not return an array result');
+          return this.members;
+        }
+        if (memberIds[0] == null) {
+          return this.members;
+        }
+        memberIds.forEach((function(_this) {
+          return function(memberId) {
+            memberId = _this.skipPrefix(memberId);
+            if (!_this.retrieved(memberId)) {
+              return promises.push(_this.weaver.get(memberId, {
+                eagerness: 1
+              }).bind(_this).then(function(entity) {
+                return this.members[memberId] = entity;
+              }));
+            }
+          };
+        })(this));
+        return Promise.all(promises).bind(this).then(function() {
+          return this.members;
+        });
+      });
+    };
+
+    return View;
 
   })();
 
 }).call(this);
 
-},{}],55:[function(require,module,exports){
+},{"bluebird":1}],57:[function(require,module,exports){
 // Generated by CoffeeScript 1.10.0
+(function() {
+  var WeaverCommons;
+
+  WeaverCommons = {
+    create: {
+      Entity: require('./operations/create/request/entity'),
+      Predicate: require('./operations/create/request/predicate'),
+      Individual: require('./operations/create/request/individual'),
+      IndividualProperty: require('./operations/create/request/individual-property'),
+      ValueProperty: require('./operations/create/request/value-property')
+    },
+    read: {
+      Entity: require('./operations/read/entity'),
+      response: {
+        View: require('./operations/read/response/view')
+      }
+    },
+    update: {
+      AttributeLink: require('./operations/update/attribute-link'),
+      EntityLink: require('./operations/update/entity-link')
+    },
+    destroyAttribute: {
+      Entity: require('./operations/destroy-attribute/entity')
+    },
+    destroyEntity: {
+      Entity: require('./operations/destroy-entity/entity')
+    },
+    link: {
+      Link: require('./operations/link/link')
+    },
+    unlink: {
+      Link: require('./operations/unlink/link')
+    },
+    nativeQuery: {
+      Query: require('./operations/native-query/query')
+    },
+    queryFromView: {
+      View: require('./operations/query-from-view/view')
+    },
+    model: {
+      Filter: require('./handlers/filter'),
+      View: require('./handlers/view')
+    },
+    etntities: {
+      EntityIndividual: require('./entities/entity-individual'),
+      EntityIndividualProperty: require('./entities/entity-individual-property'),
+      EntityValueProperty: require('./entities/entity-value-property')
+    }
+  };
+
+  module.exports = WeaverCommons;
+
+  if (typeof window !== "undefined" && window !== null) {
+    window.WeaverCommons = WeaverCommons;
+  }
+
+}).call(this);
+
+},{"./entities/entity-individual":53,"./entities/entity-individual-property":52,"./entities/entity-value-property":54,"./handlers/filter":55,"./handlers/view":56,"./operations/create/request/entity":58,"./operations/create/request/individual":60,"./operations/create/request/individual-property":59,"./operations/create/request/predicate":61,"./operations/create/request/value-property":62,"./operations/destroy-attribute/entity":63,"./operations/destroy-entity/entity":64,"./operations/link/link":65,"./operations/native-query/query":66,"./operations/query-from-view/view":67,"./operations/read/entity":68,"./operations/read/response/view":69,"./operations/unlink/link":70,"./operations/update/attribute-link":71,"./operations/update/entity-link":72}],58:[function(require,module,exports){
+// Generated by CoffeeScript 1.10.0
+
+/*
+ Object to work with Entity
+ an object considered as Entity is something like:
+
+ "5eb22807-de77-40ae-8934-672199c515cc": {
+                        "_ATTRIBUTES": {
+                            "source": "unset"
+                        },
+                        "_META": {
+                            "fetched": true,
+                            "type": "$INDIVIDUAL",
+                            "id": "5ecf4e18-a285-e211-a3a8-b8ac6f902f00"
+                        },
+                        "_RELATIONS": {
+                            "properties": {
+                                "_ATTRIBUTES": {},
+                                "_META": {
+                                    "fetched": true,
+                                    "type": "$COLLECTION",
+                                    "id": "58b5dced-bc34-443b-8d65-8f0add3559b4"
+                                },
+                                "_RELATIONS": {
+                                    "5eb22807-de77-40ae-8934-672199c515cc": {
+                                        "_ATTRIBUTES": {
+                                            "predicate": "lib:hasBeginOfLife",
+                                            "source": "unset"
+                                        },
+                                        "_META": {
+                                            "fetched": true,
+                                            "type": "$INDIVIDUAL_PROPERTY",
+                                            "id": "5eb22807-de77-40ae-8934-672199c515cc"
+                                        },
+                                        "_RELATIONS": {
+                                            "object": {
+                                                "_ATTRIBUTES": {
+                                                    "name": "Bol propertyBol property",
+                                                    "source": "ins:RelaticsPMS"
+                                                },
+                                                "_META": {
+                                                    "fetched": true,
+                                                    "type": "$INDIVIDUAL",
+                                                    "id": "7e3561cd-2b95-4a4f-991d-0b8fcce4bcea"
+                                                },
+                                                "_RELATIONS": {
+                                                    "properties": {
+                                                        "_ATTRIBUTES": {},
+                                                        "_META": {
+                                                            "fetched": true,
+                                                            "type": "$COLLECTION",
+                                                            "id": "f010ccdc-4dcb-451d-9b05-f4e4fb6ff180"
+                                                        },
+                                                        "_RELATIONS": {
+                                                            "984cff0e-b011-4068-b65b-a1c2fc2b29cb": {
+                                                                "_ATTRIBUTES": {
+                                                                    "predicate": "lib:hasValue",
+                                                                    "source": "unset",
+                                                                    "object": "2014-07-22"
+                                                                },
+                                                                "_META": {
+                                                                    "fetched": true,
+                                                                    "type": "$VALUE_PROPERTY",
+                                                                    "id": "984cff0e-b011-4068-b65b-a1c2fc2b29cb"
+                                                                },
+                                                                "_RELATIONS": {
+                                                                    "subject": {
+                                                                        "_REF": "7e3561cd-2b95-4a4f-991d-0b8fcce4bcea"
+                                                                    }
+                                                                }
+                                                            },
+                                                            "4e10c867-db9c-4310-b3f8-37acd42afc6d": {
+                                                                "_ATTRIBUTES": {
+                                                                    "predicate": "rdf:type",
+                                                                    "source": "unset"
+                                                                },
+                                                                "_META": {
+                                                                    "fetched": true,
+                                                                    "type": "$INDIVIDUAL_PROPERTY",
+                                                                    "id": "4e10c867-db9c-4310-b3f8-37acd42afc6d"
+                                                                },
+                                                                "_RELATIONS": {
+                                                                    "object": {
+                                                                        "_REF": "lib:BeginOfLife"
+                                                                    },
+                                                                    "subject": {
+                                                                        "_REF": "7e3561cd-2b95-4a4f-991d-0b8fcce4bcea"
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            },
+                                            "subject": {
+                                                "_REF": "5ecf4e18-a285-e211-a3a8-b8ac6f902f00"
+                                            }
+                                        }
+                                    }
+ */
+
+(function() {
+  var Entity;
+
+  module.exports = Entity = (function() {
+    function Entity(payload) {
+      if (typeof payload === 'string') {
+        payload = JSON.parse(payload);
+      }
+      try {
+        this.type = payload.type;
+      } catch (undefined) {}
+      try {
+        this.id = payload.id;
+      } catch (undefined) {}
+      try {
+        this.attributes = payload.attributes;
+      } catch (undefined) {}
+      try {
+        this.relations = payload.relations;
+      } catch (undefined) {}
+    }
+
+    Entity.prototype.isValid = function() {
+      return (this.type != null) && (this.id != null) && (this.attributes != null) && typeof this.attributes === 'object' && (this.relations != null) && typeof this.relations === 'object';
+    };
+
+    return Entity;
+
+  })();
+
+}).call(this);
+
+},{}],59:[function(require,module,exports){
+// Generated by CoffeeScript 1.10.0
+
+/*
+ Class to deal with $INDIVIDUAL_PROPERTY
+filter.
+An object considered as $INDIVIDUAL_PROPERTY is something like:
+
+
+"payload":
+{
+  "type": "$INDIVIDUAL_PROPERTY",
+  "id": "ciptr5cuf000f3k6kyos9083o",
+  "attributes":
+  {
+    "type": "$INDIVIDUAL_PROPERTY"
+  },
+  "relations":
+  {
+    "subject": "ciptqwkw800043k6kg0qk1j4w",
+    "predicate": "circhqgcf00003k6poa8w0g0q",
+    "object": "ciptr4z1f00093k6krpx3vuhe"
+  }
+}
+ */
+
 (function() {
   var IndividualProperty;
 
   module.exports = IndividualProperty = (function() {
-    function IndividualProperty(id, subject, predicate, object) {
-      this.id = id;
-      this.subject = subject;
-      this.predicate = predicate;
-      this.object = object;
+    function IndividualProperty(payload) {
+      if (typeof payload === 'string') {
+        payload = JSON.parse(payload);
+      }
+      try {
+        this.type = payload.type;
+      } catch (undefined) {}
+      try {
+        this.id = payload.id;
+      } catch (undefined) {}
+      try {
+        this.attributes = payload.attributes;
+      } catch (undefined) {}
+      try {
+        this.relations = payload.relations;
+      } catch (undefined) {}
     }
+
+    IndividualProperty.prototype.getSubjectId = function() {
+      return this.relations.subject;
+    };
+
+    IndividualProperty.prototype.getPredicateId = function() {
+      return this.relations.predicate;
+    };
+
+    IndividualProperty.prototype.getObjectId = function() {
+      return this.relations.object;
+    };
+
+    IndividualProperty.prototype.isValid = function() {
+      return (this.type != null) && this.type === '$INDIVIDUAL_PROPERTY' && (this.id != null) && (this.attributes != null) && (this.relations != null) && (this.relations.subject != null) && (this.relations.predicate != null) && (this.relations.object != null);
+    };
 
     return IndividualProperty;
 
@@ -13027,18 +13742,158 @@ function toArray(list, index) {
 
 }).call(this);
 
-},{}],56:[function(require,module,exports){
+},{}],60:[function(require,module,exports){
 // Generated by CoffeeScript 1.10.0
+
+/*
+ Object to work with $INDIVIDUAL
+ an object considered as $INDIVIDUAL is something like:
+
+ "payload":
+   {
+    "type": "$INDIVIDUAL",
+    "id": "ciptr4z1f00093k6krpx3vuhe",
+    "attributes":
+    {
+     "name": "Unnamed",
+     "type": "$INDIVIDUAL"
+    },
+   "relations": { }
+ }
+ */
+
+(function() {
+  var Individual;
+
+  module.exports = Individual = (function() {
+    function Individual(payload) {
+      if (typeof payload === 'string') {
+        payload = JSON.parse(payload);
+      }
+      try {
+        this.type = payload.type;
+      } catch (undefined) {}
+      try {
+        this.id = payload.id;
+      } catch (undefined) {}
+      try {
+        this.attributes = payload.attributes;
+      } catch (undefined) {}
+      try {
+        this.relations = payload.relations;
+      } catch (undefined) {}
+    }
+
+    Individual.prototype.isValid = function() {
+      return (this.type != null) && this.type === '$INDIVIDUAL' && (this.id != null) && (this.attributes != null) && (this.relations != null);
+    };
+
+    return Individual;
+
+  })();
+
+}).call(this);
+
+},{}],61:[function(require,module,exports){
+// Generated by CoffeeScript 1.10.0
+(function() {
+  var Predicate;
+
+  module.exports = Predicate = (function() {
+    function Predicate(payload) {
+      if (typeof payload === 'string') {
+        payload = JSON.parse(payload);
+      }
+      try {
+        this.type = payload.type;
+      } catch (undefined) {}
+      try {
+        this.id = payload.id;
+      } catch (undefined) {}
+      try {
+        this.attributes = payload.attributes;
+      } catch (undefined) {}
+      try {
+        this.relations = payload.relations;
+      } catch (undefined) {}
+    }
+
+    Predicate.prototype.isValid = function() {
+      return (this.type != null) && this.type === '$PREDICATE' && (this.id != null) && (this.attributes != null) && (this.relations != null);
+    };
+
+    return Predicate;
+
+  })();
+
+}).call(this);
+
+},{}],62:[function(require,module,exports){
+// Generated by CoffeeScript 1.10.0
+
+/*
+Object to work with $VALUE_PROPERTY
+an object considered as $VALUE_PROPERTY is something like:
+
+
+"payload":
+  {
+    "type": "$VALUE_PROPERTY",
+    "id": "ciptr4z1g000d3k6kiybrvep4",
+    "attributes":
+    {
+      "object": "Unnamed", -------> ?
+      "type": "$VALUE_PROPERTY" ---> repeated?
+    },
+    "relations":
+    {
+      "subject": "ciptr4z1f00093k6krpx3vuhe"
+      "predicate": "circhqgcf00003k6poa8w0g0q",
+    }
+  }
+ */
+
 (function() {
   var ValueProperty;
 
   module.exports = ValueProperty = (function() {
-    function ValueProperty(id, subject, predicate, object) {
-      this.id = id;
-      this.subject = subject;
-      this.predicate = predicate;
-      this.object = object;
+    function ValueProperty(payload) {
+      if (typeof payload === 'string') {
+        payload = JSON.parse(payload);
+      }
+      try {
+        this.type = payload.type;
+      } catch (undefined) {}
+      try {
+        this.id = payload.id;
+      } catch (undefined) {}
+      try {
+        this.attributes = payload.attributes;
+      } catch (undefined) {}
+      try {
+        this.relations = payload.relations;
+      } catch (undefined) {}
     }
+
+    ValueProperty.prototype.getSubjectId = function() {
+      return this.relations.subject;
+    };
+
+    ValueProperty.prototype.getPredicateId = function() {
+      return this.relations.predicate;
+    };
+
+    ValueProperty.prototype.getValue = function() {
+      return this.attributes.object;
+    };
+
+    ValueProperty.prototype.getDatatype = function() {
+      throw new Error('future work');
+    };
+
+    ValueProperty.prototype.isValid = function() {
+      return (this.type != null) && this.type === '$VALUE_PROPERTY' && (this.id != null) && (this.attributes != null) && (this.attributes.object != null) && (this.relations != null) && (this.relations.subject != null) && (this.relations.predicate != null);
+    };
 
     return ValueProperty;
 
@@ -13046,10 +13901,365 @@ function toArray(list, index) {
 
 }).call(this);
 
-},{}],57:[function(require,module,exports){
+},{}],63:[function(require,module,exports){
+// Generated by CoffeeScript 1.10.0
+(function() {
+  var Entity;
+
+  module.exports = Entity = (function() {
+    function Entity(payload) {
+      if (typeof payload === 'string') {
+        payload = JSON.parse(payload);
+      }
+      try {
+        this.id = payload.id;
+      } catch (undefined) {}
+      try {
+        this.attribute = payload.attribute;
+      } catch (undefined) {}
+    }
+
+    Entity.prototype.isValid = function() {
+      return (this.id != null) && (this.attribute != null);
+    };
+
+    return Entity;
+
+  })();
+
+}).call(this);
+
+},{}],64:[function(require,module,exports){
+// Generated by CoffeeScript 1.10.0
+(function() {
+  var Entity;
+
+  module.exports = Entity = (function() {
+    function Entity(payload) {
+      if (typeof payload === 'string') {
+        payload = JSON.parse(payload);
+      }
+      try {
+        this.id = payload.id;
+      } catch (undefined) {}
+    }
+
+    Entity.prototype.isValid = function() {
+      return this.id != null;
+    };
+
+    return Entity;
+
+  })();
+
+}).call(this);
+
+},{}],65:[function(require,module,exports){
+// Generated by CoffeeScript 1.10.0
+(function() {
+  var Link;
+
+  module.exports = Link = (function() {
+    function Link(payload) {
+      if (typeof payload === 'string') {
+        payload = JSON.parse(payload);
+      }
+      this.source = {};
+      try {
+        this.source.id = payload.source.id;
+      } catch (undefined) {}
+      try {
+        this.key = payload.key;
+      } catch (undefined) {}
+      this.target = {};
+      try {
+        this.target.id = payload.target.id;
+      } catch (undefined) {}
+    }
+
+    Link.prototype.isValid = function() {
+      return (this.source != null) && (this.source.id != null) && (this.key != null) && (this.target != null) && (this.target.id != null);
+    };
+
+    return Link;
+
+  })();
+
+}).call(this);
+
+},{}],66:[function(require,module,exports){
+// Generated by CoffeeScript 1.10.0
+(function() {
+  var Query;
+
+  module.exports = Query = (function() {
+    function Query(payload) {
+      if (typeof payload === 'string') {
+        payload = JSON.parse(payload);
+      }
+      try {
+        this.query = payload.query;
+      } catch (undefined) {}
+      try {
+        this.selects = payload.selects;
+      } catch (undefined) {}
+    }
+
+    Query.prototype.isValid = function() {
+      return (this.query != null) && (this.selects != null) && typeof this.selects === 'object';
+    };
+
+    return Query;
+
+  })();
+
+}).call(this);
+
+},{}],67:[function(require,module,exports){
+// Generated by CoffeeScript 1.10.0
+(function() {
+  var View;
+
+  module.exports = View = (function() {
+    function View(payload) {
+      if (typeof payload === 'string') {
+        payload = JSON.parse(payload);
+      }
+      try {
+        this.id = payload.id;
+      } catch (undefined) {}
+    }
+
+    View.prototype.isValid = function() {
+      return this.id != null;
+    };
+
+    return View;
+
+  })();
+
+}).call(this);
+
+},{}],68:[function(require,module,exports){
+// Generated by CoffeeScript 1.10.0
+(function() {
+  var Entity;
+
+  module.exports = Entity = (function() {
+    function Entity(payload) {
+      if (typeof payload === 'string') {
+        payload = JSON.parse(payload);
+      }
+      try {
+        this.id = payload.id;
+      } catch (undefined) {}
+      try {
+        this.opts = payload.opts;
+      } catch (undefined) {}
+      if (this.opts == null) {
+        this.opts = {};
+      }
+      if (this.opts.eagerness == null) {
+        this.opts.eagerness = 1;
+      }
+      this.opts;
+    }
+
+    Entity.prototype.isValid = function() {
+      return this.id != null;
+    };
+
+    return Entity;
+
+  })();
+
+}).call(this);
+
+},{}],69:[function(require,module,exports){
+// Generated by CoffeeScript 1.10.0
+(function() {
+  var Promise, View;
+
+  Promise = require('bluebird');
+
+  module.exports = View = (function() {
+    function View(payload) {
+      this.payload = payload;
+    }
+
+    View.prototype.getFilters = function() {
+      var cond_id, condition, conditions, filter, filterPayload, filter_id, filters, filtersMap, ref;
+      if ((this.payload == null) || (this.payload._RELATIONS == null) || (this.payload._RELATIONS.filters == null) || (this.payload._RELATIONS.filters._RELATIONS == null)) {
+        throw new Error('the view object does not contain the required fields');
+        return [];
+      }
+      filtersMap = this.payload._RELATIONS.filters._RELATIONS;
+      filters = [];
+      for (filter_id in filtersMap) {
+        filter = filtersMap[filter_id];
+        conditions = [];
+        ref = filter._RELATIONS.conditions._RELATIONS;
+        for (cond_id in ref) {
+          condition = ref[cond_id];
+          conditions.push({
+            operation: condition._ATTRIBUTES.operation,
+            value: condition._ATTRIBUTES.value,
+            conditiontype: condition._ATTRIBUTES.conditiontype
+          });
+        }
+        filterPayload = {
+          label: filter._ATTRIBUTES.label,
+          predicate: filter._ATTRIBUTES.predicate,
+          celltype: filter._ATTRIBUTES.celltype,
+          conditions: conditions
+        };
+        filters.push(filterPayload);
+      }
+      return filters;
+    };
+
+    return View;
+
+  })();
+
+}).call(this);
+
+},{"bluebird":1}],70:[function(require,module,exports){
+// Generated by CoffeeScript 1.10.0
+(function() {
+  var Link;
+
+  module.exports = Link = (function() {
+    function Link(payload) {
+      if (typeof payload === 'string') {
+        payload = JSON.parse(payload);
+      }
+      try {
+        this.id = payload.id;
+      } catch (undefined) {}
+      try {
+        this.key = payload.key;
+      } catch (undefined) {}
+    }
+
+    Link.prototype.isValid = function() {
+      return (this.id != null) && (this.key != null);
+    };
+
+    return Link;
+
+  })();
+
+}).call(this);
+
+},{}],71:[function(require,module,exports){
+// Generated by CoffeeScript 1.10.0
+(function() {
+  var Link;
+
+  module.exports = Link = (function() {
+    function Link(payload) {
+      if (typeof payload === 'string') {
+        payload = JSON.parse(payload);
+      }
+      this.source = {};
+      try {
+        this.source.id = payload.source.id;
+      } catch (undefined) {}
+      try {
+        this.source.type = payload.source.type;
+      } catch (undefined) {}
+      try {
+        this.key = payload.key;
+      } catch (undefined) {}
+      this.target = {};
+      try {
+        this.target.value = payload.target.value;
+      } catch (undefined) {}
+    }
+
+    Link.prototype.getSourceId = function() {
+      return this.source.id;
+    };
+
+    Link.prototype.getKey = function() {
+      return this.key;
+    };
+
+    Link.prototype.getValue = function() {
+      return this.target.value;
+    };
+
+    Link.prototype.getDatatype = function() {
+      throw new Error('future work');
+    };
+
+    Link.prototype.isValid = function() {
+      return (this.source != null) && (this.source.id != null) && (this.source.type != null) && (this.key != null) && (this.target != null) && (this.target.value != null);
+    };
+
+    return Link;
+
+  })();
+
+}).call(this);
+
+},{}],72:[function(require,module,exports){
+// Generated by CoffeeScript 1.10.0
+(function() {
+  var Link;
+
+  module.exports = Link = (function() {
+    function Link(payload) {
+      if (typeof payload === 'string') {
+        payload = JSON.parse(payload);
+      }
+      this.source = {};
+      try {
+        this.source.id = payload.source.id;
+      } catch (undefined) {}
+      try {
+        this.source.type = payload.source.type;
+      } catch (undefined) {}
+      try {
+        this.key = payload.key;
+      } catch (undefined) {}
+      this.target = {};
+      try {
+        this.target.id = payload.target.id;
+      } catch (undefined) {}
+      try {
+        this.target.type = payload.target.type;
+      } catch (undefined) {}
+    }
+
+    Link.prototype.getSourceId = function() {
+      return this.source.id;
+    };
+
+    Link.prototype.getKey = function() {
+      return this.key;
+    };
+
+    Link.prototype.getTargetId = function() {
+      return this.target.id;
+    };
+
+    Link.prototype.isValid = function() {
+      (this.source != null) && (this.source.id != null) && (this.source.type != null) && (this.key != null) && (this.target != null) && (this.target.id != null);
+      return this.target.type != null;
+    };
+
+    return Link;
+
+  })();
+
+}).call(this);
+
+},{}],73:[function(require,module,exports){
 (function() {
   var Entity, cuid, isEntity, isObject, isReference,
-    __hasProp = {}.hasOwnProperty;
+    hasProp = {}.hasOwnProperty;
 
   cuid = require('cuid');
 
@@ -13067,7 +14277,7 @@ function toArray(list, index) {
 
   module.exports = Entity = (function() {
     Entity.create = function(object) {
-      var data, fetched, id, key, type, value, _ref;
+      var data, fetched, id, key, ref, type, value;
       type = object['_META'].type;
       fetched = object['_META'].fetched;
       id = object['_META'].id;
@@ -13076,9 +14286,9 @@ function toArray(list, index) {
         data = {};
       }
       if (object['_RELATIONS'] != null) {
-        _ref = object['_RELATIONS'];
-        for (key in _ref) {
-          value = _ref[key];
+        ref = object['_RELATIONS'];
+        for (key in ref) {
+          value = ref[key];
           data[key] = value;
         }
       }
@@ -13089,21 +14299,21 @@ function toArray(list, index) {
       var entity, id, key, references, register, value;
       references = {};
       register = function(value) {
-        var entity, key, _results;
+        var entity, key, results;
         entity = Entity.create(value).$weaver(weaver);
         references[entity.$id()] = entity;
-        _results = [];
+        results = [];
         for (key in entity) {
           value = entity[key];
           if (key !== '$') {
             if (isObject(value) && (value['_REF'] == null)) {
-              _results.push(register(value));
+              results.push(register(value));
             } else {
-              _results.push(void 0);
+              results.push(void 0);
             }
           }
         }
-        return _results;
+        return results;
       };
       register(object);
       for (id in references) {
@@ -13159,7 +14369,7 @@ function toArray(list, index) {
       var key, value, values;
       values = {};
       for (key in this) {
-        if (!__hasProp.call(this, key)) continue;
+        if (!hasProp.call(this, key)) continue;
         value = this[key];
         if (key !== '$' && key !== isEntity(value)) {
           values[key] = value;
@@ -13172,7 +14382,7 @@ function toArray(list, index) {
       var key, links, value;
       links = {};
       for (key in this) {
-        if (!__hasProp.call(this, key)) continue;
+        if (!hasProp.call(this, key)) continue;
         value = this[key];
         if (isEntity(value)) {
           links[key] = value;
@@ -13182,20 +14392,20 @@ function toArray(list, index) {
     };
 
     Entity.prototype.$linksArray = function() {
-      var key, value, _results;
-      _results = [];
+      var key, results, value;
+      results = [];
       for (key in this) {
-        if (!__hasProp.call(this, key)) continue;
+        if (!hasProp.call(this, key)) continue;
         value = this[key];
         if (isEntity(value)) {
-          _results.push(value);
+          results.push(value);
         }
       }
-      return _results;
+      return results;
     };
 
     Entity.prototype.$isFetched = function(eagerness, visited) {
-      var fetched, key, subEntity, _ref;
+      var fetched, key, ref, subEntity;
       if (eagerness == null) {
         eagerness = 1;
       }
@@ -13216,9 +14426,9 @@ function toArray(list, index) {
       }
       visited[this.$id()] = eagerness;
       fetched = true;
-      _ref = this.$links();
-      for (key in _ref) {
-        subEntity = _ref[key];
+      ref = this.$links();
+      for (key in ref) {
+        subEntity = ref[key];
         if (eagerness === -1) {
           if (visited[subEntity.$id()] == null) {
             fetched = fetched && subEntity.$isFetched(eagerness, visited);
@@ -13339,15 +14549,15 @@ function toArray(list, index) {
     };
 
     Entity.prototype.$fire = function(key) {
-      var callback, _i, _len, _ref, _results;
+      var callback, i, len, ref, results;
       if (this.$.listeners[key] != null) {
-        _ref = this.$.listeners[key];
-        _results = [];
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          callback = _ref[_i];
-          _results.push(callback.call(key));
+        ref = this.$.listeners[key];
+        results = [];
+        for (i = 0, len = ref.length; i < len; i++) {
+          callback = ref[i];
+          results.push(callback.call(key));
         }
-        return _results;
+        return results;
       }
     };
 
@@ -13361,10 +14571,10 @@ function toArray(list, index) {
     };
 
     Entity.prototype.$withoutEntities = function() {
-      var key, val, _ref;
-      _ref = this.$links();
-      for (key in _ref) {
-        val = _ref[key];
+      var key, ref, val;
+      ref = this.$links();
+      for (key in ref) {
+        val = ref[key];
         delete this[key];
       }
       return this;
@@ -13376,10 +14586,33 @@ function toArray(list, index) {
 
 }).call(this);
 
-},{"cuid":2}],58:[function(require,module,exports){
+},{"cuid":2}],74:[function(require,module,exports){
+(function() {
+  var Entity, Individual, cuid,
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty;
+
+  cuid = require('cuid');
+
+  Entity = require('./entity');
+
+  module.exports = Individual = (function(superClass) {
+    extend(Individual, superClass);
+
+    function Individual() {
+      return Individual.__super__.constructor.apply(this, arguments);
+    }
+
+    return Individual;
+
+  })(Entity);
+
+}).call(this);
+
+},{"./entity":73,"cuid":2}],75:[function(require,module,exports){
 (function() {
   var Entity, Promise, Repository, cuid, io,
-    __hasProp = {}.hasOwnProperty;
+    hasProp = {}.hasOwnProperty;
 
   io = require('socket.io-client');
 
@@ -13412,14 +14645,14 @@ function toArray(list, index) {
     Repository.prototype.size = function() {
       var key;
       return ((function() {
-        var _ref, _results;
-        _ref = this.entities;
-        _results = [];
-        for (key in _ref) {
-          if (!__hasProp.call(_ref, key)) continue;
-          _results.push(key);
+        var ref, results;
+        ref = this.entities;
+        results = [];
+        for (key in ref) {
+          if (!hasProp.call(ref, key)) continue;
+          results.push(key);
         }
-        return _results;
+        return results;
       }).call(this)).length;
     };
 
@@ -13432,28 +14665,28 @@ function toArray(list, index) {
     };
 
     Repository.prototype.store = function(entity) {
-      var addConnections, added, connection, connections, processing, repoObject, repoSubject, _i, _len;
+      var addConnections, added, connection, connections, i, len, processing, repoObject, repoSubject;
       connections = [];
       added = {};
       addConnections = function(parent) {
-        var child, key, _ref, _results;
+        var child, key, ref, results;
         added[parent.$id()] = true;
-        _ref = parent.$links();
-        _results = [];
-        for (key in _ref) {
-          child = _ref[key];
+        ref = parent.$links();
+        results = [];
+        for (key in ref) {
+          child = ref[key];
           connections.push({
             subject: parent,
             predicate: key,
             object: child
           });
           if (added[child.$id()] == null) {
-            _results.push(addConnections(child));
+            results.push(addConnections(child));
           } else {
-            _results.push(void 0);
+            results.push(void 0);
           }
         }
-        return _results;
+        return results;
       };
       addConnections(entity);
       if (connections.length === 0) {
@@ -13462,8 +14695,8 @@ function toArray(list, index) {
         }
       } else {
         processing = {};
-        for (_i = 0, _len = connections.length; _i < _len; _i++) {
-          connection = connections[_i];
+        for (i = 0, len = connections.length; i < len; i++) {
+          connection = connections[i];
           if (!this.contains(connection.subject.$id())) {
             repoSubject = connection.subject.$withoutEntities();
             processing[repoSubject.$id()] = true;
@@ -13527,13 +14760,17 @@ function toArray(list, index) {
 
 }).call(this);
 
-},{"./entity":57,"bluebird":1,"cuid":2,"socket.io-client":5}],59:[function(require,module,exports){
+},{"./entity":73,"bluebird":1,"cuid":2,"socket.io-client":5}],76:[function(require,module,exports){
 (function() {
-  var Promise, Socket, io;
+  var Promise, Socket, io, isError;
 
   io = require('socket.io-client');
 
   Promise = require('bluebird');
+
+  isError = function(object) {
+    return (object != null) && Object.keys(object).length === 3 && (object.code != null) && (object.payload != null) && (object.message != null);
+  };
 
   module.exports = Socket = (function() {
     function Socket(address) {
@@ -13603,8 +14840,13 @@ function toArray(list, index) {
       return new Promise((function(_this) {
         return function(resolve, reject) {
           return _this.io.emit(key, body, function(response) {
-            if (response === 0) {
-              return resolve();
+            var error;
+            if (isError(response)) {
+              error = response;
+              error.isError = function() {
+                return true;
+              };
+              return resolve(error);
             } else {
               return resolve(response);
             }
@@ -13639,7 +14881,7 @@ function toArray(list, index) {
 
 }).call(this);
 
-},{"bluebird":1,"socket.io-client":5}],60:[function(require,module,exports){
+},{"bluebird":1,"socket.io-client":5}],77:[function(require,module,exports){
 (function() {
   var Entity, Promise, Repository, Socket, Weaver, WeaverCommons, cuid, io;
 
@@ -13658,11 +14900,17 @@ function toArray(list, index) {
   WeaverCommons = require('weaver-commons-js');
 
   module.exports = Weaver = (function() {
+    var isError;
+
     Weaver.Entity = Entity;
 
     Weaver.Socket = Socket;
 
     Weaver.Repository = Repository;
+
+    isError = function(object) {
+      return (object != null) && Object.keys(object).length === 3 && (object.code != null) && (object.payload != null) && (object.message != null);
+    };
 
     function Weaver() {
       this.repository = new Repository(this);
@@ -13746,6 +14994,9 @@ function toArray(list, index) {
           opts: opts
         }).bind(this).then(function(object) {
           var entity;
+          if ((object != null) && (object.isError != null) && object.isError() === true) {
+            return Promise.resolve(object);
+          }
           entity = Entity.build(object, this);
           return this.repository.store(entity);
         });
@@ -13778,4 +15029,4 @@ function toArray(list, index) {
 
 }).call(this);
 
-},{"./entity":57,"./repository":58,"./socket":59,"bluebird":1,"cuid":2,"socket.io-client":5,"weaver-commons-js":52}]},{},[57,58,59,60]);
+},{"./entity":73,"./repository":75,"./socket":76,"bluebird":1,"cuid":2,"socket.io-client":5,"weaver-commons-js":57}]},{},[73,74,75,76,77]);
