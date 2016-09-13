@@ -18,6 +18,11 @@ class Weaver
   @Socket     = Socket
   @Repository = Repository
 
+  isError     = (object) ->
+
+    object? and Object.keys(object).length is 3 and object.code? and object.payload? and object.message?
+
+
   constructor: ->
     @repository = new Repository(@)
 
@@ -33,7 +38,7 @@ class Weaver
     @channel.disconnect()
     @
 
-  # Core 
+  # Core
   # Send authentication info
   authenticate: (token) ->
     @channel.authenticate(token)
@@ -63,16 +68,16 @@ class Weaver
     createPromise = @channel.create({type, id:entity.$id(), attributes, relations})
 
     # Save in repository and return
-    { 
+    {
       entity: @repository.store(entity)
       createPromise: createPromise
     }
- 
-  # Returns the promise part of the adds functionality  
+
+  # Returns the promise part of the adds functionality
   addPromise: (data, type, id) ->
     @_add(data, type, id).createPromise
 
-  # Returns the entity part of the adds functionality  
+  # Returns the entity part of the adds functionality
   add: (data, type, id) ->
     @_add(data, type, id).entity
 
@@ -92,7 +97,10 @@ class Weaver
       Promise.resolve(@repository.get(id))
     else
       # Server read
-      @channel.read({id, opts}).bind(@).then((object) ->
+      @channel.read({id, opts}).bind(@).then((object)->
+
+        if object? and object.isError? and object.isError() == true
+          return Promise.resolve(object)
 
         # Transform the object into a nested Entity object
         entity = Entity.build(object, @)
@@ -101,12 +109,10 @@ class Weaver
         @repository.store(entity)
       )
 
-
   getView: (id) ->
     @get(id, -1).then((viewEntity) ->
       new WeaverCommons.model.View(viewEntity)
     )
-
 
   # Utility
   # Prints the entity to the console after loading is finished

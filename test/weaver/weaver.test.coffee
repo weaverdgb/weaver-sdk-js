@@ -121,22 +121,39 @@ describe 'Weaver: addPromise', ->
 describe 'Weaver: Creating an entity', ->
 
   it 'should set type as $ROOT if left empty', ->
-    return
+    root = weaver.add()
+    root.$type().should.equal('$ROOT')
 
   it 'should set type if given', ->
-    return
+    darkMatter = weaver.add({name: 'dark matter'}, '$DARK_MATTER')
+    darkMatter.$type().should.equal('$DARK_MATTER')
 
   it 'should generate a unique ID', ->
-    return
+    entityIds = []
+    for i in [0..1000]
+      entity = weaver.add()
+      entityIds.push(entity.$id())
 
-  it 'should store a created entity in the repository', ->
-    return
+    for ent in entityIds
+      lastEntityId = entityIds.pop()
+      entityIds.should.not.contain(lastEntityId)
+
 
   it 'should allow for empty entities to be created', ->
-    return
+    ent = weaver.add()
+    ent.should.have.property.$id
+    ent.should.have.property.$type
+
+  it 'should store a created entity in the repository', ->
+    creation = weaver.add({once:'more'},'$for', 'measure')
+    weaver.repository.get('measure').should.equal(creation)
 
   it 'should allow for strings, numbers and booleans as keys', ->
-    return
+    dictionary =
+      boolean: true
+      number: 0
+      string: 'string'
+    weaver.add({dictionary: dictionary})
 
   it 'should give an error if an object or array is passed as a key', ->
     return
@@ -146,6 +163,21 @@ describe 'Weaver: Creating an entity', ->
 
 
 describe 'Weaver: Loading an entity', ->
+
+  it 'should give an exception if an entity is non-existent', (done)->
+    weaver.get('non-existent-entity').then( (res)->
+      expect(res.message).to.equal('Entity not found')
+      expect(res.code).to.equal(404)
+      expect(res.isError()).to.equal(true)
+      done()
+    ,(rej)->
+      # this should never be reached
+      expect('money').to.equal('happiness')
+    )
+    .catch((err)->
+      # nor should this
+      #expect(1).to.equal(0)
+    )
 
   it 'should not load an entity if already available in the repository', ->
     return

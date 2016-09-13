@@ -2,6 +2,9 @@
 io      = require('socket.io-client')
 Promise = require('bluebird')
 
+isError = (object) ->
+  object? and Object.keys(object).length is 3 and object.code? and object.payload? and object.message?
+
 # Transport layer to server using socket.io
 module.exports =
 class Socket
@@ -53,10 +56,13 @@ class Socket
 
   # TODO: Handle errors from server
   emit: (key, body) ->
+
     new Promise((resolve, reject) =>
       @io.emit(key, body, (response) ->
-        if response is 0
-          resolve()
+        if isError(response)
+          error = response
+          error.isError = -> true
+          resolve(error)
         else
           resolve(response)
       )
