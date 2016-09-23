@@ -53,7 +53,7 @@ var weaver = new Weaver();
 weaver.database(database);
 ```
 
-##### Authenticating using a token 
+##### Authenticating using a token
 
 Authentication is optional (but enforced if the server is configured so)
 
@@ -142,6 +142,22 @@ john.$remove('friend');
 ```javascript
 john.$destroy();
 ```
+
+## Install - Development
+
+`$ npm install`
+
+If you want to add weaver-sdk-js to your webApp, use [grunt](http://gruntjs.com/) to create the js. Two main commands.
+
+For production environments:
+
+`$ grunt dist`
+
+For development environments:
+
+`$ grunt dev`
+
+
 
 
 ## Todo
