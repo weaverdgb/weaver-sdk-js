@@ -1,3 +1,6 @@
+[![Build Status](https://img.shields.io/travis/weaverplatform/weaver-sdk-js/develop.svg)](http://travis-ci.org/weaverplatform/weaver-sdk-js)[![codecov](https://img.shields.io/codecov/c/github/weaverplatform/weaver-sdk-js/develop.svg?maxAge=0)](https://codecov.io/gh/weaverplatform/weaver-sdk-js)[![Npm](https://img.shields.io/npm/v/weaver-sdk.svg)](https://www.npmjs.com/package/weaver-sdk)
+
+
 # Weaver SDK for JavaScript
 A library that gives you access to the Weaver platform from your JavaScript app.
 
