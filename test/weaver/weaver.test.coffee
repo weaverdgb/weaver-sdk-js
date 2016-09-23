@@ -164,7 +164,7 @@ describe 'Weaver: Creating an entity', ->
 
 describe 'Weaver: Loading an entity', ->
 
-  it 'should give an exception if an entity is non-existent', (done)->
+  it 'should give an exception if an entity is non-existent', ->
     weaver.get('non-existent-entity').then( (res)->
       expect(res.message).to.equal('Entity not found')
       expect(res.code).to.equal(404)
