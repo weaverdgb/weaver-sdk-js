@@ -15,6 +15,12 @@ class Socket
   create: (payload) ->
     @emit('create', payload)
 
+  endBulk: ->
+    @emit('bulkEnd')
+
+  startBulk: ->
+    @emit('bulkStart')
+
   authenticate: (payload) ->
     @emit('authenticate', payload)
 

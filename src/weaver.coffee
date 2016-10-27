@@ -33,7 +33,7 @@ class Weaver
     @channel.disconnect()
     @
 
-  # Core 
+  # Core
   # Send authentication info
   authenticate: (token) ->
     @channel.authenticate(token)
@@ -43,6 +43,12 @@ class Weaver
   database: (database) ->
     @channel = database
     @
+
+  endBulk: ->
+    @channel.endBulk()
+
+  startBulk: ->
+    @channel.startBulk()
 
   # Core
   # Adds a new entity to Weaver
@@ -63,16 +69,16 @@ class Weaver
     createPromise = @channel.create({type, id:entity.$id(), attributes, relations})
 
     # Save in repository and return
-    { 
+    {
       entity: @repository.store(entity)
       createPromise: createPromise
     }
- 
-  # Returns the promise part of the adds functionality  
+
+  # Returns the promise part of the adds functionality
   addPromise: (data, type, id) ->
     @_add(data, type, id).createPromise
 
-  # Returns the entity part of the adds functionality  
+  # Returns the entity part of the adds functionality
   add: (data, type, id) ->
     @_add(data, type, id).entity
 
