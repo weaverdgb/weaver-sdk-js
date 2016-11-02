@@ -17,6 +17,9 @@ class Entity
 
   # Creates an Entity object from a native server object
   @create: (object) ->
+    # console.log 'Is this an entity??????????____?????????'
+    # console.log 'The object!!!!!'
+    # console.log object
     # Metadata
     type    = object['_META'].type
     fetched = object['_META'].fetched
@@ -154,12 +157,17 @@ class Entity
   # Core
   # Fetch entity further given eagerness
   $fetch: (opts) ->
+    # console.log '=^^=|_$fetch'
+    # console.log opts
+    # console.log @$.id
     @$.weaver.get(@$.id, opts)
 
 
   # Core
   # Pushes key to server
   $push: (attribute, value) ->
+    
+    # console.log '=^^=|_=^^=|_=^^=|_=^^=|_=^^=|_=^^=|_=^^=|_=^^=|_=^^=|_=^^=|_=^^=|_=^^=|_=^^=|_=^^=|_=^^=|_=^^=|_=^^=|_'
 
     # Convenience method for entity.id -> entity
     if isEntity(attribute)

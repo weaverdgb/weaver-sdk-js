@@ -10,6 +10,7 @@ class Socket
     @io = io.connect(@address, {reconnection: true})
 
   read: (payload) ->
+    # console.log '=^^=|_READ'
     @emit('read', payload)
 
   create: (payload) ->
