@@ -14163,6 +14163,55 @@ an object considered as $VALUE_PROPERTY is something like:
 }).call(this);
 
 },{}],73:[function(require,module,exports){
+module.exports={
+  "name": "weaver-sdk",
+  "version": "0.4.0",
+  "description": "Weaver SDK for JavaScript",
+  "author": {
+    "name": "Mohamad Alamili",
+    "url": "https://github.com/weaverplatform/weaver-sdk-js",
+    "email": "mohamad@sysunite.com"
+  },
+  "main": "lib/weaver.js",
+  "license": "GPL-3.0",
+  "repository": {},
+  "dependencies": {
+    "bluebird": "~3.4.1",
+    "cuid": "~1.3.8",
+    "socket.io-client": "~1.4.6",
+    "weaver-commons-js": "0.1.4"
+  },
+  "devDependencies": {
+    "ioredis": "^1.5.12",
+    "coffee-script": "1.10.0",
+    "chai": "^3.0.0",
+    "chai-as-promised": "^5.1.0",
+    "coffee-coverage": "^1.0.1",
+    "istanbul": "^0.4.3",
+    "mocha": "^2.2.5",
+    "sinon": "^1.15.4",
+    "grunt": "~1.0.1",
+    "browserify": "^13.0.0",
+    "grunt-browserify": "^4.0.1",
+    "remapify": "^2.1.0",
+    "grunt-contrib-concat": "1.0.1",
+    "grunt-contrib-copy": "1.0.0",
+    "grunt-contrib-watch": "1.0.0",
+    "grunt-contrib-clean": "1.0.0",
+    "grunt-contrib-coffee": "1.0.0",
+    "grunt-contrib-uglify": "1.0.1",
+    "load-grunt-tasks": "3.5.0"
+  },
+  "engines": {
+    "node": ">=0.8"
+  },
+  "scripts": {
+    "prepublish": "coffee -o lib -c src",
+    "test": "./node_modules/.bin/mocha && ./node_modules/.bin/istanbul report"
+  }
+}
+
+},{}],74:[function(require,module,exports){
 (function() {
   var Entity, cuid, isEntity, isObject, isReference,
     hasProp = {}.hasOwnProperty;
@@ -14492,7 +14541,7 @@ an object considered as $VALUE_PROPERTY is something like:
 
 }).call(this);
 
-},{"cuid":2}],74:[function(require,module,exports){
+},{"cuid":2}],75:[function(require,module,exports){
 (function() {
   var Entity, Promise, Repository, cuid, io,
     hasProp = {}.hasOwnProperty;
@@ -14643,7 +14692,7 @@ an object considered as $VALUE_PROPERTY is something like:
 
 }).call(this);
 
-},{"./entity":73,"bluebird":1,"cuid":2,"socket.io-client":5}],75:[function(require,module,exports){
+},{"./entity":74,"bluebird":1,"cuid":2,"socket.io-client":5}],76:[function(require,module,exports){
 (function() {
   var Promise, Socket, io;
 
@@ -14673,6 +14722,14 @@ an object considered as $VALUE_PROPERTY is something like:
 
     Socket.prototype.startBulk = function() {
       return this.emit('bulkStart');
+    };
+
+    Socket.prototype.createDict = function(payload) {
+      return this.emit('createDict', payload);
+    };
+
+    Socket.prototype.readDict = function(id) {
+      return this.emit('readDict', id);
     };
 
     Socket.prototype.authenticate = function(payload) {
@@ -14763,13 +14820,11 @@ an object considered as $VALUE_PROPERTY is something like:
 
 }).call(this);
 
-},{"bluebird":1,"socket.io-client":5}],76:[function(require,module,exports){
+},{"bluebird":1,"socket.io-client":5}],77:[function(require,module,exports){
 (function() {
-  var Entity, Promise, Repository, Socket, Weaver, WeaverCommons, cuid, io;
+  var Entity, Promise, Repository, Socket, Weaver, WeaverCommons, WeaverEntity, io, pjson;
 
   io = require('socket.io-client');
-
-  cuid = require('cuid');
 
   Promise = require('bluebird');
 
@@ -14777,9 +14832,13 @@ an object considered as $VALUE_PROPERTY is something like:
 
   Entity = require('./entity');
 
+  WeaverEntity = require('./weaverEntity');
+
   Repository = require('./repository');
 
   WeaverCommons = require('weaver-commons-js');
+
+  pjson = require('../package.json');
 
   module.exports = Weaver = (function() {
     Weaver.Entity = Entity;
@@ -14789,7 +14848,7 @@ an object considered as $VALUE_PROPERTY is something like:
     Weaver.Repository = Repository;
 
     function Weaver() {
-      console.log('=^^=|_!!!!!!!!!!!');
+      console.log('WeaverSDK: ' + pjson.version);
       this.repository = new Repository(this);
     }
 
@@ -14820,81 +14879,46 @@ an object considered as $VALUE_PROPERTY is something like:
       return this.channel.startBulk();
     };
 
-    Weaver.prototype._add = function(data, type, id) {
-      var attributes, createPromise, entity, isEntity, key, relations, value;
-      entity = new Entity(data, type, true, id).$weaver(this);
-      relations = {};
-      attributes = {};
-      isEntity = function(value) {
-        return typeof value.$isEntity === 'function' && value.$isEntity();
-      };
-      for (key in data) {
-        value = data[key];
-        if (!isEntity(value)) {
-          attributes[key] = value;
-        }
-      }
-      for (key in data) {
-        value = data[key];
-        if (isEntity(value)) {
-          relations[key] = value.$id();
-        }
-      }
-      createPromise = this.channel.create({
-        type: type,
-        id: entity.$id(),
-        attributes: attributes,
-        relations: relations
-      });
-      return {
-        entity: this.repository.store(entity),
-        createPromise: createPromise
-      };
-    };
-
-    Weaver.prototype.addPromise = function(data, type, id) {
-      return this._add(data, type, id).createPromise;
-    };
-
-    Weaver.prototype.add = function(data, type, id) {
-      return this._add(data, type, id).entity;
-    };
-
     Weaver.prototype.node = function(object, id) {
-      var attribute, attributes, key, payload, value;
-      console.log('=^^=|_');
-      console.log(object);
-      console.log(id);
-      payload = {};
-      attributes = [];
-      for (key in object) {
-        value = object[key];
-        attribute = {};
-        console.log(key + ':' + value);
-        if (key === 'id') {
-          attributes[attributes.length - 1].id = value;
+      var weaverEntity;
+      weaverEntity = new WeaverEntity(object, id);
+      return this.channel.create(weaverEntity).then(function(object) {
+        if (object === 200) {
+          return weaverEntity;
         } else {
-          attribute.key = key;
-          attribute.value = value;
-          attributes.push(attribute);
+          return 'error';
         }
-      }
-      console.log(attributes);
-      payload.id = id;
-      if (attributes.length !== 0) {
-        payload.attributes = attributes;
-      }
-      return this.channel.create(payload);
+      });
     };
 
-    Weaver.prototype.dict = function(object, id) {};
-
-    Weaver.prototype.collection = function(id) {
-      return this.add({}, '$COLLECTION', id);
+    Weaver.prototype.dict = function(object, id) {
+      var weaverEntity;
+      weaverEntity = new WeaverEntity(object, id);
+      return this.channel.createDict(weaverEntity);
     };
 
-    Weaver.prototype.get = function(id, opts) {
-      console.log('=^^=|_GET');
+    Weaver.prototype.getDict = function(id) {
+      var error, error1;
+      try {
+        return this.channel.readDict({
+          id: id
+        }).bind(this).then((function(_this) {
+          return function(res, err) {
+            if (err) {
+              err;
+            }
+            if (res) {
+              return res;
+            }
+          };
+        })(this));
+      } catch (error1) {
+        error = error1;
+        return error;
+      }
+    };
+
+    Weaver.prototype.getNode = function(id, opts) {
       if (opts == null) {
         opts = {};
       }
@@ -14905,36 +14929,58 @@ an object considered as $VALUE_PROPERTY is something like:
         id: id,
         opts: opts
       }).bind(this).then(function(object) {
-        var entity, error, error1;
+        var error, error1;
         try {
-          entity = Entity.build(object, this);
-          return this.repository.store(entity);
+          return JSON.parse(object);
         } catch (error1) {
           error = error1;
-          return JSON.parse(object);
+          return 'Error reading ' + id;
         }
       });
     };
 
-    Weaver.prototype.getView = function(id) {
-      return this.get(id, -1).then(function(viewEntity) {
-        return new WeaverCommons.model.View(viewEntity);
+    Weaver.prototype.link = function(source, relationTarget) {
+      var entity;
+      entity = new WeaverEntity().relate(source, relationTarget);
+      console.log('=^^=|_TheEntity_relation_after');
+      console.log(entity);
+      return this.channel.link(entity).then(function(object) {
+        if (object === 200) {
+          return entity;
+        } else {
+          return 'error';
+        }
       });
-    };
-
-    Weaver.prototype.print = function(id, opts) {
-      return this.get(id, opts).bind(this).then(function(entity) {
-        return console.log(entity);
-      });
-    };
-
-    Weaver.prototype.local = function(id) {
-      return this.repository.get(id);
     };
 
     return Weaver;
 
   })();
+
+
+  /*
+  weaver.node({isEvil:true,actionZone:'Maryland'},'samantha');
+  weaver.node({isEvil:true,actionZone:'Tokyo'},'toshio');
+  weaver.node({isEvil:true,actionZone:'MiddleEarth'},'sauron');
+  
+  ????????????????
+  weaver.node({isEvil:true,actionZone:'MiddleEarth'}).then((sauron)->
+  
+      weaver.link('gandalf',{enemy: sauron});
+  
+  );
+  
+  weaver.node({isEvil:false,size:20,name:'Sam'}).then(function(sam){weaver.link(sam,{friend:'gandalf'})})
+  
+  
+  weaver.node({isEvil:false,actionZone:'MiddleEarth'},'gandalf').then(function(res){weaver.link(res,{isFriend:'father'})})
+  
+  weaver.link('father',{isFriend:'gandalf'})
+  
+  weaver.link('samantha',{hasFriend:['toshio','sauron'],hasEnemy:'father'})
+  
+  weaver.getNode('samantha',{eagerness:3}).then(function(res){console.log(res)})
+   */
 
   if (typeof window !== "undefined" && window !== null) {
     window.Weaver = Weaver;
@@ -14942,4 +14988,90 @@ an object considered as $VALUE_PROPERTY is something like:
 
 }).call(this);
 
-},{"./entity":73,"./repository":74,"./socket":75,"bluebird":1,"cuid":2,"socket.io-client":5,"weaver-commons-js":57}]},{},[73,74,75,76]);
+},{"../package.json":73,"./entity":74,"./repository":75,"./socket":76,"./weaverEntity":78,"bluebird":1,"socket.io-client":5,"weaver-commons-js":57}],78:[function(require,module,exports){
+(function() {
+  var WeaverEntity, cuid;
+
+  cuid = require('cuid');
+
+  module.exports = WeaverEntity = (function() {
+    var typeIsArray;
+
+    typeIsArray = Array.isArray || function(value) {
+      return {}.toString.call(value) === '[object Array]';
+    };
+
+    function WeaverEntity(object, id) {
+      var attribute, attributes, key, value;
+      attributes = [];
+      for (key in object) {
+        value = object[key];
+        attribute = {};
+        if (key === 'id') {
+          attributes[attributes.length - 1].id = value;
+        } else {
+          attribute.key = key;
+          attribute.value = value;
+          attributes.push(attribute);
+        }
+      }
+      if (id) {
+        this.id = id;
+      } else {
+        this.id = cuid();
+      }
+      if (attributes.length !== 0) {
+        this.attributes = attributes;
+      }
+    }
+
+    WeaverEntity.prototype.relate = function(source, relationTarget) {
+      var i, index, j, key, len, len1, ref, rel, relation, relations, tar, value;
+      relations = [];
+      for (key in relationTarget) {
+        value = relationTarget[key];
+        relation = {};
+        relation.relation = key;
+        if (typeof value === 'string') {
+          relation.target = value;
+        }
+        if (typeof value === 'object') {
+          relation.target = value.id;
+        }
+        if (typeIsArray(value)) {
+          relation.target = value;
+        }
+        relations.push(relation);
+      }
+      for (index = i = 0, len = relations.length; i < len; index = ++i) {
+        relation = relations[index];
+        if (typeIsArray(relation.target)) {
+          delete relations[index];
+          ref = relation.target;
+          for (j = 0, len1 = ref.length; j < len1; j++) {
+            tar = ref[j];
+            rel = {};
+            rel.relation = relation.relation;
+            rel.target = tar;
+            relations.push(rel);
+          }
+        }
+      }
+      if (typeof source === 'string') {
+        this.id = source;
+      } else {
+        this.id = source.id;
+      }
+      if (relations.length !== 0) {
+        this.relations = relations;
+      }
+      return this;
+    };
+
+    return WeaverEntity;
+
+  })();
+
+}).call(this);
+
+},{"cuid":2}]},{},[74,75,76,77,78]);

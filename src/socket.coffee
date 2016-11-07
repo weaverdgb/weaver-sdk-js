@@ -10,7 +10,6 @@ class Socket
     @io = io.connect(@address, {reconnection: true})
 
   read: (payload) ->
-    # console.log '=^^=|_READ'
     @emit('read', payload)
 
   create: (payload) ->
@@ -21,6 +20,12 @@ class Socket
 
   startBulk: ->
     @emit('bulkStart')
+    
+  createDict: (payload) ->
+    @emit('createDict', payload)
+    
+  readDict: (id) ->
+    @emit('readDict',id)
 
   authenticate: (payload) ->
     @emit('authenticate', payload)
