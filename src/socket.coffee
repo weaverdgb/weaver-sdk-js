@@ -47,6 +47,9 @@ class Socket
 
   wipe: () ->
     @emit('wipe', {})
+    
+  wipeWeaver: () ->
+    @emit('wipeWeaver', {})
 
   bootstrapFromUrl: (url) ->
     @emit('bootstrapFromUrl', url)

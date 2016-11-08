@@ -8,18 +8,24 @@ module.exports =
 
     constructor: (object,id) ->
       attributes = []
-      for key, value of object
-        attribute = {}
-        if key is 'id'
-          attributes[attributes.length-1].id = value
-        else
-          attribute.key = key
-          attribute.value = value
-          attributes.push(attribute)
-      if id
-        @id = id
+      if typeof object is 'string' and not id
+        @id = object
       else
-        @id = cuid()
+        for key, value of object
+          attribute = {}
+          if key is 'id'
+            attributes[attributes.length-1].id = value
+          else
+            attribute.key = key
+            attribute.value = value
+            attributes.push(attribute)
+        if id
+          if typeof id is 'object'
+            @id = id.id
+          else
+            @id = id
+        else
+          @id = cuid()
       if attributes.length != 0
         @attributes = attributes
         

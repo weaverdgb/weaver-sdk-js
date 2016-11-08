@@ -14760,6 +14760,10 @@ module.exports={
       return this.emit('wipe', {});
     };
 
+    Socket.prototype.wipeWeaver = function() {
+      return this.emit('wipeWeaver', {});
+    };
+
     Socket.prototype.bootstrapFromUrl = function(url) {
       return this.emit('bootstrapFromUrl', url);
     };
@@ -14871,13 +14875,31 @@ module.exports={
       return this;
     };
 
+
+    /*
+     Tells the server that the bulk insertion has finished
+     Used after startBulk
+     */
+
     Weaver.prototype.endBulk = function() {
       return this.channel.endBulk();
     };
 
+
+    /*
+     Tells the server that the bulk insertion starts
+     Used before endBulk
+     */
+
     Weaver.prototype.startBulk = function() {
       return this.channel.startBulk();
     };
+
+
+    /*
+     Will inserts a entity into db
+     The old weaver.add converted to the new way
+     */
 
     Weaver.prototype.node = function(object, id) {
       var weaverEntity;
@@ -14891,11 +14913,40 @@ module.exports={
       });
     };
 
+
+    /*
+     Will update the attributes of an entity
+     */
+
+    Weaver.prototype.update = function(object, id) {
+      var weaverEntity;
+      weaverEntity = new WeaverEntity(object, id);
+      return this.channel.update(weaverEntity).then((function(_this) {
+        return function(res, err) {
+          if (res[0] === 200) {
+            return weaverEntity;
+          } else {
+            return 'error';
+          }
+        };
+      })(this));
+    };
+
+
+    /*
+     Stores data in object format into the Redis db
+     */
+
     Weaver.prototype.dict = function(object, id) {
       var weaverEntity;
       weaverEntity = new WeaverEntity(object, id);
       return this.channel.createDict(weaverEntity);
     };
+
+
+    /*
+     Retireves data from the Redis db
+     */
 
     Weaver.prototype.getDict = function(id) {
       var error, error1;
@@ -14918,12 +14969,23 @@ module.exports={
       }
     };
 
+
+    /*
+     Retireves an entity
+     */
+
     Weaver.prototype.getNode = function(id, opts) {
       if (opts == null) {
         opts = {};
       }
       if (opts.eagerness == null) {
         opts.eagerness = 1;
+      }
+      if (typeof id === 'string') {
+        id = id;
+      }
+      if (typeof id === 'object') {
+        id = id.id;
       }
       return this.channel.read({
         id: id,
@@ -14939,16 +15001,69 @@ module.exports={
       });
     };
 
+
+    /*
+     Makes a relationship between tow entities
+     If any of those does not extits will be created
+     */
+
     Weaver.prototype.link = function(source, relationTarget) {
       var entity;
       entity = new WeaverEntity().relate(source, relationTarget);
-      console.log('=^^=|_TheEntity_relation_after');
-      console.log(entity);
       return this.channel.link(entity).then(function(object) {
         if (object === 200) {
           return entity;
         } else {
-          return 'error';
+          return 'error linking ' + source;
+        }
+      });
+    };
+
+
+    /*
+     Deletes relationships
+     */
+
+    Weaver.prototype.unlink = function(source, relationTarget) {
+      var entity;
+      entity = new WeaverEntity().relate(source, relationTarget);
+      console.log('=^^=|_the weaver entity to remove relationships');
+      console.log(entity);
+      return this.channel.unlink(entity).then(function(object) {
+        if (object === 200) {
+          return entity;
+        } else {
+          return 'error linking ' + source;
+        }
+      });
+    };
+
+
+    /*
+     Wipes the DB
+     */
+
+    Weaver.prototype.wipe = function() {
+      return this.channel.wipe().then(function(object) {
+        if (object[0] === '200') {
+          return object[0];
+        } else {
+          return 'error wipping db';
+        }
+      });
+    };
+
+
+    /*
+     Wipes the weaver DB, (in case of neo4j will removes all the nodes with label:INDIVIDUAL and $ID value property)
+     */
+
+    Weaver.prototype.wipeWeaver = function() {
+      return this.channel.wipeWeaver().then(function(object) {
+        if (object[0] === '200') {
+          return object[0];
+        } else {
+          return 'error wipping weaver db';
         }
       });
     };
@@ -15004,21 +15119,29 @@ module.exports={
     function WeaverEntity(object, id) {
       var attribute, attributes, key, value;
       attributes = [];
-      for (key in object) {
-        value = object[key];
-        attribute = {};
-        if (key === 'id') {
-          attributes[attributes.length - 1].id = value;
-        } else {
-          attribute.key = key;
-          attribute.value = value;
-          attributes.push(attribute);
-        }
-      }
-      if (id) {
-        this.id = id;
+      if (typeof object === 'string' && !id) {
+        this.id = object;
       } else {
-        this.id = cuid();
+        for (key in object) {
+          value = object[key];
+          attribute = {};
+          if (key === 'id') {
+            attributes[attributes.length - 1].id = value;
+          } else {
+            attribute.key = key;
+            attribute.value = value;
+            attributes.push(attribute);
+          }
+        }
+        if (id) {
+          if (typeof id === 'object') {
+            this.id = id.id;
+          } else {
+            this.id = id;
+          }
+        } else {
+          this.id = cuid();
+        }
       }
       if (attributes.length !== 0) {
         this.attributes = attributes;
