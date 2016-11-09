@@ -61,7 +61,22 @@ class Weaver
   ###
   startBulk: ->
     @channel.startBulk()
-
+    
+  bulkNodes: (bulkPayload)  ->
+    @channel.bulkNodes(bulkPayload).then((object) ->
+      if object[0] is '200'
+        object[0]
+      else
+        'error destroying entity'
+    )
+      
+  bulkRelations: (bulkPayload)  ->
+    @channel.bulkRelations(bulkPayload).then((object) ->
+      if object[0] is '200'
+        object[0]
+      else
+        'error destroying entity'
+    )
 
   ###
    Will inserts a entity into db
@@ -125,7 +140,11 @@ class Weaver
       id = id.id
     @channel.read({id, opts}).bind(@).then((object) ->
       try
-        JSON.parse(object)
+        entity = JSON.parse(object)
+        if not entity.id and entity.attributes.length is 0 and entity.relations.length is 0
+          'The entity does not exits'
+        else
+          entity
       catch error
         'Error reading ' + id
     )
@@ -148,15 +167,13 @@ class Weaver
   ###
   unlink: (source, relationTarget) ->
     entity = new WeaverEntity().relate(source,relationTarget)
-    console.log '=^^=|_the weaver entity to remove relationships'
-    console.log entity
     @channel.unlink(entity).then((object) ->
-      if object == 200
-        entity
+      if object[0] == '200'
+        object[0]
       else
-        'error linking ' + source
+        'error unlinking ' + source
     )
-    
+      
   ###
    Wipes the DB
   ###
@@ -181,6 +198,20 @@ class Weaver
         'error wipping weaver db'
     )
     
+  ###
+   Deletes an entity (a node)
+  ###
+    
+  destroy: (individual) ->
+    entity = new WeaverEntity({},individual)
+    @channel.destroy(entity).then((object) ->
+      if object[0] is '200'
+        object[0]
+      else
+        'error destroying entity'
+    )
+    
+      
 
   # getView: (id) ->
   #   @get(id, -1).then((viewEntity) ->
@@ -199,31 +230,6 @@ class Weaver
   # Returns an entity in the local repository
   # local: (id) ->
   #   @repository.get(id)
-
-###
-weaver.node({isEvil:true,actionZone:'Maryland'},'samantha');
-weaver.node({isEvil:true,actionZone:'Tokyo'},'toshio');
-weaver.node({isEvil:true,actionZone:'MiddleEarth'},'sauron');
-
-????????????????
-weaver.node({isEvil:true,actionZone:'MiddleEarth'}).then((sauron)->
-
-    weaver.link('gandalf',{enemy: sauron});
-
-);
-
-weaver.node({isEvil:false,size:20,name:'Sam'}).then(function(sam){weaver.link(sam,{friend:'gandalf'})})
-
-
-weaver.node({isEvil:false,actionZone:'MiddleEarth'},'gandalf').then(function(res){weaver.link(res,{isFriend:'father'})})
-
-weaver.link('father',{isFriend:'gandalf'})
-
-weaver.link('samantha',{hasFriend:['toshio','sauron'],hasEnemy:'father'})
-
-weaver.getNode('samantha',{eagerness:3}).then(function(res){console.log(res)})
-
-###
 
 
 # Browser export

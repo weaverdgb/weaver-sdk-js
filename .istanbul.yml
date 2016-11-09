@@ -1,0 +1,8 @@
+instrumentation:
+  root: ./
+  include-all-sources: false
+  default-excludes: true
+  verbose: true
+  excludes: ["*.*"]
+reporting:
+  dir: "coverage"

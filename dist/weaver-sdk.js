@@ -500,6 +500,14 @@
       return this.emit('create', payload);
     };
 
+    Socket.prototype.bulkNodes = function(payload) {
+      return this.emit('bulkNodes', payload);
+    };
+
+    Socket.prototype.bulkRelations = function(payload) {
+      return this.emit('bulkRelations', payload);
+    };
+
     Socket.prototype.endBulk = function() {
       return this.emit('bulkEnd');
     };
@@ -774,9 +782,14 @@
         id: id,
         opts: opts
       }).bind(this).then(function(object) {
-        var error, error1;
+        var entity, error, error1;
         try {
-          return JSON.parse(object);
+          entity = JSON.parse(object);
+          if (!entity.id && entity.attributes.length === 0 && entity.relations.length === 0) {
+            return 'The entity does not exits';
+          } else {
+            return entity;
+          }
         } catch (error1) {
           error = error1;
           return 'Error reading ' + id;
@@ -810,13 +823,31 @@
     Weaver.prototype.unlink = function(source, relationTarget) {
       var entity;
       entity = new WeaverEntity().relate(source, relationTarget);
-      console.log('=^^=|_the weaver entity to remove relationships');
-      console.log(entity);
       return this.channel.unlink(entity).then(function(object) {
-        if (object === 200) {
-          return entity;
+        if (object[0] === '200') {
+          return object[0];
         } else {
-          return 'error linking ' + source;
+          return 'error unlinking ' + source;
+        }
+      });
+    };
+
+    Weaver.prototype.bulkNodes = function(bulkPayload) {
+      return this.channel.bulkNodes(bulkNodes).then(function(object) {
+        if (object[0] === '200') {
+          return object[0];
+        } else {
+          return 'error destroying entity';
+        }
+      });
+    };
+
+    Weaver.prototype.bulkRelations = function(bulkPayload) {
+      return this.channel.bulkRelations(bulkNodes).then(function(object) {
+        if (object[0] === '200') {
+          return object[0];
+        } else {
+          return 'error destroying entity';
         }
       });
     };
@@ -851,34 +882,26 @@
       });
     };
 
+
+    /*
+     Deletes an entity (a node)
+     */
+
+    Weaver.prototype.destroy = function(individual) {
+      var entity;
+      entity = new WeaverEntity({}, individual);
+      return this.channel.destroy(entity).then(function(object) {
+        if (object[0] === '200') {
+          return object[0];
+        } else {
+          return 'error destroying entity';
+        }
+      });
+    };
+
     return Weaver;
 
   })();
-
-
-  /*
-  weaver.node({isEvil:true,actionZone:'Maryland'},'samantha');
-  weaver.node({isEvil:true,actionZone:'Tokyo'},'toshio');
-  weaver.node({isEvil:true,actionZone:'MiddleEarth'},'sauron');
-  
-  ????????????????
-  weaver.node({isEvil:true,actionZone:'MiddleEarth'}).then((sauron)->
-  
-      weaver.link('gandalf',{enemy: sauron});
-  
-  );
-  
-  weaver.node({isEvil:false,size:20,name:'Sam'}).then(function(sam){weaver.link(sam,{friend:'gandalf'})})
-  
-  
-  weaver.node({isEvil:false,actionZone:'MiddleEarth'},'gandalf').then(function(res){weaver.link(res,{isFriend:'father'})})
-  
-  weaver.link('father',{isFriend:'gandalf'})
-  
-  weaver.link('samantha',{hasFriend:['toshio','sauron'],hasEnemy:'father'})
-  
-  weaver.getNode('samantha',{eagerness:3}).then(function(res){console.log(res)})
-   */
 
   if (typeof window !== "undefined" && window !== null) {
     window.Weaver = Weaver;

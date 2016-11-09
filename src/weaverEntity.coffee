@@ -45,6 +45,7 @@ module.exports =
       for relation, index in relations
         if typeIsArray relation.target
           delete relations[index]
+          # relations.splice(index, index)
           for tar in relation.target
             rel = {}
             rel.relation = relation.relation

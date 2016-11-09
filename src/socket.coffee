@@ -14,6 +14,12 @@ class Socket
 
   create: (payload) ->
     @emit('create', payload)
+    
+  bulkNodes: (payload) ->
+    @emit('bulkNodes',payload)
+    
+  bulkRelations: (payload) ->
+    @emit('bulkRelations',payload)
 
   endBulk: ->
     @emit('bulkEnd')

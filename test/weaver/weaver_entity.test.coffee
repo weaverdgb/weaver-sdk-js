@@ -7,6 +7,8 @@ weaver.connect(WEAVER_ADDRESS)
 
 
 describe 'Weaver: Dealing with entities', ->
+  # Increasing the timeout, due to debugging purposes (the logger.debug on the weaver-neo4j-service is to much intense)
+  @timeout(70000)
   
   it 'should wipe the DB', ->
     
@@ -45,7 +47,6 @@ describe 'Weaver: Dealing with entities', ->
             expect(toshio.attributes[1]).to.have.property('key').and.equal('$CA')
             expect(toshio.attributes[2]).to.have.property('key').and.equal('LABEL')
         )
-        
     )
     
   
@@ -120,7 +121,7 @@ describe 'Weaver: Dealing with entities', ->
     )
   
   it 'should creates a link entity from the returned object', ->
-  
+    
     weaver.node({name:'Sauron the dark wizzard', age:'before the ring',isEvil:true},'Sauron').then((sauron, err) ->
       if err
         console.log err
@@ -186,6 +187,7 @@ describe 'Weaver: Dealing with entities', ->
     )
   
   it 'should creates an entity on the linking',  ->
+    
     weaver.link('Gandalf',{isFriend:'Bilbo'}).then((res, err) =>
       if err
         console.log err
@@ -214,7 +216,6 @@ describe 'Weaver: Dealing with entities', ->
                  expect(bilbo.attributes[0]).to.have.property('key').and.equal('LABEL')
                  expect(bilbo.attributes[0]).to.have.property('value').and.equal('INDIVIDUAL')
             )
-  
         )
     )
     
@@ -230,14 +231,15 @@ describe 'Weaver: Dealing with entities', ->
            console.log err
           else
             console.log gandalf
-            console.log gandalf.relations[3].target
             expect(gandalf).to.have.property('attributes').and.to.lengthOf(6)
             expect(gandalf).to.have.property('relations').and.to.lengthOf(5)
+            # TODO: How to deal with different order into the Array of relations?
             # expect(gandalf.relations[0]).to.have.property('relation').and.equal('fights')
             # expect(gandalf.relations[1]).to.have.property('relation').and.equal('isEnemy')
             # expect(gandalf.relations[2]).to.have.property('relation').and.equal('isFriend')
             # expect(gandalf.relations[3]).to.have.property('relation').and.equal('isFriend')
             # expect(gandalf.relations[4]).to.have.property('relation').and.equal('isFriend')
+            # expect(gandalf.relations).to.include.property('[0][1][2][3].relation',)
             expect(gandalf.relations[0]).to.have.property('target')
             expect(gandalf.relations[0].target).to.have.property('id')
             expect(gandalf.relations[0].target).to.have.property('attributes').and.to.lengthOf(5)
@@ -246,22 +248,202 @@ describe 'Weaver: Dealing with entities', ->
       )
     )
     
-  # it 'should unlink a couple of relationships', ->
-  #
-  #   weaver.unlink('Gandalf',{isEnemy:'Saruman'}).then((res, err) =>
-  #     if err
-  #       console.log err
-  #     else
-  #       console.log res
-  #   )
-  #
+  it 'should remove an entity', ->
     
+    weaver.getNode('Bilbo').then((bilbo, err) =>
+      if err
+        console.log err
+      else
+        console.log bilbo
+        expect(bilbo).to.have.property('id').and.equal('Bilbo')
+        weaver.destroy(bilbo).then((res, err) =>
+          if err
+            console.log err
+          else
+            console.log res
+            weaver.getNode('Bilbo').then((resp, err) =>
+              console.log resp
+              expect(resp).equal('The entity does not exits')
+            )
+        )
+    )
     
-  # it 'should starts the bulk importer', (done) ->
-  #   weaver.startBulk()
-  #   done()
-    
+  it 'should unlink a couple of relationships', ->
+  
+    weaver.unlink('Gandalf',{isEnemy:'Saruman',isFriend:['Aragorn','Sam']}).then((res, err) =>
+      if err
+        console.log err
+      else
+        console.log res
+        weaver.getNode('Gandalf').then((gandalf, err) ->
+          console.log gandalf
+          expect(gandalf).to.have.property('relations').and.to.lengthOf(1)
+        )
         
+    )
+    
+  it 'should create some relations', ->
+    
+    weaver.link('toshio',{isFriend:['samantha','jason','meyers'],isEnemy:'tokyoPoliceOfficer'}).then((res, err) ->
+      console.log res
+      weaver.getNode('toshio').then((toshio, err) ->
+        console.log toshio
+        expect(toshio).to.have.property('relations').and.to.lengthOf(4)
+        weaver.link('tokyoPoliceOfficer',{isFriend:'tokyoJournalist'}).then((resp, err) ->
+          console.log resp
+          weaver.getNode('tokyoPoliceOfficer').then((police, err) ->
+            console.log  police
+            expect(police).to.have.property('relations').and.to.lengthOf(1)
+            expect(police.relations[0]).to.have.property('relation').and.equal('isFriend')
+            expect(police.relations[0]).to.have.property('target')
+            expect(police.relations[0].target).to.have.property('id').and.equal('tokyoJournalist')
+            weaver.link('tokyoJournalist',{isFriend:'foreignerSocialWorker'}).then((res, err) ->
+              weaver.getNode('tokyoJournalist').then((tokyoJournalist, err) ->
+                console.log  tokyoJournalist
+                expect(tokyoJournalist).to.have.property('relations').and.to.lengthOf(1)
+                weaver.link('foreignerSocialWorker',{isKilledBy:'toshio',attendingTo:'grandmothersToshio'}).then((res, err) ->
+                  if not err
+                    weaver.getNode('foreignerSocialWorker').then((foreignerSocialWorker, err) ->
+                      console.log(JSON.stringify(foreignerSocialWorker))
+                      expect(foreignerSocialWorker).to.have.property('relations').and.to.lengthOf(2)
+                    )
+                )
+              )
+            )
+          )
+        )
+      )
+    )
+    
+  it 'should read eagernes 1 (the default) from entity', ->
+    
+    weaver.getNode('toshio').then((toshio, err) ->
+      console.log(JSON.stringify(toshio))
+      expect(toshio.relations).to.include({relation:'isEnemy',target:{id:'tokyoPoliceOfficer',attributes:[ { value: 'INDIVIDUAL', key: 'LABEL' }],relations: [],relationsReferences:[]}})
+    )
+    
+    
+  it 'should read eagernes 2 from entity', (done) ->
+    
+    weaver.getNode('toshio',{eagerness:2}).then((toshio, err) ->
+      if toshio
+        console.log(JSON.stringify(toshio))
+        for relation in toshio.relations
+          console.log(JSON.stringify(relation))
+          if relation.target.relations.length is 1
+            done()
+    )
+    
+    
+  it 'should read eagernes 3 from entity', (done) ->
+    
+    weaver.getNode('toshio',{eagerness:3}).then((toshio, err) ->
+      if toshio
+        console.log(JSON.stringify(toshio))
+        for relation in toshio.relations
+          console.log(JSON.stringify(relation))
+          if relation.target.relations.length is 1
+            if relation.target.relations[0].target.relations.length is 1
+              done()
+    )
+    
+  it 'should read eagernes 4 from entity', (done) ->
+    
+    weaver.getNode('toshio',{eagerness:4}).then((toshio, err) ->
+      if toshio
+        console.log(JSON.stringify(toshio))
+        for relation in toshio.relations
+          console.log(JSON.stringify(relation))
+          if relation.target.relations.length is 1
+            if relation.target.relations[0].target.relations.length is 1
+              if relation.target.relations[0].target.relations[0].target.relations.length is 1
+                done()
+    )
+  
+  it 'should read eagernes 4 from entity and check for the relationsReferences to the same entity', (done) ->
+    
+    weaver.getNode('toshio',{eagerness:4}).then((toshio, err) ->
+      if toshio
+        console.log(JSON.stringify(toshio))
+        for relation in toshio.relations
+          console.log(JSON.stringify(relation))
+          if relation.target.relations.length is 1
+            if relation.target.relations[0].target.relations.length is 1
+              if relation.target.relations[0].target.relations[0].target.relationsReferences.length is 1
+                done()
+    )
+    
+  it 'should create 1000 entities with the bulk operation for nodes', (done) ->
+    
+    bulk = {}
+    nodesArray = []
+    
+    for i in [0..1000]
+      weaverEntity = {}
+      attribute = {}
+      arr = []
+      weaverEntity.id = i
+      attribute.key = 'LABEL'
+      attribute.value = if i % 2 is 0 then 'EVEN' else 'ODD'
+      arr.push attribute
+      attribute = {}
+      attribute.key = 'Description'
+      attribute.value = Math.random().toString(36).substring(7)
+      arr.push attribute
+      attribute = {}
+      attribute.key = 'Name'
+      attribute.value = parseInt(i)
+      arr.push attribute
+      weaverEntity.attributes = arr
+      nodesArray.push(weaverEntity)
+    bulk.bulk = nodesArray
+    
+    weaver.bulkNodes(bulk).then((res, err) ->
+      console.log res
+      weaver.getNode('1').then((res, err) ->
+        console.log res
+        expect(res).to.have.property('id').and.equal('1')
+        done()
+      )
+    )
+    
+  it 'should create 1000 relationships with the bulk operation for relationships', (done) ->
+    
+    bulk = {}
+    relationsArray = []
+    number_of_nodes = 1000
+    
+    for i in [0..number_of_nodes]
+      weaverEntity = {}
+      relation = {}
+      arr = []
+      weaverEntity.id = i
+      # rel = Math.floor((Math.random() * number_of_nodes) + 1)
+      rel = i+1
+      relation.relation = 'relation'.concat(rel)
+      if i is number_of_nodes
+        relation.target = 0
+      else
+        relation.target = rel
+      arr.push relation
+      weaverEntity.relations = arr
+      relationsArray.push(weaverEntity)
+    bulk.bulk = relationsArray
+    
+    weaver.bulkRelations(bulk).then((res, err) ->
+      console.log res
+      # done()
+      weaver.getNode('1').then((res, err) ->
+        console.log res
+        expect(res).to.have.property('id').and.equal('1')
+        expect(res.relations[0]).to.have.property('relation').and.equal('relation2')
+        done()
+      )
+    )
+    
+    
+    
+    
   it 'should disconnect', ->
     
     weaver.disconnect()
