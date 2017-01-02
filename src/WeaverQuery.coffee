@@ -1,13 +1,23 @@
 # Libs
-cuid = require('cuid')
+cuid       = require('cuid')
+WeaverNode = require('./WeaverNode')
 
 module.exports =
-class WeaverRelation
+class WeaverUser extends WeaverNode
 
   constructor: () ->
-    @nodeId = cuid()      # Generate random id
-    @attributes = {}      # Store all attributes in this object
+    @email
+    @username
+    @password
+    @emailVerified = false
 
-  query: ->
+  signUp: ->
 
+  # Returns current loggedin user (or null if not loggedin)
+  @current: ->
+
+  @logOut: ->
+
+
+  @logIn: (username, password) ->
 

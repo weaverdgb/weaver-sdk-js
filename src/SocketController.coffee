@@ -14,9 +14,9 @@ class SocketController
   emit: (key, body) ->
     new Promise((resolve, reject) =>
       @io.emit(key, JSON.stringify(body), (response) ->
-        console.log(response) if response.code? and response.message? # Error
-
-        if response is 0
+        if response.code? and response.message?
+          reject(response)
+        else if response is 0
           resolve()
         else
           resolve(response)
@@ -28,5 +28,8 @@ class SocketController
 
   POST: (path, body) ->
     @emit(path, body)
+
+  write: (operations) ->
+    @emit("write", operations)
 
 module.exports = SocketController

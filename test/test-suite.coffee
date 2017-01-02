@@ -3,7 +3,6 @@ module.exports = ->
   beforeEach( ->
   )
 
-  Weaver = require('./../src/Weaver')
   chai = require('chai')
   sinon = require('sinon')
   chaiAsPromised = require('chai-as-promised')

@@ -9,7 +9,6 @@ class CoreManager
   constructor: (@address) ->
 
   connect: ->
-    # TODO: Add support for HTTPController if Sockets are not available
     @commController = new SocketController(@address)
     @commController.connect()
 
@@ -17,6 +16,6 @@ class CoreManager
     @commController
 
   executeOperations: (operations) ->
-    Promise.resolve()
+    @commController.write(operations)
 
 module.exports = CoreManager

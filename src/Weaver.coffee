@@ -4,29 +4,28 @@ Promise = require('bluebird')
 # Dependencies
 CoreManager = require('./CoreManager')
 
+# Exposes classes and injects Weaver into it
+expose: (name, Type) ->
+
+
+
 # Main class exposing all features
 class Weaver
 
-  # Expose classes
-  @Node     : require('./WeaverNode')
-  Relation : require('./WeaverRelation')
-  ACL      : require('./WeaverACL')
-  Query    : require('./WeaverQuery')
-  Error    : require('./WeaverError')
+  Error: require('./../../weaver-commons-js/src/WeaverError')
 
   version: ->
     require('../package.json').version
 
-  @initialize: (@address) ->
+  initialize: (@address) ->
     @coreManager = new CoreManager(@address)
     @coreManager.connect()
 
-  @getCoreManager: ->
-    console.log(@coreManager)
+  getCoreManager: ->
     @coreManager
 
 
-
 # Export
-module.exports = Weaver             # Node
-#window.Weaver  = Weaver if window?  # Browser
+weaver = new Weaver()
+module.exports = weaver             # Node
+window.Weaver  = weaver if window?  # Browser
