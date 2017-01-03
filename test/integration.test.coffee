@@ -20,6 +20,7 @@ describe 'WeaverSDK Integration test', ->
     ).then(->
       done();
     )
+    return
 
 
   it 'should get server version', ->
@@ -40,6 +41,8 @@ describe 'WeaverSDK Integration test', ->
     ).then((loadedNode) ->
       done() # No errors so its good
     )
+    return
+
 
 
   it 'should give an error if node already exists', (done) ->
@@ -49,6 +52,8 @@ describe 'WeaverSDK Integration test', ->
       assert.equal(error.code, WeaverError.NODE_ALREADY_EXISTS)
       done()
     )
+    return
+
 
 
   it 'should give an error if node does not exists', (done) ->
@@ -58,6 +63,7 @@ describe 'WeaverSDK Integration test', ->
       assert.equal(error.code, WeaverError.NODE_NOT_FOUND)
       done()
     )
+    return
 
 
 
