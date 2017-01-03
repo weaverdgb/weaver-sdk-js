@@ -12,7 +12,7 @@ module.exports =
       @password
       @emailVerified = false
 
-    signUp: ->
+    @signUp: ->
 
     # Returns current loggedin user (or null if not loggedin)
     @current: ->
