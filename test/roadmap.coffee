@@ -116,3 +116,31 @@ afsluitbomen = new Weaver.Query()
 afsluitbomen.equals("rdf:type", new Weaver.Node("lib:Afsluitboom"))
 afsluitbomen.matchesQuery("is located at", locaties)
 afsluitbomen.find()
+
+
+
+# Authentication
+Weaver.User.logIn('asdf', 'zxcv').then((user) ->
+
+  # Get all projects that current user has access to
+  projects = Weaver.Project.all()
+
+  # Use the first one
+  Weaver.useProject(projects[0])
+
+  # Can not save node
+  node = new Weaver.Node()
+  node.save().then().catch((error) ->
+    switch error.code
+      when WeaverError.NO_WRITE_PERMISSION then return
+  )
+
+  # Can not read node
+  Weaver.Node.get('abc').then().catch((error) ->
+    switch error.code
+      when WeaverError.NO_READ_PERMISSION then return
+  )
+
+
+
+)

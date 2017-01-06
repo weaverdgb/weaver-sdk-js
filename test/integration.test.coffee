@@ -23,7 +23,28 @@ describe 'WeaverSDK Integration test', ->
     return
 
 
-  it 'should get server version', ->
+  it 'should', (done) ->
+
+  it 'should', (done) ->
+
+  it 'should', (done) ->
+
+  it 'should', (done) ->
+
+  it 'should', (done) ->
+
+  it 'should', (done) ->
+
+  it 'should', (done) ->
+
+  it 'should', (done) ->
+
+  it 'should', (done) ->
+
+  it 'should', (done) ->
+
+
+  it 'should get the weaver-server version', ->
     version = Weaver.getCoreManager().getCommController().GET('application.version')
     version.should.eventually.be.a('string')
 
@@ -53,7 +74,6 @@ describe 'WeaverSDK Integration test', ->
       done()
     )
     return
-
 
 
   it 'should give an error if node does not exists', (done) ->
