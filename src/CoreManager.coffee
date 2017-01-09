@@ -17,5 +17,8 @@ class CoreManager
 
   executeOperations: (operations) ->
     @commController.write(operations)
+    
+  logIn: (credentials) ->
+    @commController.logIn(credentials)
 
 module.exports = CoreManager

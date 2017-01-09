@@ -31,5 +31,8 @@ class SocketController
 
   write: (operations) ->
     @emit("write", operations)
+    
+  logIn: (credentials) ->
+    @emit("logIn",credentials)
 
 module.exports = SocketController

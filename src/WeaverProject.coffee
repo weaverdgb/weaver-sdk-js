@@ -4,7 +4,7 @@ WeaverNode = require('./WeaverNode')
 
 
 module.exports =
-  class WeaverUser extends WeaverNode
+  class WeaverProject extends WeaverNode
 
     constructor: () ->
       @email
