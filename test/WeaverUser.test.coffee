@@ -28,18 +28,15 @@ describe 'Weaver User', ->
   #   )
 
 
-  it 'should login users, receiving a valid jwt', (done) ->
+  it 'should login users, receiving a valid jwt', ->
     user = new Weaver.User()
     user.logIn('phoenix','Schaap')
     .then((res) ->
-      console.log '=^^=|_'
       console.log res[0].token
       token = res[0].token
       token.should.be.a('string')
-      # expect(token).to.have.lengthOf(918)
-      done()
     )
-    return
+
     
     # Weaver.User.signUp('asdf', 'zxcv')
     # .then(->
