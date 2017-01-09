@@ -1,3 +1,6 @@
+[![Build Status](https://img.shields.io/travis/weaverplatform/weaver-sdk-js/develop.svg)](http://travis-ci.org/weaverplatform/weaver-sdk-js)[![codecov](https://img.shields.io/codecov/c/github/weaverplatform/weaver-sdk-js/develop.svg?maxAge=0)](https://codecov.io/gh/weaverplatform/weaver-sdk-js)[![Npm](https://img.shields.io/npm/v/weaver-sdk.svg)](https://www.npmjs.com/package/weaver-sdk)
+
+
 # Weaver SDK for JavaScript
 A library that gives you access to the Weaver platform from your JavaScript app.
 
@@ -53,7 +56,7 @@ var weaver = new Weaver();
 weaver.database(database);
 ```
 
-##### Authenticating using a token 
+##### Authenticating using a token
 
 Authentication is optional (but enforced if the server is configured so)
 
@@ -142,6 +145,22 @@ john.$remove('friend');
 ```javascript
 john.$destroy();
 ```
+
+## Install - Development
+
+`$ npm install`
+
+If you want to add weaver-sdk-js to your webApp, use [grunt](http://gruntjs.com/) to create the js. Two main commands.
+
+For production environments:
+
+`$ grunt dist`
+
+For development environments:
+
+`$ grunt dev`
+
+
 
 
 ## Todo
