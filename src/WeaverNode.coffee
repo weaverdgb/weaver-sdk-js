@@ -5,10 +5,15 @@ Operation = require('./Operation')
 
 class WeaverNode
 
+  # Node loading from server
   @load: (nodeId) ->
+    coreManager = Weaver.getCoreManager()
+    coreManager.getNode(nodeId).then((serverNode) ->
+      console.log(serverNode)
+    )
 
 
-  # Static node loading
+  # Node creating for in queries
   @get: (nodeId) ->
     node = new WeaverNode()
     node.nodeId = nodeId
