@@ -38,6 +38,32 @@ describe 'Weaver User', ->
     )
 
     
+  it 'should fails when trying to login with non existing user', ->
+    user = new Weaver.User()
+    user.logIn('andromeda','Chains')
+    .then().catch((err) ->
+      console.log err
+    )
+
+    
+  it 'should returns jwt from the loggedin user', ->
+    user = new Weaver.User()
+    user.current('phoenix')
+    .then((res) ->
+      console.log res
+      res.should.be.a('string')
+    )
+
+    
+  it 'should return null when trying to get the jwt of a non loggedin user', ->
+    user = new Weaver.User()
+    user.current('andromeda')
+    .then().catch((error) ->
+      console.log error
+      assert.isNull(error,'There is no andromeda user loggedin, that is fine')
+    )
+
+    
     # Weaver.User.signUp('asdf', 'zxcv')
     # .then(->
     #   Weaver.User.logIn('asdf', 'zxcv')
