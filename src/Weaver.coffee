@@ -7,11 +7,8 @@ CoreManager = require('./CoreManager')
 # Exposes classes and injects Weaver into it
 expose: (name, Type) ->
 
-
-
 # Main class exposing all features
 class Weaver
-
   Error: require('./../../weaver-commons-js/src/WeaverError')
 
   version: ->

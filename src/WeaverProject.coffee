@@ -1,27 +1,21 @@
-# Libs
-cuid = require('cuid')
 WeaverNode = require('./WeaverNode')
+Weaver     = require('./Weaver')
 
+class WeaverProject
+  constructor: (@name, @id) ->
 
-module.exports =
-  class WeaverUser extends WeaverNode
+  @create: ->
+    Weaver.getCoreManager().createProject(@).then( => @)
 
-    constructor: () ->
-      @email
-      @username
-      @password
-      @emailVerified = false
+  @delete: ->
+    Weaver.getCoreManager().deleteProject(@)
 
-    @signUp: ->
+  @list: ->
+    Weaver.getCoreManager().listProjects().then((res) ->
+      console.log(res)
+      res
+    )
 
-    # Returns current loggedin user (or null if not loggedin)
-    @current: ->
-
-    @logOut: ->
-
-
-    @logIn: (username, password) ->
-
-
-
+Weaver.Project = WeaverProject
+module.exports = WeaverProject
 

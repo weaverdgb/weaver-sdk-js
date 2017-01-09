@@ -18,4 +18,16 @@ class CoreManager
   executeOperations: (operations) ->
     @commController.write(operations)
 
+  createProject: (project) ->
+    @commController.createProject(project).then((res) ->
+      console.log(res)
+      project
+    )
+
+  listProjects: ->
+    @commController.listProjects()
+
+  deleteProject: (project) ->
+    @commController.deleteProject(project)
+
 module.exports = CoreManager

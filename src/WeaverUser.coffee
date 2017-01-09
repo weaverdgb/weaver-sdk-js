@@ -2,7 +2,6 @@
 cuid = require('cuid')
 WeaverNode = require('./WeaverNode')
 
-
 module.exports =
   class WeaverUser extends WeaverNode
 

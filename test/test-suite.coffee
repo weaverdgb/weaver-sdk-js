@@ -1,8 +1,4 @@
 module.exports = ->
-
-  beforeEach( ->
-  )
-
   chai = require('chai')
   sinon = require('sinon')
   chaiAsPromised = require('chai-as-promised')

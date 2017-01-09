@@ -14,6 +14,8 @@ class SocketController
   emit: (key, body) ->
     new Promise((resolve, reject) =>
       @io.emit(key, JSON.stringify(body), (response) ->
+        console.log("Got response!")
+        console.log response
         if response.code? and response.message?
           reject(response)
         else if response is 0
@@ -31,5 +33,14 @@ class SocketController
 
   write: (operations) ->
     @emit("write", operations)
+
+  listProjects: ->
+    @emit("project")
+
+  createProject: (project) ->
+    @emit("project.create", project)
+
+  deleteProject: (project) ->
+    @emit("project.delete", project)
 
 module.exports = SocketController
