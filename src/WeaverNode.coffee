@@ -24,6 +24,7 @@ class WeaverNode
   id: ->
     @nodeId
 
+  # Gets both attributes as well as relations
   get: (field) ->
     @attributes[field]
 
@@ -44,9 +45,9 @@ class WeaverNode
     delete @attributes[field]
 
 
+  # Create a new Relation
   relation: (name) ->
     new WeaverRelation(this, name)
-
 
   save: (values) ->
     coreManager = Weaver.getCoreManager()
@@ -70,6 +71,8 @@ class WeaverNode
 
 
   destroy: ->
+    coreManager = Weaver.getCoreManager()
+    coreManager.executeOperations(new Operation.Node(@).destory()).then(=> @)
 
 
   fetch: ->

@@ -7,6 +7,9 @@ class NodeOperation
   create: ->
     @op = {code: Code.CREATE_NODE, id: @node.nodeId}
 
+  destory: ->
+    @op = {code: Code.CREATE_NODE, id: @node.nodeId}
+
   setAttribute: (attribute, value) ->
     @op = {code: Code.UPDATE_NODE_ATTRIBUTE, id: @node.nodeId, attribute, value}
 
