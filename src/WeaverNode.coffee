@@ -5,6 +5,9 @@ Operation = require('./Operation')
 
 class WeaverNode
 
+  @load: (nodeId) ->
+
+
   # Static node loading
   @get: (nodeId) ->
     node = new WeaverNode()

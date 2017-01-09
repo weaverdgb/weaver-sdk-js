@@ -58,8 +58,9 @@ describe 'WeaverSDK Integration test', ->
       assert.isTrue(node.saved)
 
       # Reload
-      Weaver.Node.get(node.id())
+      Weaver.Node.load(node.id())
     ).then((loadedNode) ->
+      console.log(loadedNode)
       done() # No errors so its good
     )
     return
