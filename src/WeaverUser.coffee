@@ -37,6 +37,26 @@ class WeaverUser
       catch error
         reject(null)
     )
+  
+  ###
+  # log out action, will remove the jwt at the current user
+  # passing a user is optional
+  ###
+  
+  logOut: (usr) ->
+    new Promise((resolve, reject) =>
+      try
+        users = Weaver.getUsersDB()
+        if usr?
+          users.remove(users.find({$and:[{user:usr},{token:{$ne:undefined}}]}))
+          resolve()
+        else
+          users.remove(users.find({token:{$ne:undefined}}))
+          resolve()
+      catch error
+        reject(error)
+          
+    )
     
     
 # Export

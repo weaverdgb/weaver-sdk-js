@@ -59,7 +59,36 @@ describe 'Weaver User', ->
     .then().catch((error) ->
       assert.isNull(error,'There is no andromeda user loggedin, that is fine')
     )
-
+    
+  it 'should performs logOut action for the current user without specifying the user', ->
+    user = new Weaver.User()
+    user.logOut()
+    .then((res) ->
+    )
+    
+  it 'should performs logOut action for the current user specifying the user', ->
+    user = new Weaver.User()
+    user.logIn('phoenix','Schaap')
+    .then((res) ->
+      user.logOut('phoenix')
+      .then((res) ->
+      )
+    )
+    
+  it 'should fails trying logOut action for the current user, bacause there is no current user loggedin', ->
+    user = new Weaver.User()
+    user.logOut()
+    .then().catch((err) ->
+      done()
+    )
+    
+    
+  it 'should fails trying logOut action specifying non loggedin user', ->
+    user = new Weaver.User()
+    user.logOut('andromeda')
+    .then().catch((err) ->
+      done()
+    )
     
     # Weaver.User.signUp('asdf', 'zxcv')
     # .then(->
