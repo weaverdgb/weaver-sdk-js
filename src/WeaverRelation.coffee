@@ -1,19 +1,24 @@
-# Libs
-cuid = require('cuid')
+Operation = require('./Operation')
 
 module.exports =
   class WeaverRelation
 
-    constructor: () ->
-      @nodeId = cuid()      # Generate random id
-      @attributes = {}      # Store all attributes in this object
-
+    constructor: (@parent, @key) ->
+      @pendingWrites = []   # All operations that need to get saved
+      @nodes = {}           # All nodes that this relation points to
 
     load: ->
-      [] # List of nodes
+      Promise.resolve([])
 
     query: ->
+      Promise.resolve([])
 
     add: (node) ->
+      @nodes[node.id()] = node
+      @pendingWrites.push(Operation.Node(@parent).createRelation(@key, node.id()))
+
+      #console.log(node)
 
     remove: (node) ->
+      delete @nodes[node.id()]
+      @pendingWrites.push(Operation.Node(@parent).removeRelation(@key, node.id()))

@@ -23,27 +23,6 @@ describe 'WeaverSDK Integration test', ->
     return
 
 
-  it 'should', (done) ->
-
-  it 'should', (done) ->
-
-  it 'should', (done) ->
-
-  it 'should', (done) ->
-
-  it 'should', (done) ->
-
-  it 'should', (done) ->
-
-  it 'should', (done) ->
-
-  it 'should', (done) ->
-
-  it 'should', (done) ->
-
-  it 'should', (done) ->
-
-
   it 'should get the weaver-server version', ->
     version = Weaver.getCoreManager().getCommController().GET('application.version')
     version.should.eventually.be.a('string')
@@ -53,37 +32,83 @@ describe 'WeaverSDK Integration test', ->
     node = new Weaver.Node()
     assert.isFalse(node.saved)
 
-    node.save()
-    .then((node) ->
+    node.save().then((node) ->
       assert.isTrue(node.saved)
 
       # Reload
       Weaver.Node.load(node.id())
     ).then((loadedNode) ->
-      console.log(loadedNode)
       done() # No errors so its good
     )
     return
 
 
   it 'should remove a node', (done) ->
+    node = new Weaver.Node()
+
+    node.save().then((node) ->
+      node.destroy()
+    ).then(->
+      Weaver.Node.load(node.id())
+    ).catch((error) ->
+      done() # Should throw a node not found
+    )
     return
+
+
+  it 'should set a new attribute', (done) ->
+    node = new Weaver.Node()
+
+    node.save().then((node) ->
+      console.log(node)
+      node.set('name', 'Foo')
+      node.save()
+    ).then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.get('name'), 'Foo')
+      done() # No errors so its good
+    )
+    .catch((error) ->
+      console.log(error)
+    )
+    return
+
+
+  it 'should unset an attribute', (done) ->
+    node = new Weaver.Node()
+
+    node.save().then((node) ->
+      node.set('name', 'Foo')
+      node.save()
+    ).then(->
+      node.unset('name')
+      assert.equal(node.get('name'), undefined)
+      node.save()
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.get('name'), undefined)
+      done()
+    )
+    .catch((error) ->
+      console.log(error)
+    )
+    return
+
+
+
 
 
 
   it 'should add a new relation', (done) ->
     foo = new Weaver.Node()
     bar = new Weaver.Node()
+    foo.relation('comes_before').add(bar)
 
-    # Set always means
-    foo.relation('comes_before', bar)
 
-    foo.save().then((foo) ->
-      # Reload
-      Weaver.Node.get(foo.id())
-    ).then((loadedFoo) ->
+    foo.save().then(->
 
-      # assert has relation
+    ).then(->
+      console.log(foo.id())
 
       done() # No errors so its good
     )
@@ -94,16 +119,10 @@ describe 'WeaverSDK Integration test', ->
     return
 
 
-  it 'should set a new attribute', (done) ->
-    return
-
 
   it 'should set an existing attribute with new value', (done) ->
     return
 
-
-  it 'should unset an attribute', (done) ->
-    return
 
 
   it 'should give an error when unsetting a non-existing', (done) ->
@@ -141,3 +160,17 @@ describe 'WeaverSDK Integration test', ->
 
 
 
+  it 'should save with attributes and relations', (done) ->
+    node = new Weaver.Node()
+    node.set('name', 'Foo')
+
+    node.save().then((node) ->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      #assert.isEqual(loadedNode.get('name'), 'Foo')
+      done() # No errors so its good
+    )
+    .catch((error) ->
+      console.log(error)
+    )
+    return

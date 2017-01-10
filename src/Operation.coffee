@@ -1,32 +1,30 @@
 Action = require('weaver-commons').WriteOperation.Action
 
-class NodeOperation
-
-  constructor: (@node) ->
+NodeOperation = (node) ->
 
   create: ->
-    @op = {action: Action.CREATE_NODE, id: @node.nodeId}
+    {action: Action.CREATE_NODE, id: node.id()}
 
-  remove: ->
-    @op = {action: Action.REMOVE_NODE, id: @node.nodeId}
+  destroy: ->
+    {action: Action.REMOVE_NODE, id: node.id()}
 
   setAttribute: (key, value, datatype) ->
-    @op = {action: Action.UPDATE_ATTRIBUTE, id: @node.nodeId, key, value, datatype}
+    {action: Action.UPDATE_ATTRIBUTE, id: node.id(), key, value, datatype}
 
   unsetAttribute: (key) ->
-    @op = {action: Action.REMOVE_ATTRIBUTE, id: @node.nodeId, key}
+    {action: Action.REMOVE_ATTRIBUTE, id: node.id(), key}
 
   createRelation: (key, to) ->
-    @op = {action: Action.CREATE_RELATION, from: @node.nodeId, key, to}
+    {action: Action.CREATE_RELATION, from: node.id(), key, to}
 
   removeRelation: (key, to) ->
-    @op = {action: Action.REMOVE_RELATION, from: @node.nodeId, key, to}
+    {action: Action.REMOVE_RELATION, from: node.id(), key, to}
 
   objectifyRelation: (key, to, id) ->
-    @op = {action: Action.OBJECTIFY_RELATION, from: @node.nodeId, key, to, id}
+    {action: Action.OBJECTIFY_RELATION, from: node.id(), key, to, id}
 
   mergeNodes: (id_into, id_merge) ->
-    @op = {action: Action.MERGE_NODES, id_into, id_merge}
+    {action: Action.MERGE_NODES, id_into, id_merge}
 
 module.exports=
   Node: NodeOperation
