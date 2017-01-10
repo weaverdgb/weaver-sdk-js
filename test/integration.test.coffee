@@ -4,6 +4,11 @@ require("./test-suite")()
 Weaver      = require('./../src/Weaver')
 WeaverError = require('./../../weaver-commons-js/src/WeaverError')
 require('./../src/WeaverNode')  # This preloading will be an issue
+require('./../src/WeaverQueryHandler')
+
+namespaces = [
+  { prefix:'wv:', namespace:'http://weav.er#'  }
+]
 
 describe 'WeaverSDK Integration test', ->
 
@@ -30,11 +35,9 @@ describe 'WeaverSDK Integration test', ->
 
   it 'should create a new node', (done) ->
     node = new Weaver.Node()
-    assert.isFalse(node.saved)
 
     node.save().then((node) ->
-      assert.isTrue(node.saved)
-
+      console.log(node.id())
       # Reload
       Weaver.Node.load(node.id())
     ).then((loadedNode) ->
@@ -176,3 +179,26 @@ describe 'WeaverSDK Integration test', ->
       console.log(error)
     )
     return
+
+
+  it 'should run a chirql query successfully', (done) ->
+
+    queryHandler = new Weaver.QueryHandler(namespaces, 'SPARQL')
+
+    queryString = '{
+      wv:comesbefore
+    }'
+
+    queryHandler.runQuery(queryString).then((res)->
+
+      res[0].id.should.equal('wv:cixrskqka0000t4rzuwmnv57m')
+      done()
+    )
+
+    return
+
+
+
+
+
+
