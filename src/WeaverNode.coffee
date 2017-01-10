@@ -2,6 +2,7 @@ cuid           = require('cuid')
 Weaver         = require('./Weaver')
 WeaverRelation = require('./WeaverRelation')
 Operation      = require('./Operation')
+isArray        = require('./util').isArray
 
 class WeaverNode
 
@@ -9,22 +10,28 @@ class WeaverNode
   @load: (nodeId) ->
     coreManager = Weaver.getCoreManager()
     coreManager.getNode(nodeId).then((serverNode) ->
-      console.log(serverNode)
 
       # Create node and transfer attributes
       node = new WeaverNode(nodeId)
-      node.pendingWrites = []
-      node.created =  serverNode.created
+      node.createdOn = serverNode.createdOn
 
       # Make an tuple array of values to easily filter out relations and attributes
-      #tuples = ([key, value] for key, value of serverNode)
+      tuples = ({key, value} for key, value of serverNode)
 
       # Add attributes
-
-      #relations = (value for key, value )
+      attributes =  tuples.filter((t) ->
+        not isArray(t.value) and t.key isnt 'createdOn' and t.key isnt 'id'
+      )
+      node.attributes[t.key] = t.value for t in attributes
 
       # Add relations
+      relations = tuples.filter((t) -> isArray(t.value))
 
+      for r in relations
+        for n in r.value
+          node.relation(r.key).add(WeaverNode.get(n.id))
+
+      node.clearPendingWrites()
       node
     )
 
@@ -37,10 +44,12 @@ class WeaverNode
 
   constructor: (@nodeId) ->
     @destroyed  = false
-    @nodeId     = cuid() if not @nodeId?  # Generate random id if not given
+    # Generate random id if not given
+    @nodeId     = cuid() if not @nodeId?
     @attributes = {}                      # Store all attributes in this object
     @relations  = {}                      # Store all relations in this object
-    @pendingWrites = []                   # All operations that need to get saved
+
+    # All operations that need to get saved
     @pendingWrites = [Operation.Node(@).create()]
 
   id: ->
@@ -67,11 +76,9 @@ class WeaverNode
 
 
   # Create a new Relation
-  relation: (name) ->
-    @relations[name] = new WeaverRelation(this, name) if not @relations[name]?
-    @relations[name]
-
-
+  relation: (key) ->
+    @relations[key] = new WeaverRelation(@, key) if not @relations[key]?
+    @relations[key]
 
 
   # Go through each relation and recursively add all pendingWrites per relation AND that of the objects
