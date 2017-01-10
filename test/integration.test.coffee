@@ -102,10 +102,12 @@ describe 'WeaverSDK Integration test', ->
   it 'should add a new relation', (done) ->
     foo = new Weaver.Node()
     bar = new Weaver.Node()
+    foo.set('name', 'foo')
     foo.relation('comes_before').add(bar)
 
+    console.log(foo)
     foo.save().then(->
-      console.log(foo.id())
+
     ).then(->
       Weaver.Node.load(foo.id())
     ).then((loadedNode) ->
