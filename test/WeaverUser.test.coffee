@@ -32,7 +32,6 @@ describe 'Weaver User', ->
     user = new Weaver.User()
     user.logIn('phoenix','Schaap')
     .then((res) ->
-      console.log res.token
       token = res.token
       token.should.be.a('string')
     )
@@ -42,7 +41,7 @@ describe 'Weaver User', ->
     user = new Weaver.User()
     user.logIn('andromeda','Chains')
     .then().catch((err) ->
-      console.log err
+      done()
     )
   
   
@@ -50,7 +49,6 @@ describe 'Weaver User', ->
     user = new Weaver.User()
     user.current('phoenix')
     .then((res) ->
-      console.log res
       res.should.be.a('string')
     )
   
@@ -59,7 +57,6 @@ describe 'Weaver User', ->
     user = new Weaver.User()
     user.current('andromeda')
     .then().catch((error) ->
-      console.log error
       assert.isNull(error,'There is no andromeda user loggedin, that is fine')
     )
 

@@ -21,7 +21,7 @@ class CoreManager
   executeOperations: (operations) ->
     @commController.write(operations)
     
-  getDB: ->
+  getUsersDB: ->
     @users
     
   logIn: (credentials) ->

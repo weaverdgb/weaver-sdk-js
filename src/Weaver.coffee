@@ -12,7 +12,6 @@ expose: (name, Type) ->
 # Main class exposing all features
 class Weaver
 
-  # Error: require('./../../weaver-commons-js/src/WeaverError')
   Error: require('weaver-commons').WeaverError
 
   version: ->
@@ -26,7 +25,7 @@ class Weaver
     @coreManager
     
   getUsersDB: ->
-    @coreManager.getDB()
+    @coreManager.getUsersDB()
 
 
 # Export
