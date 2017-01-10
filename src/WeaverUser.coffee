@@ -22,7 +22,7 @@ class WeaverUser
     coreManager.logIn(credentials)
     .then((res) ->
       try
-        users.insert({user:usr,token:res[0].token})
+        users.insert({user:usr,token:res.token})
       catch error
         console.error(error)
       res

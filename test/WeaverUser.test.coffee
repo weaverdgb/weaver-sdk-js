@@ -32,8 +32,8 @@ describe 'Weaver User', ->
     user = new Weaver.User()
     user.logIn('phoenix','Schaap')
     .then((res) ->
-      console.log res[0].token
-      token = res[0].token
+      console.log res.token
+      token = res.token
       token.should.be.a('string')
     )
 
@@ -44,8 +44,8 @@ describe 'Weaver User', ->
     .then().catch((err) ->
       console.log err
     )
-
-    
+  
+  
   it 'should returns jwt from the loggedin user', ->
     user = new Weaver.User()
     user.current('phoenix')
@@ -53,8 +53,8 @@ describe 'Weaver User', ->
       console.log res
       res.should.be.a('string')
     )
-
-    
+  
+  
   it 'should return null when trying to get the jwt of a non loggedin user', ->
     user = new Weaver.User()
     user.current('andromeda')
