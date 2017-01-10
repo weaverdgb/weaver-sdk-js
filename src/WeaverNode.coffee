@@ -9,14 +9,19 @@ class WeaverNode
   @load: (nodeId) ->
     coreManager = Weaver.getCoreManager()
     coreManager.getNode(nodeId).then((serverNode) ->
-      #console.log(serverNode)
+      console.log(serverNode)
 
       # Create node and transfer attributes
       node = new WeaverNode(nodeId)
       node.pendingWrites = []
       node.created =  serverNode.created
 
+      # Make an tuple array of values to easily filter out relations and attributes
+      #tuples = ([key, value] for key, value of serverNode)
+
       # Add attributes
+
+      #relations = (value for key, value )
 
       # Add relations
 

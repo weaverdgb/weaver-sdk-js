@@ -104,12 +104,12 @@ describe 'WeaverSDK Integration test', ->
     bar = new Weaver.Node()
     foo.relation('comes_before').add(bar)
 
-
     foo.save().then(->
-
-    ).then(->
       console.log(foo.id())
-
+    ).then(->
+      Weaver.Node.load(foo.id())
+    ).then((loadedNode) ->
+      console.log(loadedNode)
       done() # No errors so its good
     )
     return
