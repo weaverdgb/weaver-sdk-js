@@ -6,6 +6,18 @@ isArray        = require('./util').isArray
 
 class WeaverNode
 
+  constructor: (@nodeId) ->
+    # Generate random id if not given
+    @nodeId     = cuid() if not @nodeId?
+
+    # Store all attributes and relations in these objects
+    @attributes = {}
+    @relations  = {}
+
+    # All operations that need to get saved
+    @pendingWrites = [Operation.Node(@).create()]
+
+
   # Node loading from server
   @load: (nodeId) ->
     coreManager = Weaver.getCoreManager()
@@ -31,6 +43,7 @@ class WeaverNode
         for n in r.value
           node.relation(r.key).add(WeaverNode.get(n.id))
 
+      # Clear all currently made pending writes since node is loaded of server
       node.clearPendingWrites()
       node
     )
@@ -42,37 +55,31 @@ class WeaverNode
     node.pendingWrites = []
     node
 
-  constructor: (@nodeId) ->
-    @destroyed  = false
-    # Generate random id if not given
-    @nodeId     = cuid() if not @nodeId?
-    @attributes = {}                      # Store all attributes in this object
-    @relations  = {}                      # Store all relations in this object
 
-    # All operations that need to get saved
-    @pendingWrites = [Operation.Node(@).create()]
-
+  # Return id
   id: ->
     @nodeId
 
-  # Gets both attributes as well as relations
+
+  # Gets attributes
   get: (field) ->
     @attributes[field]
 
 
+  # Update attribute
   set: (field, value) ->
+    @attributes[field] = value
+
     # Save change as pending
     @pendingWrites.push(Operation.Node(@).setAttribute(field, value))
 
-    # Update attribute
-    @attributes[field] = value
 
-
+  # Remove attribute
   unset: (field) ->
-    @pendingWrites.push(Operation.Node(@).unsetAttribute(field))
-
-    # Update attribute
     delete @attributes[field]
+
+    # Save change as pending
+    @pendingWrites.push(Operation.Node(@).unsetAttribute(field))
 
 
   # Create a new Relation
@@ -93,6 +100,8 @@ class WeaverNode
 
     operations
 
+    
+  # Clear all pendingwrites, used for instance after saving or when loading a node
   clearPendingWrites: ->
     @pendingWrites = []
 
@@ -103,18 +112,21 @@ class WeaverNode
       relation.pendingWrites = []
 
 
+  # Checks wether needs saving
   isDirty: ->
     @pendingWrites isnt []
 
+
+  # Save node and all values / relations and relation objects to server
   save: (values) ->
     coreManager = Weaver.getCoreManager()
-
     coreManager.executeOperations(@collectPendingWrites()).then(=>
       @clearPendingWrites()
       @
     )
 
 
+  # Removes node
   destroy: ->
     coreManager = Weaver.getCoreManager()
     coreManager.executeOperations([Operation.Node(@).destroy()]).then(=>
@@ -122,8 +134,6 @@ class WeaverNode
       @saved = false
       undefined
     )
-
-  fetch: ->
 
 
 # Export
