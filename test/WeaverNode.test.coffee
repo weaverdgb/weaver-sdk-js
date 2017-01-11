@@ -13,9 +13,7 @@ describe 'WeaverNode test', ->
 
       # 1. Authenticate
       # 2. Get list of projects
-      # 3. Use that project
-
-      # Weaver.useProject(project)
+      # 3. Use that project with Weaver.useProject(project)
 
       wipe()
     ).then(->

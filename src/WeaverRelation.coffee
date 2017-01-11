@@ -17,8 +17,6 @@ module.exports =
       @nodes[node.id()] = node
       @pendingWrites.push(Operation.Node(@parent).createRelation(@key, node.id()))
 
-      #console.log(node)
-
     remove: (node) ->
       delete @nodes[node.id()]
       @pendingWrites.push(Operation.Node(@parent).removeRelation(@key, node.id()))
