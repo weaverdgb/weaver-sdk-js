@@ -26,5 +26,11 @@ class CoreManager
     
   logIn: (credentials) ->
     @commController.logIn(credentials)
+    
+  signUp: (newUserPayload) ->
+    @commController.signUp(newUserPayload)
+    
+  signOff: (userPayload) ->
+    @commController.signOff(userPayload)
 
 module.exports = CoreManager

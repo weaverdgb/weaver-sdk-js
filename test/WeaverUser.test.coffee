@@ -10,7 +10,6 @@ describe 'Weaver User', ->
   this.timeout(2000)
 
   before (done) ->
-    console.log WEAVER_ADDRESS
     Weaver.initialize(WEAVER_ADDRESS)
     .then(->
       wipe()
@@ -19,23 +18,14 @@ describe 'Weaver User', ->
     )
     return
 
-
-  # it 'should signup users', (done) ->
-  #   Weaver.User.signUp('asdf', 'zxcv')
-  #   .then((user) =>
-  #     assert(user.getSessionToken())
-  #     done()
-  #   )
-
-
   it 'should login users, receiving a valid jwt', ->
     user = new Weaver.User()
-    user.logIn('phoenix','Schaap')
+    user.logIn('phoenix','phoenix')
     .then((res) ->
       token = res.token
       token.should.be.a('string')
+    ).catch((err) ->
     )
-
     
   it 'should fails when trying to login with non existing user', ->
     user = new Weaver.User()
@@ -51,6 +41,12 @@ describe 'Weaver User', ->
     .then((res) ->
       res.should.be.a('string')
     )
+    
+  it 'should performs logOut action for the current user without specifying the user', ->
+    user = new Weaver.User()
+    user.logOut()
+    .then((res) ->
+    )
   
   
   it 'should return null when trying to get the jwt of a non loggedin user', ->
@@ -60,20 +56,50 @@ describe 'Weaver User', ->
       assert.isNull(error,'There is no andromeda user loggedin, that is fine')
     )
     
-  it 'should performs logOut action for the current user without specifying the user', ->
+  it 'should signUp a user', ->
     user = new Weaver.User()
-    user.logOut()
+    user.logIn('phoenix','phoenix')
     .then((res) ->
-    )
-    
-  it 'should performs logOut action for the current user specifying the user', ->
-    user = new Weaver.User()
-    user.logIn('phoenix','Schaap')
-    .then((res) ->
-      user.logOut('phoenix')
+      user.signUp('phoenix','centaurus','centaurus@univer.se','centaurus','SYSUNITE')
       .then((res) ->
+        user.logOut()
+        .then((res) ->
+          user.logIn('centaurus','centaurus')
+          .then((res, err) ->
+            res.token.should.be.a('string')
+          )
+        )
       )
     )
+    
+  it 'should signOff a user', ->
+    user = new Weaver.User()
+    user.current('centaurus').then((res) ->
+      user.logOut().then((res) ->
+        user.logIn('phoenix','phoenix').then((res) ->
+          user.current('phoenix').then((res) ->
+            user.signOff('phoenix','centaurus').then((res) ->
+              user.logIn('centaurus','centaurus').then((res) ->
+                
+              )
+            )
+          )
+        )
+      )
+    )
+      
+  it 'should performs logOut action for the current user specifying the user', (done) ->
+    user = new Weaver.User()
+    user.logIn('phoenix','phoenix')
+    .then((res, err) ->
+      if (!err)
+        user.logOut('phoenix')
+        .then((res, err) ->
+          if (!err)
+            done()
+        )
+    )
+    return
     
   it 'should fails trying logOut action for the current user, bacause there is no current user loggedin', ->
     user = new Weaver.User()
@@ -89,42 +115,3 @@ describe 'Weaver User', ->
     .then().catch((err) ->
       done()
     )
-    
-    # Weaver.User.signUp('asdf', 'zxcv')
-    # .then(->
-    #   Weaver.User.logIn('asdf', 'zxcv')
-    # )
-    # .then((user) ->
-    #   assert.equal(user.get('username'), 'asdf');
-    #   done()
-    # )
-
-
-  # it 'should fail signup with taken username', (done) ->
-  #   Weaver.User.signUp('asdf', 'zxcv')
-  #   .then(->
-  #     Weaver.User.signUp('asdf', 'asdf3')
-  #   ).then().catch((error) ->
-  #     assert.equal(error.code, WeaverError.USERNAME_TAKEN)
-  #     done()
-  #   )
-  #
-  #
-  # it 'should fail login with wrong username', (done) ->
-  #   Weaver.User.signUp('asdf', 'zxcv')
-  #   .then(->
-  #     Weaver.User.logIn('false_user', 'asdf3')
-  #   ).then().catch((error) ->
-  #     assert.equal(error.code, WeaverError.USERNAME_NOT_FOUND)
-  #     done()
-  #   )
-  #
-  #
-  # it 'should fail login with wrong password', (done) ->
-  #   Weaver.User.signUp('asdf', 'zxcv')
-  #   .then(->
-  #     Weaver.User.logIn('asdf', 'asdfWrong')
-  #   ).then().catch((error) ->
-  #     assert.equal(error.code, WeaverError.PASSWORD_INCORRECT)
-  #     done()
-  #   )

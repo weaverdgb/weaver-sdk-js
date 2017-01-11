@@ -34,5 +34,11 @@ class SocketController
     
   logIn: (credentials) ->
     @emit("logIn",credentials)
+    
+  signUp: (newUserPayload) ->
+    @emit("signUp",newUserPayload)
+  
+  signOff: (userPayload) ->
+    @emit("signOff",userPayload)
 
 module.exports = SocketController
