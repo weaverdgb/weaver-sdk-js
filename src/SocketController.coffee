@@ -40,5 +40,8 @@ class SocketController
   
   signOff: (userPayload) ->
     @emit("signOff",userPayload)
+    
+  permission: (userPayload) ->
+    @emit("permissions",userPayload)
 
 module.exports = SocketController

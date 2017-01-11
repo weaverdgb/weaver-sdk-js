@@ -7,7 +7,7 @@ require('./../src/WeaverNode')  # This preloading will be an issue
 require('./../src/WeaverUser')
 
 describe 'Weaver User', ->
-  this.timeout(2000)
+  this.timeout(2500)
 
   before (done) ->
     Weaver.initialize(WEAVER_ADDRESS)
@@ -25,6 +25,12 @@ describe 'Weaver User', ->
       token = res.token
       token.should.be.a('string')
     ).catch((err) ->
+    )
+    
+  it 'should give the user permission', ->
+    user = new Weaver.User()
+    user.permission('phoenix').then((res) ->
+      console.log res
     )
     
   it 'should fails when trying to login with non existing user', ->
@@ -62,11 +68,27 @@ describe 'Weaver User', ->
     .then((res) ->
       user.signUp('phoenix','centaurus','centaurus@univer.se','centaurus','SYSUNITE')
       .then((res) ->
+        # console.log res
         user.logOut()
         .then((res) ->
           user.logIn('centaurus','centaurus')
           .then((res, err) ->
             res.token.should.be.a('string')
+          )
+        )
+      )
+    )
+    
+  it 'should fails when trying to signUp with same user name', ->
+    user = new Weaver.User()
+    user.logOut().then((res) ->
+      user.logIn('phoenix','phoenix').then((res) ->
+        user.signUp('phoenix','virgo','virgo@univer.se','virgo','SYSUNITE').then((res) ->
+          # console.log '=^^=|_0'
+          # console.log res
+          user.signUp('phoenix','virgo','virgos@univer.se','virgo','SYSUNITE').then((resp) ->
+            # console.log '=^^=|_1'
+            # console.log resp
           )
         )
       )
@@ -80,14 +102,14 @@ describe 'Weaver User', ->
           user.current('phoenix').then((res) ->
             user.signOff('phoenix','centaurus').then((res) ->
               user.logIn('centaurus','centaurus').then((res) ->
-                
+  
               )
             )
           )
         )
       )
     )
-      
+  
   it 'should performs logOut action for the current user specifying the user', (done) ->
     user = new Weaver.User()
     user.logIn('phoenix','phoenix')
@@ -100,15 +122,15 @@ describe 'Weaver User', ->
         )
     )
     return
-    
+  
   it 'should fails trying logOut action for the current user, bacause there is no current user loggedin', ->
     user = new Weaver.User()
     user.logOut()
     .then().catch((err) ->
       done()
     )
-    
-    
+  
+  
   it 'should fails trying logOut action specifying non loggedin user', ->
     user = new Weaver.User()
     user.logOut('andromeda')

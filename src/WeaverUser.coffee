@@ -21,13 +21,25 @@ class WeaverUser
     users = Weaver.getUsersDB()
     coreManager.logIn(credentials)
     .then((res) ->
+      @permission
       try
-        #
         users.insert({user:usr,token:res.token})
       catch error
         console.error(error)
       res
     )
+    
+  permission: (usr) ->
+    coreManager = Weaver.getCoreManager()
+    users = Weaver.getUsersDB()
+    @current(usr).then((token) ->
+      userPayload = {
+        user: usr
+        access_token: token
+      }
+      coreManager.permission(userPayload)
+    )
+    
   
   signUp: (currentUsr,userName,userEmail,userPassword,directoryName) ->
     newUserCredentials = {
@@ -43,6 +55,9 @@ class WeaverUser
         access_token: token
       }
       coreManager.signUp(newUserPayload)
+      # .then((res) ->
+      #   # console.log res
+      # )
     )
     
   
@@ -62,6 +77,9 @@ class WeaverUser
     new Promise((resolve, reject) =>
       try
         users = Weaver.getUsersDB()
+        # console.log '=^^=|__________________________'
+        # console.log(users.find())
+        # console.log '=^^=|__________________________'
         resolve(users.findOne({user:usr}).token)
       catch error
         reject(null)

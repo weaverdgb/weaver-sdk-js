@@ -32,5 +32,8 @@ class CoreManager
     
   signOff: (userPayload) ->
     @commController.signOff(userPayload)
+    
+  permission: (userPayload) ->
+    @commController.permission(userPayload)
 
 module.exports = CoreManager
