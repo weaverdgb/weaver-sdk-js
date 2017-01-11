@@ -100,7 +100,7 @@ class WeaverNode
 
     operations
 
-    
+
   # Clear all pendingwrites, used for instance after saving or when loading a node
   clearPendingWrites: ->
     @pendingWrites = []
