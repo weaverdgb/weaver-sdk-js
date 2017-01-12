@@ -36,4 +36,7 @@ class CoreManager
   permission: (userPayload) ->
     @commController.permission(userPayload)
 
+  getNode: (nodeId)->
+    @commController.POST('read', {nodeId})
+
 module.exports = CoreManager

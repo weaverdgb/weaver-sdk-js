@@ -1,78 +1,143 @@
-# Libs
-cuid      = require('cuid')
-Weaver    = require('./Weaver')
-Operation = require('./Operation')
+cuid           = require('cuid')
+Weaver         = require('./Weaver')
+WeaverRelation = require('./WeaverRelation')
+Operation      = require('./Operation')
+isArray        = require('./util').isArray
 
 class WeaverNode
 
-  # Static node loading
-  @get: (nodeId) ->
-    node = new WeaverNode()
-    node.nodeId = nodeId
-    node
-
   constructor: (@nodeId) ->
-    @saved  = false                  # Should create this node on the server with the first save
-    @nodeId = cuid() if not @nodeId? # Generate random id if not given
-    @attributes = {}                 # Store all attributes in this object
-    @relations  = {}                 # Store all relations in this object
+    # Generate random id if not given
+    @nodeId     = cuid() if not @nodeId?
+
+    # Store all attributes and relations in these objects
+    @attributes = {}
+    @relations  = {}
 
     # All operations that need to get saved
-    @pendingWrites = {}
+    @pendingWrites = [Operation.Node(@).create()]
 
 
+  # Node loading from server
+  @load: (nodeId) ->
+    coreManager = Weaver.getCoreManager()
+    coreManager.getNode(nodeId).then((serverNode) ->
+
+      # Create node and transfer attributes
+      node = new WeaverNode(nodeId)
+      node.createdOn = serverNode.createdOn
+
+      # Make an tuple array of values to easily filter out relations and attributes
+      tuples = ({key, value} for key, value of serverNode)
+
+      # Add attributes
+      attributes =  tuples.filter((t) ->
+        not isArray(t.value) and t.key isnt 'createdOn' and t.key isnt 'id'
+      )
+      node.attributes[t.key] = t.value for t in attributes
+
+      # Add relations
+      relations = tuples.filter((t) -> isArray(t.value))
+
+      for r in relations
+        for n in r.value
+          node.relation(r.key).add(WeaverNode.get(n.id))
+
+      # Clear all currently made pending writes since node is loaded of server
+      node._clearPendingWrites()
+      node
+    )
+
+
+  # Node creating for in queries
+  @get: (nodeId) ->
+    node = new WeaverNode(nodeId)
+    node.pendingWrites = []
+    node
+
+
+  # Return id
   id: ->
     @nodeId
 
+
+  # Gets attributes
   get: (field) ->
     @attributes[field]
 
 
+  # Update attribute
   set: (field, value) ->
-    # Save change as pending
-    @pendingWrites[field] = value
-
-    # Update attribute
     @attributes[field] = value
 
+    # Save change as pending
+    @pendingWrites.push(Operation.Node(@).setAttribute(field, value))
 
+
+  # Remove attribute
   unset: (field) ->
-    # Save change as null in pending
-    @pendingWrites[field] = null
-
-    # Update attribute
     delete @attributes[field]
 
+    # Save change as pending
+    @pendingWrites.push(Operation.Node(@).unsetAttribute(field))
 
-  relation: (name) ->
-    new WeaverRelation(this, name)
+
+  # Create a new Relation
+  relation: (key) ->
+    @relations[key] = new WeaverRelation(@, key) if not @relations[key]?
+    @relations[key]
 
 
+  # Go through each relation and recursively add all pendingWrites per relation AND that of the objects
+  _collectPendingWrites: (collected) ->
+    # Register to keep track which nodes have been collected to prevent recursive blowup
+    collected  = {} if not collected?
+    operations = @pendingWrites
+
+    for key, relation of @relations
+      for id, node of relation.nodes
+        if not collected[node.id()]
+          collected[node.id()] = true
+          operations = operations.concat(node._collectPendingWrites(collected))
+
+      operations = operations.concat(relation.pendingWrites)
+
+    operations
+
+
+  # Clear all pendingWrites, used for instance after saving or when loading a node
+  _clearPendingWrites: ->
+    @pendingWrites = []
+
+    for key, relation of @relations
+      for id, node of relation.nodes
+        node._clearPendingWrites() if node.isDirty()
+
+      relation.pendingWrites = []
+
+
+  # Checks whether needs saving
+  isDirty: ->
+    @pendingWrites.length isnt 0
+
+
+  # Save node and all values / relations and relation objects to server
   save: (values) ->
     coreManager = Weaver.getCoreManager()
-
-    # These update operations will be sent to the server
-    operations = []
-
-    # Check to create the node first
-    if not @saved
-      operations.push(new Operation.Node(@).create())
-      @saved = true
-
-    # Go through all pendingWrites
-    for attribute, value of @pendingWrites
-      if value is null
-        operations.push(new Operation.Node(@).unsetAttribute(attribute))
-      else
-        operations.push(new Operation.Node(@).setAttribute(attribute, value))
-
-    coreManager.executeOperations(operations).then(=> @)
+    coreManager.executeOperations(@_collectPendingWrites()).then(=>
+      @_clearPendingWrites()
+      @
+    )
 
 
+  # Removes node
   destroy: ->
-
-
-  fetch: ->
+    coreManager = Weaver.getCoreManager()
+    coreManager.executeOperations([Operation.Node(@).destroy()]).then(=>
+      @destroyed = true
+      @saved = false
+      undefined
+    )
 
 
 # Export
