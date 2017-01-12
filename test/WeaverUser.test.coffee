@@ -57,31 +57,28 @@ describe 'Weaver User', ->
     user.logIn('phoenix','phoenix')
     .then(->
       user.signUp('phoenix','centaurus','centaurus@univer.se','centaurus','SYSUNITE')
-      .then(->
-        user.logOut()
-        .then(->
-          user.logIn('centaurus','centaurus')
-          .then((res) ->
-            res.token.should.be.a('string')
-          )
-        )
-      )
+    ).then(->
+      user.logOut()
+    ).then(->
+      user.logIn('centaurus','centaurus')
+    ).then((res) ->
+      res.token.should.be.a('string')
     )
     
   it 'should signOff a user and must fails if tries to logIn with the signedOff user', ->
     user = new Weaver.User()
     user.current('centaurus').then(->
-      user.logOut().then(->
-        user.logIn('phoenix','phoenix').then(->
-          user.current('phoenix').then(->
-            user.signOff('phoenix','centaurus').then(->
-              user.logIn('centaurus','centaurus').then().catch((error) ->
-                assert.equal(error.code, WeaverError.USERNAME_NOT_FOUND)
-              )
-            )
-          )
-        )
-      )
+      user.logOut()
+    ).then(->
+      user.logIn('phoenix','phoenix')
+    ).then(->
+      user.current('phoenix')
+    ).then(->
+      user.signOff('phoenix','centaurus')
+    ).then(->
+      user.logIn('centaurus','centaurus')
+    ).then().catch((error) ->
+      assert.equal(error.code, WeaverError.USERNAME_NOT_FOUND)
     )
       
   it 'should performs logOut action for the current user specifying the user', (done) ->
