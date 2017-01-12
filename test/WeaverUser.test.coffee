@@ -29,7 +29,7 @@ describe 'Weaver User', ->
   it 'should give the user permission', ->
     user = new Weaver.User()
     user.permission('phoenix').then((res) ->
-      console.log res
+      expect(res).to.eql(['read_user','create_user','delete_user','create_role','read_role','delete_role','create_permission','read_permission','delete_permission','read_application','create_application','delete_application','create_directory','read_directory','delete_directory'])
     )
     
   it 'should fails when trying to login with non existing user', ->

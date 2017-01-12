@@ -17,7 +17,6 @@ class WeaverUser
     users = Weaver.getUsersDB()
     coreManager.logIn(credentials)
     .then((res) ->
-      @permission
       try
         users.insert({user:user,token:res.token})
       catch error
@@ -34,7 +33,6 @@ class WeaverUser
       }
       coreManager.permission(userPayload)
     )
-    
   
   signUp: (currentUsr,userName,userEmail,userPassword,directoryName) ->
     newUserCredentials = {userName,userEmail,userPassword,directoryName}
@@ -42,9 +40,6 @@ class WeaverUser
     @current(currentUsr).then((access_token) ->
       newUserPayload = {newUserCredentials,access_token}
       coreManager.signUp(newUserPayload)
-      # .then((res) ->
-      #   # console.log res
-      # )
     )
     
   
