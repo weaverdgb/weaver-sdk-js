@@ -18,4 +18,7 @@ class CoreManager
   executeOperations: (operations) ->
     @commController.write(operations)
 
+  getNode: (nodeId)->
+    @commController.POST('read', {nodeId})
+
 module.exports = CoreManager
