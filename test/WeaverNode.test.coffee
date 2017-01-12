@@ -185,3 +185,18 @@ describe 'WeaverNode test', ->
       done()
     )
     return
+
+
+  it 'should not blow up when saving in circular chain', (done) ->
+    a = new Weaver.Node()
+    b = new Weaver.Node()
+    c = new Weaver.Node()
+
+    a.relation('to').add(b)
+    b.relation('to').add(c)
+    c.relation('to').add(a)
+
+    a.save().then(->
+      done()
+    )
+    return
