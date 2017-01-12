@@ -44,7 +44,7 @@ class WeaverNode
           node.relation(r.key).add(WeaverNode.get(n.id))
 
       # Clear all currently made pending writes since node is loaded of server
-      node.clearPendingWrites()
+      node._clearPendingWrites()
       node
     )
 
@@ -89,7 +89,7 @@ class WeaverNode
 
 
   # Go through each relation and recursively add all pendingWrites per relation AND that of the objects
-  collectPendingWrites: (collected) ->
+  _collectPendingWrites: (collected) ->
     # Register to keep track which nodes have been collected to prevent recursive blowup
     collected  = {} if not collected?
     operations = @pendingWrites
@@ -98,7 +98,7 @@ class WeaverNode
       for id, node of relation.nodes
         if not collected[node.id()]
           collected[node.id()] = true
-          operations = operations.concat(node.collectPendingWrites(collected))
+          operations = operations.concat(node._collectPendingWrites(collected))
 
       operations = operations.concat(relation.pendingWrites)
 
@@ -106,12 +106,12 @@ class WeaverNode
 
 
   # Clear all pendingWrites, used for instance after saving or when loading a node
-  clearPendingWrites: ->
+  _clearPendingWrites: ->
     @pendingWrites = []
 
     for key, relation of @relations
       for id, node of relation.nodes
-        node.clearPendingWrites() if node.isDirty()
+        node._clearPendingWrites() if node.isDirty()
 
       relation.pendingWrites = []
 
@@ -124,8 +124,8 @@ class WeaverNode
   # Save node and all values / relations and relation objects to server
   save: (values) ->
     coreManager = Weaver.getCoreManager()
-    coreManager.executeOperations(@collectPendingWrites()).then(=>
-      @clearPendingWrites()
+    coreManager.executeOperations(@_collectPendingWrites()).then(=>
+      @_clearPendingWrites()
       @
     )
 
