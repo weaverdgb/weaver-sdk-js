@@ -24,28 +24,24 @@ describe 'Weaver User', ->
     .then((res) ->
       token = res.token
       token.should.be.a('string')
-    ).catch((err) ->
     )
     
   it 'should fails when trying to login with non existing user', ->
     user = new Weaver.User()
     user.logIn('andromeda','Chains')
-    .then().catch((err) ->
-      done()
+    .then().catch((err)->
+      assert.equal(err.code, WeaverError.USERNAME_NOT_FOUND)
     )
-  
-  
+      
   it 'should returns jwt from the loggedin user', ->
     user = new Weaver.User()
-    user.current('phoenix')
-    .then((res) ->
-      res.should.be.a('string')
-    )
+    user.current('phoenix').should.eventually.be.a('string')
+    
     
   it 'should performs logOut action for the current user without specifying the user', ->
     user = new Weaver.User()
     user.logOut()
-    .then((res) ->
+    .then( ->
     )
   
   
@@ -59,28 +55,28 @@ describe 'Weaver User', ->
   it 'should signUp a user', ->
     user = new Weaver.User()
     user.logIn('phoenix','phoenix')
-    .then((res) ->
+    .then(->
       user.signUp('phoenix','centaurus','centaurus@univer.se','centaurus','SYSUNITE')
-      .then((res) ->
+      .then(->
         user.logOut()
-        .then((res) ->
+        .then(->
           user.logIn('centaurus','centaurus')
-          .then((res, err) ->
+          .then((res) ->
             res.token.should.be.a('string')
           )
         )
       )
     )
     
-  it 'should signOff a user', ->
+  it 'should signOff a user and must fails if tries to logIn with the signedOff user', ->
     user = new Weaver.User()
-    user.current('centaurus').then((res) ->
-      user.logOut().then((res) ->
-        user.logIn('phoenix','phoenix').then((res) ->
-          user.current('phoenix').then((res) ->
-            user.signOff('phoenix','centaurus').then((res) ->
-              user.logIn('centaurus','centaurus').then((res) ->
-                
+    user.current('centaurus').then(->
+      user.logOut().then(->
+        user.logIn('phoenix','phoenix').then(->
+          user.current('phoenix').then(->
+            user.signOff('phoenix','centaurus').then(->
+              user.logIn('centaurus','centaurus').then().catch((error) ->
+                assert.equal(error.code, WeaverError.USERNAME_NOT_FOUND)
               )
             )
           )
@@ -105,7 +101,7 @@ describe 'Weaver User', ->
     user = new Weaver.User()
     user.logOut()
     .then().catch((err) ->
-      done()
+      assert.equal(err.code, WeaverError.USERNAME_NOT_FOUND)
     )
     
     
@@ -113,5 +109,5 @@ describe 'Weaver User', ->
     user = new Weaver.User()
     user.logOut('andromeda')
     .then().catch((err) ->
-      done()
+      assert.equal(err.code, WeaverError.USERNAME_NOT_FOUND)
     )
