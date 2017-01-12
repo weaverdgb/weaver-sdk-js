@@ -2,30 +2,25 @@
 cuid   = require('cuid')
 Weaver = require('./Weaver')
 loki   = require('lokijs')
+Error        = require('weaver-commons').Error
+WeaverError  = require('weaver-commons').WeaverError
 
 class WeaverUser
   
-  constructor: () ->
-    @email
-    @username
-    @password
+  constructor: (@email, @username, @password) ->
     @emailVerified = false
     
     
-  logIn: (usr, pass) ->
-    credentials = {
-      user: usr
-      password: pass
-    }
+  logIn: (user, password) ->
+    credentials = {user,password}
     coreManager = Weaver.getCoreManager()
     users = Weaver.getUsersDB()
     coreManager.logIn(credentials)
     .then((res) ->
       @permission
       try
-        users.insert({user:usr,token:res.token})
+        users.insert({user:user,token:res.token})
       catch error
-        console.error(error)
       res
     )
     
@@ -42,18 +37,10 @@ class WeaverUser
     
   
   signUp: (currentUsr,userName,userEmail,userPassword,directoryName) ->
-    newUserCredentials = {
-      userName: userName
-      userEmail: userEmail
-      userPassword: userPassword
-      directoryName: directoryName
-    }
+    newUserCredentials = {userName,userEmail,userPassword,directoryName}
     coreManager = Weaver.getCoreManager()
-    @current(currentUsr).then((token) ->
-      newUserPayload = {
-        newUserCredentials: newUserCredentials
-        access_token: token
-      }
+    @current(currentUsr).then((access_token) ->
+      newUserPayload = {newUserCredentials,access_token}
       coreManager.signUp(newUserPayload)
       # .then((res) ->
       #   # console.log res
@@ -63,11 +50,8 @@ class WeaverUser
   
   signOff: (currentUsr, user) ->
     coreManager = Weaver.getCoreManager()
-    @current(currentUsr).then((token) ->
-      userPayload = {
-        user: user
-        access_token: token
-      }
+    @current(currentUsr).then((access_token) ->
+      userPayload = {user,access_token}
       coreManager.signOff(userPayload)
     )
     
@@ -77,9 +61,6 @@ class WeaverUser
     new Promise((resolve, reject) =>
       try
         users = Weaver.getUsersDB()
-        # console.log '=^^=|__________________________'
-        # console.log(users.find())
-        # console.log '=^^=|__________________________'
         resolve(users.findOne({user:usr}).token)
       catch error
         reject(null)
@@ -95,11 +76,19 @@ class WeaverUser
       try
         users = Weaver.getUsersDB()
         if usr?
-          users.remove(users.find({$and:[{user:usr},{token:{$ne:undefined}}]}))
-          resolve()
+          userFound = users.find({$and:[{user:usr},{token:{$ne:undefined}}]})
+          if userFound.length is 0
+            reject(Error WeaverError.USERNAME_NOT_FOUND,'USERNAME_NOT_FOUND')
+          else
+            users.remove(userFound)
+            resolve()
         else
-          users.remove(users.find({token:{$ne:undefined}}))
-          resolve()
+          userFound = users.find({token:{$ne:undefined}})
+          if userFound.length is 0
+            reject(Error WeaverError.USERNAME_NOT_FOUND,'USERNAME_NOT_FOUND')
+          else
+            users.remove(userFound)
+            resolve()
       catch error
         reject(error)
           
