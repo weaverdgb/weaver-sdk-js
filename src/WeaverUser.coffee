@@ -23,14 +23,11 @@ class WeaverUser
       res
     )
     
-  permission: (usr) ->
+  permission: (user) ->
     coreManager = Weaver.getCoreManager()
     users = Weaver.getUsersDB()
-    @current(usr).then((token) ->
-      userPayload = {
-        user: usr
-        access_token: token
-      }
+    @current(user).then((access_token) ->
+      userPayload = {user,access_token}
       coreManager.permission(userPayload)
     )
   
