@@ -33,6 +33,15 @@ class SocketController
 
   write: (operations) ->
     @emit("write", operations)
+    
+  logIn: (credentials) ->
+    @emit("logIn",credentials)
+    
+  signUp: (newUserPayload) ->
+    @emit("signUp",newUserPayload)
+  
+  signOff: (userPayload) ->
+    @emit("signOff",userPayload)
 
   listProjects: ->
     @emit("project")

@@ -20,6 +20,9 @@ class Weaver
 
   getCoreManager: ->
     @coreManager
+    
+  getUsersDB: ->
+    @coreManager.getUsersDB()
 
 
 # Export
