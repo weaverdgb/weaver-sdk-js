@@ -114,3 +114,25 @@ describe 'Weaver User', ->
     .then().catch((err) ->
       assert.equal(err.code, WeaverError.USERNAME_NOT_FOUND)
     )
+    
+  it 'should fails trying to signUp with an existing userName', ->
+      user = new Weaver.User()
+      user.logIn('phoenix','phoenix')
+      .then(->
+        user.signUp('phoenix','andromeda','andromeda@univer.se','andromedas','SYSUNITE')
+      ).then(->
+        user.signUp('phoenix','andromeda','centaurus@univer.se','andromedas','SYSUNITE')
+      ).then().catch((error)->
+        assert.equal(error.code, WeaverError.USERNAME_TAKEN)
+      )
+
+    
+  it 'should fails trying to signUp with an existing userEmail', ->
+      user = new Weaver.User()
+      user.signUp('phoenix','andromedas','andromedas@univer.se','andromedas','SYSUNITE')
+      .then(->
+        user.signUp('phoenix','andro','andromedas@univer.se','andromedas','SYSUNITE')
+      ).then().catch((error)->
+        assert.equal(error.code, WeaverError.EMAIL_TAKEN)
+      )
+
