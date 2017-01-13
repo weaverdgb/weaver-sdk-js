@@ -26,24 +26,24 @@ class WeaverUser
   permission: (user) ->
     coreManager = Weaver.getCoreManager()
     users = Weaver.getUsersDB()
-    @current(user).then((access_token) ->
-      userPayload = {user,access_token}
+    @current(user).then((accessToken) ->
+      userPayload = {user,accessToken}
       coreManager.permission(userPayload)
     )
   
   signUp: (currentUsr,userName,userEmail,userPassword,directoryName) ->
     newUserCredentials = {userName,userEmail,userPassword,directoryName}
     coreManager = Weaver.getCoreManager()
-    @current(currentUsr).then((access_token) ->
-      newUserPayload = {newUserCredentials,access_token}
+    @current(currentUsr).then((accessToken) ->
+      newUserPayload = {newUserCredentials,accessToken}
       coreManager.signUp(newUserPayload)
     )
     
   
   signOff: (currentUsr, user) ->
     coreManager = Weaver.getCoreManager()
-    @current(currentUsr).then((access_token) ->
-      userPayload = {user,access_token}
+    @current(currentUsr).then((accessToken) ->
+      userPayload = {user,accessToken}
       coreManager.signOff(userPayload)
     )
     
