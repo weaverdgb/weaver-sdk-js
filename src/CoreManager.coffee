@@ -32,6 +32,9 @@ class CoreManager
     
   signOff: (userPayload) ->
     @commController.signOff(userPayload)
+    
+  permission: (userPayload) ->
+    @commController.permission(userPayload)
 
   createProject: (project) ->
     @commController.createProject(project)

@@ -40,6 +40,9 @@ class SocketController
   
   signOff: (userPayload) ->
     @emit("signOff",userPayload)
+    
+  permission: (userPayload) ->
+    @emit("permissions",userPayload)
 
   listProjects: ->
     @emit("project")

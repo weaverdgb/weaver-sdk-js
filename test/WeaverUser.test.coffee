@@ -26,6 +26,12 @@ describe 'Weaver User', ->
       token.should.be.a('string')
     )
     
+  it 'should give the user permission', ->
+    user = new Weaver.User()
+    user.permission('phoenix').then((res) ->
+      expect(res).to.eql(['read_user','create_user','delete_user','create_role','read_role','delete_role','create_permission','read_permission','delete_permission','read_application','create_application','delete_application','create_directory','read_directory','delete_directory'])
+    )
+    
   it 'should fails when trying to login with non existing user', ->
     user = new Weaver.User()
     user.logIn('andromeda','Chains')
@@ -80,7 +86,7 @@ describe 'Weaver User', ->
     ).then().catch((error) ->
       assert.equal(error.code, WeaverError.USERNAME_NOT_FOUND)
     )
-      
+  
   it 'should performs logOut action for the current user specifying the user', (done) ->
     user = new Weaver.User()
     user.logIn('phoenix','phoenix')
@@ -93,15 +99,15 @@ describe 'Weaver User', ->
         )
     )
     return
-    
+  
   it 'should fails trying logOut action for the current user, bacause there is no current user loggedin', ->
     user = new Weaver.User()
     user.logOut()
     .then().catch((err) ->
       assert.equal(err.code, WeaverError.USERNAME_NOT_FOUND)
     )
-    
-    
+  
+  
   it 'should fails trying logOut action specifying non loggedin user', ->
     user = new Weaver.User()
     user.logOut('andromeda')
