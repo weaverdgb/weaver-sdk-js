@@ -33,6 +33,15 @@ class CoreManager
   signOff: (userPayload) ->
     @commController.signOff(userPayload)
 
+  createProject: (project) ->
+    @commController.createProject(project)
+
+  listProjects: ->
+    @commController.listProjects()
+
+  deleteProject: (project) ->
+    @commController.deleteProject(project)
+
   getNode: (nodeId)->
     @commController.POST('read', {nodeId})
 

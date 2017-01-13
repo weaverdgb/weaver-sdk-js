@@ -72,7 +72,7 @@ class WeaverUser
             reject(Error WeaverError.USERNAME_NOT_FOUND,'USERNAME_NOT_FOUND')
           else
             users.remove(userFound)
-            resolve()          
+            resolve()
       catch error
         reject(error)
           
@@ -82,9 +82,4 @@ class WeaverUser
 # Export
 Weaver.User    = WeaverUser
 module.exports = WeaverUser
-
-
-
-
-
 
