@@ -7,7 +7,7 @@ require('./../src/WeaverNode')  # This preloading will be an issue
 require('./../src/WeaverUser')
 
 describe 'Weaver User', ->
-  this.timeout(2500)
+  this.timeout(2000)
 
   before (done) ->
     Weaver.initialize(WEAVER_ADDRESS)
