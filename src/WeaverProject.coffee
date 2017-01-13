@@ -4,16 +4,18 @@ Weaver     = require('./Weaver')
 class WeaverProject
   constructor: (@name, @id) ->
 
-  @create: ->
-    Weaver.getCoreManager().createProject(@).then( => @)
+  create: ->
+    Weaver.getCoreManager().createProject(@).then((res) =>
+      @id = JSON.parse(res).id
+      @
+    )
 
-  @delete: ->
+  delete: ->
     Weaver.getCoreManager().deleteProject(@)
 
   @list: ->
     Weaver.getCoreManager().listProjects().then((res) ->
-      console.log(res)
-      res
+      ( new WeaverProject(i.name, i.id) for i in res )
     )
 
 Weaver.Project = WeaverProject

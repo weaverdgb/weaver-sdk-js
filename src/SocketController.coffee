@@ -38,9 +38,9 @@ class SocketController
     @emit("project")
 
   createProject: (project) ->
-    @emit("project.create", project)
+    @POST("project.create", {name: project.name})
 
   deleteProject: (project) ->
-    @emit("project.delete", project)
+    @POST("project.delete", {id: project.id})
 
 module.exports = SocketController

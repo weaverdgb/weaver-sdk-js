@@ -19,10 +19,7 @@ class CoreManager
     @commController.write(operations)
 
   createProject: (project) ->
-    @commController.createProject(project).then((res) ->
-      console.log(res)
-      project
-    )
+    @commController.createProject(project)
 
   listProjects: ->
     @commController.listProjects()

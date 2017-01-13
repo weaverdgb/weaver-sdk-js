@@ -19,9 +19,7 @@ describe 'Weaver Project', ->
   it 'should create projects', ->
     project = new Weaver.Project()
     project.name = "test"
-    Weaver.Project.create().then((p) =>
-      console.log("Project create")
-      console.log(p)
+    project.create().then((p) =>
       expect(p.name).to.equal("test")
       expect(p.id).to.not.be.undefined
     )
@@ -29,14 +27,15 @@ describe 'Weaver Project', ->
   it 'should list projects not done', ->
     Weaver.Project.list()
     .then((list) ->
-      assert(list)
+      expect(list.length).to.exist
+      expect(list[0]).to.be.an.instanceof(Weaver.Project) if list.length > 0
     )
 
-  it 'should delete projects', (done) ->
-    Weaver.Project.create('testProject').then((project) ->
-      Weaver.Project.delete(project).then( ->
+  it 'should delete projects', ->
+    test = new Weaver.Project()
+    test.name = "To be deleted"
+    test.create().then((project) ->
+      project.delete().then( ->
         assert(true)
-        done()
       )
     )
-    return
