@@ -51,7 +51,8 @@ describe 'Weaver User', ->
     )
   
   it 'should fails when trying to login with non existing user', ->
-    Weaver.User.logIn(randomstring.generate({length:5,charset:'alphabetic'}),randomstring.generate(7))
+    # Weaver.User.logIn(randomstring.generate({length:5,charset:'alphabetic'}),randomstring.generate(7))
+    Weaver.User.logIn('foo','bar')
     .then().catch((err)->
       assert.equal(err.code, WeaverError.USERNAME_NOT_FOUND)
     )
@@ -97,7 +98,7 @@ describe 'Weaver User', ->
     ).then(->
       weaverUser.current('phoenix')
     ).then(->
-      weaverUser.signOff('phoenix','centaurus')
+      Weaver.User.signOff('phoenix','centaurus')
     ).then(->
       Weaver.User.logIn('centaurus','centaurus')
     ).then().catch((error) ->

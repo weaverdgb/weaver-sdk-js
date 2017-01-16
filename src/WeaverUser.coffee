@@ -41,7 +41,7 @@ class WeaverUser extends WeaverNode
     )
     
   
-  signOff: (currentUsr, user) ->
+  @signOff: (currentUsr, user) ->
     coreManager = Weaver.getCoreManager()
     weaverUser = new WeaverUser()
     weaverUser.current(currentUsr).then((accessToken) ->
