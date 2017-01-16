@@ -122,7 +122,9 @@ describe 'Weaver User', ->
         user.signUp('phoenix','andromeda','andromeda@univer.se','andromedas','SYSUNITE')
       ).then(->
         user.signUp('phoenix','andromeda','centaurus@univer.se','andromedas','SYSUNITE')
-      ).then().catch((error)->
+      ).then(->
+        assert(false)
+      ).catch((error)->
         assert.equal(error.code, WeaverError.DUPLICATE_VALUE)
       )
 
@@ -132,7 +134,9 @@ describe 'Weaver User', ->
       user.signUp('phoenix','andromedas','andromedas@univer.se','andromedas','SYSUNITE')
       .then(->
         user.signUp('phoenix','andro','andromedas@univer.se','andromedas','SYSUNITE')
-      ).then().catch((error)->
+      ).then(->
+        assert(false)
+      ).catch((error)->
         assert.equal(error.code, WeaverError.DUPLICATE_VALUE)
       )
 
