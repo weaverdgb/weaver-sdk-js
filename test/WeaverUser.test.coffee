@@ -43,7 +43,8 @@ describe 'Weaver User', ->
   
   
   it 'should performs logOut action for the current user without specifying the user', ->
-    Weaver.User.logOut()
+    weaverUser = new Weaver.User()
+    weaverUser.logOut()
     .then( ->
     )
   
@@ -56,11 +57,12 @@ describe 'Weaver User', ->
     )
   
   it 'should signUp a user', ->
+    weaverUser = new Weaver.User()
     Weaver.User.logIn('phoenix','phoenix')
     .then(->
       Weaver.User.signUp('phoenix','centaurus','centaurus@univer.se','centaurus','SYSUNITE')
     ).then(->
-      Weaver.User.logOut()
+      weaverUser.logOut()
     ).then(->
       Weaver.User.logIn('centaurus','centaurus')
     ).then((res) ->
@@ -70,13 +72,13 @@ describe 'Weaver User', ->
   it 'should signOff a user and must fails if tries to logIn with the signedOff user', ->
     weaverUser = new Weaver.User()
     weaverUser.current('centaurus').then(->
-      Weaver.User.logOut()
+      weaverUser.logOut()
     ).then(->
       Weaver.User.logIn('phoenix','phoenix')
     ).then(->
       weaverUser.current('phoenix')
     ).then(->
-      Weaver.User.signOff('phoenix','centaurus')
+      weaverUser.signOff('phoenix','centaurus')
     ).then(->
       Weaver.User.logIn('centaurus','centaurus')
     ).then().catch((error) ->
@@ -84,10 +86,11 @@ describe 'Weaver User', ->
     )
   
   it 'should performs logOut action for the current user specifying the user', (done) ->
+    weaverUser = new Weaver.User()
     Weaver.User.logIn('phoenix','phoenix')
     .then((res, err) ->
       if (!err)
-        Weaver.User.logOut('phoenix')
+        weaverUser.logOut('phoenix')
         .then((res, err) ->
           if (!err)
             done()
@@ -96,14 +99,16 @@ describe 'Weaver User', ->
     return
   
   it 'should fails trying logOut action for the current user, bacause there is no current user loggedin', ->
-    Weaver.User.logOut()
+    weaverUser = new Weaver.User()
+    weaverUser.logOut()
     .then().catch((err) ->
       assert.equal(err.code, WeaverError.USERNAME_NOT_FOUND)
     )
   
   
   it 'should fails trying logOut action specifying non loggedin user', ->
-    Weaver.User.logOut('andromeda')
+    weaverUser = new Weaver.User()
+    weaverUser.logOut('andromeda')
     .then().catch((err) ->
       assert.equal(err.code, WeaverError.USERNAME_NOT_FOUND)
     )
