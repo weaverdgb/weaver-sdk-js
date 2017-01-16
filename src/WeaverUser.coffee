@@ -4,14 +4,14 @@ Weaver = require('./Weaver')
 loki   = require('lokijs')
 Error        = require('weaver-commons').Error
 WeaverError  = require('weaver-commons').WeaverError
+WeaverNode   = require('./WeaverNode')
 
-class WeaverUser
+class WeaverUser extends WeaverNode
   
   constructor: (@email, @username, @password) ->
     @emailVerified = false
     
-    
-  logIn: (user, password) ->
+  @logIn: (user, password) ->
     credentials = {user,password}
     coreManager = Weaver.getCoreManager()
     users = Weaver.getUsersDB()
@@ -25,24 +25,26 @@ class WeaverUser
     
   permission: (user) ->
     coreManager = Weaver.getCoreManager()
-    users = Weaver.getUsersDB()
-    @current(user).then((accessToken) ->
+    weaverUser = new WeaverUser()
+    weaverUser.current(user).then((accessToken) ->
       userPayload = {user,accessToken}
       coreManager.permission(userPayload)
     )
   
-  signUp: (currentUsr,userName,userEmail,userPassword,directoryName) ->
+  @signUp: (currentUsr,userName,userEmail,userPassword,directoryName) ->
     newUserCredentials = {userName,userEmail,userPassword,directoryName}
     coreManager = Weaver.getCoreManager()
-    @current(currentUsr).then((accessToken) ->
+    weaverUser = new WeaverUser()
+    weaverUser.current(currentUsr).then((accessToken) ->
       newUserPayload = {newUserCredentials,accessToken}
       coreManager.signUp(newUserPayload)
     )
     
   
-  signOff: (currentUsr, user) ->
+  @signOff: (currentUsr, user) ->
     coreManager = Weaver.getCoreManager()
-    @current(currentUsr).then((accessToken) ->
+    weaverUser = new WeaverUser()
+    weaverUser.current(currentUsr).then((accessToken) ->
       userPayload = {user,accessToken}
       coreManager.signOff(userPayload)
     )
@@ -63,7 +65,7 @@ class WeaverUser
   # passing a user is optional
   ###
   
-  logOut: (usr) ->
+  @logOut: (usr) ->
     new Promise((resolve, reject) =>
       try
         users = Weaver.getUsersDB()
