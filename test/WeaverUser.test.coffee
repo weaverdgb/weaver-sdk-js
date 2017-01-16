@@ -6,6 +6,9 @@ WeaverError = require('./../../weaver-commons-js/src/WeaverError')
 require('./../src/WeaverNode')  # This preloading will be an issue
 require('./../src/WeaverUser')
 
+# devDependencies
+randomstring = require('randomstring');
+
 describe 'Weaver User', ->
   this.timeout(2000)
 
@@ -24,15 +27,31 @@ describe 'Weaver User', ->
       token = res.token
       token.should.be.a('string')
     )
+
+  it 'should fails login users, with incorrect username', ->
+    Weaver.User.logIn('phoenixs','phoenix')
+    .then(->
+      assert(false)
+    ).catch((err)->
+      assert.equal(err.code, WeaverError.USERNAME_NOT_FOUND)
+    )
+  
+  it 'should fails login users, with incorrect password', ->
+    Weaver.User.logIn('phoenix','phoenixs')
+    .then(->
+      assert(false)
+    ).catch((err)->
+      assert.equal(err.code, WeaverError.PASSWORD_INCORRECT)
+    )
   
   it 'should give the user permission', ->
     weaverUser = new Weaver.User()
     weaverUser.permission('phoenix').then((res) ->
-      expect(res).to.equal('[read_user, create_user, delete_user, create_role, read_role, delete_role, create_permission, read_permission, delete_permission, read_application, create_application, delete_application, create_directory, read_directory, delete_directory]')
+      expect(res).to.eql(['read_user', 'create_user', 'delete_user', 'create_role', 'read_role', 'delete_role', 'create_permission', 'read_permission', 'delete_permission', 'read_application', 'create_application', 'delete_application', 'create_directory', 'read_directory', 'delete_directory'])
     )
   
   it 'should fails when trying to login with non existing user', ->
-    Weaver.User.logIn('andromeda','Chains')
+    Weaver.User.logIn(randomstring.generate({length:5,charset:'alphabetic'}),randomstring.generate(7))
     .then().catch((err)->
       assert.equal(err.code, WeaverError.USERNAME_NOT_FOUND)
     )
