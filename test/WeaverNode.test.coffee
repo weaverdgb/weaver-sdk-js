@@ -2,7 +2,7 @@ require("./test-suite")()
 
 cuid        = require('cuid')
 Weaver      = require('./../src/Weaver')
-WeaverError = require('./../../weaver-commons-js/src/WeaverError')
+WeaverError = require('weaver-commons').WeaverError
 
 require('./../src/WeaverNode')  # This preloading will be an issue
 
