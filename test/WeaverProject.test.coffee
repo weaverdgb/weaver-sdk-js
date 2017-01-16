@@ -22,6 +22,7 @@ describe 'Weaver Project', ->
     project.create().then((p) =>
       expect(p.name).to.equal("test")
       expect(p.id).to.not.be.undefined
+      p.delete()
     )
   
   it 'should list projects not done', ->
@@ -35,8 +36,8 @@ describe 'Weaver Project', ->
     test = new Weaver.Project()
     test.name = "To be deleted"
     test.create().then((project) ->
-      project.delete().then( ->
-        assert(true)
+      project.delete().catch((e) ->
+        assert(false)
       )
     )
 
