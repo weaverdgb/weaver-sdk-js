@@ -10,6 +10,7 @@ class CoreManager
   constructor: (@address) ->
     @db = new loki('weaver-sdk')
     @users = @db.addCollection('users')
+    @projects = @db.addCollection('projects')
 
   connect: ->
     @commController = new SocketController(@address)
@@ -20,9 +21,12 @@ class CoreManager
 
   executeOperations: (operations) ->
     @commController.write(operations)
-    
+
   getUsersDB: ->
     @users
+
+  getProjectsDB: ->
+    @projects
     
   logIn: (credentials) ->
     @commController.logIn(credentials)

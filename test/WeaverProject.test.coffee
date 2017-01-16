@@ -39,3 +39,24 @@ describe 'Weaver Project', ->
         assert(true)
       )
     )
+
+  it 'should allow setting an active project', ->
+    test = new Weaver.Project()
+    test.name = "The project to be used"
+    test.create().then((prj) ->
+      Weaver.Project.useProject(prj).then( ->
+        prj.delete()
+      )
+    )
+
+  it 'should support getting the active project', ->
+    test = new Weaver.Project()
+    test.name = "This should be activated"
+    test.create().then((prj) ->
+      Weaver.Project.useProject(prj).then( ->
+        p = Weaver.Project.getActiveProject()
+        expect(p.name).to.equal("This should be activated")
+      ).then( ->
+        prj.delete()
+      )
+    )

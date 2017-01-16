@@ -24,6 +24,9 @@ class Weaver
   getUsersDB: ->
     @coreManager.getUsersDB()
 
+  getProjectsDB: ->
+    @coreManager.getProjectsDB()
+
 
 # Export
 weaver = new Weaver()

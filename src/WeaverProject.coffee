@@ -18,6 +18,17 @@ class WeaverProject
       ( new WeaverProject(i.name, i.id) for i in res )
     )
 
+  @useProject: (prj) ->
+    new Promise((resolve, error) ->
+      db = Weaver.getProjectsDB()
+      db.clear()
+      db.insert(prj)
+      resolve()
+    )
+
+  @getActiveProject: ->
+    Weaver.getProjectsDB().findOne()
+
 Weaver.Project = WeaverProject
 module.exports = WeaverProject
 
