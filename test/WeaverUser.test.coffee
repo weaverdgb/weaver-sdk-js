@@ -6,9 +6,6 @@ WeaverError = require('./../../weaver-commons-js/src/WeaverError')
 require('./../src/WeaverNode')  # This preloading will be an issue
 require('./../src/WeaverUser')
 
-# devDependencies
-randomstring = require('randomstring');
-
 describe 'Weaver User', ->
   this.timeout(2000)
 
