@@ -29,7 +29,7 @@ describe 'Weaver User', ->
   it 'should give the user permission', ->
     user = new Weaver.User()
     user.permission('phoenix').then((res) ->
-      expect(res).to.eql(['read_user','create_user','delete_user','create_role','read_role','delete_role','create_permission','read_permission','delete_permission','read_application','create_application','delete_application','create_directory','read_directory','delete_directory'])
+      expect(res).to.equal('[read_user, create_user, delete_user, create_role, read_role, delete_role, create_permission, read_permission, delete_permission, read_application, create_application, delete_application, create_directory, read_directory, delete_directory]')
     )
     
   it 'should fails when trying to login with non existing user', ->
@@ -114,3 +114,29 @@ describe 'Weaver User', ->
     .then().catch((err) ->
       assert.equal(err.code, WeaverError.USERNAME_NOT_FOUND)
     )
+    
+  it 'should fails trying to signUp with an existing userName', ->
+      user = new Weaver.User()
+      user.logIn('phoenix','phoenix')
+      .then(->
+        user.signUp('phoenix','andromeda','andromeda@univer.se','andromedas','SYSUNITE')
+      ).then(->
+        user.signUp('phoenix','andromeda','centaurus@univer.se','andromedas','SYSUNITE')
+      ).then(->
+        assert(false)
+      ).catch((error)->
+        assert.equal(error.code, WeaverError.DUPLICATE_VALUE)
+      )
+
+    
+  it 'should fails trying to signUp with an existing userEmail', ->
+      user = new Weaver.User()
+      user.signUp('phoenix','andromedas','andromedas@univer.se','andromedas','SYSUNITE')
+      .then(->
+        user.signUp('phoenix','andro','andromedas@univer.se','andromedas','SYSUNITE')
+      ).then(->
+        assert(false)
+      ).catch((error)->
+        assert.equal(error.code, WeaverError.DUPLICATE_VALUE)
+      )
+
