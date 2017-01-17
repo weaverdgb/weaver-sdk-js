@@ -19,11 +19,6 @@ class WeaverApplication
       coreManager.createApplication(newApplication)
     ).catch((err) ->
       Promise.reject(err)
-      # if err.code?
-      #   Promise.reject(err)
-      # else
-      #
-      #   Promise.reject(Error WeaverError.SESSION_MISSING,"There is not jwt for the user #{user}")
     )
     
 # Export
