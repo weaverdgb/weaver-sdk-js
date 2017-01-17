@@ -48,7 +48,6 @@ describe 'Weaver User', ->
     )
   
   it 'should fails when trying to login with non existing user', ->
-    # Weaver.User.logIn(randomstring.generate({length:5,charset:'alphabetic'}),randomstring.generate(7))
     Weaver.User.logIn('foo','bar')
     .then().catch((err)->
       assert.equal(err.code, WeaverError.USERNAME_NOT_FOUND)
@@ -70,7 +69,7 @@ describe 'Weaver User', ->
     weaverUser = new Weaver.User()
     weaverUser.current('andromeda')
     .then().catch((error) ->
-      assert.isNull(error,'There is no andromeda user loggedin, that is fine')
+      assert.equal(error.code, WeaverError.SESSION_MISSING)
     )
   
   it 'should signUp a user', ->

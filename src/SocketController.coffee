@@ -52,5 +52,8 @@ class SocketController
 
   deleteProject: (project) ->
     @POST("project.delete", {id: project.id})
+    
+  createApplication: (newApplication) ->
+    @POST("application",newApplication)
 
 module.exports = SocketController

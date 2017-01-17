@@ -38,6 +38,9 @@ class CoreManager
 
   createProject: (project) ->
     @commController.createProject(project)
+    
+  createApplication: (newApplication) ->
+    @commController.createApplication(newApplication)
 
   listProjects: ->
     @commController.listProjects()
