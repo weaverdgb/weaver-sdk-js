@@ -20,7 +20,7 @@ class CoreManager
     @commController
 
   executeOperations: (operations) ->
-    @commController.write(operations)
+    @commController.write({ operations, project: require('./WeaverProject').getActiveProject()})
 
   getUsersDB: ->
     @users
