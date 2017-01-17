@@ -6,7 +6,7 @@ class WeaverProject
 
   create: ->
     Weaver.getCoreManager().createProject(@).then((res) =>
-      @id = JSON.parse(res).id
+      @id = res.id
       @
     )
 
