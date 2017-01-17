@@ -1,33 +1,54 @@
 WeaverNode = require('./WeaverNode')
 Weaver     = require('./Weaver')
 
-class WeaverProject
-  constructor: (@name, @id) ->
+class WeaverProject extends WeaverNode
+
+  @READY_RETRY_TIMEOUT: 200
+
+  constructor: (@nodeId) ->
+    @_created = false
+    super(@nodeId)
 
   create: ->
-    Weaver.getCoreManager().createProject(@).then((res) =>
-      @id = res.id
-      @
+    coreManager = Weaver.getCoreManager()
+    id = @id()
+
+    coreManager.createProject(id).then(->  # Wait till project gets read
+      new Promise((resolve) ->
+
+        checkReady = ->
+          coreManager.readyProject(id).then((res) ->
+            if not res.ready
+              setTimeout(checkReady, WeaverProject.READY_RETRY_TIMEOUT) # Check again after some time
+            else
+              resolve()
+          )
+
+        checkReady()
+      )
+    )
+    .then(=> # Project is ready, create the node
+      @_created = true
+      @save()
     )
 
-  delete: ->
-    Weaver.getCoreManager().deleteProject(@)
+  save: ->
+    if not @_created
+      Promise.reject({error: -1, message: 'Should call create() first before saving'})
+    else
+      super(@)
+
+  destroy: ->
+    super(@).then(=>
+      Weaver.getCoreManager().deleteProject(@id())
+    )
 
   @list: ->
-    Weaver.getCoreManager().listProjects().then((res) ->
-      ( new WeaverProject(i.name, i.id) for i in res )
+    Weaver.getCoreManager().listProjects().then((projects) ->
+      # Set unnamed for projects without name
+      p.name = 'Unnamed' for p in projects when not p.name?
+      projects
     )
-
-  @useProject: (prj) ->
-    new Promise((resolve, error) ->
-      db = Weaver.getProjectsDB()
-      db.clear()
-      db.insert(prj)
-      resolve()
-    )
-
-  @getActiveProject: ->
-    Weaver.getProjectsDB().findOne()
 
 Weaver.Project = WeaverProject
 module.exports = WeaverProject

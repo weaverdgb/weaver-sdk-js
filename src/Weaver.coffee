@@ -20,12 +20,15 @@ class Weaver
 
   getCoreManager: ->
     @coreManager
-    
+
   getUsersDB: ->
     @coreManager.getUsersDB()
 
-  getProjectsDB: ->
-    @coreManager.getProjectsDB()
+  useProject: (project) ->
+    @coreManager.currentProject = project
+
+  currentProject: ->
+    @coreManager.currentProject
 
 
 # Export
