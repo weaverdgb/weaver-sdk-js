@@ -29,7 +29,7 @@ describe 'Weaver User', ->
     )
     
 
-  it 'should fails on creates an application', ->
+  it 'should fails on creates an application when the user is not correct', ->
     weaverApplication = new Weaver.Application()
     Weaver.User.logIn('phoenix','phoenix')
     .then( ->
@@ -40,7 +40,7 @@ describe 'Weaver User', ->
       assert.equal(err.code, WeaverError.SESSION_MISSING)
     )
     
-  it 'should fails on creates an application when userName is not there', ->
+  it 'should fails on creates an application when the data is missing some attribute', ->
     weaverApplication = new Weaver.Application()
     Weaver.User.logIn('phoenix','phoenix')
     .then( ->

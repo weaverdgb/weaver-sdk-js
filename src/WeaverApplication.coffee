@@ -17,9 +17,10 @@ class WeaverApplication
     .then((accessToken) ->
       newApplication = {projectName,applicationName,accessToken}
       coreManager.createApplication(newApplication)
-    ).catch((err) ->
-      Promise.reject(err)
     )
+    # .catch((err) ->
+    #   Promise.reject(err)
+    # )
     
 # Export
 Weaver.Application  = WeaverApplication
