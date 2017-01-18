@@ -48,7 +48,14 @@ class WeaverUser extends WeaverNode
       userPayload = {user,accessToken}
       coreManager.signOff(userPayload)
     )
-    
+  
+  @list: (currentUsr, directory) ->
+    coreManager = Weaver.getCoreManager()
+    weaverUser = new WeaverUser()
+    weaverUser.current(currentUsr).then((accessToken) ->
+      usersList = {directory,accessToken}
+      coreManager.usersList(usersList)
+    )
     
   # Returns the "valid" token from current user, null if not loggedin
   current: (usr) ->

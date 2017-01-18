@@ -130,23 +130,45 @@ describe 'Weaver User', ->
     )
   
   it 'should fails trying to signUp with an existing userName', ->
-      Weaver.User.logIn('phoenix','phoenix')
-      .then(->
-        Weaver.User.signUp('phoenix','andromeda','andromeda@univer.se','andromedas','SYSUNITE')
-      ).then(->
-        Weaver.User.signUp('phoenix','andromeda','centaurus@univer.se','andromedas','SYSUNITE')
-      ).then(->
-        assert(false)
-      ).catch((error)->
-        assert.equal(error.code, WeaverError.DUPLICATE_VALUE)
-      )
+    Weaver.User.logIn('phoenix','phoenix')
+    .then(->
+      Weaver.User.signUp('phoenix','andromeda','andromeda@univer.se','andromedas','SYSUNITE')
+    ).then(->
+      Weaver.User.signUp('phoenix','andromeda','centaurus@univer.se','andromedas','SYSUNITE')
+    ).then(->
+      assert(false)
+    ).catch((error)->
+      assert.equal(error.code, WeaverError.DUPLICATE_VALUE)
+    )
   
   it 'should fails trying to signUp with an existing userEmail', ->
-      Weaver.User.signUp('phoenix','andromedas','andromedas@univer.se','andromedas','SYSUNITE')
-      .then(->
-        Weaver.User.signUp('phoenix','andro','andromedas@univer.se','andromedas','SYSUNITE')
-      ).then(->
-        assert(false)
-      ).catch((error)->
-        assert.equal(error.code, WeaverError.DUPLICATE_VALUE)
-      )
+    Weaver.User.signUp('phoenix','andromedas','andromedas@univer.se','andromedas','SYSUNITE')
+    .then(->
+      Weaver.User.signUp('phoenix','andro','andromedas@univer.se','andromedas','SYSUNITE')
+    ).then(->
+      assert(false)
+    ).catch((error)->
+      assert.equal(error.code, WeaverError.DUPLICATE_VALUE)
+    )
+
+  it 'should retrieve the list with users', ->
+    Weaver.User.list('phoenix','SYSUNITE')
+    .then((res) ->
+      res.should.contain({ userName: 'phoenix',userEmail: 'PLACEHOLDER@PLACE.HOLDER',defaultPassword: true,root: true })
+    )
+
+  it 'should fails trying to retrieve the list with users when the user is not loggedin', ->
+    Weaver.User.list('andromeda','SYSUNITE')
+    .then((res) ->
+      assert(false)
+    ).catch((error) ->
+      assert.equal(error.code, WeaverError.SESSION_MISSING)
+    )
+
+  it 'should fails trying to retrieve the list with users when the directory does not exits', ->
+    Weaver.User.list('phoenix','SYS')
+    .then((res) ->
+      assert(false)
+    ).catch((error) ->
+      assert.equal(error.code, WeaverError.OTHER_CAUSE)
+    )
