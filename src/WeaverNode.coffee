@@ -8,7 +8,7 @@ class WeaverNode
 
   constructor: (@nodeId) ->
     # Generate random id if not given
-    @nodeId     = cuid() if not @nodeId?
+    @nodeId = cuid() if not @nodeId?
 
     # Store all attributes and relations in these objects
     @attributes = {}
@@ -122,18 +122,18 @@ class WeaverNode
 
 
   # Save node and all values / relations and relation objects to server
-  save: (values) ->
+  save: (project) ->
     coreManager = Weaver.getCoreManager()
-    coreManager.executeOperations(@_collectPendingWrites()).then(=>
+    coreManager.executeOperations(@_collectPendingWrites(), project).then(=>
       @_clearPendingWrites()
       @
     )
 
 
   # Removes node
-  destroy: ->
+  destroy: (project) ->
     coreManager = Weaver.getCoreManager()
-    coreManager.executeOperations([Operation.Node(@).destroy()]).then(=>
+    coreManager.executeOperations([Operation.Node(@).destroy()], project).then(=>
       @destroyed = true
       @saved = false
       undefined

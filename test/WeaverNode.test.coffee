@@ -2,13 +2,13 @@ require("./test-suite")()
 
 cuid        = require('cuid')
 Weaver      = require('./../src/Weaver')
-WeaverError = require('./../../weaver-commons-js/src/WeaverError')
+WeaverError = require('weaver-commons').WeaverError
 
 require('./../src/WeaverNode')  # This preloading will be an issue
 
 describe 'WeaverNode test', ->
 
-  before (done) ->
+  before ->
     Weaver.initialize(WEAVER_ADDRESS).then(->
 
       # 1. Authenticate
@@ -16,25 +16,19 @@ describe 'WeaverNode test', ->
       # 3. Use that project with Weaver.useProject(project)
 
       wipe()
-    ).then(->
-      done();
     )
-    return
 
 
-  it 'should create a new node', (done) ->
+  it 'should create a new node', ->
     node = new Weaver.Node()
 
     node.save().then((node) ->
       Weaver.Node.load(node.id())
     ).then((loadedNode) ->
       assert.equal(loadedNode.id(), node.id())
-      done()
     )
-    return
 
-
-  it 'should remove a node', (done) ->
+  it 'should remove a node', ->
     node = new Weaver.Node()
 
     node.save().then((node) ->
@@ -43,12 +37,9 @@ describe 'WeaverNode test', ->
       Weaver.Node.load(node.id())
     ).catch((error) ->
       assert.equal(error.code, WeaverError.NODE_NOT_FOUND)
-      done()
     )
-    return
 
-
-  it 'should set a new string attribute', (done) ->
+  it 'should set a new string attribute', ->
     node = new Weaver.Node()
 
     node.save().then((node) ->
@@ -58,12 +49,9 @@ describe 'WeaverNode test', ->
       Weaver.Node.load(node.id())
     ).then((loadedNode) ->
       assert.equal(loadedNode.get('name'), 'Foo')
-      done()
     )
-    return
 
-
-  it 'should set a new boolean attribute', (done) ->
+  it 'should set a new boolean attribute', ->
     node = new Weaver.Node()
     node.set('isBar', false)
 
@@ -71,12 +59,9 @@ describe 'WeaverNode test', ->
       Weaver.Node.load(node.id())
     ).then((loadedNode) ->
       assert.equal(loadedNode.get('isBar'), false)
-      done()
     )
-    return
 
-
-  it 'should set a new number attribute', (done) ->
+  it 'should set a new number attribute', ->
     node = new Weaver.Node()
     node.set('length', 3)
 
@@ -84,12 +69,9 @@ describe 'WeaverNode test', ->
       Weaver.Node.load(node.id())
     ).then((loadedNode) ->
       assert.equal(loadedNode.get('length'), 3)
-      done()
     )
-    return
 
-
-  it 'should set a new number double attribute', (done) ->
+  it 'should set a new number double attribute', ->
     node = new Weaver.Node()
     node.set('halved', 1.5)
 
@@ -97,12 +79,9 @@ describe 'WeaverNode test', ->
       Weaver.Node.load(node.id())
     ).then((loadedNode) ->
       assert.equal(loadedNode.get('halved'), 1.5)
-      done()
     )
-    return
 
-
-  it 'should unset an attribute', (done) ->
+  it 'should unset an attribute', ->
     node = new Weaver.Node()
 
     node.save().then((node) ->
@@ -114,12 +93,9 @@ describe 'WeaverNode test', ->
       node.save()
     ).then((loadedNode) ->
       assert.equal(loadedNode.get('name'), undefined)
-      done()
     )
-    return
 
-
-  it 'should add a new relation', (done) ->
+  it 'should add a new relation', ->
     foo = new Weaver.Node()
     bar = new Weaver.Node()
     foo.relation('comesBefore').add(bar)
@@ -128,12 +104,9 @@ describe 'WeaverNode test', ->
       Weaver.Node.load(foo.id())
     ).then((loadedNode) ->
       assert.isDefined(loadedNode.relation('comesBefore').nodes[bar.id()])
-      done()
     )
-    return
 
-
-  it 'should remove a relation', (done) ->
+  it 'should remove a relation', ->
     foo = new Weaver.Node()
     bar = new Weaver.Node()
     foo.relation('comesBefore').add(bar)
@@ -148,12 +121,9 @@ describe 'WeaverNode test', ->
     ).then((loadedNode) ->
       relations = (k for k of loadedNode.relations)
       assert.lengthOf(relations, 0)
-      done()
     )
-    return
 
-
-  it 'should set an existing attribute with new value', (done) ->
+  it 'should set an existing attribute with new value', ->
     node = new Weaver.Node()
     node.set('name', 'Foo')
 
@@ -164,30 +134,21 @@ describe 'WeaverNode test', ->
       Weaver.Node.load(node.id())
     ).then((loadedNode) ->
       assert.equal(loadedNode.get('name'), 'Bar')
-      done()
     )
-    return
 
-
-  it 'should give an error if node already exists', (done) ->
+  it 'should give an error if node already exists', ->
     node = new Weaver.Node('a')
 
     node.save().then().catch((error) ->
       assert.equal(error.code, WeaverError.NODE_ALREADY_EXISTS)
     )
-    done()
-    return
 
-
-  it 'should give an error if node does not exists', (done) ->
+  it 'should give an error if node does not exists', ->
     Weaver.Node.load(cuid()).then().catch((error) ->
       assert.equal(error.code, WeaverError.NODE_NOT_FOUND)
-      done()
     )
-    return
 
-
-  it 'should not blow up when saving in circular chain', (done) ->
+  it 'should not blow up when saving in circular chain', ->
     a = new Weaver.Node()
     b = new Weaver.Node()
     c = new Weaver.Node()
@@ -196,7 +157,4 @@ describe 'WeaverNode test', ->
     b.relation('to').add(c)
     c.relation('to').add(a)
 
-    a.save().then(->
-      done()
-    )
-    return
+    a.save()

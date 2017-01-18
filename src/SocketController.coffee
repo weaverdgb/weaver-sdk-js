@@ -31,26 +31,17 @@ class SocketController
 
   write: (operations) ->
     @emit("write", operations)
-    
+
   logIn: (credentials) ->
     @emit("logIn",credentials)
-    
+
   signUp: (newUserPayload) ->
     @emit("signUp",newUserPayload)
-  
+
   signOff: (userPayload) ->
     @emit("signOff",userPayload)
-    
+
   permission: (userPayload) ->
     @emit("permissions",userPayload)
-
-  listProjects: ->
-    @emit("project")
-
-  createProject: (project) ->
-    @POST("project.create", {name: project.name})
-
-  deleteProject: (project) ->
-    @POST("project.delete", {id: project.id})
 
 module.exports = SocketController
