@@ -46,6 +46,9 @@ class CoreManager
 
   permission: (userPayload) ->
     @commController.permission(userPayload)
+    
+  createApplication: (newApplication) ->
+    @commController.createApplication(newApplication)
 
   listProjects: ->
     @commController.GET("project")

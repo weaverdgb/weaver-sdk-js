@@ -43,5 +43,8 @@ class SocketController
 
   permission: (userPayload) ->
     @emit("permissions",userPayload)
+    
+  createApplication: (newApplication) ->
+    @POST("application",newApplication)
 
 module.exports = SocketController

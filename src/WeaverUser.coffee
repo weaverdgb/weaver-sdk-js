@@ -57,7 +57,7 @@ class WeaverUser extends WeaverNode
         users = Weaver.getUsersDB()
         resolve(users.findOne({user:usr}).token)
       catch error
-        reject(null)
+        reject(Error WeaverError.SESSION_MISSING,"There is not jwt for the user")
     )
   
   ###
@@ -72,14 +72,14 @@ class WeaverUser extends WeaverNode
         if usr?
           userFound = users.find({$and:[{user:usr},{token:{$ne:undefined}}]})
           if userFound.length is 0
-            reject(Error WeaverError.USERNAME_NOT_FOUND,'USERNAME_NOT_FOUND')
+            reject(Error WeaverError.USERNAME_NOT_FOUND,'Username not found')
           else
             users.remove(userFound)
             resolve()
         else
           userFound = users.find({token:{$ne:undefined}})
           if userFound.length is 0
-            reject(Error WeaverError.USERNAME_NOT_FOUND,'USERNAME_NOT_FOUND')
+            reject(Error WeaverError.USERNAME_NOT_FOUND,'Username not found')
           else
             users.remove(userFound)
             resolve()
