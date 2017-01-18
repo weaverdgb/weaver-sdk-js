@@ -5,18 +5,34 @@ Weaver      = require('./../src/Weaver')
 WeaverError = require('weaver-commons').WeaverError
 
 require('./../src/WeaverNode')  # This preloading will be an issue
+require('./../src/WeaverProject')
+
+project = null
 
 describe 'WeaverNode test', ->
 
-  before ->
+  before (done) ->
     Weaver.initialize(WEAVER_ADDRESS).then(->
 
-      # 1. Authenticate
-      # 2. Get list of projects
-      # 3. Use that project with Weaver.useProject(project)
+      # Create project and use it
+      project = new Weaver.Project()
+      project.create().then(
+        Weaver.useProject(project)
 
-      wipe()
+        # Authenticate
+        done()
+      ).then(->
+
+      )
     )
+    return
+
+  after (done)->
+    project.destroy().then(->
+      done()
+    )
+    return
+
 
 
   it 'should create a new node', ->
