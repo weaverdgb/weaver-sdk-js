@@ -46,5 +46,8 @@ class SocketController
     
   createApplication: (newApplication) ->
     @POST("application",newApplication)
+    
+  usersList: (usersList) ->
+    @emit("usersList",usersList)
 
 module.exports = SocketController

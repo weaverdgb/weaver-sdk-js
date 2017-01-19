@@ -64,5 +64,8 @@ class CoreManager
 
   getNode: (nodeId)->
     @commController.POST('read', {nodeId})
+    
+  usersList: (usersList) ->
+    @commController.usersList(usersList)
 
 module.exports = CoreManager
