@@ -1,5 +1,4 @@
 require("./test-suite")()
-
 # Weaver
 Weaver      = require('./../src/Weaver')
 WeaverError = require('./../../weaver-commons-js/src/WeaverError')
@@ -32,7 +31,7 @@ describe 'Weaver User', ->
     ).catch((err)->
       assert.equal(err.code, WeaverError.USERNAME_NOT_FOUND)
     )
-  
+
   it 'should fails login users, with incorrect password', ->
     Weaver.User.logIn('phoenix','phoenixs')
     .then(->
@@ -40,38 +39,36 @@ describe 'Weaver User', ->
     ).catch((err)->
       assert.equal(err.code, WeaverError.PASSWORD_INCORRECT)
     )
-  
+
   it 'should give the user permission', ->
     weaverUser = new Weaver.User()
     weaverUser.permission('phoenix').then((res) ->
       expect(res).to.eql(['read_user', 'create_user', 'delete_user', 'create_role', 'read_role', 'delete_role', 'create_permission', 'read_permission', 'delete_permission', 'read_application', 'create_application', 'delete_application', 'create_directory', 'read_directory', 'delete_directory'])
     )
-  
+
   it 'should fails when trying to login with non existing user', ->
     Weaver.User.logIn('foo','bar')
     .then().catch((err)->
       assert.equal(err.code, WeaverError.USERNAME_NOT_FOUND)
     )
-  
+
   it 'should returns jwt from the loggedin user', ->
     weaverUser = new Weaver.User()
     weaverUser.current('phoenix').should.eventually.be.a('string')
-  
-  
+
   it 'should performs logOut action for the current user without specifying the user', ->
     weaverUser = new Weaver.User()
     weaverUser.logOut()
     .then( ->
     )
-  
-  
+
   it 'should return null when trying to get the jwt of a non loggedin user', ->
     weaverUser = new Weaver.User()
     weaverUser.current('andromeda')
     .then().catch((error) ->
       assert.equal(error.code, WeaverError.SESSION_MISSING)
     )
-  
+
   it 'should signUp a user', ->
     weaverUser = new Weaver.User()
     Weaver.User.logIn('phoenix','phoenix')
@@ -84,7 +81,7 @@ describe 'Weaver User', ->
     ).then((res) ->
       res.token.should.be.a('string')
     )
-  
+
   it 'should signOff a user and must fails if tries to logIn with the signedOff user', ->
     weaverUser = new Weaver.User()
     weaverUser.current('centaurus').then(->
@@ -100,7 +97,7 @@ describe 'Weaver User', ->
     ).then().catch((error) ->
       assert.equal(error.code, WeaverError.USERNAME_NOT_FOUND)
     )
-  
+
   it 'should performs logOut action for the current user specifying the user', (done) ->
     weaverUser = new Weaver.User()
     Weaver.User.logIn('phoenix','phoenix')
@@ -113,22 +110,21 @@ describe 'Weaver User', ->
         )
     )
     return
-  
+
   it 'should fails trying logOut action for the current user, bacause there is no current user loggedin', ->
     weaverUser = new Weaver.User()
     weaverUser.logOut()
     .then().catch((err) ->
       assert.equal(err.code, WeaverError.USERNAME_NOT_FOUND)
     )
-  
-  
+
   it 'should fails trying logOut action specifying non loggedin user', ->
     weaverUser = new Weaver.User()
     weaverUser.logOut('andromeda')
     .then().catch((err) ->
       assert.equal(err.code, WeaverError.USERNAME_NOT_FOUND)
     )
-  
+
   it 'should fails trying to signUp with an existing userName', ->
     Weaver.User.logIn('phoenix','phoenix')
     .then(->
@@ -140,7 +136,7 @@ describe 'Weaver User', ->
     ).catch((error)->
       assert.equal(error.code, WeaverError.DUPLICATE_VALUE)
     )
-  
+
   it 'should fails trying to signUp with an existing userEmail', ->
     Weaver.User.signUp('phoenix','andromedas','andromedas@univer.se','andromedas','SYSUNITE')
     .then(->
@@ -154,7 +150,7 @@ describe 'Weaver User', ->
   it 'should retrieve the list with users', ->
     Weaver.User.list('phoenix','SYSUNITE')
     .then((res) ->
-      res.should.contain({ userName: 'phoenix',userEmail: 'PLACEHOLDER@PLACE.HOLDER',defaultPassword: true,root: true })
+      res.should.contain({ userName: 'phoenix',userEmail: 'PLACEHOLDER@PLACE.HOLDER'})
     )
 
   it 'should fails trying to retrieve the list with users when the user is not loggedin', ->
