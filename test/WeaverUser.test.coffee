@@ -1,9 +1,6 @@
 require("./test-suite")()
-# Weaver
-Weaver      = require('./../src/Weaver')
-WeaverError = require('./../../weaver-commons-js/src/WeaverError')
-require('./../src/WeaverNode')  # This preloading will be an issue
-require('./../src/WeaverUser')
+
+Weaver = require('./../src/Weaver')
 
 describe 'Weaver User', ->
   this.timeout(2000)
@@ -29,7 +26,7 @@ describe 'Weaver User', ->
     .then(->
       assert(false)
     ).catch((err)->
-      assert.equal(err.code, WeaverError.USERNAME_NOT_FOUND)
+      assert.equal(err.code, Weaver.Error.USERNAME_NOT_FOUND)
     )
 
   it 'should fails login users, with incorrect password', ->
@@ -37,7 +34,7 @@ describe 'Weaver User', ->
     .then(->
       assert(false)
     ).catch((err)->
-      assert.equal(err.code, WeaverError.PASSWORD_INCORRECT)
+      assert.equal(err.code, Weaver.Error.PASSWORD_INCORRECT)
     )
 
   it 'should give the user permission', ->
@@ -49,7 +46,7 @@ describe 'Weaver User', ->
   it 'should fails when trying to login with non existing user', ->
     Weaver.User.logIn('foo','bar')
     .then().catch((err)->
-      assert.equal(err.code, WeaverError.USERNAME_NOT_FOUND)
+      assert.equal(err.code, Weaver.Error.USERNAME_NOT_FOUND)
     )
 
   it 'should returns jwt from the loggedin user', ->
@@ -66,7 +63,7 @@ describe 'Weaver User', ->
     weaverUser = new Weaver.User()
     weaverUser.current('andromeda')
     .then().catch((error) ->
-      assert.equal(error.code, WeaverError.SESSION_MISSING)
+      assert.equal(error.code, Weaver.Error.SESSION_MISSING)
     )
 
   it 'should signUp a user', ->
@@ -95,7 +92,7 @@ describe 'Weaver User', ->
     ).then(->
       Weaver.User.logIn('centaurus','centaurus')
     ).then().catch((error) ->
-      assert.equal(error.code, WeaverError.USERNAME_NOT_FOUND)
+      assert.equal(error.code, Weaver.Error.USERNAME_NOT_FOUND)
     )
 
   it 'should performs logOut action for the current user specifying the user', (done) ->
@@ -115,14 +112,14 @@ describe 'Weaver User', ->
     weaverUser = new Weaver.User()
     weaverUser.logOut()
     .then().catch((err) ->
-      assert.equal(err.code, WeaverError.USERNAME_NOT_FOUND)
+      assert.equal(err.code, Weaver.Error.USERNAME_NOT_FOUND)
     )
 
   it 'should fails trying logOut action specifying non loggedin user', ->
     weaverUser = new Weaver.User()
     weaverUser.logOut('andromeda')
     .then().catch((err) ->
-      assert.equal(err.code, WeaverError.USERNAME_NOT_FOUND)
+      assert.equal(err.code, Weaver.Error.USERNAME_NOT_FOUND)
     )
 
   it 'should fails trying to signUp with an existing userName', ->
@@ -134,7 +131,7 @@ describe 'Weaver User', ->
     ).then(->
       assert(false)
     ).catch((error)->
-      assert.equal(error.code, WeaverError.DUPLICATE_VALUE)
+      assert.equal(error.code, Weaver.Error.DUPLICATE_VALUE)
     )
 
   it 'should fails trying to signUp with an existing userEmail', ->
@@ -144,7 +141,7 @@ describe 'Weaver User', ->
     ).then(->
       assert(false)
     ).catch((error)->
-      assert.equal(error.code, WeaverError.DUPLICATE_VALUE)
+      assert.equal(error.code, Weaver.Error.DUPLICATE_VALUE)
     )
 
   it 'should retrieve the list with users', ->
@@ -158,7 +155,7 @@ describe 'Weaver User', ->
     .then((res) ->
       assert(false)
     ).catch((error) ->
-      assert.equal(error.code, WeaverError.SESSION_MISSING)
+      assert.equal(error.code, Weaver.Error.SESSION_MISSING)
     )
 
   it 'should fails trying to retrieve the list with users when the directory does not exits', ->
@@ -166,5 +163,5 @@ describe 'Weaver User', ->
     .then((res) ->
       assert(false)
     ).catch((error) ->
-      assert.equal(error.code, WeaverError.OTHER_CAUSE)
+      assert.equal(error.code, Weaver.Error.OTHER_CAUSE)
     )

@@ -7,10 +7,10 @@ WeaverError  = require('weaver-commons').WeaverError
 WeaverNode   = require('./WeaverNode')
 
 class WeaverUser extends WeaverNode
-  
+
   constructor: (@email, @username, @password) ->
     @emailVerified = false
-    
+
   @logIn: (user, password) ->
     credentials = {user,password}
     coreManager = Weaver.getCoreManager()
@@ -22,7 +22,7 @@ class WeaverUser extends WeaverNode
       catch error
       res
     )
-    
+
   permission: (user) ->
     coreManager = Weaver.getCoreManager()
     weaverUser = new WeaverUser()
@@ -30,7 +30,7 @@ class WeaverUser extends WeaverNode
       userPayload = {user,accessToken}
       coreManager.permission(userPayload)
     )
-  
+
   @signUp: (currentUsr,userName,userEmail,userPassword,directoryName) ->
     newUserCredentials = {userName,userEmail,userPassword,directoryName}
     coreManager = Weaver.getCoreManager()
@@ -39,8 +39,8 @@ class WeaverUser extends WeaverNode
       newUserPayload = {newUserCredentials,accessToken}
       coreManager.signUp(newUserPayload)
     )
-    
-  
+
+
   @signOff: (currentUsr, user) ->
     coreManager = Weaver.getCoreManager()
     weaverUser = new WeaverUser()
@@ -48,7 +48,7 @@ class WeaverUser extends WeaverNode
       userPayload = {user,accessToken}
       coreManager.signOff(userPayload)
     )
-  
+
   @list: (currentUsr, directory) ->
     coreManager = Weaver.getCoreManager()
     weaverUser = new WeaverUser()
@@ -56,7 +56,7 @@ class WeaverUser extends WeaverNode
       usersList = {directory,accessToken}
       coreManager.usersList(usersList)
     )
-    
+
   # Returns the "valid" token from current user, null if not loggedin
   current: (usr) ->
     new Promise((resolve, reject) =>
@@ -66,12 +66,12 @@ class WeaverUser extends WeaverNode
       catch error
         reject(Error WeaverError.SESSION_MISSING,"There is not jwt for the user")
     )
-  
+
   ###
   # log out action, will remove the jwt at the current user
   # passing a user is optional
   ###
-  
+
   logOut: (usr) ->
     new Promise((resolve, reject) =>
       try
@@ -92,11 +92,9 @@ class WeaverUser extends WeaverNode
             resolve()
       catch error
         reject(error)
-          
-    )
-    
-    
-# Export
-Weaver.User    = WeaverUser
-module.exports = WeaverUser
 
+    )
+
+
+# Export
+module.exports = WeaverUser

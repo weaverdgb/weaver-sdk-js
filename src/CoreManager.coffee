@@ -1,33 +1,42 @@
 # Libs
+_                = require('lodash')
 io               = require('socket.io-client')
 cuid             = require('cuid')
 Promise          = require('bluebird')
 SocketController = require('./SocketController')
+LocalController  = require('./LocalEventController')
 loki             = require('lokijs')
 
 class CoreManager
 
-  constructor: (@address) ->
+  constructor: ->
     @db = new loki('weaver-sdk')
     @users = @db.addCollection('users')
     @currentProject = null
 
-  connect: ->
-    @commController = new SocketController(@address)
+  connect: (endpoint) ->
+    @commController = new SocketController(endpoint)
     @commController.connect()
+
+  local: (bus) ->
+    @commController = new LocalController(bus)
+    Promise.resolve()
 
   getCommController: ->
     @commController
 
-  executeOperations: (operations, project) ->
-    # Fallback to currentProject if project not given
-    project = @currentProject if not project?
+  _resolveTarget: (target) ->
+    # Fallback to currentProject if target not given
+    if not target? and not @currentProject?
+      return Promise.reject({code: -1, message:"Provide a target or select a project before saving"})
 
-    # If still undefined, raise an error
-    if not project?
-      Promise.reject({code: -1, message:"Select a project before saving"})
-    else
-      @commController.write({operations, project})
+    target = @currentProject.id() if not target?
+    Promise.resolve(target)
+
+  executeOperations: (operations, target) ->
+    @_resolveTarget(target).then((target) =>
+      @commController.POST('write', {operations, target})
+    )
 
   getUsersDB: ->
     @users
@@ -36,19 +45,19 @@ class CoreManager
     @projects
 
   logIn: (credentials) ->
-    @commController.logIn(credentials)
+    @commController.POST('logIn',credentials)
 
   signUp: (newUserPayload) ->
-    @commController.signUp(newUserPayload)
+    @commController.POST('signUp',newUserPayload)
 
   signOff: (userPayload) ->
-    @commController.signOff(userPayload)
+    @commController.POST('signOff',userPayload)
 
   permission: (userPayload) ->
-    @commController.permission(userPayload)
-    
+    @commController.POST('permission',userPayload)
+
   createApplication: (newApplication) ->
-    @commController.createApplication(newApplication)
+    @commController.POST('application',newApplication)
 
   listProjects: ->
     @commController.GET("project")
@@ -62,10 +71,24 @@ class CoreManager
   deleteProject: (id) ->
     @commController.POST("project.delete", {id})
 
-  getNode: (nodeId)->
-    @commController.POST('read', {nodeId})
-    
+  getNode: (nodeId, target)->
+    @_resolveTarget(target).then((target) =>
+      @commController.POST('read', {nodeId, target})
+    )
+
+  wipe: (target)->
+    @commController.POST('wipe', {target})
+
   usersList: (usersList) ->
-    @commController.usersList(usersList)
+    @commController.POST('usersList', usersList)
+
+  query: (query) ->
+    # Remove target
+    target = query.target
+    query  = _.omit(query, 'target')
+
+    @_resolveTarget(target).then((target) =>
+      @commController.POST("query", {query, target})
+    )
 
 module.exports = CoreManager

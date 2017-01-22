@@ -1,24 +1,6 @@
-require("./test-suite")()
+require("./test-suite")
 
-expect = require('chai').expect
-
-Weaver      = require('./../src/Weaver')
-WeaverError = require('./../../weaver-commons-js/src/WeaverError')
-require('./../src/WeaverProject')
-
-# To not wait long for project creation, set the retry timeout to low
-Weaver.Project.READY_RETRY_TIMEOUT = 5  # ms
-
-describe 'Weaver Project', (done) ->
-  before (done) ->
-    Weaver.initialize(WEAVER_ADDRESS)
-    .then(->
-      wipe()
-    ).then(->
-      done()
-    )
-    return
-
+describe 'WeaverProject Test', ->
 
   it 'should create projects with given id', (done) ->
     project = new Weaver.Project("test")
@@ -63,7 +45,7 @@ describe 'Weaver Project', (done) ->
     ).then(->
       Weaver.Project.load(test.id())
     ).catch((error) ->
-      assert.equal(error.code, WeaverError.NODE_NOT_FOUND)
+      assert.equal(error.code, Weaver.Error.NODE_NOT_FOUND)
       done()
     )
     return
@@ -79,16 +61,18 @@ describe 'Weaver Project', (done) ->
     ).then(->
       Weaver.Project.list()
     ).then((list) ->
-      expect(list.length).to.exist
-      expect(list[0].id).to.equal('a')
-      expect(list[0].name).to.equal('A')
-      expect(list[1].id).to.equal('b')
-      expect(list[1].name).to.equal('Unnamed')
+      expect(list.length).to.equal(3)
+
+      loadedA = p for p in list when p.id() is 'a'
+      loadedB = p for p in list when p.id() is 'b'
+
+      expect(loadedA.get("name")).to.equal('A')
+      expect(loadedB.get("name")).to.be.undefined
 
       Promise.all([a.destroy(), b.destroy()])
     ).then(->
       done()
-    )
+    ).catch((Err) -> console.log Err)
     return
 
 

@@ -7,10 +7,10 @@ WeaverError  = require('weaver-commons').WeaverError
 WeaverUser   = require('./WeaverUser')
 
 class WeaverApplication
-  
+
   constructor: () ->
     @weaverUser = new Weaver.User()
-    
+
   createApplication: (user,applicationName,projectName) ->
     coreManager = Weaver.getCoreManager()
     @weaverUser.current(user)
@@ -18,8 +18,7 @@ class WeaverApplication
       newApplication = {projectName,applicationName,accessToken}
       coreManager.createApplication(newApplication)
     )
-    
+
 # Export
-Weaver.Application  = WeaverApplication
 module.exports = WeaverApplication
 
