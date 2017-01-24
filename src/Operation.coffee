@@ -1,4 +1,4 @@
-Action = require('weaver-commons').WriteOperation.Action
+Action = require('./WriteOperation').Action
 
 NodeOperation = (node) ->
 

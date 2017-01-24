@@ -2,8 +2,8 @@
 cuid   = require('cuid')
 Weaver = require('./Weaver')
 loki   = require('lokijs')
-Error        = require('weaver-commons').Error
-WeaverError  = require('weaver-commons').WeaverError
+Error        = Weaver.LegacyError
+WeaverError  = Weaver.Error
 WeaverNode   = require('./WeaverNode')
 
 class WeaverUser extends WeaverNode

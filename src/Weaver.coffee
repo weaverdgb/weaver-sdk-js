@@ -13,17 +13,18 @@ class Weaver
     @_local      = false
 
   _registerClasses: ->
-    @Node       = require('./WeaverNode')
-    @Relation   = require('./WeaverRelation')
-    @SystemNode = require('./WeaverSystemNode')
-    @Project    = require('./WeaverProject')
-    @Query      = require('./WeaverQuery')
-    @Relation   = require('./WeaverRelation')
-    @ACL        = require('./WeaverACL')
-    @Role       = require('./WeaverRole')
-    @User       = require('./WeaverUser')
-    @File       = require('./WeaverFile')
-    @Error      = require('weaver-commons').WeaverError
+    @Node        = require('./WeaverNode')
+    @Relation    = require('./WeaverRelation')
+    @SystemNode  = require('./WeaverSystemNode')
+    @Project     = require('./WeaverProject')
+    @Query       = require('./WeaverQuery')
+    @Relation    = require('./WeaverRelation')
+    @ACL         = require('./WeaverACL')
+    @Role        = require('./WeaverRole')
+    @User        = require('./WeaverUser')
+    @File        = require('./WeaverFile')
+    @Error       = require('./WeaverError')
+    @LegacyError = require('./Error')         # TODO: Clean out in another PR
 
   version: ->
     require('../package.json').version
