@@ -1,18 +1,8 @@
-require("./test-suite")()
-
-Weaver = require('./../src/Weaver')
+require("./test-suite")
 
 describe 'Weaver User', ->
   this.timeout(2000)
 
-  before (done) ->
-    Weaver.initialize(WEAVER_ADDRESS)
-    .then(->
-      wipe()
-    ).then(->
-      done();
-    )
-    return
 
   it 'should login users, receiving a valid jwt', ->
     Weaver.User.logIn('phoenix','phoenix')
