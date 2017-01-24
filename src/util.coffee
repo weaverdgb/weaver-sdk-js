@@ -1,7 +1,19 @@
+typeShouldBe = (type) -> (val) ->
+  Object.prototype.toString.call(val) is type
+
 module.exports =
 
-isObject: (object) ->
-  Object.prototype.toString.call(object) is '[object Object]'
+  isString: (val) ->
+    typeShouldBe('[object String]')(val)
 
-isArray: (object) ->
-  Object.prototype.toString.call(object) is '[object Array]'
+  isNumber: (val) ->
+    typeShouldBe('[object Number]')(val)
+
+  isBoolean: (val) ->
+    typeShouldBe('[object Boolean]')(val)
+
+  isObject: (val) ->
+    typeShouldBe('[object Object]')(val)
+
+  isArray: (val) ->
+    typeShouldBe('[object Array]')(val)

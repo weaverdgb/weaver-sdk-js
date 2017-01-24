@@ -1,11 +1,7 @@
 require("./test-suite")()
 
 # Weaver
-Weaver      = require('./../src/Weaver')
-WeaverError = require('./../../weaver-commons-js/src/WeaverError')
-require('./../src/WeaverNode')  # This preloading will be an issue
-require('./../src/WeaverApplication')
-require('./../src/WeaverUser')
+Weaver = require('./../src/Weaver')
 
 describe 'Weaver User', ->
   this.timeout(2000)
@@ -27,7 +23,7 @@ describe 'Weaver User', ->
     ).then((res) ->
       assert.equal(res.success,'Document created')
     )
-    
+
 
   it 'should fails on creates an application when the user is not correct', ->
     weaverApplication = new Weaver.Application()
@@ -37,9 +33,9 @@ describe 'Weaver User', ->
     ).then( ->
       assert(false)
     ).catch((err) ->
-      assert.equal(err.code, WeaverError.SESSION_MISSING)
+      assert.equal(err.code, Weaver.Error.SESSION_MISSING)
     )
-    
+
   it 'should fails on creates an application when the data is missing some attribute', ->
     weaverApplication = new Weaver.Application()
     Weaver.User.logIn('phoenix','phoenix')
@@ -48,6 +44,5 @@ describe 'Weaver User', ->
     ).then( ->
       assert(false)
     ).catch((err) ->
-      assert.equal(err.code,WeaverError.DATATYPE_INVALID)
+      assert.equal(err.code,Weaver.Error.DATATYPE_INVALID)
     )
-    

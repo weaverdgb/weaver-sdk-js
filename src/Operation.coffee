@@ -9,7 +9,7 @@ NodeOperation = (node) ->
     {action: Action.REMOVE_NODE, id: node.id()}
 
   setAttribute: (key, value, datatype) ->
-    {action: Action.UPDATE_ATTRIBUTE, id: node.id(), key, value, datatype}
+    {action: Action.CREATE_ATTRIBUTE, id: node.id(), key, value, datatype}
 
   unsetAttribute: (key) ->
     {action: Action.REMOVE_ATTRIBUTE, id: node.id(), key}

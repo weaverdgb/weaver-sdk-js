@@ -1,39 +1,6 @@
-require("./test-suite")()
-
-cuid        = require('cuid')
-Weaver      = require('./../src/Weaver')
-WeaverError = require('weaver-commons').WeaverError
-
-require('./../src/WeaverNode')  # This preloading will be an issue
-require('./../src/WeaverProject')
-
-project = null
+require("./test-suite")
 
 describe 'WeaverNode test', ->
-
-  before (done) ->
-    Weaver.initialize(WEAVER_ADDRESS).then(->
-
-      # Create project and use it
-      project = new Weaver.Project()
-      project.create().then(
-        Weaver.useProject(project)
-
-        # Authenticate
-        done()
-      ).then(->
-
-      )
-    )
-    return
-
-  after (done)->
-    project.destroy().then(->
-      done()
-    )
-    return
-
-
 
   it 'should create a new node', ->
     node = new Weaver.Node()
@@ -42,7 +9,7 @@ describe 'WeaverNode test', ->
       Weaver.Node.load(node.id())
     ).then((loadedNode) ->
       assert.equal(loadedNode.id(), node.id())
-    )
+    ).catch((Err) -> console.log(Err))
 
   it 'should remove a node', ->
     node = new Weaver.Node()
@@ -52,7 +19,7 @@ describe 'WeaverNode test', ->
     ).then(->
       Weaver.Node.load(node.id())
     ).catch((error) ->
-      assert.equal(error.code, WeaverError.NODE_NOT_FOUND)
+      assert.equal(error.code, Weaver.Error.NODE_NOT_FOUND)
     )
 
   it 'should set a new string attribute', ->
@@ -156,12 +123,12 @@ describe 'WeaverNode test', ->
     node = new Weaver.Node('a')
 
     node.save().then().catch((error) ->
-      assert.equal(error.code, WeaverError.NODE_ALREADY_EXISTS)
+      assert.equal(error.code, Weaver.Error.NODE_ALREADY_EXISTS)
     )
 
   it 'should give an error if node does not exists', ->
     Weaver.Node.load(cuid()).then().catch((error) ->
-      assert.equal(error.code, WeaverError.NODE_NOT_FOUND)
+      assert.equal(error.code, Weaver.Error.NODE_NOT_FOUND)
     )
 
   it 'should not blow up when saving in circular chain', ->

@@ -1,27 +1,71 @@
-module.exports = ->
-  chai = require('chai')
-  sinon = require('sinon')
-  chaiAsPromised = require('chai-as-promised')
+# Libs
+Promise = require('bluebird')
+config  = require('config')
+cuid    = require('cuid')
+chai    = require('chai')
+sinon   = require('sinon')
+Weaver  = require('../src/Weaver')
 
-  # Init
-  global.Promise = require('bluebird')
+# Use chai as promised
+chai.use(require('chai-as-promised'));
 
+# You need to call chai.should() before being able to wrap everything with should
+chai.should();
 
-  chai.use(chaiAsPromised);
-  # You need to call chai.should() before being able to wrap everything with should
-  chai.should();
+# Expose global fields (within all tests)
+global.Promise = Promise
+global.Weaver  = Weaver
+global.cuid    = cuid
+global.expect  = chai.expect
+global.assert  = chai.assert
+global.should  = chai.should
+global.sinon   = sinon
 
-  # Make Chai global (within all tests)
-  global.expect = chai.expect
-  global.assert = chai.assert
-  global.should = chai.should
+# Local vars
+project = null
+WEAVER_ENDPOINT = config.get("weaver.endpoint")
 
-  global.sinon = sinon
+wipe = (systemWipe) ->
+  coreManager = Weaver.getCoreManager()
+  Promise.all([
+    coreManager.wipe("$SYSTEM") if systemWipe
+    coreManager.wipe(project.id()) if project?
+  ])
 
-  # TODO: Use config
-  global.WEAVER_ADDRESS = process.env.WEAVER_ADDRESS or 'http://localhost:9487'
-  global.ADMIN_ADDRESS  = process.env.ADMIN_ADDRESS  or 'http://localhost:8500'
+# Runs before all tests
+before (done) ->
+  Weaver.connect(WEAVER_ENDPOINT)
+  .then(->
+    wipe(true)
+  ).then(->
+    # To not wait long for project creation, set the retry timeout to low
+    Weaver.Project.READY_RETRY_TIMEOUT = 1  # ms
 
+    # Create project and use it
+    project = new Weaver.Project("testProject")
+    project.create()
+  ).then(->
+    Weaver.useProject(project)
 
-  global.wipe = ->
-    # Weaver.getCoreManager().getCommController().GET(ADMIN_ADDRESS, 'wipe');
+    # Authenticate
+    done()
+  )
+  return
+
+# Runs after all tests
+after (done) ->
+  project.destroy().then(->
+    wipe(true)
+  ).then(->
+    done()
+  )
+  return
+
+# Runs before each test
+beforeEach (done)->
+  done()
+  return
+
+# Runs after each test
+afterEach ->
+  wipe()

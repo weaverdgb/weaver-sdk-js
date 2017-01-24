@@ -1,8 +1,6 @@
-cuid           = require('cuid')
-Weaver         = require('./Weaver')
-WeaverRelation = require('./WeaverRelation')
-Operation      = require('./Operation')
-isArray        = require('./util').isArray
+cuid       = require('cuid')
+Weaver     = require('./Weaver')
+Operation  = require('./Operation')
 
 class WeaverNode
 
@@ -19,40 +17,26 @@ class WeaverNode
 
 
   # Node loading from server
-  @load: (nodeId) ->
-    coreManager = Weaver.getCoreManager()
-    coreManager.getNode(nodeId).then((serverNode) ->
+  @load: (nodeId, target) ->
+    new Weaver.Query(target).get(nodeId)
 
-      # Create node and transfer attributes
-      node = new WeaverNode(nodeId)
-      node.createdOn = serverNode.createdOn
+  _loadFromQuery: (object) ->
+    @nodeId     = object.nodeId
+    @attributes = object.attributes
 
-      # Make an tuple array of values to easily filter out relations and attributes
-      tuples = ({key, value} for key, value of serverNode)
+    for key, targetNodes of object.relations
+      for node in targetNodes
+        @relation(key).add(new WeaverNode()._loadFromQuery(node))
 
-      # Add attributes
-      attributes =  tuples.filter((t) ->
-        not isArray(t.value) and t.key isnt 'createdOn' and t.key isnt 'id'
-      )
-      node.attributes[t.key] = t.value for t in attributes
-
-      # Add relations
-      relations = tuples.filter((t) -> isArray(t.value))
-
-      for r in relations
-        for n in r.value
-          node.relation(r.key).add(WeaverNode.get(n.id))
-
-      # Clear all currently made pending writes since node is loaded of server
-      node._clearPendingWrites()
-      node
-    )
+    @._clearPendingWrites()
+    @
 
 
   # Node creating for in queries
-  @get: (nodeId) ->
-    node = new WeaverNode(nodeId)
-    node.pendingWrites = []
+  @get: (nodeId, Constructor) ->
+    Constructor = WeaverNode if not Constructor?
+    node = new Constructor(nodeId)
+    node._clearPendingWrites()
     node
 
 
@@ -71,6 +55,7 @@ class WeaverNode
     @attributes[field] = value
 
     # Save change as pending
+    @pendingWrites.push(Operation.Node(@).unsetAttribute(field))
     @pendingWrites.push(Operation.Node(@).setAttribute(field, value))
 
 
@@ -84,7 +69,7 @@ class WeaverNode
 
   # Create a new Relation
   relation: (key) ->
-    @relations[key] = new WeaverRelation(@, key) if not @relations[key]?
+    @relations[key] = new Weaver.Relation(@, key) if not @relations[key]?
     @relations[key]
 
 
@@ -139,7 +124,10 @@ class WeaverNode
       undefined
     )
 
+  #
+  setACL: (acl) ->
+    return
+
 
 # Export
-Weaver.Node    = WeaverNode
 module.exports = WeaverNode

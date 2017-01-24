@@ -1,7 +1,6 @@
 # Libs
-io             = require('socket.io-client')
-cuid           = require('cuid')
-Promise        = require('bluebird')
+io       = require('socket.io-client')
+Promise  = require('bluebird')
 
 class SocketController
 
@@ -28,26 +27,5 @@ class SocketController
 
   POST: (path, body) ->
     @emit(path, body)
-
-  write: (operations) ->
-    @emit("write", operations)
-
-  logIn: (credentials) ->
-    @emit("logIn",credentials)
-
-  signUp: (newUserPayload) ->
-    @emit("signUp",newUserPayload)
-
-  signOff: (userPayload) ->
-    @emit("signOff",userPayload)
-
-  permission: (userPayload) ->
-    @emit("permissions",userPayload)
-    
-  createApplication: (newApplication) ->
-    @POST("application",newApplication)
-    
-  usersList: (usersList) ->
-    @emit("usersList",usersList)
 
 module.exports = SocketController

@@ -4,19 +4,39 @@ Promise = require('bluebird')
 # Dependencies
 CoreManager = require('./CoreManager')
 
-# Exposes classes and injects Weaver into it
-expose: (name, Type) ->
-
 # Main class exposing all features
 class Weaver
-  Error: require('weaver-commons').WeaverError
+
+  constructor: ->
+    @coreManager = new CoreManager()
+    @_connected  = false
+    @_local      = false
+
+  _registerClasses: ->
+    @Node       = require('./WeaverNode')
+    @Relation   = require('./WeaverRelation')
+    @SystemNode = require('./WeaverSystemNode')
+    @Project    = require('./WeaverProject')
+    @Query      = require('./WeaverQuery')
+    @Relation   = require('./WeaverRelation')
+    @ACL        = require('./WeaverACL')
+    @Role       = require('./WeaverRole')
+    @User       = require('./WeaverUser')
+    @File       = require('./WeaverFile')
+    @Error      = require('weaver-commons').WeaverError
 
   version: ->
     require('../package.json').version
 
-  initialize: (@address) ->
-    @coreManager = new CoreManager(@address)
-    @coreManager.connect()
+  local: (bus) ->
+    @_registerClasses()
+    @_local = true
+    @coreManager.local(bus)
+
+  connect: (endpoint) ->
+    @_registerClasses()
+    @_connected = true
+    @coreManager.connect(endpoint)
 
   getCoreManager: ->
     @coreManager
