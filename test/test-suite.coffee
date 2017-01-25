@@ -34,16 +34,22 @@ wipe = (systemWipe) ->
 
 # Runs before all tests
 before (done) ->
+  console.log WEAVER_ENDPOINT
   Weaver.connect(WEAVER_ENDPOINT)
   .then(->
+    console.log '=^^=|_0'
     wipe(true)
   ).then(->
+    console.log '=^^=|_1'
     # To not wait long for project creation, set the retry timeout to low
     Weaver.Project.READY_RETRY_TIMEOUT = 1  # ms
 
     # Create project and use it
     project = new Weaver.Project("testProject")
+    console.log '=^^=|_2'
     project.create()
+    
+    console.log '=^^=|_3'
   ).then(->
     Weaver.useProject(project)
 
