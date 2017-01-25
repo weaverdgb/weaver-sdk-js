@@ -4,16 +4,16 @@ describe 'WeaverFile test', ->
 
   it 'should create a new file', ->
     weaverFile = new Weaver.File()
-    fileTemp = '/Users/char/temp/fortnightlyCheck.pdf'
-    weaverFile.saveFile(fileTemp, 'myPDF.pdf', 'area51').then((res) ->
+    fileTemp = '/Users/char/temp/pr.sh'
+    weaverFile.saveFile(fileTemp, 'pr.sh', 'area51').then((res) ->
       console.log res
       assert.equal(res,'OK')
     )
     
   it 'should retrieve a file', ->
     weaverFile = new Weaver.File()
-    pathTemp = '/Users/char/temp/myPDF.pdf'
-    weaverFile.getFile(pathTemp,'myPDF.pdf','area51').then((res) ->
+    pathTemp = '/Users/char/temp/myBASH.sh'
+    weaverFile.getFile(pathTemp,'pr.sh','area51').then((res) ->
       console.log res
     )
     

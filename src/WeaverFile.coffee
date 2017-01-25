@@ -32,10 +32,7 @@ class WeaverFile extends Weaver.SystemNode
     }
     coreManager.getFile(file)
     .then((buffer) ->
-      console.log buffer
       writeFile(path, buffer)
     )
-    
-    
 
 module.exports = WeaverFile
