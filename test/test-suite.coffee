@@ -1,10 +1,10 @@
 # Libs
-Promise = require('bluebird')
-config  = require('config')
-cuid    = require('cuid')
-chai    = require('chai')
-sinon   = require('sinon')
-Weaver  = require('../src/Weaver')
+Promise      = require('bluebird')
+config       = require('config')
+cuid         = require('cuid')
+chai         = require('chai')
+sinon        = require('sinon')
+Weaver       = require('../src/Weaver')
 
 # Use chai as promised
 chai.use(require('chai-as-promised'));
@@ -34,25 +34,19 @@ wipe = (systemWipe) ->
 
 # Runs before all tests
 before (done) ->
-  console.log WEAVER_ENDPOINT
   Weaver.connect(WEAVER_ENDPOINT)
   .then(->
-    console.log '=^^=|_0'
     wipe(true)
   ).then(->
-    console.log '=^^=|_1'
     # To not wait long for project creation, set the retry timeout to low
     Weaver.Project.READY_RETRY_TIMEOUT = 1  # ms
 
     # Create project and use it
     project = new Weaver.Project("testProject")
-    console.log '=^^=|_2'
     project.create()
     
-    console.log '=^^=|_3'
   ).then(->
     Weaver.useProject(project)
-
     # Authenticate
     done()
   )

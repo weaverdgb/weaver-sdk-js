@@ -1,43 +1,48 @@
 require("./test-suite")
+path = require('path')
 
 describe 'WeaverFile test', ->
 
   it 'should create a new file', ->
     weaverFile = new Weaver.File()
-    fileTemp = '/Users/char/temp/pr.sh'
-    weaverFile.saveFile(fileTemp, 'pr.sh', 'area51').then((res) ->
-      console.log res
-      assert.equal(res,'OK')
+    fileTemp = path.join(__dirname,'../icon.png')
+    weaverFile.saveFile(fileTemp, 'weaver-icon.png', 'area51').then((res) ->
+      assert.equal(res,'file uploaded ok')
     )
-    
+  
+  it 'should fails create a new file, because the file does not exits on local machine', ->
+    weaverFile = new Weaver.File()
+    fileTemp = '../foo.bar'
+    weaverFile.saveFile(fileTemp, 'foo.bar', 'area51').then((res) ->
+      assert(false)
+    ).catch((err) ->
+      assert.equal(err.code,Weaver.Error.FILE_NOT_EXISTS_ERROR)
+    )
+  
   it 'should retrieve a file', ->
     weaverFile = new Weaver.File()
-    pathTemp = '/Users/char/temp/myBASH.sh'
-    weaverFile.getFile(pathTemp,'pr.sh','area51').then((res) ->
-      console.log res
+    pathTemp = path.join(__dirname,'../tmp/weaver-icon.png')
+    weaverFile.getFile(pathTemp,'weaver-icon.png','area51').then((res) ->
+      assert.equal(res,pathTemp)
+    )
+  
+  
+  it 'should fails retrieving a file, because the file does not exits on server', ->
+    weaverFile = new Weaver.File()
+    pathTemp = path.join(__dirname,'../tmp/weaver-icon.png')
+    weaverFile.getFile(pathTemp,'foo.bar','area51')
+    .then((res) ->
+      assert(false)
+    ).catch((err) ->
+      assert.equal(err.code,Weaver.Error.FILE_NOT_EXISTS_ERROR)
     )
     
-
-  # it 'should create a new file by an upload form', ->
-    # fileUploadControl = $("#fileUpload")[0]
-    # if fileUploadControl.files.length > 0
-    #   file = fileUploadControl.files[0]
-    #   weaverFile = new Weaver.File(file)
-    #   # weaverFile.setFile(file)
-    #   weaverFile.save()
-
-  # Later this URL will contain some form of session to authorize with
-  # it 'should load a file by URL'.
-    # weaverFile = new Weaver.File()
-    # weaverFile.setBase64("V2VhdmVyIGlzIEF3ZXNvbWUh")
-    # weaverFile.save().then(->
-    #
-    #   # Assert URL
-    #   expect(weaverFile.url()).to.be.defined
-    #
-    #   Weaver.File.load(weaverFile.id())
-    # ).then((loadedFile) ->
-    #   expect(loadedFile.url()).to.be.defined
-    #
-    #   # Would be cool to somehow test that the file behind the URL is actually the encoded string
-    # )
+  it 'should fails retrieving a file, because the project does not exits on server', ->
+    weaverFile = new Weaver.File()
+    pathTemp = path.join(__dirname,'../tmp/weaver-icon.png')
+    weaverFile.getFile(pathTemp,'weaver-icon.png','fooBar')
+    .then((res) ->
+      assert(false)
+    ).catch((err) ->
+      assert.equal(err.code,Weaver.Error.FILE_NOT_EXISTS_ERROR)
+    )
