@@ -96,5 +96,8 @@ class CoreManager
     
   getFile: (file) ->
     @commController.POST('downloadFile',file)
+    
+  getFileByID: (file) ->
+    @commController.POST('downloadFileByID',file)
 
 module.exports = CoreManager
