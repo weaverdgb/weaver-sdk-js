@@ -44,8 +44,6 @@ class WeaverFile extends Weaver.SystemNode
         Promise.reject(Error WeaverError.FILE_NOT_EXISTS_ERROR,"The requested file #{fileName} can\'t be retrieved because #{project} does not exists")
       else
         writeFile(path, buffer)
-    ).catch((err) ->
-      Promise.reject(err)
     )
     
   getFileByID: (path, id, project) ->
@@ -62,8 +60,6 @@ class WeaverFile extends Weaver.SystemNode
         Promise.reject(Error WeaverError.FILE_NOT_EXISTS_ERROR,"The requested file #{id} can\'t be retrieved because #{project} does not exists")
       else
         writeFile(path, buffer)
-    ).catch((err) ->
-      Promise.reject(err)
     )
     
 module.exports = WeaverFile

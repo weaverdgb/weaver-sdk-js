@@ -1,5 +1,6 @@
 require("./test-suite")
 path = require('path')
+readFile = require('fs-readfile-promise')
 
 describe 'WeaverFile test', ->
   file = ''
@@ -23,9 +24,16 @@ describe 'WeaverFile test', ->
   
   it 'should retrieve a file by fileName', ->
     weaverFile = new Weaver.File()
-    pathTemp = path.join(__dirname,"../tmp/#{file}")
-    weaverFile.getFile(pathTemp,"#{file}",'area51').then((res) ->
-      assert.equal(res,pathTemp)
+    destFile = path.join(__dirname,"../tmp/#{file}")
+    originFile = path.join(__dirname,'../icon.png')
+    weaverFile.getFile(destFile,"#{file}",'area51')
+    .then((res) ->
+      readFile(res)
+    ).then((destBuff) ->
+      readFile(originFile)
+      .then((originBuff) ->
+        assert.equal(destBuff.toString(),originBuff.toString())
+      )
     )
   
   
@@ -52,8 +60,15 @@ describe 'WeaverFile test', ->
   it 'should retrieve a file by ID', ->
     weaverFile = new Weaver.File()
     pathTemp = path.join(__dirname,"../tmp/id-#{file}")
-    weaverFile.getFileByID(pathTemp,"#{file}".split('-')[0],'area51').then((res) ->
-      assert.equal(res,pathTemp)
+    originFile = path.join(__dirname,'../icon.png')
+    weaverFile.getFileByID(pathTemp,"#{file}".split('-')[0],'area51')
+    .then((res) ->
+      readFile(res)
+    ).then((destBuff) ->
+      readFile(originFile)
+      .then((originBuff) ->
+        assert.equal(destBuff.toString(),originBuff.toString())
+      )
     )
   
   it 'should fails retrieving a file by ID, because there is no file matching this ID', ->
