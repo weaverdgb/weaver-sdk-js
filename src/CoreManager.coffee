@@ -90,5 +90,14 @@ class CoreManager
     @_resolveTarget(target).then((target) =>
       @commController.POST("query", {query, target})
     )
+    
+  sendFile: (file) ->
+    @commController.POST('uploadFile', file)
+    
+  getFile: (file) ->
+    @commController.POST('downloadFile',file)
+    
+  getFileByID: (file) ->
+    @commController.POST('downloadFileByID',file)
 
 module.exports = CoreManager

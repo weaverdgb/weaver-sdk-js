@@ -1,10 +1,10 @@
 # Libs
-Promise = require('bluebird')
-config  = require('config')
-cuid    = require('cuid')
-chai    = require('chai')
-sinon   = require('sinon')
-Weaver  = require('../src/Weaver')
+Promise      = require('bluebird')
+config       = require('config')
+cuid         = require('cuid')
+chai         = require('chai')
+sinon        = require('sinon')
+Weaver       = require('../src/Weaver')
 
 # Use chai as promised
 chai.use(require('chai-as-promised'));
@@ -44,9 +44,9 @@ before (done) ->
     # Create project and use it
     project = new Weaver.Project("testProject")
     project.create()
+    
   ).then(->
     Weaver.useProject(project)
-
     # Authenticate
     done()
   )
