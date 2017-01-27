@@ -1,9 +1,9 @@
 Weaver           = require('./Weaver')
-readFile         = require('fs-readfile-promise')
 writeFile        = require('fs-writefile-promise')
 Error            = require('./Error')
 WeaverError      = require('./WeaverError')
 WeaverSystemNode = require('./WeaverSystemNode')
+readFile         = require('./readFile')
 
 class WeaverFile extends Weaver.SystemNode
 
@@ -61,5 +61,22 @@ class WeaverFile extends Weaver.SystemNode
       else
         writeFile(path, buffer)
     )
+    
+  deleteFile: (fileName, project) ->
+    coreManager = Weaver.getCoreManager()
+    file = {
+      fileName
+      target: project
+    }
+    coreManager.deleteFile(file)
+  
+  deleteFileByID: (id, project) ->
+    coreManager = Weaver.getCoreManager()
+    file = {
+      id
+      target: project
+    }
+    coreManager.deleteFileByID(file)
+    
     
 module.exports = WeaverFile
