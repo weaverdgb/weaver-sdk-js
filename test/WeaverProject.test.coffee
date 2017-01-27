@@ -61,7 +61,7 @@ describe 'WeaverProject Test', ->
     ).then(->
       Weaver.Project.list()
     ).then((list) ->
-      expect(list.length).to.equal(2)
+      expect(list.length).to.equal(3)
 
       loadedA = p for p in list when p.id() is 'a'
       loadedB = p for p in list when p.id() is 'b'
