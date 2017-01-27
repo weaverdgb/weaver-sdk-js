@@ -71,7 +71,6 @@ describe 'WeaverProject Test', ->
 
     ).then(->
       done()
-    ).catch((Err) -> console.log Err
     ).finally( ->
       Promise.all([a.destroy(), b.destroy()])
     )
