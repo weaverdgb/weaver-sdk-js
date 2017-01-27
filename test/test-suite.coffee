@@ -42,7 +42,7 @@ before (done) ->
     Weaver.Project.READY_RETRY_TIMEOUT = 1  # ms
 
     # Create project and use it
-    project = new Weaver.Project("testProject")
+    project = new Weaver.Project()
     project.create()
     
   ).then(->
