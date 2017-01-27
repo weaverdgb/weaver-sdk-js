@@ -56,15 +56,14 @@ describe 'WeaverFile test', ->
       assert.equal(res,pathTemp)
     )
   
-  # it 'should fails retrieving a file by ID, because there is no file matching this ID', ->
-  #   weaverFile = new Weaver.File()
-  #   pathTemp = path.join(__dirname,'../tmp/weaver-icon.png')
-  #   weaverFile.getFileByID(pathTemp,'f4k31d','area51')
-  #   .then((res) ->
-  #     assert(false)
-  #   ).catch((err) ->
-  #     console.log err
-  #     assert.equal(err.code,Weaver.Error.FILE_NOT_EXISTS_ERROR)
-  #   )
+  it 'should fails retrieving a file by ID, because there is no file matching this ID', ->
+    weaverFile = new Weaver.File()
+    pathTemp = path.join(__dirname,'../tmp/weaver-icon.png')
+    weaverFile.getFileByID(pathTemp,'f4k31d','area51')
+    .then((res) ->
+      assert(false)
+    ).catch((err) ->
+      assert.equal(err.code,Weaver.Error.FILE_NOT_EXISTS_ERROR)
+    )
     
   
