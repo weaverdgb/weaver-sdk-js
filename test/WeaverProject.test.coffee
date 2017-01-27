@@ -61,7 +61,7 @@ describe 'WeaverProject Test', ->
     ).then(->
       Weaver.Project.list()
     ).then((list) ->
-      expect(list.length).to.equal(3)
+      expect(list.length).to.equal(2)
 
       loadedA = p for p in list when p.id() is 'a'
       loadedB = p for p in list when p.id() is 'b'
@@ -69,10 +69,12 @@ describe 'WeaverProject Test', ->
       expect(loadedA.get("name")).to.equal('A')
       expect(loadedB.get("name")).to.be.undefined
 
-      Promise.all([a.destroy(), b.destroy()])
     ).then(->
       done()
-    ).catch((Err) -> console.log Err)
+    ).catch((Err) -> console.log Err
+    ).finally( ->
+      Promise.all([a.destroy(), b.destroy()])
+    )
     return
 
 
