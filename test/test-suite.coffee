@@ -50,6 +50,9 @@ before (done) ->
     # Authenticate
     done()
   )
+  .catch((e)->
+    console.log(e)
+  )
   return
 
 # Runs after all tests
@@ -58,6 +61,9 @@ after (done) ->
     wipe(true)
   ).then(->
     done()
+  )
+  .catch((e)->
+    console.log(e)
   )
   return
 
