@@ -99,5 +99,11 @@ class CoreManager
     
   getFileByID: (file) ->
     @commController.POST('downloadFileByID',file)
+    
+  deleteFile: (file) ->
+    @commController.POST('deleteFile',file)
+    
+  deleteFileByID: (file) ->
+    @commController.POST('deleteFileByID',file)
 
 module.exports = CoreManager
