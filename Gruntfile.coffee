@@ -10,6 +10,8 @@ module.exports = (grunt) ->
           src: ['dist', 'tmp']
         after:
           src: ['dist', 'tmp']
+        dist:
+          src: ['dist/weaver-sdk.full.js']
 
       coffee:
         main:
@@ -46,8 +48,8 @@ module.exports = (grunt) ->
 
       uglify:
         build:
-          src: 'dist/weaver-sdk.js',
-          dest: 'dist/weaver-sdk.min.js'
+          src: 'dist/weaver-sdk.full.js',
+          dest: 'dist/weaver-sdk.full.min.js'
 
       copy:
         toAngular:
@@ -65,6 +67,9 @@ module.exports = (grunt) ->
   # Default task
   grunt.registerTask('default', ['clean', 'coffee', 'browserify', 'copy:toAngular', 'watch'])
 
-  # Dist
-  #grunt.registerTask('dist', ['clean', 'coffee', 'browserify', 'uglify'])
-  grunt.registerTask('dist', ['clean', 'coffee', 'concat', 'browserify'])
+  # Dist task
+#  grunt.registerTask('dist', ['clean', 'coffee', 'browserify', 'uglify', 'clean:dist'])
+  grunt.registerTask('dist', ['clean', 'coffee', 'browserify', 'clean:dist'])
+
+  # Development task
+  grunt.registerTask('dev', ['clean', 'coffee', 'browserify'])
