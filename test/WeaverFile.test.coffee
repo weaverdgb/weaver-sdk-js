@@ -81,4 +81,52 @@ describe 'WeaverFile test', ->
       assert.equal(err.code,Weaver.Error.FILE_NOT_EXISTS_ERROR)
     )
     
-  
+  it 'should deletes a file by name', ->
+    weaverFile = new Weaver.File()
+    weaverFile.deleteFile("#{file}",'area51')
+    .then( ->
+      pathTemp = path.join(__dirname,'../tmp/weaver-icon.png')
+      weaverFile.getFile(pathTemp,"#{file}",'area51')
+      .then((res) ->
+        assert(false)
+      ).catch((err) ->
+        assert.equal(err.code,Weaver.Error.FILE_NOT_EXISTS_ERROR)
+      )
+    )
+    
+  it 'should deletes a file by id', ->
+    weaverFile = new Weaver.File()
+    fileTemp = path.join(__dirname,'../icon.png')
+    weaverFile.saveFile(fileTemp, 'weaverIcon.png', 'area51').then((res) ->
+      file = res
+      assert.equal(res.split('-')[1],'weaverIcon.png')
+      weaverFile.deleteFileByID("#{file}",'area51')
+      .then( ->
+        pathTemp = path.join(__dirname,'../tmp/weaver-icon.png')
+        weaverFile.getFile(pathTemp,"#{file}".split('-')[0],'area51')
+        .then((res) ->
+          assert(false)
+        ).catch((err) ->
+          assert.equal(err.code,Weaver.Error.FILE_NOT_EXISTS_ERROR)
+        )
+      )
+    )
+    
+  it 'should fails trying to delete a file because the project does not exists', ->
+    weaverFile = new Weaver.File()
+    weaverFile.deleteFile("#{file}",'area69')
+    .then((res) ->
+      assert(false)
+    ).catch((err) ->
+      assert.equal(err.code,Weaver.Error.FILE_NOT_EXISTS_ERROR)
+    )
+    
+  it 'should fails trying to delete a file by ID because the project does not exists', ->
+    weaverFile = new Weaver.File()
+    weaverFile.deleteFileByID("#{file}",'area69')
+    .then((res) ->
+      assert(false)
+    ).catch((err) ->
+      assert.equal(err.code,Weaver.Error.FILE_NOT_EXISTS_ERROR)
+    )
+    
