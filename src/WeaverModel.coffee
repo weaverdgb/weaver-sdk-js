@@ -42,7 +42,6 @@ class WeaverModel
 
               innerBlock = fragments.slice(startBlock, i+1)
               preceedingSubject = fragments[parseInt(startBlock)-1]
-
               newPath = path.concat(preceedingSubject.predicate)
               returnObj[preceedingSubject.predicate] = parseOneLevel(innerBlock, newPath)
 
@@ -99,7 +98,6 @@ class ModelInstance
       loc = pointer[path.slice(-1)[0]]
 
       if propType is 'Individual' and not typeIsArray loc
-        0
         throw new Error("Cannot use 'add' to set attribute. Use 'set' instead.")
 
       if propType is 'Value' and typeIsArray loc
@@ -108,18 +106,14 @@ class ModelInstance
 
     @set = (propPath, value)=>
 
-      throw new Error("Value property/Attribute strings cannot contain the cahracter '@'.") if value.indexOf('@') isnt -1
+      throw new Error("Value property/Attribute strings cannot contain the character '@'.") if value.indexOf('@') isnt -1
       throw new Error("Input argument strings cannot contain the character '$'.") if value.indexOf('$') isnt -1
       throw new Error(propPath + " is not a valid input argument for this model.") if not @inputArgs[propPath]
 
-
       path = @inputArgs[propPath]
 
-      try
-        checkPathValidity(@inputArgs[propPath], @modelDefinition, 'Value')
+      checkPathValidity(@inputArgs[propPath], @modelDefinition, 'Value')
 
-      catch e
-        throw e
       pointer = @instance
       pointer = pointer[p] for p in path.slice(0, -1)
       pointer[path.slice(-1)[0]] = '@' + value
@@ -127,12 +121,7 @@ class ModelInstance
 
     @add = (propPath, value)=>
 
-      try
-        throw new Error(propPath + ' is not a valid input argument for this model') if not @inputArgs[propPath]
-
-      catch e
-        console.log(e)
-        throw e
+      throw new Error(propPath + ' is not a valid input argument for this model') if not @inputArgs[propPath]
 
       path = @inputArgs[propPath]
 
@@ -140,15 +129,12 @@ class ModelInstance
 
       pointer = @instance
       pointer = pointer[p] for p in path.slice(0, -1)
-      ref = pointer[path.slice(-1)[0]]
 
       pointer[path.slice(-1)[0]] = [] if pointer[path.slice(-1)[0]][0].indexOf('$') is 0
 
       pointer[path.slice(-1)[0]].push(value)
 
     @save = ->
-
-
 
       promises = []
       nodes = []
@@ -209,7 +195,6 @@ class ModelInstance
                     )
 
         persistOneLevel(root, @instance)
-
 
         promises.push(node.save()) for node in nodes
 
