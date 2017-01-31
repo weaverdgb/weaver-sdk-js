@@ -15,6 +15,8 @@ describe 'WeaverModel test', ->
       assert.isDefined(res[0].nodeId)
     )
 
+
+
   it 'should create a new node, with a specified id', ->
 
     something = new Weaver.Model()
@@ -27,6 +29,8 @@ describe 'WeaverModel test', ->
       assert.equal(res[0].nodeId, 'chaise_lounge')
     )
 
+
+
   it 'should create a new node with a static attribute', ->
 
     something = new Weaver.Model()
@@ -37,11 +41,11 @@ describe 'WeaverModel test', ->
 
     something = something.instance()
 
-
-
     something.save().then( (res)->
       assert.equal(res[0].attributes.hasName, 'John Doe')
     )
+
+
 
   it 'should create a new node with a dynamic attribute', ->
 
@@ -59,6 +63,8 @@ describe 'WeaverModel test', ->
       assert.equal(res[0].attributes.hasName, 'H.A.L.')
     )
 
+
+
   it 'should create a new node with a relation', ->
 
     something = new Weaver.Model()
@@ -72,6 +78,8 @@ describe 'WeaverModel test', ->
     hal.save().then( (res)->
       assert.isDefined(res[0].relation('wasBuiltOn'))
     )
+
+
 
   it 'should create a new node with a static relation', ->
 
@@ -89,6 +97,8 @@ describe 'WeaverModel test', ->
         assert.isDefined(res[0].relation('wasFoundAt').nodes['unknown'])
       )
     )
+
+
 
   it 'should create a new node with a dynamic relation', ->
 
@@ -109,13 +119,15 @@ describe 'WeaverModel test', ->
       )
     )
 
+
+
   it 'should allow for nested relationships', ->
 
     family = new Weaver.Model()
 
     family.define("{
       <hasName>($grandParent)
-      hasChild {
+      hasChild(Parent) {
         <hasName>($parent)
         hasChild{
           <hasName>($child)
@@ -140,6 +152,8 @@ describe 'WeaverModel test', ->
       assert.equal(child.attributes.hasName, 'Little Durk')
     )
 
+
+
   it 'shouldn\'t instantiate a model instance when there are unset input fields', ->
 
     smurf = new Weaver.Model()
@@ -153,6 +167,8 @@ describe 'WeaverModel test', ->
     grumpy.save().catch( (err)->
       assert.equal(err.message, 'This model instance has unset input arguments. All input arguments must be set before saving.')
     )
+
+
 
   it 'should fail when attempting to set an non-existent property', ->
 
@@ -169,9 +185,50 @@ describe 'WeaverModel test', ->
       theLifeOfMan.set('$theSecretOf', 'Easy to find')
     catch err
 
-      assert.equal(err.message, '$theSecretOf is not a valid input argument for this model')
+      assert.equal(err.message, '$theSecretOf is not a valid input argument for this model.')
 
-  it "should not allow assignment of value properties which contain the character '@'", ->
+
+
+  it "should fail to 'set' a relation ", ->
+
+    life = new Weaver.Model()
+
+    life.define("{
+      itsShort($isShort)
+      itShouldBe(sweet)
+    }")
+
+    theLifeOfTurtle = life.instance()
+
+    try
+      theLifeOfTurtle.set('$isShort', 'Not at all. Your falsiest value, please.')
+    catch err
+      assert.equal(err.message, 'Cannot use \'set\' to add relation. Use \'add\' instead.')
+
+
+  it "should fail to 'add' an attribute", ->
+
+    country = new Weaver.Model()
+
+    country.define("{
+      hasName {
+        <hasPrefix>($namePrefix)
+        <hasActualName>($commonName)
+      }
+    }")
+
+    america = country.instance()
+    america.set('$commonName', 'America')
+    america.set('$namePrefix', 'United States of')
+
+    try
+      america.add('$namePrefix', 'Trump towers present, the')
+    catch err
+      assert.equal(err.message, 'Cannot use \'add\' to set attribute. Use \'set\' instead.')
+
+
+
+  it "should not allow assignment of value properties which contain the character '@'.", ->
 
     life = new Weaver.Model()
 
@@ -185,10 +242,12 @@ describe 'WeaverModel test', ->
     try
       theLifeOfMan.set('$place', 'home')
     catch err
-      assert.equal(err.message, 'Value property/Attribute strings cannot contain the cahracter \'@\'')
+      assert.equal(err.message, "Value property/Attribute strings cannot contain the character '@'.")
 
 
-  it "should not allow assignment of input arguments which contain the character '$'", ->
+
+
+  it "should not allow assignment of input arguments which contain the character '$'.", ->
 
     president = new Weaver.Model()
 
@@ -201,4 +260,6 @@ describe 'WeaverModel test', ->
     try
       trump.set('$bestAsset', '$$$')
     catch err
-      assert.equal(err.message, 'Input argument strings cannot contain the character \'$\'')
+      assert.equal(err.message, "Input argument strings cannot contain the character '$'.")
+
+

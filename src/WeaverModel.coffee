@@ -83,23 +83,43 @@ class WeaverModel
 
 class ModelInstance
 
-  constructor: (modelDefinition, @inputArgs)->
+  constructor: (@modelDefinition, @inputArgs)->
     @instance = {}
-    @instance[i] = j for i, j of modelDefinition when i isnt 'inputArgs'
+    @instance[i] = j for i, j of @modelDefinition when i isnt 'inputArgs'
 
     typeIsArray = Array.isArray || ( value ) -> return {}.toString.call( value ) is '[object Array]'
     typeIsObject = Object.isObject || ( value ) -> return {}.toString.call( value ) is '[object Object]'
 
 
+    checkPathValidity = (path, model, propType)->
+
+      pointer = model
+      pointer = pointer[p] for p in path.slice(0, -1)
+
+      loc = pointer[path.slice(-1)[0]]
+
+      if propType is 'Individual' and not typeIsArray loc
+        0
+        throw new Error("Cannot use 'add' to set attribute. Use 'set' instead.")
+
+      if propType is 'Value' and typeIsArray loc
+        throw new Error("Cannot use 'set' to add relation. Use 'add' instead.")
+
+
     @set = (propPath, value)=>
 
-      throw new Error('Value property/Attribute strings cannot contain the cahracter \'@\'') if value.indexOf('@') isnt -1
-      throw new Error('Input argument strings cannot contain the character \'$\'') if value.indexOf('$') isnt -1
-      throw new Error(propPath + ' is not a valid input argument for this model') if not @inputArgs[propPath]
+      throw new Error("Value property/Attribute strings cannot contain the cahracter '@'.") if value.indexOf('@') isnt -1
+      throw new Error("Input argument strings cannot contain the character '$'.") if value.indexOf('$') isnt -1
+      throw new Error(propPath + " is not a valid input argument for this model.") if not @inputArgs[propPath]
 
 
       path = @inputArgs[propPath]
 
+      try
+        checkPathValidity(@inputArgs[propPath], @modelDefinition, 'Value')
+
+      catch e
+        throw e
       pointer = @instance
       pointer = pointer[p] for p in path.slice(0, -1)
       pointer[path.slice(-1)[0]] = '@' + value
@@ -107,9 +127,16 @@ class ModelInstance
 
     @add = (propPath, value)=>
 
-      throw new Error(propPath + ' is not a valid input argument for this model') if not @inputArgs[propPath]
+      try
+        throw new Error(propPath + ' is not a valid input argument for this model') if not @inputArgs[propPath]
+
+      catch e
+        console.log(e)
+        throw e
 
       path = @inputArgs[propPath]
+
+      checkPathValidity(@inputArgs[propPath], @modelDefinition, 'Individual')
 
       pointer = @instance
       pointer = pointer[p] for p in path.slice(0, -1)
