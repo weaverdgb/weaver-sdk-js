@@ -25,7 +25,12 @@ class WeaverModel
       parseOneLevel = (arr, path)=>
 
         returnObj = {}
-        fragments = arr.slice(1,arr.length-1)
+        if arr[0] is 'OPEN_BLOCK'
+          fragments = arr.slice(1,arr.length-1)
+        else
+          fragments = arr.slice(2,arr.length-1)
+          @inputArgs['rootId'] = arr[0]
+
 
         openedBlocks = 0
 
@@ -58,7 +63,7 @@ class WeaverModel
 
               if fragment.object
 
-                return(new Error('Value property/Attribute strings cannot contain \'@\'')) if fragment.object.indexOf('@') isnt -1
+                throw new Error('Value property/Attribute strings cannot contain \'@\'') if fragment.object.indexOf('@') isnt -1
 
                 if fragment.type is 'Individual'
                   returnObj[fragment.predicate] = [ fragment.object ]
@@ -89,6 +94,7 @@ class ModelInstance
     @set = (propPath, value)=>
 
       throw new Error('Value property/Attribute strings cannot contain the cahracter \'@\'') if value.indexOf('@') isnt -1
+      throw new Error('Input argument strings cannot contain the character \'$\'') if value.indexOf('$') isnt -1
       throw new Error(propPath + ' is not a valid input argument for this model') if not @inputArgs[propPath]
 
 
@@ -116,11 +122,21 @@ class ModelInstance
     @save = ->
 
 
-      promises = []
 
+      promises = []
       nodes = []
+
       new Promise((resolve,reject)=>
-        root = new Weaver.Node()
+
+        throwIllegalCharacter = ->
+          reject(new Error('This model instance has unset input arguments. All input arguments must be set before saving.'))
+
+
+        if @inputArgs['rootId']
+          root = new Weaver.Node(@inputArgs['rootId'])
+        else
+          root = new Weaver.Node()
+
         nodes.push(root)
 
         persistOneLevel = (parent, props)->
@@ -136,6 +152,9 @@ class ModelInstance
               parent.relation(key).add(child)
 
             else
+
+              throwIllegalCharacter() if prop.indexOf('$') isnt -1
+
               parent.set(key, prop.slice(1)) if prop.indexOf('@') isnt -1
 
               if typeIsArray prop
