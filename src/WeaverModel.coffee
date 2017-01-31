@@ -61,14 +61,15 @@ class WeaverModel
                 return(new Error('Value property/Attribute strings cannot contain \'@\'')) if fragment.object.indexOf('@') isnt -1
 
                 if fragment.type is 'Individual'
-                  returnObj[fragment.predicate] = fragment.object
+                  returnObj[fragment.predicate] = [ fragment.object ]
                 else
                   returnObj[fragment.predicate] = '@' + fragment.object
 
               else
-                returnObj[fragment.predicate] = 'RANDOM' if fragment.type is 'Individual'
+                returnObj[fragment.predicate] = ['RANDOM'] if fragment.type is 'Individual'
 
                 returnObj[fragment.predicate] = '@EMPTY' if fragment.type is 'Value'
+
         returnObj
 
       definition = parseOneLevel(fragmentList, [])
@@ -87,7 +88,9 @@ class ModelInstance
 
     @set = (propPath, value)=>
 
-      return(new Error('Value property/Attribute strings cannot contain \'@\'')) if value.indexOf('@') isnt -1
+      throw new Error('Value property/Attribute strings cannot contain the cahracter \'@\'') if value.indexOf('@') isnt -1
+      throw new Error(propPath + ' is not a valid input argument for this model') if not @inputArgs[propPath]
+
 
       path = @inputArgs[propPath]
 
@@ -98,19 +101,22 @@ class ModelInstance
 
     @add = (propPath, value)=>
 
+      throw new Error(propPath + ' is not a valid input argument for this model') if not @inputArgs[propPath]
+
       path = @inputArgs[propPath]
 
       pointer = @instance
       pointer = pointer[p] for p in path.slice(0, -1)
       ref = pointer[path.slice(-1)[0]]
 
-      if not typeIsArray ref
-
-        pointer[path.slice(-1)[0]] = [ref]
+      pointer[path.slice(-1)[0]] = [] if pointer[path.slice(-1)[0]][0].indexOf('$') is 0
 
       pointer[path.slice(-1)[0]].push(value)
 
     @save = ->
+
+
+      promises = []
 
       nodes = []
       new Promise((resolve,reject)=>
@@ -132,21 +138,37 @@ class ModelInstance
             else
               parent.set(key, prop.slice(1)) if prop.indexOf('@') isnt -1
 
-              if prop.indexOf('@') is -1
-                indiProp = new Weaver.Node()
-                nodes.push(indiProp)
+              if typeIsArray prop
 
-                parent.relation(key).add(indiProp)
+                for id in prop
+
+                  if id is 'RANDOM'
+                    indiProp = new Weaver.Node()
+                    parent.relation(key).add(indiProp)
+
+                  else
+
+                    promises.push(
+                      new Promise((resolve,reject)->
+                        shallowKey = key
+
+                        Weaver.Node.load(id).then((res)->
+                          parent.relation(shallowKey).add(res)
+                          parent.save()
+                          resolve(parent)
+                        ).catch((err)->
+                          reject(err)
+                        )
+                      )
+                    )
 
         persistOneLevel(root, @instance)
 
-        promises = []
+
         promises.push(node.save()) for node in nodes
 
         Promise.all(promises).then((res)->
-
           resolve(res)
-
         )
 
       )
