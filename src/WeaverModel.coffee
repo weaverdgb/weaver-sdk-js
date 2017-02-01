@@ -1,3 +1,4 @@
+cuid       = require('cuid')
 chirql     = require('Chirql')
 Weaver     = require('./Weaver')
 WeaverNode = require('./WeaverNode')
@@ -7,87 +8,98 @@ Lexer = chirql.Lexer
 Parser = chirql.Parser
 
 
-class WeaverModel extends WeaverNode
+class WeaverModel
 
-  constructor: (@name)->
+  lexer: new Lexer()
+  parser: new Parser()
 
-    @lexer = new Lexer()
-    @parser = new Parser()
+  class ModelFragment
 
-    @modelInstance = =>
-      new ModelInstance(@definition, @inputArgs)
+    constructor:(fragment)->
 
-    @define = (@definitionString)=>
+      definition:
+        _id:            fragment.id or cuid()
+        _props:
+          isOptional:   fragment.isOptional or false
+          isExcluded:   fragment.isExcluded or false
+          cardinality:
+            min:        fragment.cardinalityMin or 0
+            max:        fragment.cardinalityMax or undefined
+        _type:          fragment.type or throw new Error("Definition string invalid")
+        _path:          path.concat(fragment.predicate)
 
-      tokens = @lexer.lex(@definitionString)
-      fragmentList = @parser.parseTokens(tokens)
 
-      @definition = {}
+  constructor: (@name, @definitionString)->
 
-      # these are the required arguments for a modelInstance instance. eg if a model definition has `<hasName>($name)`,
-      # then a modelInstance of that model should define a value for `$name` before saving
-      @inputArgs = {}
-      # @inputArgs looks like this: { $variableName : ['path','to','this','variable','from','root','node']
+    @inputArgs = {}
 
-      parseInnerLevel = (returnObj, fragments, start, end, path)->
+    ###
 
-        innerBlock = fragments.slice(start, end)
-        preceedingSubject = fragments[parseInt(start)-1]
-        newPath = path.concat(preceedingSubject.predicate)
-        returnObj[preceedingSubject.predicate] = parseOneLevel(innerBlock, newPath)
+      sample model:
 
-      parseOneLevel = (arr, path)=>  # parse one block of chirql code
+      {
+        definition: {
+          _id: 'uuid'
+          _props: {
+            isOptional: bool
+            isExcluded: bool
+            cardinalityMin: num
+            cardinalityMax: num
+          }
+          _type: 'Relation'/'Attribute'
 
-        returnObj = {}
-        openedBlocks = 0
+          hasName: { new model here.. }
+          hasBrother: { new model here.. }
+          etc.
+        }
+        inputArgs: {
+          argName: ['path', 'to', 'argument', 'pointer', 'relative', 'to', 'root', 'node']
+        }
+        definitionString: "Chirql string to define model"
 
-        # removes outer brace tokens
-        if arr[0] is 'OPEN_BLOCK'
-          fragments = arr.slice(1,-1)
+        ..normal WeaverNode props (nodeId, etc..)
+      }
 
-        else # runs when the root block has a specified id
-          fragments = arr.slice(2,-1)
-          @inputArgs['rootId'] = arr[0]
+    ###
 
-        for fragment,i in fragments
+  define: (@definitionString)->
 
-          if fragment is 'CLOSE_BLOCK'
+    @definition = {}
 
-            if openedBlocks is 1
+    ###
 
-              endBlock = i+1
-              parseInnerLevel(returnObj, fragments, startBlock, endBlock, path)
+     @inputArgs looks like this: { $variableName : ['path','to','this','variable','from','root','node']
 
-            openedBlocks--
+     these are the required arguments for a modelInstance instance. eg if a model definition has `<hasName>($name)`,
+     then a modelInstance of that model should define a value for `$name` before saving
 
-          if fragment == 'OPEN_BLOCK'
+    ###
 
-            startBlock = i if openedBlocks is 0
-            openedBlocks++
+    @inputArgs = {}
 
-          if openedBlocks is 0
+    tokens = @lexer.lex(@definitionString)
+    fragmentList = @parser.parseTokens(tokens)
 
-            if fragment.inputArg
-              @inputArgs[fragment.object] = path.concat(fragment.predicate)
+    # stores and removes root node id, if specified
+    if fragmentList[0] isnt 'OPEN_BLOCK'
+      @inputArgs['rootId'] = fragmentList[0]
+      fragmentList.shift()
 
-            if fragment.object
+    parseOneLevel = (arr, path)=>
 
-              if fragment.type is 'Individual'
-                returnObj[fragment.predicate] = [ fragment.object ]
-              else
+      returnObj = {}
+      openedBlocks = 0
+      fragments = arr.slice(1,-1)
 
-                throw new Error('Value property/Attribute strings cannot contain \'@\'') if fragment.object.indexOf('@') isnt -1
-                returnObj[fragment.predicate] = '@' + fragment.object
+      for fragment,i in fragments
 
-            else
-              returnObj[fragment.predicate] = ['RANDOM'] if fragment.type is 'Individual'
-              returnObj[fragment.predicate] = '@EMPTY' if fragment.type is 'Value'
+        if openedBlocks > 0
 
-        returnObj
+    parseOneLevel()
 
-      definition = parseOneLevel(fragmentList, [])
+  modelInstance: ->
+    new ModelInstance(@definition, @inputArgs)
 
-      @definition = definition
 
 class ModelInstance
 
@@ -96,119 +108,117 @@ class ModelInstance
     @instance = {}
     @instance[i] = j for i, j of @modelDefinition when i isnt 'inputArgs'
 
-    checkPathValidity = (path, model, propType)->
+  set: (propPath, value)->
 
-      pointer = model
-      pointer = pointer[p] for p in path.slice(0, -1)
+    throw new Error("Value property/Attribute strings cannot contain the character '@'.") if value.indexOf('@') isnt -1
+    throw new Error("Input argument strings cannot contain the character '$'.")           if value.indexOf('$') isnt -1
+    throw new Error(propPath + " is not a valid input argument for this model.")          if not @inputArgs[propPath]
 
-      loc = pointer[path.slice(-1)[0]]
+    path = @inputArgs[propPath]
 
-      if propType is 'Individual' and not util.isArray(loc)
-        throw new Error("Cannot use 'add' to set attribute. Use 'set' instead.")
+    checkPathValidity(@inputArgs[propPath], @modelDefinition, 'Value')
 
-      if propType is 'Value' and util.isArray(loc)
-        throw new Error("Cannot use 'set' to add relation. Use 'add' instead.")
+    pointer = @instance
+    pointer = pointer[p] for p in path.slice(0, -1)
+    pointer[path.slice(-1)[0]] = '@' + value
 
+  add: (propPath, value)->
 
-    @set = (propPath, value)=>
+    throw new Error(propPath + ' is not a valid input argument for this model') if not @inputArgs[propPath]
 
-      throw new Error("Value property/Attribute strings cannot contain the character '@'.") if value.indexOf('@') isnt -1
-      throw new Error("Input argument strings cannot contain the character '$'.")           if value.indexOf('$') isnt -1
-      throw new Error(propPath + " is not a valid input argument for this model.")          if not @inputArgs[propPath]
+    path = @inputArgs[propPath]
 
-      path = @inputArgs[propPath]
+    checkPathValidity(@inputArgs[propPath], @modelDefinition, 'Individual')
 
-      checkPathValidity(@inputArgs[propPath], @modelDefinition, 'Value')
+    pointer = @instance
+    pointer = pointer[p] for p in path.slice(0, -1)
 
-      pointer = @instance
-      pointer = pointer[p] for p in path.slice(0, -1)
-      pointer[path.slice(-1)[0]] = '@' + value
+    pointer[path.slice(-1)[0]] = [] if pointer[path.slice(-1)[0]][0].indexOf('$') is 0
 
+    pointer[path.slice(-1)[0]].push(value)
 
-    @add = (propPath, value)=>
+  save: ->
 
-      throw new Error(propPath + ' is not a valid input argument for this model') if not @inputArgs[propPath]
+    promises = []
+    nodes = []
 
-      path = @inputArgs[propPath]
+    new Promise((resolve,reject)=>
 
-      checkPathValidity(@inputArgs[propPath], @modelDefinition, 'Individual')
+      throwUnsetArgsException = ->
+        reject(new Error('This model instance has unset input arguments. All input arguments must be set before saving.'))
 
-      pointer = @instance
-      pointer = pointer[p] for p in path.slice(0, -1)
+      if @inputArgs['rootId']
+        root = new Weaver.Node(@inputArgs['rootId'])
+      else
+        root = new Weaver.Node()
 
-      pointer[path.slice(-1)[0]] = [] if pointer[path.slice(-1)[0]][0].indexOf('$') is 0
+      nodes.push(root)
 
-      pointer[path.slice(-1)[0]].push(value)
+      persistOneLevel = (parent, props)->
 
-    @save = ->
+        for key,prop of props
 
-      promises = []
-      nodes = []
+          if util.isObject(prop)
 
-      new Promise((resolve,reject)=>
+            child = new Weaver.Node()
+            nodes.push(child)
 
-        throwUnsetArgsException = ->
-          reject(new Error('This model instance has unset input arguments. All input arguments must be set before saving.'))
+            persistOneLevel(child, prop)
+            parent.relation(key).add(child)
 
-        if @inputArgs['rootId']
-          root = new Weaver.Node(@inputArgs['rootId'])
-        else
-          root = new Weaver.Node()
+          else
 
-        nodes.push(root)
+            throwUnsetArgsException() if prop.indexOf('$') isnt -1
 
-        persistOneLevel = (parent, props)->
+            parent.set(key, prop.slice(1)) if prop.indexOf('@') isnt -1
 
-          for key,prop of props
+            if util.isArray(prop)
 
-            if util.isObject(prop)
+              for id in prop
 
-              child = new Weaver.Node()
-              nodes.push(child)
+                if id is 'RANDOM'
+                  indiProp = new Weaver.Node()
+                  parent.relation(key).add(indiProp)
 
-              persistOneLevel(child, prop)
-              parent.relation(key).add(child)
+                else
 
-            else
+                  promises.push(
+                    new Promise((resolve,reject)->
+                      shallowKey = key
 
-              throwUnsetArgsException() if prop.indexOf('$') isnt -1
-
-              parent.set(key, prop.slice(1)) if prop.indexOf('@') isnt -1
-
-              if util.isArray(prop)
-
-                for id in prop
-
-                  if id is 'RANDOM'
-                    indiProp = new Weaver.Node()
-                    parent.relation(key).add(indiProp)
-
-                  else
-
-                    promises.push(
-                      new Promise((resolve,reject)->
-                        shallowKey = key
-
-                        Weaver.Node.load(id).then((res)->
-                          parent.relation(shallowKey).add(res)
-                          parent.save()
-                          resolve(parent)
-                        ).catch((err)->
-                          reject(err)
-                        )
+                      Weaver.Node.load(id).then((res)->
+                        parent.relation(shallowKey).add(res)
+                        parent.save()
+                        resolve(parent)
+                      ).catch((err)->
+                        reject(err)
                       )
                     )
+                  )
 
-        persistOneLevel(root, @instance)
+      persistOneLevel(root, @instance)
 
-        promises.push(node.save()) for node in nodes
+      promises.push(node.save()) for node in nodes
 
-        Promise.all(promises).then((res)->
+      Promise.all(promises).then((res)->
 
-          #return the root node, which should always be at index 0
-          resolve(res[0])
-        )
-
+        #return the root node, which should always be at index 0
+        resolve(res[0])
       )
+
+    )
+
+  checkPathValidity = (path, model, propType)->
+
+    pointer = model
+    pointer = pointer[p] for p in path.slice(0, -1)
+
+    loc = pointer[path.slice(-1)[0]]
+
+    if propType is 'Individual' and not util.isArray(loc)
+      throw new Error("Cannot use 'add' to set attribute. Use 'set' instead.")
+
+    if propType is 'Value' and util.isArray(loc)
+      throw new Error("Cannot use 'set' to add relation. Use 'add' instead.")
 
 module.exports = WeaverModel
