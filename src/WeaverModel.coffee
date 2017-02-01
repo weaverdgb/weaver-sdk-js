@@ -1,78 +1,87 @@
 chirql     = require('Chirql')
 Weaver     = require('./Weaver')
+WeaverNode = require('./WeaverNode')
+util       = require('./util')
 
 Lexer = chirql.Lexer
 Parser = chirql.Parser
 
 
-class WeaverModel
+class WeaverModel extends WeaverNode
 
   constructor: (@name)->
 
     @lexer = new Lexer()
     @parser = new Parser()
 
-    @instance = =>
+    @modelInstance = =>
       new ModelInstance(@definition, @inputArgs)
 
     @define = (@definitionString)=>
 
       tokens = @lexer.lex(@definitionString)
       fragmentList = @parser.parseTokens(tokens)
-      @definition = {}
-      @inputArgs = {}
 
-      parseOneLevel = (arr, path)=>
+      @definition = {}
+
+      # these are the required arguments for a modelInstance instance. eg if a model definition has `<hasName>($name)`,
+      # then a modelInstance of that model should define a value for `$name` before saving
+      @inputArgs = {}
+      # @inputArgs looks like this: { $variableName : ['path','to','this','variable','from','root','node']
+
+      parseInnerLevel = (returnObj, fragments, start, end, path)->
+
+        innerBlock = fragments.slice(start, end)
+        preceedingSubject = fragments[parseInt(start)-1]
+        newPath = path.concat(preceedingSubject.predicate)
+        returnObj[preceedingSubject.predicate] = parseOneLevel(innerBlock, newPath)
+
+      parseOneLevel = (arr, path)=>  # parse one block of chirql code
 
         returnObj = {}
-        if arr[0] is 'OPEN_BLOCK'
-          fragments = arr.slice(1,arr.length-1)
-        else
-          fragments = arr.slice(2,arr.length-1)
-          @inputArgs['rootId'] = arr[0]
-
-
         openedBlocks = 0
+
+        # removes outer brace tokens
+        if arr[0] is 'OPEN_BLOCK'
+          fragments = arr.slice(1,-1)
+
+        else # runs when the root block has a specified id
+          fragments = arr.slice(2,-1)
+          @inputArgs['rootId'] = arr[0]
 
         for fragment,i in fragments
 
-          if fragment == 'CLOSE_BLOCK'
+          if fragment is 'CLOSE_BLOCK'
 
-            if openedBlocks == 1
+            if openedBlocks is 1
 
-              innerBlock = fragments.slice(startBlock, i+1)
-              preceedingSubject = fragments[parseInt(startBlock)-1]
-              newPath = path.concat(preceedingSubject.predicate)
-              returnObj[preceedingSubject.predicate] = parseOneLevel(innerBlock, newPath)
+              endBlock = i+1
+              parseInnerLevel(returnObj, fragments, startBlock, endBlock, path)
 
             openedBlocks--
 
           if fragment == 'OPEN_BLOCK'
 
-            startBlock = i if openedBlocks == 0
-
+            startBlock = i if openedBlocks is 0
             openedBlocks++
 
-          if openedBlocks == 0
+          if openedBlocks is 0
 
-            if fragment and fragment.type
+            if fragment.inputArg
+              @inputArgs[fragment.object] = path.concat(fragment.predicate)
 
-              if fragment.inputArg
-                @inputArgs[fragment.object] = path.concat(fragment.predicate)
+            if fragment.object
 
-              if fragment.object
+              if fragment.type is 'Individual'
+                returnObj[fragment.predicate] = [ fragment.object ]
+              else
 
                 throw new Error('Value property/Attribute strings cannot contain \'@\'') if fragment.object.indexOf('@') isnt -1
+                returnObj[fragment.predicate] = '@' + fragment.object
 
-                if fragment.type is 'Individual'
-                  returnObj[fragment.predicate] = [ fragment.object ]
-                else
-                  returnObj[fragment.predicate] = '@' + fragment.object
-
-              else
-                returnObj[fragment.predicate] = ['RANDOM'] if fragment.type is 'Individual'
-
-                returnObj[fragment.predicate] = '@EMPTY' if fragment.type is 'Value'
+            else
+              returnObj[fragment.predicate] = ['RANDOM'] if fragment.type is 'Individual'
+              returnObj[fragment.predicate] = '@EMPTY' if fragment.type is 'Value'
 
         returnObj
 
@@ -83,12 +92,9 @@ class WeaverModel
 class ModelInstance
 
   constructor: (@modelDefinition, @inputArgs)->
+
     @instance = {}
     @instance[i] = j for i, j of @modelDefinition when i isnt 'inputArgs'
-
-    typeIsArray = Array.isArray || ( value ) -> return {}.toString.call( value ) is '[object Array]'
-    typeIsObject = Object.isObject || ( value ) -> return {}.toString.call( value ) is '[object Object]'
-
 
     checkPathValidity = (path, model, propType)->
 
@@ -97,18 +103,18 @@ class ModelInstance
 
       loc = pointer[path.slice(-1)[0]]
 
-      if propType is 'Individual' and not typeIsArray loc
+      if propType is 'Individual' and not util.isArray(loc)
         throw new Error("Cannot use 'add' to set attribute. Use 'set' instead.")
 
-      if propType is 'Value' and typeIsArray loc
+      if propType is 'Value' and util.isArray(loc)
         throw new Error("Cannot use 'set' to add relation. Use 'add' instead.")
 
 
     @set = (propPath, value)=>
 
       throw new Error("Value property/Attribute strings cannot contain the character '@'.") if value.indexOf('@') isnt -1
-      throw new Error("Input argument strings cannot contain the character '$'.") if value.indexOf('$') isnt -1
-      throw new Error(propPath + " is not a valid input argument for this model.") if not @inputArgs[propPath]
+      throw new Error("Input argument strings cannot contain the character '$'.")           if value.indexOf('$') isnt -1
+      throw new Error(propPath + " is not a valid input argument for this model.")          if not @inputArgs[propPath]
 
       path = @inputArgs[propPath]
 
@@ -141,9 +147,8 @@ class ModelInstance
 
       new Promise((resolve,reject)=>
 
-        throwIllegalCharacter = ->
+        throwUnsetArgsException = ->
           reject(new Error('This model instance has unset input arguments. All input arguments must be set before saving.'))
-
 
         if @inputArgs['rootId']
           root = new Weaver.Node(@inputArgs['rootId'])
@@ -156,7 +161,7 @@ class ModelInstance
 
           for key,prop of props
 
-            if typeIsObject prop
+            if util.isObject(prop)
 
               child = new Weaver.Node()
               nodes.push(child)
@@ -166,11 +171,11 @@ class ModelInstance
 
             else
 
-              throwIllegalCharacter() if prop.indexOf('$') isnt -1
+              throwUnsetArgsException() if prop.indexOf('$') isnt -1
 
               parent.set(key, prop.slice(1)) if prop.indexOf('@') isnt -1
 
-              if typeIsArray prop
+              if util.isArray(prop)
 
                 for id in prop
 
@@ -199,7 +204,9 @@ class ModelInstance
         promises.push(node.save()) for node in nodes
 
         Promise.all(promises).then((res)->
-          resolve(res)
+
+          #return the root node, which should always be at index 0
+          resolve(res[0])
         )
 
       )

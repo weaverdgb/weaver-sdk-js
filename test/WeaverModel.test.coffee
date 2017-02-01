@@ -5,69 +5,69 @@ describe 'WeaverModel test', ->
 
   it 'should create a new node', ->
 
-    something = new Weaver.Model()
-    something.define("{}")
-    helloWorld = something.instance()
+    Something = new Weaver.Model()
+    Something.define("{}")
+    helloWorld = Something.modelInstance()
 
     helloWorld.save().then( (res)->
-      assert.isDefined(res[0].nodeId)
+      assert.isDefined(res.nodeId)
     )
 
 
 
   it 'should create a new node, with a specified id', ->
 
-    something = new Weaver.Model()
-    something.define("(chaise_lounge){}")
-    helloWorld = something.instance()
+    Something = new Weaver.Model()
+    Something.define("(chaise_lounge){}")
+    helloWorld = Something.modelInstance()
 
     helloWorld.save().then( (res)->
-      assert.equal(res[0].nodeId, 'chaise_lounge')
+      assert.equal(res.nodeId, 'chaise_lounge')
     )
 
 
 
   it 'should create a new node with a static attribute', ->
 
-    thing = new Weaver.Model()
-    thing.define("{
+    Thing = new Weaver.Model()
+    Thing.define("{
       <hasName>(John Doe)
     }")
-    something = thing.instance()
+    something = Thing.modelInstance()
 
     something.save().then( (res)->
-      assert.equal(res[0].attributes.hasName, 'John Doe')
+      assert.equal(res.attributes.hasName, 'John Doe')
     )
 
 
 
   it 'should create a new node with a dynamic attribute', ->
 
-    something = new Weaver.Model()
-    something.define("{
+    Something = new Weaver.Model()
+    Something.define("{
       <hasName>($name)
     }")
 
-    hal = something.instance()
+    hal = Something.modelInstance()
     hal.set('$name', 'H.A.L.')
 
     hal.save().then( (res)->
-      assert.equal(res[0].attributes.hasName, 'H.A.L.')
+      assert.equal(res.attributes.hasName, 'H.A.L.')
     )
 
 
 
   it 'should create a new node with a relation', ->
 
-    something = new Weaver.Model()
-    something.define("{
+    Something = new Weaver.Model()
+    Something.define("{
       wasBuiltOn
     }")
 
-    hal = something.instance()
+    hal = Something.modelInstance()
 
     hal.save().then( (res)->
-      assert.isDefined(res[0].relation('wasBuiltOn'))
+      assert.isDefined(res.relation('wasBuiltOn'))
     )
 
 
@@ -76,15 +76,15 @@ describe 'WeaverModel test', ->
 
     new Weaver.Node('unknown').save().then(->
 
-      mysteriousRelic = new Weaver.Model()
-      mysteriousRelic.define("{
+      MysteriousRelic = new Weaver.Model()
+      MysteriousRelic.define("{
         wasFoundAt(unknown)
       }")
 
-      magicRing = mysteriousRelic.instance()
+      magicRing = MysteriousRelic.modelInstance()
 
       magicRing.save().then( (res)->
-        assert.isDefined(res[0].relation('wasFoundAt').nodes['unknown'])
+        assert.isDefined(res.relation('wasFoundAt').nodes['unknown'])
       )
     )
 
@@ -94,16 +94,16 @@ describe 'WeaverModel test', ->
 
     new Weaver.Node('Valhalla').save().then(->
 
-      respectableViking = new Weaver.Model()
-      respectableViking.define("{
+      RespectableViking = new Weaver.Model()
+      RespectableViking.define("{
         spendsAfterlifeIn($heaven)
       }")
 
-      thomund = respectableViking.instance()
+      thomund = RespectableViking.modelInstance()
       thomund.add('$heaven', 'Valhalla')
 
       thomund.save().then( (res)->
-        assert.isDefined(res[0].relation('spendsAfterlifeIn').nodes['Valhalla'])
+        assert.isDefined(res.relation('spendsAfterlifeIn').nodes['Valhalla'])
       )
     )
 
@@ -111,8 +111,8 @@ describe 'WeaverModel test', ->
 
   it 'should allow for nested relationships', ->
 
-    family = new Weaver.Model()
-    family.define("{
+    Family = new Weaver.Model()
+    Family.define("{
       <hasName>($grandParent)
       hasChild(Parent) {
         <hasName>($parent)
@@ -122,13 +122,13 @@ describe 'WeaverModel test', ->
       }
     }")
 
-    theAddams = family.instance()
+    theAddams = Family.modelInstance()
     theAddams.set('$grandParent', 'Grandpa Slurk')
     theAddams.set('$parent', 'Father Murk')
     theAddams.set('$child', 'Little Durk')
 
     theAddams.save().then( (res)->
-      grandpa = res[0]
+      grandpa = res
       parent = prop for key,prop of grandpa.relation('hasChild').nodes
       child = prop for key,prop of parent.relation('hasChild').nodes
 
@@ -141,12 +141,12 @@ describe 'WeaverModel test', ->
 
   it 'shouldn\'t instantiate a model instance when there are unset input fields', ->
 
-    smurf = new Weaver.Model()
-    smurf.define("{
+    Smurf = new Weaver.Model()
+    Smurf.define("{
       <hasName>($name)
     }")
 
-    grumpy = smurf.instance()
+    grumpy = Smurf.modelInstance()
 
     grumpy.save().catch( (err)->
       assert.equal(err.message, 'This model instance has unset input arguments. All input arguments must be set before saving.')
@@ -156,14 +156,14 @@ describe 'WeaverModel test', ->
 
   it 'should fail when attempting to set an non-existent property', ->
 
-    life = new Weaver.Model()
+    Life = new Weaver.Model()
 
-    life.define("{
+    Life.define("{
       itsShort
       itShouldBe(sweet)
     }")
 
-    theLifeOfMan = life.instance()
+    theLifeOfMan = Life.modelInstance()
     try
       theLifeOfMan.set('$theSecretOf', 'Easy to find')
     catch err
@@ -174,14 +174,14 @@ describe 'WeaverModel test', ->
 
   it "should fail to 'set' a relation ", ->
 
-    life = new Weaver.Model()
+    Life = new Weaver.Model()
 
-    life.define("{
+    Life.define("{
       itsShort($isShort)
       itShouldBe(sweet)
     }")
 
-    theLifeOfTurtle = life.instance()
+    theLifeOfTurtle = Life.modelInstance()
     try
       theLifeOfTurtle.set('$isShort', 'Not at all. Your falsiest value, please.')
     catch err
@@ -190,16 +190,16 @@ describe 'WeaverModel test', ->
 
   it "should fail to 'add' an attribute", ->
 
-    country = new Weaver.Model()
+    Country = new Weaver.Model()
 
-    country.define("{
+    Country.define("{
       hasName {
         <hasPrefix>($namePrefix)
         <hasActualName>($commonName)
       }
     }")
 
-    america = country.instance()
+    america = Country.modelInstance()
     america.set('$commonName', 'America')
     america.set('$namePrefix', 'United States of')
 
@@ -212,14 +212,14 @@ describe 'WeaverModel test', ->
 
   it "should not allow assignment of value properties which contain the character '@'.", ->
 
-    life = new Weaver.Model()
+    Life = new Weaver.Model()
 
-    life.define("{
+    Life.define("{
       itsShort
       <spendItAt>($place)
     }")
 
-    theLifeOfMan = life.instance()
+    theLifeOfMan = Life.modelInstance()
 
     try
       theLifeOfMan.set('$place', 'home')
@@ -231,13 +231,13 @@ describe 'WeaverModel test', ->
 
   it "should not allow assignment of input arguments which contain the character '$'.", ->
 
-    president = new Weaver.Model()
+    President = new Weaver.Model()
 
-    president.define("{
+    President.define("{
       <has>($bestAsset)
     }")
 
-    trump = president.instance()
+    trump = President.modelInstance()
     try
       trump.set('$bestAsset', '$$$')
     catch err
