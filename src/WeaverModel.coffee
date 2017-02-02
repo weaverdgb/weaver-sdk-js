@@ -15,19 +15,27 @@ class WeaverModel
 
   class ModelFragment
 
-    constructor:(fragment)->
+    constructor:(fragment, path)->
 
-      definition:
-        _id:            fragment.id or cuid()
-        _props:
+      throw new Error("Definition string invalid") if not fragment.type?
+
+      @_definition =
+        props:
           isOptional:   fragment.isOptional or false
           isExcluded:   fragment.isExcluded or false
-          cardinality:
-            min:        fragment.cardinalityMin or 0
-            max:        fragment.cardinalityMax or undefined
-        _type:          fragment.type or throw new Error("Definition string invalid")
-        _path:          path.concat(fragment.predicate)
+          cardinality:  {}
+        type:          fragment.type
+        path:          path
+        subject:        fragment.subject
+        object:         fragment.object
+        predicate:      fragment.predicate
 
+      @_id = fragment.id or cuid() if fragment.type is 'Individual'
+
+      @_definition.value = (fragment.object or 'empty') if fragment.type is 'Value'
+      @_definition.path.concat(fragment.predicate) if fragment.predicate
+      @_definition.props.cardinality.min = fragment.cardinalityMin if fragment.cardinalityMin
+      @_definition.props.cardinality.max = fragment.cardinalityMax if fragment.cardinalityMax
 
   constructor: (@name, @definitionString)->
 
@@ -38,15 +46,16 @@ class WeaverModel
       sample model:
 
       {
+        id: 'uuid'
         definition: {
-          _id: 'uuid'
-          _props: {
+
+          props: {
             isOptional: bool
             isExcluded: bool
             cardinalityMin: num
             cardinalityMax: num
           }
-          _type: 'Relation'/'Attribute'
+          type: 'Relation'/'Attribute'
 
           hasName: { new model here.. }
           hasBrother: { new model here.. }
@@ -85,17 +94,45 @@ class WeaverModel
       @inputArgs['rootId'] = fragmentList[0]
       fragmentList.shift()
 
-    parseOneLevel = (arr, path)=>
+    parseInnerLevel = (returnObj, fragments, start, end, path)->
 
-      returnObj = {}
+      innerBlock = fragments.slice(start, end)
+      preceedingSubject = fragments[parseInt(start)-1]
+      newPath = path.concat(preceedingSubject.predicate)
+      returnObj[preceedingSubject.predicate] = parseOneLevel(innerBlock, newPath)
+
+    parseOneLevel = (arr, path, sub)=>
+
+      root =
+        id: @inputArgs['rootId'] or cuid()
+        type: 'root'
+
+      returnObj = new ModelFragment(root, [])
       openedBlocks = 0
       fragments = arr.slice(1,-1)
 
       for fragment,i in fragments
 
         if openedBlocks > 0
+          ++openedBlocks if fragment is 'OPEN_BLOCK'
+          --openedBlocks if fragment is 'CLOSE_BLOCK'
 
-    parseOneLevel()
+          if openedBlocks is 0
+            endBlock = i+1
+            parseInnerLevel(returnObj, fragments, startBlock, endBlock, path)
+          continue
+
+        else if fragment is 'OPEN_BLOCK'
+          startBlock = i
+          ++openedBlocks
+          continue
+
+        else
+          returnObj[fragment.predicate] = new ModelFragment(fragment, path)
+
+      returnObj
+
+    @definition = parseOneLevel(fragmentList, [], {id: @inputArgs['rootId']})
 
   modelInstance: ->
     new ModelInstance(@definition, @inputArgs)
@@ -103,10 +140,10 @@ class WeaverModel
 
 class ModelInstance
 
-  constructor: (@modelDefinition, @inputArgs)->
+  constructor: (modelDefinition, @inputArgs)->
 
     @instance = {}
-    @instance[i] = j for i, j of @modelDefinition when i isnt 'inputArgs'
+    @instance[i] = j for i, j of modelDefinition
 
   set: (propPath, value)->
 
@@ -156,9 +193,9 @@ class ModelInstance
 
       persistOneLevel = (parent, props)->
 
-        for key,prop of props
+        for key,prop of props when key.indexOf('_') isnt 0
 
-          if util.isObject(prop)
+          if hasInnerModel(prop)
 
             child = new Weaver.Node()
             nodes.push(child)
@@ -168,9 +205,7 @@ class ModelInstance
 
           else
 
-            throwUnsetArgsException() if prop.indexOf('$') isnt -1
-
-            parent.set(key, prop.slice(1)) if prop.indexOf('@') isnt -1
+            throwUnsetArgsException() if prop._definition.value.indexOf('$') isnt -1
 
             if util.isArray(prop)
 
@@ -220,5 +255,11 @@ class ModelInstance
 
     if propType is 'Value' and util.isArray(loc)
       throw new Error("Cannot use 'set' to add relation. Use 'add' instead.")
+
+  hasInnerModel = (obj)->
+    console.log(obj)
+    hasInner = false
+    hasInner = true if prop._definition for key,prop of obj when key.indexOf('_') isnt 0
+    hasInner
 
 module.exports = WeaverModel

@@ -1,29 +1,29 @@
 require("./test-suite")
 
-describe 'WeaverModel test', ->
+describe 'WeaverModel', ->
 
 
-  it 'should create a new node', ->
-
-    Something = new Weaver.Model()
-    Something.define("{}")
-    helloWorld = Something.modelInstance()
-
-    helloWorld.save().then( (res)->
-      assert.isDefined(res.nodeId)
-    )
-
-
-
-  it 'should create a new node, with a specified id', ->
-
-    Something = new Weaver.Model()
-    Something.define("(chaise_lounge){}")
-    helloWorld = Something.modelInstance()
-
-    helloWorld.save().then( (res)->
-      assert.equal(res.nodeId, 'chaise_lounge')
-    )
+#  it 'should create a new node', ->
+#
+#    Something = new Weaver.Model()
+#    Something.define("{}")
+#    helloWorld = Something.modelInstance()
+#
+#    helloWorld.save().then( (res)->
+#      assert.isDefined(res.nodeId)
+#    )
+#
+#
+#
+#  it 'should create a new node, with a specified id', ->
+#
+#    Something = new Weaver.Model()
+#    Something.define("(chaise_lounge){}")
+#    helloWorld = Something.modelInstance()
+#
+#    helloWorld.save().then( (res)->
+#      assert.equal(res.nodeId, 'chaise_lounge')
+#    )
 
 
 
@@ -32,7 +32,11 @@ describe 'WeaverModel test', ->
     Thing = new Weaver.Model()
     Thing.define("{
       <hasName>(John Doe)
+      type {
+        <name>
+      }
     }")
+
     something = Thing.modelInstance()
 
     something.save().then( (res)->
@@ -123,6 +127,9 @@ describe 'WeaverModel test', ->
 #    }")
 #
 #    theAddams = Family.modelInstance()
+#
+#    console.log(theAddams)
+#
 #    theAddams.set('$grandParent', 'Grandpa Slurk')
 #    theAddams.set('$parent', 'Father Murk')
 #    theAddams.set('$child', 'Little Durk')
