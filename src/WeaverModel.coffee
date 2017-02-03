@@ -13,67 +13,10 @@ class WeaverModel
   lexer: new Lexer()
   parser: new Parser()
 
-  class ModelFragment
-
-    constructor:(fragment, path)->
-
-      throw new Error("Definition string invalid") if not fragment.type?
-
-      @_definition =
-        props:
-          isOptional:   fragment.isOptional or false
-          isExcluded:   fragment.isExcluded or false
-          cardinality:  {}
-        type:          fragment.type
-        path:          path
-        subject:        fragment.subject
-        object:         fragment.object
-        predicate:      fragment.predicate
-
-      @_id = fragment.id or cuid() if fragment.type is 'Individual'
-
-      @_definition.value = (fragment.object or 'empty') if fragment.type is 'Value'
-      @_definition.path.concat(fragment.predicate) if fragment.predicate
-      @_definition.props.cardinality.min = fragment.cardinalityMin if fragment.cardinalityMin
-      @_definition.props.cardinality.max = fragment.cardinalityMax if fragment.cardinalityMax
-
   constructor: (@name, @definitionString)->
-
     @inputArgs = {}
 
-    ###
-
-      sample model:
-
-      {
-        id: 'uuid'
-        definition: {
-
-          props: {
-            isOptional: bool
-            isExcluded: bool
-            cardinalityMin: num
-            cardinalityMax: num
-          }
-          type: 'Relation'/'Attribute'
-
-          hasName: { new model here.. }
-          hasBrother: { new model here.. }
-          etc.
-        }
-        inputArgs: {
-          argName: ['path', 'to', 'argument', 'pointer', 'relative', 'to', 'root', 'node']
-        }
-        definitionString: "Chirql string to define model"
-
-        ..normal WeaverNode props (nodeId, etc..)
-      }
-
-    ###
-
   define: (@definitionString)->
-
-    @definition = {}
 
     ###
 
@@ -85,6 +28,7 @@ class WeaverModel
     ###
 
     @inputArgs = {}
+    @definition = {}
 
     tokens = @lexer.lex(@definitionString)
     fragmentList = @parser.parseTokens(tokens)
@@ -98,16 +42,15 @@ class WeaverModel
 
       innerBlock = fragments.slice(start, end)
       preceedingSubject = fragments[parseInt(start)-1]
-      newPath = path.concat(preceedingSubject.predicate)
-      returnObj[preceedingSubject.predicate] = parseOneLevel(innerBlock, newPath)
+
+      returnObj[preceedingSubject.predicate] = parseOneLevel(innerBlock, path, preceedingSubject)
 
     parseOneLevel = (arr, path, sub)=>
 
-      root =
-        id: @inputArgs['rootId'] or cuid()
-        type: 'root'
+      returnObj = new ModelFragment(sub, path)
 
-      returnObj = new ModelFragment(root, [])
+      path = path.concat(sub.predicate) if sub.predicate
+
       openedBlocks = 0
       fragments = arr.slice(1,-1)
 
@@ -119,6 +62,7 @@ class WeaverModel
 
           if openedBlocks is 0
             endBlock = i+1
+
             parseInnerLevel(returnObj, fragments, startBlock, endBlock, path)
           continue
 
@@ -128,14 +72,39 @@ class WeaverModel
           continue
 
         else
+          if fragment.inputArg
+            @inputArgs[fragment.object] = path.concat(fragment.predicate)
+
           returnObj[fragment.predicate] = new ModelFragment(fragment, path)
 
       returnObj
 
-    @definition = parseOneLevel(fragmentList, [], {id: @inputArgs['rootId']})
+    root =
+      id: @inputArgs['rootId'] or cuid()
+      type: 'root'
 
-  modelInstance: ->
+    @definition = parseOneLevel(fragmentList, [], root)
+
+  instance: ->
     new ModelInstance(@definition, @inputArgs)
+
+  class ModelFragment
+
+    constructor:(fragment, path)->
+
+      path.concat(fragment.predicate) if fragment.predicate
+
+      @_definition =
+        type: fragment.type
+        path: path
+        props:
+          isOptional: fragment.isOptional or false
+          isExcluded: fragment.isExcluded or false
+          cardinality: {}
+      @value = fragment.object or 'empty' if fragment.type is 'Value'
+      if fragment.cardinality
+        @_definition.props.cardinality.min = fragment.cardinality.min
+        @_definition.props.cardinality.max = fragment.cardinality.max
 
 
 class ModelInstance
@@ -145,34 +114,33 @@ class ModelInstance
     @instance = {}
     @instance[i] = j for i, j of modelDefinition
 
-  set: (propPath, value)->
+  set: (key, value)->
 
     throw new Error("Value property/Attribute strings cannot contain the character '@'.") if value.indexOf('@') isnt -1
     throw new Error("Input argument strings cannot contain the character '$'.")           if value.indexOf('$') isnt -1
-    throw new Error(propPath + " is not a valid input argument for this model.")          if not @inputArgs[propPath]
 
-    path = @inputArgs[propPath]
+    key = '$' + key
+    throw new Error(key + " is not a valid input argument for this model.") if not @inputArgs[key]
 
-    checkPathValidity(@inputArgs[propPath], @modelDefinition, 'Value')
+    checkPathValidity(@inputArgs[key], @instance, 'Value')
+    path = @inputArgs[key]
 
     pointer = @instance
     pointer = pointer[p] for p in path.slice(0, -1)
-    pointer[path.slice(-1)[0]] = '@' + value
+    pointer[path.slice(-1)[0]].object = value
+    @
 
   add: (propPath, value)->
 
     throw new Error(propPath + ' is not a valid input argument for this model') if not @inputArgs[propPath]
-
     path = @inputArgs[propPath]
-
     checkPathValidity(@inputArgs[propPath], @modelDefinition, 'Individual')
 
     pointer = @instance
     pointer = pointer[p] for p in path.slice(0, -1)
-
     pointer[path.slice(-1)[0]] = [] if pointer[path.slice(-1)[0]][0].indexOf('$') is 0
-
     pointer[path.slice(-1)[0]].push(value)
+    @
 
   save: ->
 
@@ -257,7 +225,6 @@ class ModelInstance
       throw new Error("Cannot use 'set' to add relation. Use 'add' instead.")
 
   hasInnerModel = (obj)->
-    console.log(obj)
     hasInner = false
     hasInner = true if prop._definition for key,prop of obj when key.indexOf('_') isnt 0
     hasInner
