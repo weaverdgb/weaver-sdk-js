@@ -1,232 +1,72 @@
-cuid       = require('cuid')
-chirql     = require('Chirql')
-Weaver     = require('./Weaver')
-WeaverNode = require('./WeaverNode')
-util       = require('./util')
-
-Lexer = chirql.Lexer
-Parser = chirql.Parser
+Weaver      = require('./Weaver')
+WeaverNode  = require('./WeaverNode')
+WeaverError = require('./WeaverError')
+util        = require('./util')
+circJSON    = require('circular-json')
 
 
-class WeaverModel
 
-  lexer: new Lexer()
-  parser: new Parser()
+class WeaverModel extends WeaverNode
 
-  constructor: (@name, @definitionString)->
-    @inputArgs = {}
-
-  define: (@definitionString)->
-
-    ###
-
-     @inputArgs looks like this: { $variableName : ['path','to','this','variable','from','root','node']
-
-     these are the required arguments for a modelInstance instance. eg if a model definition has `<hasName>($name)`,
-     then a modelInstance of that model should define a value for `$name` before saving
-
-    ###
-
-    @inputArgs = {}
-    @definition = {}
-
-    tokens = @lexer.lex(@definitionString)
-    fragmentList = @parser.parseTokens(tokens)
-
-    # stores and removes root node id, if specified
-    if fragmentList[0] isnt 'OPEN_BLOCK'
-      @inputArgs['rootId'] = fragmentList[0]
-      fragmentList.shift()
-
-    parseInnerLevel = (returnObj, fragments, start, end, path)->
-
-      innerBlock = fragments.slice(start, end)
-      preceedingSubject = fragments[parseInt(start)-1]
-
-      returnObj[preceedingSubject.predicate] = parseOneLevel(innerBlock, path, preceedingSubject)
-
-    parseOneLevel = (arr, path, sub)=>
-
-      returnObj = new ModelFragment(sub, path)
-
-      path = path.concat(sub.predicate) if sub.predicate
-
-      openedBlocks = 0
-      fragments = arr.slice(1,-1)
-
-      for fragment,i in fragments
-
-        if openedBlocks > 0
-          ++openedBlocks if fragment is 'OPEN_BLOCK'
-          --openedBlocks if fragment is 'CLOSE_BLOCK'
-
-          if openedBlocks is 0
-            endBlock = i+1
-
-            parseInnerLevel(returnObj, fragments, startBlock, endBlock, path)
-          continue
-
-        else if fragment is 'OPEN_BLOCK'
-          startBlock = i
-          ++openedBlocks
-          continue
-
-        else
-          if fragment.inputArg
-            @inputArgs[fragment.object] = path.concat(fragment.predicate)
-
-          returnObj[fragment.predicate] = new ModelFragment(fragment, path)
-
-      returnObj
-
-    root =
-      id: @inputArgs['rootId'] or cuid()
-      type: 'root'
-
-    @definition = parseOneLevel(fragmentList, [], root)
-
-  instance: ->
-    new ModelInstance(@definition, @inputArgs)
-
-  class ModelFragment
-
-    constructor:(fragment, path)->
-
-      path.concat(fragment.predicate) if fragment.predicate
-
-      @_definition =
-        type: fragment.type
-        path: path
-        props:
-          isOptional: fragment.isOptional or false
-          isExcluded: fragment.isExcluded or false
-          cardinality: {}
-      @value = fragment.object or 'empty' if fragment.type is 'Value'
-      if fragment.cardinality
-        @_definition.props.cardinality.min = fragment.cardinality.min
-        @_definition.props.cardinality.max = fragment.cardinality.max
-
-
-class ModelInstance
-
-  constructor: (modelDefinition, @inputArgs)->
-
-    @instance = {}
-    @instance[i] = j for i, j of modelDefinition
-
-  set: (key, value)->
-
-    throw new Error("Value property/Attribute strings cannot contain the character '@'.") if value.indexOf('@') isnt -1
-    throw new Error("Input argument strings cannot contain the character '$'.")           if value.indexOf('$') isnt -1
-
-    key = '$' + key
-    throw new Error(key + " is not a valid input argument for this model.") if not @inputArgs[key]
-
-    checkPathValidity(@inputArgs[key], @instance, 'Value')
-    path = @inputArgs[key]
-
-    pointer = @instance
-    pointer = pointer[p] for p in path.slice(0, -1)
-    pointer[path.slice(-1)[0]].object = value
+  constructor: (@name, @nodeId)->
+    super(@nodeId)
+    @set('name', @name) if @name
     @
 
-  add: (propPath, value)->
+  structure: (@definition)->
 
-    throw new Error(propPath + ' is not a valid input argument for this model') if not @inputArgs[propPath]
-    path = @inputArgs[propPath]
-    checkPathValidity(@inputArgs[propPath], @modelDefinition, 'Individual')
+    @staticProps = {rels:{},attrs:{}}
 
-    pointer = @instance
-    pointer = pointer[p] for p in path.slice(0, -1)
-    pointer[path.slice(-1)[0]] = [] if pointer[path.slice(-1)[0]][0].indexOf('$') is 0
-    pointer[path.slice(-1)[0]].push(value)
+    # this attribute is used only for db storage purposes
+    # - it should not be accessed directly.
+    @set('definition', circJSON.stringify(@definition))
     @
 
-  save: ->
+  equalTo: (key, val)->
 
-    promises = []
-    nodes = []
+    if util.isArray(@definition[key])# add relation constraint
+      @staticProps.rels[key] = [] if not @staticProps.rels[key]?
+      @staticProps.rels[key].push(val)
 
-    new Promise((resolve,reject)=>
+    else # add attribute constraint
+      @staticProps.attrs[key] = val
+    @
 
-      throwUnsetArgsException = ->
-        reject(new Error('This model instance has unset input arguments. All input arguments must be set before saving.'))
+  buildClass: ->
 
-      if @inputArgs['rootId']
-        root = new Weaver.Node(@inputArgs['rootId'])
-      else
-        root = new Weaver.Node()
+    _def           = @definition
+    _statics       = @staticProps
 
-      nodes.push(root)
+    class WeaverModelInstance extends WeaverNode
 
-      persistOneLevel = (parent, props)->
+      constructor: (@nodeId)->
 
-        for key,prop of props when key.indexOf('_') isnt 0
+        @definition = _def
+        @staticProps = _statics
 
-          if hasInnerModel(prop)
+        super(@nodeId)
+        @relation(@definition[key][0]).add(rel) for rel in val for key,val of @staticProps.rels
+        @setProp(key,val) for key,val of @staticProps.attrs
 
-            child = new Weaver.Node()
-            nodes.push(child)
+        @
 
-            persistOneLevel(child, prop)
-            parent.relation(key).add(child)
+      get: (key)->
+        if util.isArray(@definition[key])
+          objects = []
+          objects.push(obj) for pred,obj of @relations[@definition[key][0]].nodes
+          return objects
+        @attributes[@definition[key]]
 
-          else
+      setProp: (key, val)->
 
-            throwUnsetArgsException() if prop._definition.value.indexOf('$') isnt -1
+        return Error WeaverError.FILE_NOT_EXISTS_ERROR if not @definition[key]
+        @set(@definition[key], val)
+        @
 
-            if util.isArray(prop)
 
-              for id in prop
 
-                if id is 'RANDOM'
-                  indiProp = new Weaver.Node()
-                  parent.relation(key).add(indiProp)
+    return WeaverModelInstance
 
-                else
 
-                  promises.push(
-                    new Promise((resolve,reject)->
-                      shallowKey = key
-
-                      Weaver.Node.load(id).then((res)->
-                        parent.relation(shallowKey).add(res)
-                        parent.save()
-                        resolve(parent)
-                      ).catch((err)->
-                        reject(err)
-                      )
-                    )
-                  )
-
-      persistOneLevel(root, @instance)
-
-      promises.push(node.save()) for node in nodes
-
-      Promise.all(promises).then((res)->
-
-        #return the root node, which should always be at index 0
-        resolve(res[0])
-      )
-
-    )
-
-  checkPathValidity = (path, model, propType)->
-
-    pointer = model
-    pointer = pointer[p] for p in path.slice(0, -1)
-
-    loc = pointer[path.slice(-1)[0]]
-
-    if propType is 'Individual' and not util.isArray(loc)
-      throw new Error("Cannot use 'add' to set attribute. Use 'set' instead.")
-
-    if propType is 'Value' and util.isArray(loc)
-      throw new Error("Cannot use 'set' to add relation. Use 'add' instead.")
-
-  hasInnerModel = (obj)->
-    hasInner = false
-    hasInner = true if prop._definition for key,prop of obj when key.indexOf('_') isnt 0
-    hasInner
 
 module.exports = WeaverModel
