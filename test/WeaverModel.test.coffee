@@ -40,12 +40,12 @@ describe 'WeaverModel', ->
           description: ["hasDescription", descModel]
         )
         .equalTo("type", myRequirementType)
-        .equalTo("description", myDescription)
         .save()
         Requirement = reqModel.buildClass()
 
         r1 = new Requirement("idR1")
         r1.setProp("name", "Test requirement")
+        r1.setProp("description", myDescription)
         r1.save().then(->
 
           assert.equal(r1.get('type')[0].nodeId, 'lib:Requirement')

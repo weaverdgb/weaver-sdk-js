@@ -60,7 +60,12 @@ class WeaverModel extends WeaverNode
       setProp: (key, val)->
 
         return Error WeaverError.FILE_NOT_EXISTS_ERROR if not @definition[key]
-        @set(@definition[key], val)
+
+        if util.isArray(@definition[key])# adds new relation
+          @relation(@definition[key][0]).add(val)
+
+        else # adds new attribute
+          @set(@definition[key],val)
         @
 
 
