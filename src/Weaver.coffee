@@ -29,10 +29,10 @@ class Weaver
   version: ->
     require('../package.json').version
 
-  local: (bus) ->
+  local: (routes) ->
     @_registerClasses()
     @_local = true
-    @coreManager.local(bus)
+    @coreManager.local(routes)
 
   connect: (endpoint) ->
     @_registerClasses()
@@ -50,6 +50,9 @@ class Weaver
 
   currentProject: ->
     @coreManager.currentProject
+
+  currentUser: ->
+    @coreManager.currentUser
 
 
 # Export

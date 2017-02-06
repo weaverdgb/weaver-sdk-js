@@ -17,7 +17,9 @@ class WeaverNode
 
 
   # Node loading from server
-  @load: (nodeId, target) ->
+  @load: (nodeId, target, Constructor) ->
+    Constructor = WeaverNode if not Constructor?
+
     new Weaver.Query(target).get(nodeId)
 
   _loadFromQuery: (object) ->
