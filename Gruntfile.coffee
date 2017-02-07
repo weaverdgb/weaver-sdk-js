@@ -68,7 +68,8 @@ module.exports = (grunt) ->
   grunt.registerTask('default', ['clean', 'coffee', 'browserify', 'copy:toAngular', 'watch'])
 
   # Dist task
-  grunt.registerTask('dist', ['clean', 'coffee', 'browserify', 'uglify', 'clean:dist'])
+#  grunt.registerTask('dist', ['clean', 'coffee', 'browserify', 'uglify', 'clean:dist'])
+  grunt.registerTask('dist', ['clean', 'coffee', 'browserify', 'clean:dist'])
 
   # Development task
   grunt.registerTask('dev', ['clean', 'coffee', 'browserify'])
