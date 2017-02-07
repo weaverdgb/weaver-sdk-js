@@ -26,6 +26,9 @@ class WeaverModel extends WeaverNode
   equalTo: (key, val)->
 
     if util.isArray(@definition[key])# add static relation for all model instances
+
+#      if @definition[val] # check to see if nested property
+
       @staticProps.rels[key] = @staticProps.rels[key] or []
       @staticProps.rels[key].push(val)
 
