@@ -1,15 +1,87 @@
-# Libs
-cuid   = require('cuid')
-Weaver = require('./Weaver')
-loki   = require('lokijs')
-Error        = Weaver.LegacyError
-WeaverError  = Weaver.Error
-WeaverNode   = require('./WeaverNode')
+cuid        = require('cuid')
+Weaver      = require('./Weaver')
+loki        = require('lokijs')
+Error       = Weaver.LegacyError
+WeaverError = Weaver.Error
 
-class WeaverUser extends WeaverNode
+class WeaverUser
 
-  constructor: (@email, @username, @password) ->
-    @emailVerified = false
+  constructor: (@username, @password, @email) ->
+    @userId = cuid()
+    @_created = false
+
+  signUp: ->
+    coreManager = Weaver.getCoreManager()
+
+    coreManager.signUpUser(@).then((sessionId) =>
+      @_sessionId = sessionId
+      @_created = true
+      coreManager.currentUser = @
+    )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  save: ->
+    if not @_created
+      Promise.reject({error: -1, message: 'Should call signUp() first before saving'})
+    else
+      super()
+
+  @load: (nodeId) ->
+    super(nodeId, WeaverUser)
+
+  @list: ->
+    new Weaver.Query("$SYSTEM").equalTo("type", "user").find()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   @logIn: (user, password) ->
     credentials = {user,password}

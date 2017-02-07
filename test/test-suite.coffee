@@ -26,6 +26,7 @@ project = null
 WEAVER_ENDPOINT = config.get("weaver.endpoint")
 
 wipe = (systemWipe) ->
+  return
   coreManager = Weaver.getCoreManager()
   Promise.all([
     coreManager.wipe("$SYSTEM") if systemWipe
@@ -38,8 +39,14 @@ before (done) ->
   .then(->
     wipe(true)
   ).then(->
+
+    # Create user
+    user = new Weaver.User(cuid(), "test123", "test@weaverplatform.com")
+    user.signUp()
+  )
+  .then(->
     # To not wait long for project creation, set the retry timeout to low
-    Weaver.Project.READY_RETRY_TIMEOUT = 1  # ms
+    Weaver.Project.READY_RETRY_TIMEOUT = 10  # ms
 
     # Create project and use it
     project = new Weaver.Project("testProject")
@@ -49,7 +56,7 @@ before (done) ->
 
     # Authenticate
     done()
-  )
+  ).catch((e) -> console.log e)
   return
 
 # Runs after all tests

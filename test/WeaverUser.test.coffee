@@ -1,7 +1,36 @@
 require("./test-suite")
 
-describe 'Weaver User', ->
-  this.timeout(2000)
+describe 'WeaverUser Test', ->
+
+
+  it 'should sign up a user', (done) ->
+
+    user = new Weaver.User()
+    user.set("username", "centaurus")
+    user.set("password", "centaurus123")
+    user.set("email",    "centaurus@univer.se")
+
+    # Other fields are also possible
+    user.set("phone", "+31637562188");
+
+    # Signup
+    user.signUp().then((user) ->
+      # Test is loaded correctly
+      Weaver.User.load(user.id())
+    ).then((loadedUser) ->
+      console.log(loadedUser)
+      done()
+    )
+    return
+#
+#    Weaver.User.signUp('centaurus','','centaurus')
+#    ).then(->
+#      weaverUser.logOut()
+#    ).then(->
+#      Weaver.User.logIn('centaurus','centaurus')
+#    ).then((res) ->
+#      res.token.should.be.a('string')
+#    )
 
 
   it 'should login users, receiving a valid jwt', ->
@@ -54,19 +83,6 @@ describe 'Weaver User', ->
     weaverUser.current('andromeda')
     .then().catch((error) ->
       assert.equal(error.code, Weaver.Error.SESSION_MISSING)
-    )
-
-  it 'should signUp a user', ->
-    weaverUser = new Weaver.User()
-    Weaver.User.logIn('phoenix','phoenix')
-    .then(->
-      Weaver.User.signUp('phoenix','centaurus','centaurus@univer.se','centaurus','SYSUNITE')
-    ).then(->
-      weaverUser.logOut()
-    ).then(->
-      Weaver.User.logIn('centaurus','centaurus')
-    ).then((res) ->
-      res.token.should.be.a('string')
     )
 
   it 'should signOff a user and must fails if tries to logIn with the signedOff user', ->
