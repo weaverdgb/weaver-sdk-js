@@ -22,8 +22,8 @@ class SocketController
       )
     )
 
-  GET: (path) ->
-    @emit(path)
+  GET: (path, body) ->
+    @emit(path, body)
 
   POST: (path, body) ->
     @emit(path, body)

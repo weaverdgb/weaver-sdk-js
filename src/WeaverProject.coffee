@@ -4,6 +4,7 @@ class WeaverProject extends Weaver.SystemNode
 
   @READY_RETRY_TIMEOUT: 200
 
+  # TODO: Pass name instead of nodeId, nodeId must not be able to be given
   constructor: (@nodeId) ->
     super(@nodeId)
     @_created = false
@@ -46,6 +47,9 @@ class WeaverProject extends Weaver.SystemNode
   wipe: ->
     coreManager = Weaver.getCoreManager()
     coreManager.wipe(@id())
+
+  @load: (nodeId) ->
+    super(nodeId, WeaverProject)
 
   @get: (nodeId) ->
     super(nodeId, WeaverProject)
