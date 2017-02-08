@@ -91,7 +91,6 @@ class CoreManager
     @POST('nodes', {attributes}, target)
 
   getAllRelations: (target)->
-    console.log(target)
     @GET('relations', target)
 
   wipe: (target)->
