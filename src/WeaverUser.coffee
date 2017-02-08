@@ -13,8 +13,8 @@ class WeaverUser
   signUp: ->
     coreManager = Weaver.getCoreManager()
 
-    coreManager.signUpUser(@).then((sessionId) =>
-      @_sessionId = sessionId
+    coreManager.signUpUser(@).then((authToken) =>
+      @_authToken = authToken
       @_created = true
       coreManager.currentUser = @
     )

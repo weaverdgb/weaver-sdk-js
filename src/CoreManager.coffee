@@ -105,7 +105,7 @@ class CoreManager
     @_resolveTarget(target).then((target) =>
       payload.target = target
       if @currentUser?
-        payload.sessionId = @currentUser._sessionId
+        payload.authToken = @currentUser._authToken
 
       if type is "GET"
         @commController.GET(path, payload)
@@ -113,21 +113,6 @@ class CoreManager
         @commController.POST(path, payload)
 
     )
-    
-  sendFile: (file) ->
-    @commController.POST('uploadFile', file)
-    
-  getFile: (file) ->
-    @commController.POST('downloadFile',file)
-    
-  getFileByID: (file) ->
-    @commController.POST('downloadFileByID',file)
-    
-  deleteFile: (file) ->
-    @commController.POST('deleteFile',file)
-    
-  deleteFileByID: (file) ->
-    @commController.POST('deleteFileByID',file)
 
   GET: (path, payload, target) ->
     @REQUEST("GET", path, payload, target)
