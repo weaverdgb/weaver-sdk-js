@@ -4,6 +4,12 @@ describe 'WeaverModel', ->
 
   it 'should make a requirement model', ->
 
+    Weaver.connect('http://loc').then(->
+      console.log('success')
+    ).catch(->
+      console.log('fail')
+    )
+
     # Create type models & instances
     typeModel = new Weaver.Model("Type")
     typeModel.structure({
