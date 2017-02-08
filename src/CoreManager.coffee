@@ -113,6 +113,21 @@ class CoreManager
         @commController.POST(path, payload)
 
     )
+    
+  sendFile: (file) ->
+    @commController.POST('uploadFile', file)
+    
+  getFile: (file) ->
+    @commController.POST('downloadFile',file)
+    
+  getFileByID: (file) ->
+    @commController.POST('downloadFileByID',file)
+    
+  deleteFile: (file) ->
+    @commController.POST('deleteFile',file)
+    
+  deleteFileByID: (file) ->
+    @commController.POST('deleteFileByID',file)
 
   GET: (path, payload, target) ->
     @REQUEST("GET", path, payload, target)

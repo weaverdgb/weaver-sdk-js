@@ -69,10 +69,11 @@ describe 'WeaverProject Test', ->
       expect(loadedA.get("name")).to.equal('A')
       expect(loadedB.get("name")).to.be.undefined
 
-      Promise.all([a.destroy(), b.destroy()])
     ).then(->
       done()
-    ).catch((Err) -> console.log Err)
+    ).finally( ->
+      Promise.all([a.destroy(), b.destroy()])
+    )
     return
 
 
