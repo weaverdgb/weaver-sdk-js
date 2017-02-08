@@ -44,6 +44,14 @@ class WeaverProject extends Weaver.SystemNode
       Weaver.getCoreManager().deleteProject(@id())
     )
 
+  getAllNodes: (attributes)->
+    console.log(@id())
+    Weaver.getCoreManager().getAllNodes(attributes, @id())
+
+  getAllRelations:->
+    console.log(@id())
+    Weaver.getCoreManager().getAllRelations(@id())
+
   wipe: ->
     coreManager = Weaver.getCoreManager()
     coreManager.wipe(@id())

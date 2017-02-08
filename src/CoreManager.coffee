@@ -87,6 +87,13 @@ class CoreManager
   getNode: (nodeId, target)->
     @POST('read', {nodeId}, target)
 
+  getAllNodes: (attributes, target)->
+    @POST('nodes', {attributes}, target)
+
+  getAllRelations: (target)->
+    console.log(target)
+    @GET('relations', target)
+
   wipe: (target)->
     @POST('wipe', {}, target)
 
