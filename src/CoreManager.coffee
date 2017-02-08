@@ -106,6 +106,8 @@ class CoreManager
 
     @POST("query", {query}, target)
 
+  nativeQuery: (query, target) ->
+    @POST("query.native", {query}, target)
 
   REQUEST: (type, path, payload, target) ->
     @_resolveTarget(target).then((target) =>
