@@ -45,11 +45,9 @@ class WeaverProject extends Weaver.SystemNode
     )
 
   getAllNodes: (attributes)->
-    console.log(@id())
     Weaver.getCoreManager().getAllNodes(attributes, @id())
 
   getAllRelations:->
-    console.log(@id())
     Weaver.getCoreManager().getAllRelations(@id())
 
   wipe: ->
