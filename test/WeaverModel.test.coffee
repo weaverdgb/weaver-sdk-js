@@ -2,13 +2,11 @@ require("./test-suite")
 
 describe 'WeaverModel', ->
 
-  it 'should make a requirement model', ->
+  it 'should make a requirement model', (done)->
 
-    Weaver.connect('http://loc').then(->
-      console.log('success')
-    ).catch(->
-      console.log('fail')
-    )
+
+
+    Weaver.connect('http://localhost:9487')
 
     # Create type models & instances
     typeModel = new Weaver.Model("Type")
@@ -69,19 +67,20 @@ describe 'WeaverModel', ->
           descType = d1.get('type')[0]
           assert.equal(descType.get('name'), 'The Description Type')
 
+          # Inline instantiation
+          r2 = new Requirement('idR2')
+          r2.setProp("name", "Whatever requirement")
+          .setProp("description", new Description())
+          .save().then(->
+
+            assert.equal(r2.get('type')[0].id(), 'lib:Requirement')
+            assert.equal(r2.get('description.type')[0].id(), 'lib:Description')
+            done()
+          )
+
         )
 
-        # Inline instantiation
-        r2 = new Requirement('whatever')
-        r2.setProp("name", "Whatever requirement")
-        .setProp("description", new Description())
-        .save().then(->
-
-          assert.equal(r2.get('type')[0].nodeId, 'lib:Requirement')
-          assert.equal(r2.get('description')[0].get('type')[0].nodeId, 'lib:Description')
-
-        )
 
       )
-
     )
+    return

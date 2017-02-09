@@ -41,7 +41,7 @@ class WeaverModel extends WeaverNode
     _def     = @definition
     _statics = @staticProps
 
-    class WeaverModelInstance extends WeaverNode
+    class WeaverModelMember extends WeaverNode
 
       constructor: (@nodeId)->
         @definition = _def
@@ -51,9 +51,21 @@ class WeaverModel extends WeaverNode
         @setProp(key,val) for key,val of staticProps.attrs
         @
 
-      get: (key)-> # if @definition[key] is an array, they're relations, otherwise they're attributes
-        return (obj for pred,obj of @relations[@definition[key][0]].nodes) if util.isArray(@definition[key])
-        @attributes[@definition[key]]
+      get: (path)->
+
+        splitPath = path.split('.')
+        key = splitPath[0]
+
+        if splitPath.length is 1
+          # if @definition[key] is an array, they're relations, otherwise they're attributes
+          return (obj for pred,obj of @relations[@definition[key][0]].nodes) if util.isArray(@definition[key])
+          return @attributes[@definition[key]]
+
+        else # do a recursive 'get' through child models
+          path = splitPath.slice(1).join('.')
+          arr =  (obj.get(path) for pred,obj of @relations[@definition[key][0]].nodes) if util.isArray(@definition[key])
+          util.flatten(arr)# if util.isArray(arr)
+
 
       setProp: (key, val)->
         return Error WeaverError.FILE_NOT_EXISTS_ERROR if not @definition[key]
@@ -65,6 +77,6 @@ class WeaverModel extends WeaverNode
           @set(@definition[key],val)
         @
 
-    return WeaverModelInstance
+    return WeaverModelMember
 
 module.exports = WeaverModel
