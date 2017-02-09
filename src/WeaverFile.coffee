@@ -11,7 +11,6 @@ class WeaverFile extends Weaver.SystemNode
 
   @get: (nodeId) ->
     super(nodeId, WeaverFile)
-
   saveFile: (path, fileName, project) ->
     coreManager = Weaver.getCoreManager()
     readFile(path)
