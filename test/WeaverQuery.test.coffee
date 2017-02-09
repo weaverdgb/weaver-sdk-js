@@ -72,7 +72,7 @@ describe 'WeaverQuery Test', ->
     c.set("isBlue", true)
 
     Promise.all([a.save(), b.save(), c.save()]).then(->
-      new Weaver.ModelQuery()
+      new Weaver.Query()
       .equalTo("isRed", true)
       .find().then((nodes) ->
         expect(nodes.length).to.equal(1)
