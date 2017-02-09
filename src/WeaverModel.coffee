@@ -23,17 +23,17 @@ class WeaverModel extends WeaverNode
     @set('definition', circJSON.stringify(@definition))
     @
 
-  equalTo: (key, val)->
+  setStatic: (key, val)->
 
-    if util.isArray(@definition[key])# add static relation for all model instances
+    if @definition[key].charAt(0) is '@' # util.isArray(@definition[key])# add static relation for all model instances
 
-#      if @definition[val] # check to see if nested property
-
+      key = @definition[key].substr(1)
       @staticProps.rels[key] = @staticProps.rels[key] or []
       @staticProps.rels[key].push(val)
 
     else # add attribute static attribute for all model instances
       @staticProps.attrs[key] = val
+
     @
 
   buildClass: ->
@@ -47,31 +47,39 @@ class WeaverModel extends WeaverNode
         @definition = _def
         staticProps = _statics
         super(@nodeId)
-        @relation(@definition[key][0]).add(rel) for rel in val for key,val of staticProps.rels
+        @relation(key).add(rel) for rel in val for key,val of staticProps.rels
+
         @setProp(key,val) for key,val of staticProps.attrs
         @
 
-      get: (path)->
+      get: (path, isFlattened)->
+        # default response should be flat array,
+        # mark this false if property paths are required to be included in response
+        isFlattened = true if not isFlattened
 
         splitPath = path.split('.')
         key = splitPath[0]
 
         if splitPath.length is 1
           # if @definition[key] is an array, they're relations, otherwise they're attributes
-          return (obj for pred,obj of @relations[@definition[key][0]].nodes) if util.isArray(@definition[key])
+          return (obj for pred,obj of @relations[@definition[key].substr(1)].nodes) if @definition[key].charAt(0) is '@'
           return @attributes[@definition[key]]
 
         else # do a recursive 'get' through child models
           path = splitPath.slice(1).join('.')
-          arr =  (obj.get(path) for pred,obj of @relations[@definition[key][0]].nodes) if util.isArray(@definition[key])
-          util.flatten(arr)# if util.isArray(arr)
+          arr =  (obj.get(path) for pred,obj of @relations[@definition[key].substr(1)].nodes) if @definition[key].charAt(0) is '@'
+          if isFlattened
+            util.flatten(arr, isFlattened)
+          else
+            arr
 
 
       setProp: (key, val)->
+
         return Error WeaverError.FILE_NOT_EXISTS_ERROR if not @definition[key]
 
-        if util.isArray(@definition[key])# adds new relation
-          @relation(@definition[key][0]).add(val)
+        if @definition[key].charAt(0) is '@' #util.isArray(@definition[key])# adds new relation
+          @relation(@definition[key].slice(1)).add(val)
 
         else # adds new attribute
           @set(@definition[key],val)

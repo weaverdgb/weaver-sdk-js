@@ -26,11 +26,11 @@ describe 'WeaverModel', ->
       # Create description model & instance
       descModel = new Weaver.Model("Description")
       descModel.structure(
-        type: ["hasType", typeModel]
+        type: "@hasType"
         text: "hasText"
       )
-      .equalTo("type", myDescriptionType)
-      .equalTo("text", 'Test description')
+      .setStatic("type", myDescriptionType)
+      .setStatic("text", 'Test description')
 
       descModel.save().then(->
 
@@ -41,12 +41,12 @@ describe 'WeaverModel', ->
         # Create requirement model & instance
         reqModel = new Weaver.Model("Requirement")
         reqModel.structure(
-          type: ["hasType", typeModel]
+          type: "@hasType"
           name: "hasName"
-          description: ["hasDescription", descModel]
-#          descriptionText: ["text", "description"]
+          description: "@hasDescription"
+          descriptionText: ["@hasDescription", "hasText"]
         )
-        .equalTo("type", myRequirementType)
+        .setStatic("type", myRequirementType)
         .save()
         Requirement = reqModel.buildClass()
 
@@ -75,12 +75,10 @@ describe 'WeaverModel', ->
 
             assert.equal(r2.get('type')[0].id(), 'lib:Requirement')
             assert.equal(r2.get('description.type')[0].id(), 'lib:Description')
+            assert.equal(r2.get('description.type.name'), 'The Description Type')
             done()
           )
-
         )
-
-
       )
     )
     return
