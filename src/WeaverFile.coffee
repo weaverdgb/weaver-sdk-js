@@ -1,5 +1,4 @@
 Weaver           = require('./Weaver')
-writeFile        = require('./writeFile')
 Error            = require('./Error')
 WeaverError      = require('./WeaverError')
 WeaverSystemNode = require('./WeaverSystemNode')
