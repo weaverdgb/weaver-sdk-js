@@ -1,37 +1,33 @@
 Weaver           = require('./Weaver')
-writeFile        = require('fs-writefile-promise')
 Error            = require('./Error')
 WeaverError      = require('./WeaverError')
 WeaverSystemNode = require('./WeaverSystemNode')
-readFile         = require('fs-readfile-promise')
 
 
-class WeaverFile extends Weaver.SystemNode
+class WeaverFileBrowser extends Weaver.SystemNode
 
   constructor: (@nodeId) ->
     super(@nodeId)
 
   @get: (nodeId) ->
     super(nodeId, WeaverFile)
-    
-  saveFile: (path, fileName, project) ->
+
+  saveFile: (file, fileName, project) ->
     coreManager = Weaver.getCoreManager()
-    readFile(path)
-    .then((file) ->
+    try
       fileBody = {
         buffer: file
         target: project
         fileName
       }
       coreManager.sendFile(fileBody)
-    ).catch((err) ->
+    catch error
       if err.code is 'ENOENT'
         Promise.reject(Error WeaverError.FILE_NOT_EXISTS_ERROR,"The file #{fileName} for upload at #{project} does not exits")
       else
         Promise.reject(Error WeaverError.OTHER_CAUSE,"Something went wrong trying to read the local file #{fileName}")
-    )
-  
-  getFile: (path, fileName, project) ->
+
+  getFile: (fileName, project) ->
     coreManager = Weaver.getCoreManager()
     file = {
       fileName
@@ -44,10 +40,10 @@ class WeaverFile extends Weaver.SystemNode
       else if Object.keys(buffer).length is 0
         Promise.reject(Error WeaverError.FILE_NOT_EXISTS_ERROR,"The requested file #{fileName} can\'t be retrieved because #{project} does not exists")
       else
-        writeFile(path, buffer)
+        buffer
     )
-    
-  getFileByID: (path, id, project) ->
+
+  getFileByID: (id, project) ->
     coreManager = Weaver.getCoreManager()
     file = {
       id
@@ -60,9 +56,9 @@ class WeaverFile extends Weaver.SystemNode
       else if Object.keys(buffer).length is 0
         Promise.reject(Error WeaverError.FILE_NOT_EXISTS_ERROR,"The requested file #{id} can\'t be retrieved because #{project} does not exists")
       else
-        writeFile(path, buffer)
+        buffer
     )
-    
+
   deleteFile: (fileName, project) ->
     coreManager = Weaver.getCoreManager()
     file = {
@@ -70,7 +66,7 @@ class WeaverFile extends Weaver.SystemNode
       target: project
     }
     coreManager.deleteFile(file)
-  
+
   deleteFileByID: (id, project) ->
     coreManager = Weaver.getCoreManager()
     file = {
@@ -78,6 +74,6 @@ class WeaverFile extends Weaver.SystemNode
       target: project
     }
     coreManager.deleteFileByID(file)
-    
-    
-module.exports = WeaverFile
+
+
+module.exports = WeaverFileBrowser
