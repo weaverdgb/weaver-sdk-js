@@ -4,8 +4,8 @@ class SystemNode extends Weaver.Node
 
   @TARGET: "$SYSTEM"
 
-  @load: (nodeId) ->
-    Weaver.Node.load(nodeId, SystemNode.TARGET)
+  @load: (nodeId, Constructor) ->
+    Weaver.Node.load(nodeId, SystemNode.TARGET, Constructor)
 
   save: ->
     super(SystemNode.TARGET)

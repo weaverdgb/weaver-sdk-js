@@ -4,7 +4,7 @@ io               = require('socket.io-client')
 cuid             = require('cuid')
 Promise          = require('bluebird')
 SocketController = require('./SocketController')
-LocalController  = require('./LocalEventController')
+LocalController  = require('./LocalController')
 loki             = require('lokijs')
 
 class CoreManager
@@ -18,8 +18,8 @@ class CoreManager
     @commController = new SocketController(endpoint)
     @commController.connect()
 
-  local: (bus) ->
-    @commController = new LocalController(bus)
+  local: (routes) ->
+    @commController = new LocalController(routes)
     Promise.resolve()
 
   getCommController: ->
@@ -34,9 +34,7 @@ class CoreManager
     Promise.resolve(target)
 
   executeOperations: (operations, target) ->
-    @_resolveTarget(target).then((target) =>
-      @commController.POST('write', {operations, target})
-    )
+    @POST('write', {operations}, target)
 
   getUsersDB: ->
     @users
@@ -45,50 +43,83 @@ class CoreManager
     @projects
 
   logIn: (credentials) ->
-    @commController.POST('logIn',credentials)
+    @POST('logIn',credentials)
 
   signUp: (newUserPayload) ->
-    @commController.POST('signUp',newUserPayload)
+    @POST('signUp',newUserPayload)
 
   signOff: (userPayload) ->
-    @commController.POST('signOff',userPayload)
+    @POST('signOff',userPayload)
 
   permission: (userPayload) ->
-    @commController.POST('permission',userPayload)
+    @POST('permission',userPayload)
 
   createApplication: (newApplication) ->
-    @commController.POST('application',newApplication)
+    @POST('application',newApplication)
+
+  serverVersion: ->
+    @GET("application.version")
 
   listProjects: ->
-    @commController.GET("project")
+    @GET("project")
 
   createProject: (id) ->
-    @commController.POST("project.create", {id})
+    @POST("project.create", {id}, "$SYSTEM")
+
+  signUpUser: (user) ->
+    payload =
+      userId: user.userId
+      username: user.username
+      password: user.password
+      email: user.email
+
+    @POST("auth.signUp", payload, "$SYSTEM")
+
+  createUser: (id) ->
+    @POST("users.create", {id})
 
   readyProject: (id) ->
-    @commController.POST("project.ready", {id})
+    @POST("project.ready", {id}, "$SYSTEM")
 
   deleteProject: (id) ->
-    @commController.POST("project.delete", {id})
+    @POST("project.delete", {id}, "$SYSTEM")
 
   getNode: (nodeId, target)->
-    @_resolveTarget(target).then((target) =>
-      @commController.POST('read', {nodeId, target})
-    )
+    @POST('read', {nodeId}, target)
+
+  getAllNodes: (attributes, target)->
+    @POST('nodes', {attributes}, target)
+
+  getAllRelations: (target)->
+    @GET('relations', target)
 
   wipe: (target)->
-    @commController.POST('wipe', {target})
+    @POST('wipe', {}, target)
 
   usersList: (usersList) ->
-    @commController.POST('usersList', usersList)
+    @POST('usersList', usersList)
 
   query: (query) ->
     # Remove target
     target = query.target
     query  = _.omit(query, 'target')
 
+    @POST("query", {query}, target)
+
+  nativeQuery: (query, target) ->
+    @POST("query.native", {query}, target)
+
+  REQUEST: (type, path, payload, target) ->
     @_resolveTarget(target).then((target) =>
-      @commController.POST("query", {query, target})
+      payload.target = target
+      if @currentUser?
+        payload.sessionId = @currentUser._sessionId
+
+      if type is "GET"
+        @commController.GET(path, payload)
+      else
+        @commController.POST(path, payload)
+
     )
     
   sendFile: (file) ->
@@ -105,5 +136,12 @@ class CoreManager
     
   deleteFileByID: (file) ->
     @commController.POST('deleteFileByID',file)
+
+  GET: (path, payload, target) ->
+    @REQUEST("GET", path, payload, target)
+
+  POST: (path, payload, target) ->
+    @REQUEST("POST", path, payload, target)
+
 
 module.exports = CoreManager
