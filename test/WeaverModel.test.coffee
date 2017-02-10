@@ -5,9 +5,6 @@ describe 'WeaverModel', ->
   it 'should make a requirement model', (done)->
 
 
-
-    Weaver.connect('http://localhost:9487')
-
     # Create type models & instances
     typeModel = new Weaver.Model("Type")
     typeModel.structure({
