@@ -50,11 +50,11 @@ class WeaverModel extends Weaver.Node
         @setProp(key,val) for key,val of staticProps.attrs
         @
 
-      get: (path, isFlattened)->
+      get: (path, isFlattened = true)->
         return @get(@definition[path].join('.')) if util.isArray(@definition[path])
-        # default response should be flat array,
-        # mark this false if property paths are required to be included in response
-        isFlattened = true if not isFlattened
+
+        # isFlattened:  default response should be flat array,
+        #               mark this false if property paths are required to be included in response
 
         splitPath = path.split('.')
         key = splitPath[0]
