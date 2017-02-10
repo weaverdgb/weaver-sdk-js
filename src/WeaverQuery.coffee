@@ -180,11 +180,8 @@ class WeaverQuery
       coreManager.subscribe(@)
 
     nativeQuery: (query)->
-      console.log(query)
       coreManager = Weaver.getCoreManager()
-      coreManager.nativeQuery(query, Weaver.currentProject()).catch((err)->
-        console.log(err)
-      )
+      coreManager.nativeQuery(query, Weaver.currentProject())
 
 # Export
 module.exports = WeaverQuery
