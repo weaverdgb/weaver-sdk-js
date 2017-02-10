@@ -72,7 +72,6 @@ class WeaverModel extends Weaver.Node
           else
             arr
 
-
       setProp: (key, val)->
 
         return Error Weaver.Error.FILE_NOT_EXISTS_ERROR if not @definition[key]
