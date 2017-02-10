@@ -29,7 +29,6 @@ class WeaverFile extends Weaver.SystemNode
       else
         Promise.reject(Error WeaverError.OTHER_CAUSE,"Something went wrong trying to read the local file #{fileName}")
     )
-
   getFile: (path, fileName, project) ->
     coreManager = Weaver.getCoreManager()
     file = {
@@ -45,7 +44,6 @@ class WeaverFile extends Weaver.SystemNode
       else
         writeFile(path, buffer)
     )
-
   getFileByID: (path, id, project) ->
     coreManager = Weaver.getCoreManager()
     file = {
@@ -61,7 +59,6 @@ class WeaverFile extends Weaver.SystemNode
       else
         writeFile(path, buffer)
     )
-
   deleteFile: (fileName, project) ->
     coreManager = Weaver.getCoreManager()
     file = {
@@ -69,7 +66,6 @@ class WeaverFile extends Weaver.SystemNode
       target: project
     }
     coreManager.deleteFile(file)
-
   deleteFileByID: (id, project) ->
     coreManager = Weaver.getCoreManager()
     file = {
@@ -77,6 +73,4 @@ class WeaverFile extends Weaver.SystemNode
       target: project
     }
     coreManager.deleteFileByID(file)
-
-
 module.exports = WeaverFile
