@@ -1,12 +1,10 @@
 Weaver      = require('./Weaver')
-WeaverNode  = require('./WeaverNode')
-WeaverError = require('./WeaverError')
 util        = require('./util')
 circJSON    = require('circular-json')
 
 
 
-class WeaverModel extends WeaverNode
+class WeaverModel extends Weaver.Node
 
   constructor: (@name, @nodeId)->
     super(@nodeId)
@@ -24,7 +22,7 @@ class WeaverModel extends WeaverNode
 
   setStatic: (key, val)->
 
-    throw new Error(WeaverError.CANNOT_SET_DEEP_STATIC) if util.isArray(@definition[key])
+    throw new Error(Weaver.Error.CANNOT_SET_DEEP_STATIC) if util.isArray(@definition[key])
 
     if @definition[key].charAt(0) is '@' # util.isArray(@definition[key])# add static relation for all model instances
 
@@ -34,7 +32,6 @@ class WeaverModel extends WeaverNode
 
     else # add attribute static attribute for all model instances
       @staticProps.attrs[key] = val
-
     @
 
   buildClass: ->
@@ -42,7 +39,7 @@ class WeaverModel extends WeaverNode
     _def     = @definition
     _statics = @staticProps
 
-    class WeaverModelMember extends WeaverNode
+    class WeaverModelMember extends Weaver.Node
 
       constructor: (@nodeId)->
         @definition = _def
@@ -78,7 +75,7 @@ class WeaverModel extends WeaverNode
 
       setProp: (key, val)->
 
-        return Error WeaverError.FILE_NOT_EXISTS_ERROR if not @definition[key]
+        return Error Weaver.Error.FILE_NOT_EXISTS_ERROR if not @definition[key]
 
         if @definition[key].charAt(0) is '@' #util.isArray(@definition[key])# adds new relation
           @relation(@definition[key].slice(1)).add(val)
