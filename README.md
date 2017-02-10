@@ -186,18 +186,18 @@ For development environments:
 
 
  This will create a new Model with the name 'Man'
- ```
+ ```javascript
  manModel = new Weaver.Model("Man")
  ```
   This adds a new getter to any member of the 'Man' model. from now on, calling something like `manMember.get('name')`,
   will return the `object` of the triple `manMember -> hasName -> object`.
- ```
+ ```javascript
  manModel.structure({
    name:"hasName"
  })
  ```
  The previous example added a getter for an attribute, to add a getter for a relation, you should prefix the predicate with an '@'
- ```
+ ```javascript
   manModel.structure({
     name:"hasName"
     type:"@hasType"
@@ -205,7 +205,7 @@ For development environments:
   ```
  Call `.setStatic()` on a model to set a static property for the model. Now, all members of the 'Man' model will already have the property `latinName` set to "Homo sapien" upon instantiation.
  In addition to this, the following triple will be inserted into any connected db ` manMember -> hasLatinName -> "Homo sapien" `.
- ```
+ ```javascript
     manModel.structure({
       name:"hasName"
       type:"@hasType"
@@ -214,7 +214,7 @@ For development environments:
     .setStatic("latinName", "Homo sapien")
  ```
  When you've finished describing your model, call `buildClass()` to get a constructor to initialize new members of that model.
- ```
+ ```javascript
 	Man = manModel.buildClass()
 	trump = new Man()
  ```
@@ -224,7 +224,7 @@ For development environments:
 Model members extend `Weaver.Node`. They can be saved to the database, to be loaded later, and if their constructor is passed an argument,
 The root node of that member will be initialized with that argument as an id.
 
- ```
+ ```javascript
      typeModel = new Weaver.Model("Type")
      typeModel.structure({
        name:"hasLabel"
@@ -245,7 +245,7 @@ the model will figure out what to do based on the structure you provided earlier
 ### Step 3: Nest models to describe complex structures
 
 Include a model member in the definition for another model.
-```
+```javascript
     manModel.structure({
       name:"hasName"
       type:"@hasType"

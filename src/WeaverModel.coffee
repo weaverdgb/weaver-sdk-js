@@ -9,7 +9,6 @@ class WeaverModel extends Weaver.Node
   constructor: (@name, @nodeId)->
     super(@nodeId)
     @set('name', @name) if @name
-    @
 
   structure: (@definition)->
 
@@ -48,14 +47,12 @@ class WeaverModel extends Weaver.Node
         @relation(key).add(rel) for rel in val for key,val of staticProps.rels
 
         @setProp(key,val) for key,val of staticProps.attrs
-        @
 
       get: (path, isFlattened = true)->
         return @get(@definition[path].join('.')) if util.isArray(@definition[path])
 
         # isFlattened:  default response should be flat array,
         #               mark this false if property paths are required to be included in response
-
         splitPath = path.split('.')
         key = splitPath[0]
 
@@ -67,10 +64,8 @@ class WeaverModel extends Weaver.Node
         else # do a recursive 'get' through child models
           path = splitPath.slice(1).join('.')
           arr =  (obj.get(path) for pred,obj of @relations[@definition[key].substr(1)].nodes) if @definition[key].charAt(0) is '@'
-          if isFlattened
-            util.flatten(arr, isFlattened)
-          else
-            arr
+          return util.flatten(arr, isFlattened)if isFlattened
+          arr
 
       setProp: (key, val)->
 
