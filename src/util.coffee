@@ -24,7 +24,6 @@ module.exports =
   isArray: (val) ->
     typeShouldBe('[object Array]')(val)
 
-  flatten: (arr)->
-    flatten(arr)
+  flatten: flatten
 
 

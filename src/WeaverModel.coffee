@@ -58,18 +58,22 @@ class WeaverModel extends Weaver.Node
 
         if splitPath.length is 1
           # if @definition[key] is an array, they're relations, otherwise they're attributes
-          return (obj for pred,obj of @relations[@definition[key].substr(1)].nodes) if @definition[key].charAt(0) is '@'
-          return @attributes[@definition[key]]
+          if @definition[key].charAt(0) is '@'
+            (obj for pred,obj of @relations[@definition[key].substr(1)].nodes)
+          else
+            @attributes[@definition[key]]
 
         else # do a recursive 'get' through child models
           path = splitPath.slice(1).join('.')
           arr =  (obj.get(path) for pred,obj of @relations[@definition[key].substr(1)].nodes) if @definition[key].charAt(0) is '@'
-          return util.flatten(arr, isFlattened)if isFlattened
-          arr
+          if isFlattened
+            util.flatten(arr, isFlattened)
+          else
+            arr
 
       setProp: (key, val)->
 
-        return Error Weaver.Error.FILE_NOT_EXISTS_ERROR if not @definition[key]
+        return Error Weaver.Error.MODEL_PROPERTY_NOT_FOUND if not @definition[key]?
 
         if @definition[key].charAt(0) is '@' #util.isArray(@definition[key])# adds new relation
           @relation(@definition[key].slice(1)).add(val)
