@@ -272,6 +272,7 @@ Include a model member in the definition for another model.
       name:"hasName"
       type:"@hasType"
       latinName: "hasLatinName"
+      nameOfType: ['type','name']
     })
     .setStatic("latinName", "Homo sapien")
     .setStatic("type", manType)
@@ -283,6 +284,7 @@ Include a model member in the definition for another model.
     trump.get("latinName")    //returns "Homo sapien"
     trump.get("type")         //returns WeaverModelMember instance
     trump.get("type.name")    //returns "Type node for all men"
+    trump.get("nameOfType")   //returns "Type node for all men"
 
     trump.destroy()           //would that it were so easy..
  ```

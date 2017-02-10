@@ -274,5 +274,8 @@ WeaverError.FILE_NOT_EXISTS_ERROR = 603
 # Error code indicating that no settable model property could be found which matches the supplied string.
 WeaverError.MODEL_PROPERTY_NOT_FOUND = 604
 
+# Error code reminding you that deep properties of a model cannot be statically set.
+WeaverError.CANNOT_SET_DEEP_STATIC
+
 
 module.exports = WeaverError

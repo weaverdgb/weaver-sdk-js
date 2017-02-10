@@ -44,10 +44,10 @@ describe 'WeaverModel', ->
           type: "@hasType"
           name: "hasName"
           description: "@hasDescription"
-          descriptionText: ["@hasDescription", "hasText"]
+          descriptionText: ["description", "text"]
         )
         .setStatic("type", myRequirementType)
-        .save()
+        reqModel.save()
         Requirement = reqModel.buildClass()
 
         r1 = new Requirement("idR1")
@@ -62,7 +62,9 @@ describe 'WeaverModel', ->
           assert.equal(reqType.get('name'), 'The Requirement Type')
 
           d1 = r1.get('description')[0]
+
           assert.equal(d1.get('text'), 'Test description')
+          assert.equal(d1.get('text'), r1.get('descriptionText'))
 
           descType = d1.get('type')[0]
           assert.equal(descType.get('name'), 'The Description Type')
