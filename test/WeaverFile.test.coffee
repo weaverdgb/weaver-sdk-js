@@ -1,9 +1,11 @@
 require("./test-suite")
 path = require('path')
 readFile = require('fs-readfile-promise')
+fs = require('fs')
 
 describe 'WeaverFile test', ->
   file = ''
+  tmpDir = path.join(__dirname,"../tmp")
 
   it 'should create a new file', ->
     weaverFile = new Weaver.File()
@@ -23,6 +25,8 @@ describe 'WeaverFile test', ->
     )
   
   it 'should retrieve a file by fileName', ->
+    if !fs.existsSync(tmpDir)
+      fs.mkdirSync(tmpDir)
     weaverFile = new Weaver.File()
     destFile = path.join(__dirname,"../tmp/#{file}")
     originFile = path.join(__dirname,'../icon.png')
