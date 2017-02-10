@@ -44,7 +44,6 @@ before (done) ->
     # Create project and use it
     project = new Weaver.Project()
     project.create()
-
   ).then(->
     Weaver.useProject(project)
     # Authenticate

@@ -17,13 +17,14 @@ class WeaverModel extends WeaverNode
 
     @staticProps = {rels:{},attrs:{}}
 
-    val[1] = val[1].nodeId if not util.isString(val) for key,val of @definition
     # this attribute is used only for db storage purposes
     # - it should not be accessed directly.
     @set('definition', circJSON.stringify(@definition))
     @
 
   setStatic: (key, val)->
+
+    throw new Error(WeaverError.CANNOT_SET_DEEP_STATIC) if util.isArray(@definition[key])
 
     if @definition[key].charAt(0) is '@' # util.isArray(@definition[key])# add static relation for all model instances
 
@@ -53,6 +54,7 @@ class WeaverModel extends WeaverNode
         @
 
       get: (path, isFlattened)->
+        return @get(@definition[path].join('.')) if util.isArray(@definition[path])
         # default response should be flat array,
         # mark this false if property paths are required to be included in response
         isFlattened = true if not isFlattened
