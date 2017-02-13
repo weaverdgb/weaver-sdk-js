@@ -41,7 +41,9 @@
     "load-grunt-tasks": "3.5.0",
     "mocha": "^3.2.0",
     "remapify": "^2.1.0",
-    "sinon": "^1.15.4"
+    "should": "^11.2.0",
+    "sinon": "^1.15.4",
+    "supertest": "^3.0.0"
   },
   "engines": {
     "node": ">=6.9"
