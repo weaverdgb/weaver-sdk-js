@@ -41873,7 +41873,7 @@ function toArray(list, index) {
 },{}],77:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "2.1.0-beta1",
+  "version": "2.1.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
