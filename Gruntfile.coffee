@@ -35,7 +35,7 @@ module.exports = (grunt) ->
         main:
           src: 'tmp/**/*.js'
           dest: 'dist/weaver-sdk.full.js'
-          ignore: ['tmp/WeaverFile.js', 'tmp/WeaverNode.js', 'tmp/WeaverRelation.js', 'tmp/WeaverSystemNode.js', 'tmp/WeaverProject.js', 'tmp/WeaverQuery.js', 'tmp/WeaverACL.js', 'tmp/WeaverRole.js', 'tmp/WeaverUser.js', 'tmp/WeaverFileBrowser.js']
+          ignore: ['tmp/WeaverFile.js', 'tmp/WeaverNode.js', 'tmp/WeaverRelation.js', 'tmp/WeaverSystemNode.js', 'tmp/WeaverProject.js', 'tmp/WeaverQuery.js', 'tmp/WeaverACL.js', 'tmp/WeaverRole.js', 'tmp/WeaverUser.js', 'tmp/WeaverFileBrowser.js', 'tmp/WeaverModel.js']
           options:
             plugin: [
               [
