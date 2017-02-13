@@ -14,25 +14,28 @@ class Weaver
 
   _registerClasses: ->
     @Node        = require('./WeaverNode')
+    @Model       = require('./WeaverModel')
     @Relation    = require('./WeaverRelation')
     @SystemNode  = require('./WeaverSystemNode')
     @Project     = require('./WeaverProject')
     @Query       = require('./WeaverQuery')
-    @Relation    = require('./WeaverRelation')
     @ACL         = require('./WeaverACL')
     @Role        = require('./WeaverRole')
     @User        = require('./WeaverUser')
-    @File        = require('./WeaverFile')
+    if window?
+      @FileBrowser      = require('./WeaverFileBrowser')
+    else
+      @File      = require('./WeaverFile')
     @Error       = require('./WeaverError')
     @LegacyError = require('./Error')         # TODO: Clean out in another PR
 
   version: ->
     require('../package.json').version
 
-  local: (bus) ->
+  local: (routes) ->
     @_registerClasses()
     @_local = true
-    @coreManager.local(bus)
+    @coreManager.local(routes)
 
   connect: (endpoint) ->
     @_registerClasses()
@@ -50,6 +53,9 @@ class Weaver
 
   currentProject: ->
     @coreManager.currentProject
+
+  currentUser: ->
+    @coreManager.currentUser
 
 
 # Export

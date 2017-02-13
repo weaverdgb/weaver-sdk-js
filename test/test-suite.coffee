@@ -44,11 +44,13 @@ before (done) ->
     # Create project and use it
     project = new Weaver.Project()
     project.create()
-    
   ).then(->
     Weaver.useProject(project)
     # Authenticate
     done()
+  )
+  .catch((e)->
+    console.log(e)
   )
   return
 
@@ -58,6 +60,9 @@ after (done) ->
     wipe(true)
   ).then(->
     done()
+  )
+  .catch((e)->
+    console.log(e)
   )
   return
 

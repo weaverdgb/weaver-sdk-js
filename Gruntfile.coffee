@@ -35,6 +35,7 @@ module.exports = (grunt) ->
         main:
           src: 'tmp/**/*.js'
           dest: 'dist/weaver-sdk.full.js'
+          ignore: ['tmp/WeaverFile.js', 'tmp/WeaverNode.js', 'tmp/WeaverRelation.js', 'tmp/WeaverSystemNode.js', 'tmp/WeaverProject.js', 'tmp/WeaverQuery.js', 'tmp/WeaverACL.js', 'tmp/WeaverRole.js', 'tmp/WeaverUser.js', 'tmp/WeaverFileBrowser.js', 'tmp/WeaverModel.js']
           options:
             plugin: [
               [
@@ -68,8 +69,8 @@ module.exports = (grunt) ->
   grunt.registerTask('default', ['clean', 'coffee', 'browserify', 'copy:toAngular', 'watch'])
 
   # Dist task
-#  grunt.registerTask('dist', ['clean', 'coffee', 'browserify', 'uglify', 'clean:dist'])
-  grunt.registerTask('dist', ['clean', 'coffee', 'browserify', 'clean:dist'])
+  grunt.registerTask('dist', ['clean', 'coffee', 'browserify', 'uglify', 'clean:dist'])
+  # grunt.registerTask('dist', ['clean', 'coffee', 'browserify', 'clean:dist'])
 
   # Development task
   grunt.registerTask('dev', ['clean', 'coffee', 'browserify'])

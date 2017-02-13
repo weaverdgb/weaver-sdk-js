@@ -179,5 +179,9 @@ class WeaverQuery
       coreManager = Weaver.getCoreManager()
       coreManager.subscribe(@)
 
+    nativeQuery: (query)->
+      coreManager = Weaver.getCoreManager()
+      coreManager.nativeQuery(query, Weaver.currentProject())
+
 # Export
 module.exports = WeaverQuery

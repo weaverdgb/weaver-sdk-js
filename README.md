@@ -1,3 +1,6 @@
+[![Build Status](https://img.shields.io/travis/weaverplatform/weaver-sdk-js/develop.svg)](http://travis-ci.org/weaverplatform/weaver-sdk-js)[![codecov](https://img.shields.io/codecov/c/github/weaverplatform/weaver-sdk-js/develop.svg?maxAge=0)](https://codecov.io/gh/weaverplatform/weaver-sdk-js)[![Npm](https://img.shields.io/npm/v/weaver-sdk.svg)](https://www.npmjs.com/package/weaver-sdk)
+
+
 # Weaver SDK for JavaScript
 A library that gives you access to the Weaver platform from your JavaScript app.
 
@@ -53,7 +56,7 @@ var weaver = new Weaver();
 weaver.database(database);
 ```
 
-##### Authenticating using a token 
+##### Authenticating using a token
 
 Authentication is optional (but enforced if the server is configured so)
 
@@ -143,6 +146,22 @@ john.$remove('friend');
 john.$destroy();
 ```
 
+## Install - Development
+
+`$ npm install`
+
+If you want to add weaver-sdk-js to your webApp, use [grunt](http://gruntjs.com/) to create the js. Two main commands.
+
+For production environments:
+
+`$ grunt dist`
+
+For development environments:
+
+`$ grunt dev`
+
+
+
 
 ## Todo
 - further implement local listening and removing
@@ -157,3 +176,115 @@ john.$destroy();
 - enable paging
 - authentication
 - querying data
+
+
+# Weaver Model
+
+## Creating
+
+#### Step 1: Define a model
+
+
+ This will create a new Model with the name 'Man'
+ ```javascript
+ manModel = new Weaver.Model("Man")
+ ```
+  This adds a new getter to any member of the 'Man' model. from now on, calling something like `manMember.get('name')`,
+  will return the `object` of the triple `manMember -> hasName -> object`.
+ ```javascript
+ manModel.structure({
+   name:"hasName"
+ })
+ ```
+ The previous example added a getter for an attribute, to add a getter for a relation, you should prefix the predicate with an '@'
+ ```javascript
+  manModel.structure({
+    name:"hasName"
+    type:"@hasType"
+  })
+  ```
+ Call `.setStatic()` on a model to set a static property for the model. Now, all members of the 'Man' model will already have the property `latinName` set to "Homo sapien" upon instantiation.
+ In addition to this, the following triple will be inserted into any connected db ` manMember -> hasLatinName -> "Homo sapien" `.
+ ```javascript
+    manModel.structure({
+      name:"hasName"
+      type:"@hasType"
+      latinName: "hasLatinName"
+    })
+    .setStatic("latinName", "Homo sapien")
+ ```
+ When you've finished describing your model, call `buildClass()` to get a constructor to initialize new members of that model.
+ ```javascript
+	Man = manModel.buildClass()
+	trump = new Man()
+ ```
+
+#### Step 2: Instantiate a member
+
+Model members extend `Weaver.Node`. They can be saved to the database, to be loaded later, and if their constructor is passed an argument,
+The root node of that member will be initialized with that argument as an id.
+
+ ```javascript
+     typeModel = new Weaver.Model("Type")
+     typeModel.structure({
+       name:"hasLabel"
+     })
+     .save();
+     Type = typeModel.buildClass();
+     manType = new Type("lib:Man")
+ ```
+
+Dynamic properties for model members can be set with `.setProp(propKey, propVal)`. Use `setProp()` both for setting attributes and adding relations,
+the model will figure out what to do based on the structure you provided earlier.
+
+```
+		manType.setProp("name", "The Type node for all men.")
+		.save()
+```
+
+### Step 3: Nest models to describe complex structures
+
+Include a model member in the definition for another model.
+```javascript
+    manModel.structure({
+      name:"hasName"
+      type:"@hasType"
+      latinName: "hasLatinName"
+    })
+    .setStatic("latinName", "Homo sapien")
+    .setStatic("type", manType)
+ ```
+ Now all man model members will be instantiated with a `hasType` relationship to the `manType` node
+ (the one with id 'lib:Man', also the root of the `manType` model member).
+
+ You can even chain getters together to return deep properties of a model member.
+ ```
+    typeModel = new Weaver.Model("Type")
+    typeModel.structure({
+      name:"hasLabel"
+    })
+    .save();
+    Type = typeModel.buildClass();
+    manType = new Type("lib:Man")
+    manType.setProp("name", "Type node for all men")
+
+    manModel.structure({
+      name:"hasName"
+      type:"@hasType"
+      latinName: "hasLatinName"
+      nameOfType: ['type','name']
+    })
+    .setStatic("latinName", "Homo sapien")
+    .setStatic("type", manType)
+    Man = manModel.buildClass()
+
+    trump = new Man()
+    trump.setProp("name", "Donald Drumpf")
+    trump.get("name")         //returns "Donald Drumpf"
+    trump.get("latinName")    //returns "Homo sapien"
+    trump.get("type")         //returns WeaverModelMember instance
+    trump.get("type.name")    //returns "Type node for all men"
+    trump.get("nameOfType")   //returns "Type node for all men"
+
+    trump.destroy()           //would that it were so easy..
+ ```

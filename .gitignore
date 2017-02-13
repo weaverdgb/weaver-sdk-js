@@ -6,4 +6,3 @@ lib
 bower_components
 coverage/
 *.iml
-dist/
