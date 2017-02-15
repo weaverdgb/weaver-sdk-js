@@ -48,6 +48,16 @@ class WeaverModel extends Weaver.Node
     @subModels = JSON.parse(@attributes.subModels)
     @structure(@definition)
 
+  loadMember: (id)->
+    new Promise( (resolve, reject)=>
+      MemberClass = @buildClass()
+      Weaver.Node.load(id).then((res)->
+        member = new MemberClass(res.nodeId)
+        member._loadFromQuery(res)
+        resolve(member)
+      )
+    )
+
   buildClass: ->
 
     _def     = @definition
@@ -75,24 +85,19 @@ class WeaverModel extends Weaver.Node
         #               mark this false if property paths are required to be included in response
         splitPath = path.split('.')
         key = splitPath[0]
-
         if splitPath.length is 1
           if @definition[key].charAt(0) is '@'
             if @subModels[key]
               Weaver.Node.load(@subModels[key]).then((node)=>
                 model = new Weaver.Model()
                 model._loadFromQuery(node)
-                MemberClass = model.buildClass()
-                returns = []
                 promises = []
                 for pred,obj of @relations[@definition[key].substr(1)].nodes
-                  member = new MemberClass(obj.nodeId)
-                  promises.push(Weaver.Node.load(obj.nodeId).then((res)->
-                    member._loadFromQuery(res)
-                    returns.push(member)
-                  ))
-                Promise.all(promises).then(->
-                  Promise.resolve(returns)
+#                  console.log(obj)
+                  promises.push(model.loadMember(obj.nodeId))
+
+                Promise.all(promises).then((res)->
+                  Promise.resolve(res)
                 )
               )
             else
@@ -103,16 +108,27 @@ class WeaverModel extends Weaver.Node
 
         else # do a recursive 'get' through child models
           path = splitPath.slice(1).join('.')
-          promises = (obj.get(path) for pred,obj of @relations[@definition[key].substr(1)].nodes) if @definition[key].charAt(0) is '@'
-          console.log(promises)
-          Promise.all(promises).then((results)->
-            console.log(path)
-            console.log(results)
-            if isFlattened
-              Promise.resolve(util.flatten(results, isFlattened))
-            else
-              Promise.resolve(results)
-          )
+          if @definition[key].charAt(0) is '@'
+            promises = []
+            Weaver.Node.load(@subModels[key]).then((node)=>
+              model = new Weaver.Model()
+              model._loadFromQuery(node)
+              promises = []
+              for pred,obj of @relations[@definition[key].substr(1)].nodes
+                promises.push(model.loadMember(obj.nodeId))
+
+              Promise.all(promises).then((res)->
+                promises = (obj.get(path) for obj in res)
+
+                Promise.all(promises).then((arr)->
+                  if isFlattened
+                    Promise.resolve(util.flatten(arr, isFlattened))
+                  else
+                    Promise.resolve(arr)
+                )
+              )
+            )
+
 
       setProp: (key, val)->
 
@@ -126,8 +142,5 @@ class WeaverModel extends Weaver.Node
         @
 
     return WeaverModelMember
-
-  getMember: (node)->
-    0
 
 module.exports = WeaverModel

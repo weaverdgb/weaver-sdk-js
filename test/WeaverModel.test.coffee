@@ -95,6 +95,7 @@ describe 'WeaverModel', ->
       assert.equal(res[0].id(), 'Canada')
       done()
     )
+    return
 
   it 'should save a model with a static relation', (done)->
 
@@ -145,23 +146,31 @@ describe 'WeaverModel', ->
         canada.setProp('name', 'Canada')
         canada.save().then(->
 
-          rockModel = new Weaver.Model("RockModel")
-          rockModel.structure({
-            origin: ["@hasOrigin", countryModel.id()]
-            age: "hasAge"
-            originName: "origin.name"
-          })
-          .setStatic("origin", canada)
-          .save().then(->
+          ireland = new Country("Ireland")
+          ireland.setProp('name', 'Ireland')
+          ireland.save().then(->
 
-            canada = null
-            countryModel = null
+            rockModel = new Weaver.Model("RockModel")
+            rockModel.structure({
+              origin: ["@hasOrigin", countryModel.id()]
+              age: "hasAge"
+              originName: "origin.name"
+            })
+            .setStatic("origin", canada)
+            .setStatic("origin", ireland)
+            .save().then(->
 
-            Rock = rockModel.buildClass()
-            mrRock = new Rock()
-            mrRock.get("origin").then((res)->
-              console.log(res)
-              done()
+              canada = null
+              countryModel = null
+
+              Rock = rockModel.buildClass()
+              mrRock = new Rock()
+              mrRock.get("origin.name").then((res)->
+                assert.notEqual(res.indexOf('Canada'), -1)
+                assert.notEqual(res.indexOf('Ireland'), -1)
+                assert.equal(res.indexOf('Netherlands'), -1)
+                done()
+              )
             )
           )
         )
