@@ -48,6 +48,13 @@ class WeaverModel extends Weaver.Node
     @subModels = JSON.parse(@attributes.subModels)
     @structure(@definition)
 
+  loadModel: (id)->
+    Weaver.Node.load(id).then((node)=>
+      model = new Weaver.Model(id)
+      model._loadFromQuery(node)
+      Promise.resolve(model)
+    )
+
   loadMember: (id)->
     new Promise( (resolve, reject)=>
       MemberClass = @buildClass()
@@ -80,55 +87,39 @@ class WeaverModel extends Weaver.Node
         @setProp(key,val) for key,val of staticProps.attrs
 
       get: (path, isFlattened = true)->
+        # isFlattened:  default response is a flat array, make this false to get a table-formatted response
 
-        # isFlattened:  default response should be flat array,
-        #               mark this false if property paths are required to be included in response
         splitPath = path.split('.')
         key = splitPath[0]
-        if splitPath.length is 1
-          if @definition[key].charAt(0) is '@'
-            if @subModels[key]
-              Weaver.Node.load(@subModels[key]).then((node)=>
-                model = new Weaver.Model()
-                model._loadFromQuery(node)
-                promises = []
-                for pred,obj of @relations[@definition[key].substr(1)].nodes
-#                  console.log(obj)
-                  promises.push(model.loadMember(obj.nodeId))
+        # check if path is self-referencing
+        return @get(@definition[key]) if (@definition[key].indexOf('.') > -1)
 
-                Promise.all(promises).then((res)->
-                  Promise.resolve(res)
-                )
-              )
-            else
-              Promise.resolve(obj for pred,obj of @relations[@definition[key].substr(1)].nodes)
-
-          else
-            Promise.resolve(@attributes[@definition[key]])
-
-        else # do a recursive 'get' through child models
-          path = splitPath.slice(1).join('.')
-          if @definition[key].charAt(0) is '@'
-            promises = []
-            Weaver.Node.load(@subModels[key]).then((node)=>
-              model = new Weaver.Model()
-              model._loadFromQuery(node)
+        if @definition[key].charAt(0) is '@' # is a relation
+          if @subModels[key] # this relation has a model
+            mod = new Weaver.Model()
+            mod.loadModel(@subModels[key]).then((model)=>
               promises = []
               for pred,obj of @relations[@definition[key].substr(1)].nodes
                 promises.push(model.loadMember(obj.nodeId))
 
-              Promise.all(promises).then((res)->
-                promises = (obj.get(path) for obj in res)
-
-                Promise.all(promises).then((arr)->
-                  if isFlattened
-                    Promise.resolve(util.flatten(arr, isFlattened))
-                  else
-                    Promise.resolve(arr)
-                )
+              Promise.all(promises).then((res)-> # these promises transform Nodes into ModelMembers
+                if splitPath.length is 1
+                  Promise.resolve(res)
+                else # path requires recursive get calls
+                  path = splitPath.slice(1).join('.') # to be used in next recursion
+                  proms = (obj.get(path) for obj in res)
+                  Promise.all(proms).then((arr)->
+                    if isFlattened
+                      Promise.resolve(util.flatten(arr, isFlattened))
+                    else
+                      Promise.resolve(arr)
+                  )
               )
             )
-
+          else # this relation does not have a model (is just a simple node)
+            Promise.resolve(obj for pred,obj of @relations[@definition[key].substr(1)].nodes)
+        else # is an attribute
+          Promise.resolve(@attributes[@definition[key]])
 
       setProp: (key, val)->
 

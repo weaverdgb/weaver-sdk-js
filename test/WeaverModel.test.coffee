@@ -115,7 +115,6 @@ describe 'WeaverModel', ->
 
       Weaver.Node.load(rockModelId).then((node)->
 
-#      console.log(rockMod) # supplying a constructor to Weaver.Node.load() seems to be failing
         rockMod = new Weaver.Model(node.id())
         rockMod._loadFromQuery(node)
 
@@ -169,7 +168,16 @@ describe 'WeaverModel', ->
                 assert.notEqual(res.indexOf('Canada'), -1)
                 assert.notEqual(res.indexOf('Ireland'), -1)
                 assert.equal(res.indexOf('Netherlands'), -1)
-                done()
+                mrRock.get("origin.type").then((res)->
+                  assert.equal(res[0].id(), 'Country')
+                  assert.equal(res[1].id(), 'Country')
+                  mrRock.get('originName').then((res)->
+                    assert.notEqual(res.indexOf('Canada'), -1)
+                    assert.notEqual(res.indexOf('Ireland'), -1)
+                    assert.equal(res.indexOf('Netherlands'), -1)
+                    done()
+                  )
+                )
               )
             )
           )
