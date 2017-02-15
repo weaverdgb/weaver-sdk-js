@@ -1,7 +1,6 @@
 require("./test-suite")
 
 describe 'WeaverNode test', ->
-  this.timeout(100000)
 
   it 'should create a new node', ->
     node = new Weaver.Node()
