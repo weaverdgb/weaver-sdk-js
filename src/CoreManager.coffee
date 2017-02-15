@@ -91,7 +91,7 @@ class CoreManager
     @POST('nodes', {attributes}, target)
 
   getAllRelations: (target)->
-    @GET('relations', target)
+    @POST('relations', {}, target)
 
   wipe: (target)->
     @POST('wipe', {}, target)
