@@ -48,20 +48,22 @@ class WeaverModel extends Weaver.Node
     @subModels = JSON.parse(@attributes.subModels)
     @structure(@definition)
 
-  loadModel: (id)->
+  @loadModel: (id)-> # utility function to load a fully initialised Model from an id
     Weaver.Node.load(id).then((node)=>
       model = new Weaver.Model(id)
       model._loadFromQuery(node)
       Promise.resolve(model)
     )
 
-  loadMember: (id)->
+  loadMember: (id)-> # utility function to load a fully initialised ModelMember from an id, given an associated Model
     new Promise( (resolve, reject)=>
       MemberClass = @buildClass()
       Weaver.Node.load(id).then((res)->
         member = new MemberClass(res.nodeId)
         member._loadFromQuery(res)
         resolve(member)
+      ).catch((err)->
+        console.log(err)
       )
     )
 
@@ -81,7 +83,6 @@ class WeaverModel extends Weaver.Node
 
         for key,val of staticProps.rels
           for rel in val
-#            console.log(rel)
             @relation(key).add(new Weaver.Node(rel.nodeId))
 
         @setProp(key,val) for key,val of staticProps.attrs
@@ -96,8 +97,7 @@ class WeaverModel extends Weaver.Node
 
         if @definition[key].charAt(0) is '@' # is a relation
           if @subModels[key] # this relation has a model
-            mod = new Weaver.Model()
-            mod.loadModel(@subModels[key]).then((model)=>
+            WeaverModel.loadModel(@subModels[key]).then((model)=>
               promises = []
               for pred,obj of @relations[@definition[key].substr(1)].nodes
                 promises.push(model.loadMember(obj.nodeId))
@@ -127,7 +127,6 @@ class WeaverModel extends Weaver.Node
 
         if @definition[key].charAt(0) is '@' #util.isArray(@definition[key])# adds new relation
           @relation(@definition[key].slice(1)).add(val)
-
         else # adds new attribute
           @set(@definition[key],val)
         @
