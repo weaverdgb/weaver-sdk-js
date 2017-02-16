@@ -89,11 +89,10 @@ class WeaverModel extends Weaver.Node
 
       get: (path, isFlattened = true)->
         # isFlattened:  default response is a flat array, make this false to get a table-formatted response
-
         splitPath = path.split('.')
         key = splitPath[0]
         # check if path is self-referencing
-        return @get(@definition[key]) if (@definition[key].indexOf('.') > -1)
+        return @get(@definition[key], isFlattened) if (@definition[key].indexOf('.') > -1)
 
         if @definition[key].charAt(0) is '@' # is a relation
           if @subModels[key] # this relation has a model
@@ -107,7 +106,7 @@ class WeaverModel extends Weaver.Node
                   Promise.resolve(res)
                 else # path requires recursive get calls
                   path = splitPath.slice(1).join('.') # to be used in next recursion
-                  proms = (obj.get(path) for obj in res)
+                  proms = (obj.get(path, isFlattened) for obj in res)
                   Promise.all(proms).then((arr)->
                     if isFlattened
                       Promise.resolve(util.flatten(arr, isFlattened))
