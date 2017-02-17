@@ -66,6 +66,15 @@ class CoreManager
   createProject: (id) ->
     @POST("project.create", {id}, "$SYSTEM")
 
+  signInUser: (username, password) ->
+    @POST("auth.signIn", {username, password}, "$SYSTEM").then((authToken) =>
+      @currentUser = Weaver.User.get(authToken)
+      @POST("auth.getUser", {}, "$SYSTEM")
+    ).then((serverUser) =>
+      @currentUser.populateFromServer(serverUser)
+      @currentUser
+    )
+
   signUpUser: (user) ->
     payload =
       userId: user.userId
@@ -74,6 +83,20 @@ class CoreManager
       email: user.email
 
     @POST("auth.signUp", payload, "$SYSTEM")
+
+
+  destroyUser: (user) ->
+    payload =
+      username: user.username
+
+    @POST("auth.destroyUser", payload, "$SYSTEM")
+
+
+  signOutCurrentUser: ->
+    @POST("auth.signOut", {}, "$SYSTEM").then(=>
+      @currentUser = undefined
+      return
+    )
 
   createUser: (id) ->
     @POST("users.create", {id})
@@ -113,13 +136,12 @@ class CoreManager
     @_resolveTarget(target).then((target) =>
       payload.target = target
       if @currentUser?
-        payload.authToken = @currentUser._authToken
+        payload.authToken = @currentUser.authToken
 
       if type is "GET"
-        @commController.GET(path, payload)
+        return @commController.GET(path, payload)
       else
-        @commController.POST(path, payload)
-
+        return @commController.POST(path, payload)
     )
 
   GET: (path, payload, target) ->

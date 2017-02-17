@@ -57,6 +57,12 @@ class Weaver
   currentUser: ->
     @coreManager.currentUser
 
+  signOut: ->
+    @coreManager.signOutCurrentUser()
+
+  signIn: (username, password) ->
+    @coreManager.signInUser(username, password)
+
 
 # Export
 weaver = new Weaver()

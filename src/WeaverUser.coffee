@@ -10,20 +10,36 @@ class WeaverUser
     @userId = cuid()
     @_created = false
 
+  @get: (authToken) ->
+    user = new Weaver.User()
+    user.userId    = undefined
+    user._created  = true
+    user.authToken = authToken
+    user
+
+  populateFromServer: (serverUser) ->
+    @[key] = value for key, value of serverUser
+
+  id: ->
+    @userId
+
+  # Saves the user without signing up
+  create: ->
+    coreManager = Weaver.getCoreManager()
+    coreManager.signUpUser(@)
+
   signUp: ->
     coreManager = Weaver.getCoreManager()
-
-    coreManager.signUpUser(@).then((authToken) =>
-      @_authToken = authToken
+    @create().then((authToken) =>
+      @authToken = authToken
       @_created = true
       coreManager.currentUser = @
     )
 
 
-
-
-
-
+  destroy: ->
+    coreManager = Weaver.getCoreManager()
+    coreManager.destroyUser(@)
 
 
 
@@ -44,7 +60,6 @@ class WeaverUser
 
   @list: ->
     new Weaver.Query("$SYSTEM").equalTo("type", "user").find()
-
 
 
 
