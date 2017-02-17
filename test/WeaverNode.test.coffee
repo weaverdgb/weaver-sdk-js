@@ -121,13 +121,16 @@ describe 'WeaverNode test', ->
 
   it 'should give an error if node already exists', ->
     node = new Weaver.Node('a')
-
-    node.save().then().catch((error) ->
+    node.save().then((res) ->
+      assert(false)
+    ).catch((error) ->
       assert.equal(error.code, Weaver.Error.NODE_ALREADY_EXISTS)
     )
 
   it 'should give an error if node does not exists', ->
-    Weaver.Node.load(cuid()).then().catch((error) ->
+    Weaver.Node.load('lol').then((res) ->
+      assert(false)
+    ).catch((error) ->
       assert.equal(error.code, Weaver.Error.NODE_NOT_FOUND)
     )
 

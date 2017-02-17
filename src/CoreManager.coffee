@@ -87,6 +87,12 @@ class CoreManager
   getNode: (nodeId, target)->
     @POST('read', {nodeId}, target)
 
+  getAllNodes: (attributes, target)->
+    @POST('nodes', {attributes}, target)
+
+  getAllRelations: (target)->
+    @GET('relations', target)
+
   wipe: (target)->
     @POST('wipe', {}, target)
 
@@ -100,6 +106,8 @@ class CoreManager
 
     @POST("query", {query}, target)
 
+  nativeQuery: (query, target) ->
+    @POST("query.native", {query}, target)
 
   REQUEST: (type, path, payload, target) ->
     @_resolveTarget(target).then((target) =>

@@ -1,6 +1,12 @@
 typeShouldBe = (type) -> (val) ->
   Object.prototype.toString.call(val) is type
 
+flatten = (arr) ->
+  arr.reduce((flat, toFlatten) ->
+    return flat.concat(flatten(toFlatten)) if typeShouldBe('[object Array]')(toFlatten)
+    return flat.concat(toFlatten)
+  , [])
+
 module.exports =
 
   isString: (val) ->
@@ -17,3 +23,7 @@ module.exports =
 
   isArray: (val) ->
     typeShouldBe('[object Array]')(val)
+
+  flatten: flatten
+
+

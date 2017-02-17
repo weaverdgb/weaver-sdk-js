@@ -267,8 +267,15 @@ WeaverError.FILE_READ_ERROR = 601
 WeaverError.X_DOMAIN_REQUEST = 602
 
 
-# Error code indicating that the requested file does not exits.
+# Error code indicating that the requested file does not exist.
 WeaverError.FILE_NOT_EXISTS_ERROR = 603
+
+
+# Error code indicating that no settable model property could be found which matches the supplied string.
+WeaverError.MODEL_PROPERTY_NOT_FOUND = 604
+
+# Error code reminding you that deep properties of a model cannot be statically set.
+WeaverError.CANNOT_SET_DEEP_STATIC = 605
 
 
 module.exports = WeaverError
