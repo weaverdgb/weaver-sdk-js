@@ -1,3 +1,4 @@
+return
 mo = new Weaver.Node()
 
 # Set fields

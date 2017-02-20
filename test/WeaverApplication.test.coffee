@@ -1,3 +1,4 @@
+return
 require("./test-suite")()
 
 # Weaver
