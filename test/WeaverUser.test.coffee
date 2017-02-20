@@ -106,7 +106,6 @@ describe 'WeaverUser Test', ->
 
 
 
-  # Now time for Project access!! That means -> Project Service
 
 
 

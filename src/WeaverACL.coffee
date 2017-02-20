@@ -13,7 +13,6 @@ class WeaverACL extends Weaver.SystemNode
 
 
   ## PUBLIC ##
-
   setPublicReadAccess: (allowed) ->
 
   getPublicReadAccess: ->
@@ -27,7 +26,6 @@ class WeaverACL extends Weaver.SystemNode
 
 
   ## USER ##
-
   setUserReadAccess: (user, allowed) ->
 
   setUserWriteAccess: (user, allowed) ->
@@ -41,7 +39,6 @@ class WeaverACL extends Weaver.SystemNode
 
 
   ## ROLE ##
-
   setRoleReadAccess: (role, allowed) ->
 
   setRoleWriteAccess: (role, allowed) ->
