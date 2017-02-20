@@ -52,19 +52,15 @@ class WeaverModel extends Weaver.Node
     Weaver.Node.load(id).then((node)=>
       model = new Weaver.Model(id)
       model._loadFromQuery(node)
-      Promise.resolve(model)
+      model
     )
 
   loadMember: (id)-> # utility function to load a fully initialised ModelMember from an id, given an associated Model
-    new Promise( (resolve, reject)=>
-      MemberClass = @buildClass()
-      Weaver.Node.load(id).then((res)->
-        member = new MemberClass(res.nodeId)
-        member._loadFromQuery(res)
-        resolve(member)
-      ).catch((err)->
-        console.log(err)
-      )
+    MemberClass = @buildClass()
+    Weaver.Node.load(id).then((res)->
+      member = new MemberClass(res.nodeId)
+      member._loadFromQuery(res)
+      member
     )
 
   buildClass: ->
@@ -109,9 +105,9 @@ class WeaverModel extends Weaver.Node
                   proms = (obj.get(path, isFlattened) for obj in res)
                   Promise.all(proms).then((arr)->
                     if isFlattened
-                      Promise.resolve(util.flatten(arr, isFlattened))
+                      util.flatten(arr)
                     else
-                      Promise.resolve(arr)
+                      arr
                   )
               )
             )
