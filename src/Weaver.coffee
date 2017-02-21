@@ -19,6 +19,7 @@ class Weaver
     @SystemNode  = require('./WeaverSystemNode')
     @Project     = require('./WeaverProject')
     @Query       = require('./WeaverQuery')
+    @ModelQuery  = require('./WeaverModelQuery')
     @ACL         = require('./WeaverACL')
     @Role        = require('./WeaverRole')
     @User        = require('./WeaverUser')

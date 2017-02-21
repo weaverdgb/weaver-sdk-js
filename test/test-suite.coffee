@@ -36,7 +36,7 @@ wipe = (systemWipe) ->
 before (done) ->
   Weaver.connect(WEAVER_ENDPOINT)
   .then(->
-    wipe(true)
+#    wipe(true)
   ).then(->
     # To not wait long for project creation, set the retry timeout to low
     Weaver.Project.READY_RETRY_TIMEOUT = 1  # ms
@@ -57,7 +57,7 @@ before (done) ->
 # Runs after all tests
 after (done) ->
   project.destroy().then(->
-    wipe(true)
+#    wipe(true)
   ).then(->
     done()
   )
@@ -73,4 +73,4 @@ beforeEach (done)->
 
 # Runs after each test
 afterEach ->
-  wipe()
+#  wipe()

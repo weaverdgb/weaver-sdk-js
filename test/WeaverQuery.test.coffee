@@ -106,3 +106,19 @@ describe 'WeaverQuery Test', ->
       assert.include(res.head.vars, 'p')
       assert.include(res.head.vars, 'o')
     )
+
+  it 'should run a native query', (done)->
+
+    test = new Weaver.Node('test')
+    test.save()
+    .then(->
+
+      query = "select * where { <http://weav.er#test> ?p ?o }"
+
+      q = new Weaver.Query()
+      q.nativeQuery(query).then((res)->
+        assert.equal(res.results.bindings.length, 1)
+        done()
+      )
+    )
+    return
