@@ -61,7 +61,9 @@ class WeaverProject extends Weaver.SystemNode
     super(nodeId, WeaverProject)
 
   @list: ->
-    new Weaver.Query("$SYSTEM").equalTo("type", "project").find()
+    new Weaver.Query("$SYSTEM").equalTo("type", "project").find().then((projs)->
+      (new Weaver.Project(proj.id()) for proj in projs)
+    )
 
 module.exports = WeaverProject
 
