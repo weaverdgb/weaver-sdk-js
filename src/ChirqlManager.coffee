@@ -12,10 +12,7 @@ class ChirqlManager
     tokenList = @chirql.lexer.lex(queryString)
     fragmentList = @chirql.parser.parseTokens(tokenList)
     query = @chirql.queryManager.transpile(fragmentList)
-    new Weaver.Query().nativeQuery(query).then((res)->
-      res
-    )
-
+    new Weaver.Query().nativeQuery(query)
 
 module.exports = ChirqlManager
 

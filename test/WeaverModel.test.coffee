@@ -20,14 +20,13 @@ describe 'WeaverModel', ->
       origin: "@hasOrigin"
       age: "hasAge"
     }).save().then(->
-
       rockModelId = rockModel.id()
       rockModel = null
+      Weaver.Node.load(rockModelId)
 
-      Weaver.Node.load(rockModelId).then((rockMod)->
-        assert.equal(rockMod.attributes.definition, '{"origin":"@hasOrigin","age":"hasAge"}')
-        done()
-      )
+    ).then((rockMod)->
+      assert.equal(rockMod.attributes.definition, '{"origin":"@hasOrigin","age":"hasAge"}')
+      done()
     )
     return
 
@@ -39,7 +38,6 @@ describe 'WeaverModel', ->
       age: "hasAge"
     })
     .setStatic("age", "Really damn old.")
-
     Rock = rockModel.buildClass()
     mrRock = new Rock()
     mrRock.get("age").then((res)->
@@ -58,21 +56,20 @@ describe 'WeaverModel', ->
     })
     .setStatic("age", "Really damn old.")
     .save().then(->
-
       rockModelId = rockModel.id()
       rockModel = null
+      Weaver.Node.load(rockModelId)
 
-      Weaver.Node.load(rockModelId).then((node)->
+    ).then((node)->
+      rockMod = new Weaver.Model(node.id())
+      rockMod._loadFromQuery(node)
+      Rock = rockMod.buildClass()
+      mrRock = new Rock()
+      mrRock.get("age")
 
-        rockMod = new Weaver.Model(node.id())
-        rockMod._loadFromQuery(node)
-        Rock = rockMod.buildClass()
-        mrRock = new Rock()
-        mrRock.get("age").then((res)->
-          assert.equal(res, "Really damn old.")
-          done()
-        )
-      )
+    ).then((res)->
+      assert.equal(res, "Really damn old.")
+      done()
     )
     return
 
@@ -109,26 +106,31 @@ describe 'WeaverModel', ->
     })
     .setStatic("origin", canada)
     .save().then(->
-
       rockModelId = rockModel.id()
       rockModel = null
+      Weaver.Node.load(rockModelId)
 
-      Weaver.Node.load(rockModelId).then((node)->
+    ).then((node)->
+      rockMod = new Weaver.Model(node.id())
+      rockMod._loadFromQuery(node)
+      Rock = rockMod.buildClass()
+      mrRock = new Rock()
+      mrRock.get("origin")
 
-        rockMod = new Weaver.Model(node.id())
-        rockMod._loadFromQuery(node)
+    ).then((res)->
+      assert.equal(res[0].id(), 'Canada')
+      done()
 
-        Rock = rockMod.buildClass()
-        mrRock = new Rock()
-        mrRock.get("origin").then((res)->
-          assert.equal(res[0].id(), 'Canada')
-          done()
-        )
-      )
     )
     return
 
   it 'should support deep "get" calls', (done)->
+
+    Country = {}
+    canada = {}
+    ireland = {}
+    rockModel = {}
+    mrRock = {}
 
     countryType = new Weaver.Node('Country')
     countryType.save().then(->
@@ -139,53 +141,55 @@ describe 'WeaverModel', ->
       })
       .setStatic("type", countryType)
       .save().then(->
-
         Country = countryModel.buildClass()
         canada = new Country("Canada")
         canada.setProp('name', 'Canada')
-        canada.save().then(->
+        canada.save()
 
-          ireland = new Country("Ireland")
-          ireland.setProp('name', 'Ireland')
-          ireland.save().then(->
+      ).then(->
+        ireland = new Country("Ireland")
+        ireland.setProp('name', 'Ireland')
+        ireland.save()
 
-            rockModel = new Weaver.Model("RockModel")
-            rockModel.structure({
-              origin: ["@hasOrigin", countryModel.id()]
-              age: "hasAge"
-              originName: "origin.name"
-            })
-            .setStatic("origin", canada)
-            .setStatic("origin", ireland)
-            .save().then(->
+      ).then(->
 
-              canada = null
-              countryModel = null
+        rockModel = new Weaver.Model("RockModel")
+        rockModel.structure({
+          origin: ["@hasOrigin", countryModel.id()]
+          age: "hasAge"
+          originName: "origin.name"
+        })
+        .setStatic("origin", canada)
+        .setStatic("origin", ireland)
+        .save()
 
-              Rock = rockModel.buildClass()
-              mrRock = new Rock('Rock')
-              mrRock.save().then(->
-                mrRock.get("origin.name", false).then((res)->
-                  assert.notEqual(res.indexOf('Canada'), -1)
-                  assert.notEqual(res.indexOf('Ireland'), -1)
-                  assert.equal(res.indexOf('Netherlands'), -1)
-                  mrRock.get("origin.type").then((res)->
-                    assert.equal(res[0].id(), 'Country')
-                    assert.equal(res[1].id(), 'Country')
-                    mrRock.get('originName').then((res)->
-                      assert.notEqual(res.indexOf('Canada'), -1)
-                      assert.notEqual(res.indexOf('Ireland'), -1)
-                      assert.equal(res.indexOf('Netherlands'), -1)
-                      mrRock.get("originName", false).then((res)->
+      ).then(->
+        canada = null
+        countryModel = null
+        Rock = rockModel.buildClass()
+        mrRock = new Rock('Rock')
+        mrRock.save()
 
-                        done()
-                      )
-                    )
-                  )
-                )
-              )
-            )
-          )
+      ).then(->
+        mrRock.get("origin.name", false)
+
+      ).then((res)->
+        assert.notEqual(res.indexOf('Canada'), -1)
+        assert.notEqual(res.indexOf('Ireland'), -1)
+        assert.equal(res.indexOf('Netherlands'), -1)
+        mrRock.get("origin.type")
+
+      ).then((res)->
+        assert.equal(res[0].id(), 'Country')
+        assert.equal(res[1].id(), 'Country')
+        mrRock.get('originName')
+
+      ).then((res)->
+        assert.notEqual(res.indexOf('Canada'), -1)
+        assert.notEqual(res.indexOf('Ireland'), -1)
+        assert.equal(res.indexOf('Netherlands'), -1)
+        mrRock.get("originName", false).then(->
+          done()
         )
       )
     )
@@ -193,6 +197,9 @@ describe 'WeaverModel', ->
 
   it 'should support deep "get" calls (3 levels + db loaded model)', (done)->
 
+    Country = {}
+    myQuarry = {}
+
     recreateRocksAndCountries().then(->
       quarryModel = new Weaver.Model("QuarryModel")
       quarryModel.structure({
@@ -203,49 +210,62 @@ describe 'WeaverModel', ->
         Quarry = quarryModel.buildClass()
         myQuarry = new Quarry()
         myQuarry.setProp('contains', new Weaver.Node('Rock'))
+        myQuarry.get('contains.origin.type')
 
-        myQuarry.get('contains.origin.type').then((res)->
-          assert.equal(res[0].id(), 'Country')
-          myQuarry.get('originName').then((res)->
-            assert.include(res, 'Ireland')
-            assert.include(res, 'Canada')
-            done()
-          )
-        )
+      ).then((res)->
+        assert.equal(res[0].id(), 'Country')
+        myQuarry.get('originName')
+
+      ).then((res)->
+        assert.include(res, 'Ireland')
+        assert.include(res, 'Canada')
+        done()
+
       )
     )
     return
 
   it 'should flatten results accordingly', (done)->
 
+    Country = {}
+    quarryModel = {}
+    myQuarry = {}
+
     recreateRocksAndCountries().then(->
       quarryModel = new Weaver.Model("QuarryModel")
       quarryModel.structure({
         contains: ["@hasRock", 'RockModel']
         originName: "contains.origin.name"
       })
-      .save().then(->
-        Quarry = quarryModel.buildClass()
-        myQuarry = new Quarry()
-        myQuarry.setProp('contains', new Weaver.Node('Rock'))
+      .save()
 
-        myQuarry.get('contains.origin.type').then((res)-># results are in a one-dimensional array
-          assert.equal(res[0].id(), 'Country')
-          assert.equal(res.length, 2)
+    ).then(->
+      Quarry = quarryModel.buildClass()
+      myQuarry = new Quarry()
+      myQuarry.setProp('contains', new Weaver.Node('Rock'))
+      myQuarry.get('contains.origin.type')
 
-          myQuarry.get('contains.origin.type', false).then((res)-># results are in a three-dimensional array
-            assert(util.isArray(res))
-            assert(util.isArray(res[0]))
-            assert(util.isArray(res[0][0]))
-            done()
-          )
+    ).then((res)-># results are in a one-dimensional array
+      assert.equal(res[0].id(), 'Country')
+      assert.equal(res.length, 2)
+      myQuarry.get('contains.origin.type', false)
 
-        )
-      )
+    ).then((res)-># results are in a three-dimensional array
+      assert(util.isArray(res))
+      assert(util.isArray(res[0]))
+      assert(util.isArray(res[0][0]))
+      done()
+
     )
     return
 
 recreateRocksAndCountries = ()->
+
+  Country = {}
+  canada = {}
+  ireland = {}
+  rockModel = {}
+
 
   ###
     THIS CALLS THE SAME CODE AS THE 'should support deep "get" calls' TEST
@@ -259,36 +279,35 @@ recreateRocksAndCountries = ()->
     })
     .setStatic("type", countryType)
     .save().then(->
-
       Country = countryModel.buildClass()
       canada = new Country("Canada")
       canada.setProp('name', 'Canada')
-      canada.save().then(->
+      canada.save()
 
-        ireland = new Country("Ireland")
-        ireland.setProp('name', 'Ireland')
-        ireland.save().then(->
+    ).then(->
+      ireland = new Country("Ireland")
+      ireland.setProp('name', 'Ireland')
+      ireland.save()
 
-          rockModel = new Weaver.Model("RockModel")
-          rockModel.structure({
-            origin: ["@hasOrigin", countryModel.id()]
-            age: "hasAge"
-            originName: "origin.name"
-          })
-          .setStatic("origin", canada)
-          .setStatic("origin", ireland)
-          .save().then(->
+    ).then(->
+      rockModel = new Weaver.Model("RockModel")
+      rockModel.structure({
+        origin: ["@hasOrigin", countryModel.id()]
+        age: "hasAge"
+        originName: "origin.name"
+      })
+      .setStatic("origin", canada)
+      .setStatic("origin", ireland)
+      .save()
 
-            canada = null
-            countryModel = null
+    ).then(->
+      canada = null
+      countryModel = null
+      Rock = rockModel.buildClass()
+      mrRock = new Rock('Rock')
+      mrRock.save()
 
-            Rock = rockModel.buildClass()
-            mrRock = new Rock('Rock')
-            mrRock.save().then(->
-              Promise.resolve()
-            )
-          )
-        )
-      )
+    ).then(->
+      Promise.resolve()
     )
   )

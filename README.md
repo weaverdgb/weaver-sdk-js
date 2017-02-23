@@ -185,7 +185,7 @@ For development environments:
 #### Step 1: Define a model
 
 
- This will create a new Model with the name 'Man'
+ This will create a new Model with the id 'Man'
  ```javascript
  manModel = new Weaver.Model("Man")
  ```

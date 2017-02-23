@@ -3,13 +3,6 @@ util          = require('./util')
 ChirqlManager = require('./ChirqlManager')
 Chirql        = require('chirql')
 
-# Converts a string into a regex that matches it.
-# Surrounding with \Q .. \E does this, we just need to escape any \E's in
-# the text separately.
-quote = (s) ->
-  '\\Q' + s.replace('\\E', '\\E\\\\E\\Q') + '\\E';
-
-
 class ModelQuery
 
   constructor: ->
@@ -20,7 +13,7 @@ class ModelQuery
 
   getQueryString: ->
 
-    parseQueryFrag = (key,item)=>
+    parseSimpleFragment = (key, item)=>
       if @model['staticProps']['rels'][key]
         suffix = '(wv:' + @model['staticProps']['rels'][key][0].nodeId + ') '
       else if @model['staticProps']['attrs'][key]
@@ -31,19 +24,43 @@ class ModelQuery
         ' wv:' + item.substring(1) + suffix
       else
         ' <wv:' + item + '>' + suffix
+
+    parseQueryFrag = (key,item)=>
+      if item.indexOf('.') isnt -1
+        path =  item.split('.')
+        nestedModelId = @model.subModels[path[0]]
+        newPath = path.slice(-1).join('.')
+        Weaver.Node.load(nestedModelId).then((node)=>
+          nestedModel = new Weaver.Model(node.id())
+          nestedModel._loadFromQuery(node)
+          parseQueryFrag(newPath,nestedModel['definition'][newPath])
+
+        ).then((innerFragment)=>
+          'wv:' + @model.definition[path[0]].substring(1) + ' { ' + innerFragment + '}'
+        )
+#        @model.definition[path[0]] + '{ ' + parseQueryFrag(newPath,@model['definition'][newPath]) + '}'
+      else
+        Promise.resolve(parseSimpleFragment(key,item))
+
     queryString = ''
-    (queryString += parseQueryFrag(key,item)) for key,item of @model['definition']
-    '{ ' + queryString + ' }'
+    proms = []
+    proms.push(parseQueryFrag(key,item)) for key,item of @model['definition']
+    Promise.all(proms).then((res)->
+      queryString += prom for prom in res
+      Promise.resolve('{ ' + queryString + ' }')
+    )
 
   executeQuery: ->
-    query = @getQueryString()
-    @chirqlManager.query(query).then((res)=>
+    @getQueryString().then((query)=>
+      @chirqlManager.query(query)
+    ).then((res)=>
       ids = (i.root.value for i in res.results.bindings)
-      cleanIds = (@chirqlManager.chirql.queryManager.removeNamespaceIfNamespace(id).substring(3) for id in ids)
+      halfCleanIds = (@chirqlManager.chirql.queryManager.removeNamespaceIfNamespace(id).substring(3) for id in ids)
+      cleanIds = []
+      for id in halfCleanIds
+        cleanIds.push(id) if cleanIds.indexOf(id) is -1
       promises = (@model.loadMember(id) for id in cleanIds)
-      Promise.all(promises).then((res)->
-        res
-      )
+      Promise.all(promises)
     )
 
 module.exports = ModelQuery

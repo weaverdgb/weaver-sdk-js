@@ -31,6 +31,7 @@ class WeaverModel extends Weaver.Node
     throw new Error(Weaver.Error.CANNOT_SET_DEEP_STATIC) if util.isArray(@definition[key])
 
     if @definition[key].charAt(0) is '@'# add static relation for all model instances
+      key = @definition[key].substr(1)
       @staticProps.rels[key] = @staticProps.rels[key] or []
       @staticProps.rels[key].push(val)
 
