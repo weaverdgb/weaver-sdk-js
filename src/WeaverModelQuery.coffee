@@ -6,41 +6,47 @@ Chirql        = require('chirql')
 class ModelQuery
 
   constructor: ->
-    @chirqlManager = new ChirqlManager('SPARQL', [{ prefix:'wv:', namespace:'http://weav.er#' }])
+    @chirqlManager = new ChirqlManager('SPARQL', [{ prefix:'wv:', namespace:'http://weav.er#' }]) #instantiate a chirqlManager with one default namespace
 
   applyModel: (model)->
     @model = model
 
   getQueryString: ->
 
+    pref = 'wv:' # default prefix
+
     parseSimpleFragment = (key, item)=>
       if @model['staticProps']['rels'][key]
-        suffix = '(wv:' + @model['staticProps']['rels'][key][0].nodeId + ') '
+        suffix = '(' + pref + @model['staticProps']['rels'][key][0].nodeId + ') '
       else if @model['staticProps']['attrs'][key]
         suffix = '(' + @model['staticProps']['attrs'][key] + ') '
       else
         suffix = ' '
       if item.charAt(0) is '@'
-        ' wv:' + item.substring(1) + suffix
+        ' ' + pref + item.substring(1) + suffix
       else
-        ' <wv:' + item + '>' + suffix
+        ' <' + pref + item + '>' + suffix
 
-    parseQueryFrag = (key,item)=>
-      if item.indexOf('.') isnt -1
+    parseQueryFrag = (key,item,modelRef)=>
+      model = modelRef or @model
+      console.log(key)
+      console.log(item)
+
+      if item.indexOf('.') is -1
+        Promise.resolve(parseSimpleFragment(key,item))
+
+      else # some nesting is required
         path =  item.split('.')
-        nestedModelId = @model.subModels[path[0]]
-        newPath = path.slice(-1).join('.')
-        Weaver.Node.load(nestedModelId).then((node)=>
+        nestedModelId = model.subModels[path[0]]
+        newPath = path.slice(1).join('.')
+        Weaver.Node.load(nestedModelId).then((node)=> # load submodel structure
           nestedModel = new Weaver.Model(node.id())
           nestedModel._loadFromQuery(node)
-          parseQueryFrag(newPath,nestedModel['definition'][newPath])
+          parseQueryFrag(newPath,nestedModel['definition'][newPath],nestedModel)
 
         ).then((innerFragment)=>
-          'wv:' + @model.definition[path[0]].substring(1) + ' { ' + innerFragment + '}'
+          pref + model.definition[path[0]].substring(1) + ' { ' + innerFragment + '} '
         )
-#        @model.definition[path[0]] + '{ ' + parseQueryFrag(newPath,@model['definition'][newPath]) + '}'
-      else
-        Promise.resolve(parseSimpleFragment(key,item))
 
     queryString = ''
     proms = []

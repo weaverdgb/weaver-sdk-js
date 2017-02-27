@@ -118,7 +118,8 @@ class WeaverModel extends Weaver.Node
 
       setProp: (key, val)->
 
-        return Error Weaver.Error.MODEL_PROPERTY_NOT_FOUND if not @definition[key]?
+        if not @definition[key]?
+          return {code:'604', message:'This model does not contain any property at the path: ' + @definition[key]}
 
         if @definition[key].charAt(0) is '@' #util.isArray(@definition[key])# adds new relation
           @relation(@definition[key].slice(1)).add(val)

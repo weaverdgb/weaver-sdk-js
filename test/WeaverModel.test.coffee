@@ -1,4 +1,5 @@
 require("./test-suite")
+circJSON = require('circular-json')
 util = require("../src/util")
 
 describe 'WeaverModel', ->
@@ -130,6 +131,7 @@ describe 'WeaverModel', ->
     canada = {}
     ireland = {}
     rockModel = {}
+    rockType = {}
     mrRock = {}
 
     countryType = new Weaver.Node('Country')
@@ -141,6 +143,10 @@ describe 'WeaverModel', ->
       })
       .setStatic("type", countryType)
       .save().then(->
+        rockType = new Weaver.Node('lib:Rock')
+        rockType.save()
+
+      ).then(->
         Country = countryModel.buildClass()
         canada = new Country("Canada")
         canada.setProp('name', 'Canada')
@@ -157,8 +163,10 @@ describe 'WeaverModel', ->
         rockModel.structure({
           origin: ["@hasOrigin", countryModel.id()]
           age: "hasAge"
+          type: "@hasType"
           originName: "origin.name"
         })
+        .setStatic("type", rockType)
         .setStatic("origin", canada)
         .setStatic("origin", ireland)
         .save()
@@ -168,6 +176,7 @@ describe 'WeaverModel', ->
         countryModel = null
         Rock = rockModel.buildClass()
         mrRock = new Rock('Rock')
+        mrRock.setProp('age', '6847')
         mrRock.save()
 
       ).then(->
