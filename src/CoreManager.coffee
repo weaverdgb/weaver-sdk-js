@@ -123,19 +123,19 @@ class CoreManager
     )
     
   sendFile: (file) ->
-    @commController.POST('uploadFile', file)
+    @commController.POST('file.upload', file)
     
   getFile: (file) ->
-    @commController.POST('downloadFile',file)
+    @commController.POST('file.download',file)
     
   getFileByID: (file) ->
-    @commController.POST('downloadFileByID',file)
+    @commController.POST('file.downloadByID',file)
     
   deleteFile: (file) ->
-    @commController.POST('deleteFile',file)
+    @commController.POST('file.delete',file)
     
   deleteFileByID: (file) ->
-    @commController.POST('deleteFileByID',file)
+    @commController.POST('file.deleteByID',file)
 
   GET: (path, payload, target) ->
     @REQUEST("GET", path, payload, target)
