@@ -36,7 +36,7 @@ wipe = (systemWipe) ->
 before (done) ->
   Weaver.connect(WEAVER_ENDPOINT)
   .then(->
-#    wipe(true)
+    wipe(true)
   ).then(->
     # To not wait long for project creation, set the retry timeout to low
     Weaver.Project.READY_RETRY_TIMEOUT = 1  # ms
@@ -56,14 +56,14 @@ before (done) ->
 
 # Runs after all tests
 after (done) ->
-  project.destroy().then(->
-#    wipe(true)
-  ).then(->
-    done()
-  )
-  .catch((e)->
-    console.log(e)
-  )
+#  project.destroy().then(->
+##    wipe(true)
+#  ).then(->
+  done()
+#  )
+#  .catch((e)->
+#    console.log(e)
+#  )
   return
 
 # Runs before each test
