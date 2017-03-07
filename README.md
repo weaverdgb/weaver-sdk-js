@@ -160,7 +160,19 @@ For development environments:
 
 `$ grunt dev`
 
+## Tests
 
+### NodeJS test
+
+Based on mocha
+
+`$ npm run node-test`
+
+### Browser test
+
+Based on electron mocha
+
+`$ npm run browser-test`
 
 
 ## Todo

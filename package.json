@@ -51,6 +51,8 @@
   "scripts": {
     "prepublish": "coffee -o lib -c src",
     "test": "./node_modules/.bin/istanbul cover _mocha --",
-    "electron-test":"if which electron >/dev/null;then echo ok you already have electron installed gloabally;else npm install electron -g; fi;./node_modules/electron-mocha/bin/electron-mocha --renderer --debug --interactive $(ls test/*.test.coffee | grep -Ev 'WeaverFile.test.coffee')"
+    "browser-test":"if which electron >/dev/null;then echo ok you already have electron installed globally;else npm install electron -g; fi;./node_modules/electron-mocha/bin/electron-mocha --renderer --debug --interactive $(ls test/*.test.coffee | grep -Ev 'WeaverFile.test.coffee')",
+    "node-test":"mocha $(ls test/*.test.coffee | grep -Ev 'WeaverFileBrowser.test.coffee')"
+
   }
 }
