@@ -27,8 +27,11 @@ class CoreManager
 
   _resolveTarget: (target) ->
     # Fallback to currentProject if target not given
-    target = target or @currentProject.id() if @currentProject?
-    target
+    if not target? and not @currentProject?
+      return Promise.reject({code: -1, message:"Provide a target or select a project before saving"})
+
+    target = @currentProject.id() if not target?
+    Promise.resolve(target)
 
   executeOperations: (operations, target) ->
     @POST('write', {operations}, target)
@@ -63,15 +66,6 @@ class CoreManager
   createProject: (id) ->
     @POST("project.create", {id}, "$SYSTEM")
 
-  signInUser: (username, password) ->
-    @POST("auth.signIn", {username, password}, "$SYSTEM").then((authToken) =>
-      @currentUser = Weaver.User.get(authToken)
-      @POST("auth.getUser", {}, "$SYSTEM")
-    ).then((serverUser) =>
-      @currentUser.populateFromServer(serverUser)
-      @currentUser
-    )
-
   signUpUser: (user) ->
     payload =
       userId: user.userId
@@ -80,20 +74,6 @@ class CoreManager
       email: user.email
 
     @POST("auth.signUp", payload, "$SYSTEM")
-
-
-  destroyUser: (user) ->
-    payload =
-      username: user.username
-
-    @POST("auth.destroyUser", payload, "$SYSTEM")
-
-
-  signOutCurrentUser: ->
-    @POST("auth.signOut", {}, "$SYSTEM").then(=>
-      @currentUser = undefined
-      return
-    )
 
   createUser: (id) ->
     @POST("users.create", {id})
@@ -111,7 +91,7 @@ class CoreManager
     @POST('nodes', {attributes}, target)
 
   getAllRelations: (target)->
-    @GET('relations', target)
+    @POST('relations', {}, target)
 
   wipe: (target)->
     @POST('wipe', {}, target)
@@ -129,30 +109,33 @@ class CoreManager
   nativeQuery: (query, target) ->
     @POST("query.native", {query}, target)
 
-  wipe: ->
-    @POST("application.wipe")
+  REQUEST: (type, path, payload, target) ->
+    @_resolveTarget(target).then((target) =>
+      payload.target = target
+      if @currentUser?
+        payload.sessionId = @currentUser._sessionId
 
-  readACL: (aclId) ->
-    @GET("acl.read", {id: aclId})
+      if type is "GET"
+        @commController.GET(path, payload)
+      else
+        @commController.POST(path, payload)
 
-  writeACL: (acl) ->
-    console.log(acl)
-    @POST("acl.write", {acl})
-
-  deleteACL: (aclId) ->
-    @POST("acl.delete", {id: aclId})
-
-  REQUEST: (type, path, payload, target) =>
-    payload = payload or {}
-    payload.target = @_resolveTarget(target)
-    if @currentUser?
-      payload.authToken = @currentUser.authToken
-
-    if type is "GET"
-      return @commController.GET(path, payload)
-    else
-      return @commController.POST(path, payload)
-
+    )
+    
+  sendFile: (file) ->
+    @commController.POST('file.upload', file)
+    
+  getFile: (file) ->
+    @commController.POST('file.download',file)
+    
+  getFileByID: (file) ->
+    @commController.POST('file.downloadByID',file)
+    
+  deleteFile: (file) ->
+    @commController.POST('file.delete',file)
+    
+  deleteFileByID: (file) ->
+    @commController.POST('file.deleteByID',file)
 
   GET: (path, payload, target) ->
     @REQUEST("GET", path, payload, target)

@@ -95,3 +95,14 @@ describe 'WeaverQuery Test', ->
         expect(nodes[0].id()).to.equal("b")
       )
     )
+
+  it 'should run a native query', ->
+
+    query = "select * where { ?s ?p ?o }"
+
+    q = new Weaver.Query()
+    q.nativeQuery(query).then((res)->
+      assert.include(res.head.vars, 's')
+      assert.include(res.head.vars, 'p')
+      assert.include(res.head.vars, 'o')
+    )
