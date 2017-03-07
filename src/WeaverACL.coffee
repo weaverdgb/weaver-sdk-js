@@ -1,53 +1,93 @@
 Weaver = require('./Weaver')
 
-# For any node, you can specify which users and roles are allowed to read the node, and which users and roles are
-# allowed to modify an node. To support this type of security, each node has an access control list,
-# implemented by the WeaverACL class.
-class WeaverACL extends Weaver.SystemNode
+# For projects, users and nodes, you can specify which users and roles are allowed to read, and which
+# users and roles are allowed to modify.
+#
+# To support this type of security, each of these objects have an access control list,
+# implemented by this WeaverACL class.
+class WeaverACL
 
-  constructor: (@nodeId) ->
-    super(@nodeId)
+  constructor: (user) ->
+    @_id          = cuid()
+    @_objects     = []
+    @_publicRead  = false
+    @_publicWrite = false
 
-  @get: (nodeId) ->
-    super(nodeId, WeaverACL)
+    # Locally these are objects, whereas the server expects arrays
+    # Converting to arrays before saving in save function
+    @_userReadMap  = {}
+    @_userWriteMap = {}
+    @_roleReadMap  = {}
+    @_roleWriteMap = {}
 
+    @_userWrite[user.id()] = true if user?
+    @_deleted = false
 
-  ## PUBLIC ##
+  id: ->
+    @id
+
+  # Read from server
+  @load: (aclId) ->
+    coreManager = Weaver.getCoreManager()
+    coreManager.readACL(aclId).then((aclObject) ->
+      aclObject
+    )
+
+  save: ->
+    # Convert to array for all values that are true
+    trueKeys = (object) ->
+      (key for key, value of object when value)
+
+    @_userRead  = trueKeys(@_userReadMap)
+    @_userWrite = trueKeys(@_userWriteMap)
+    @_roleRead  = trueKeys(@_roleReadMap)
+    @_roleWrite = trueKeys(@_roleWriteMap)
+
+    coreManager = Weaver.getCoreManager()
+    coreManager.writeACL(@)
+
+  delete: ->
+    coreManager = Weaver.getCoreManager()
+    coreManager.deleteACL(@).then(=>
+      @_deleted = true
+      return
+    )
+
   setPublicReadAccess: (allowed) ->
+    @publicRead = allowed
 
   getPublicReadAccess: ->
-    true
+    @publicRead
 
   setPublicWriteAccess: (allowed) ->
+    @publicWrite = allowed
 
   getPublicWriteAccess: ->
-    true
+    @publicWrite
 
-
-
-  ## USER ##
   setUserReadAccess: (user, allowed) ->
+    @userReadMap[user.id()] = allowed
 
   setUserWriteAccess: (user, allowed) ->
+    @userWriteMap[user.id()] = allowed
 
   getUserReadAccess: (user) ->
-    true
+    @userReadMap[user.id()] or false
 
   getUserWriteAccess: (user) ->
-    true
+    @userWriteMap[user.id()] or false
 
-
-
-  ## ROLE ##
   setRoleReadAccess: (role, allowed) ->
+    @roleReadMap[role.id()] = allowed
 
   setRoleWriteAccess: (role, allowed) ->
+    @roleWriteMap[role.id()] = allowed
 
   getRoleReadAccess: (role) ->
-    true
+    @roleReadMap[role.id()] or false
 
   getRoleWriteAccess: (role) ->
-    true
+    @roleWriteMap[role.id()] or false
 
 
 module.exports = WeaverACL

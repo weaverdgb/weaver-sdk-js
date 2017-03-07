@@ -27,11 +27,8 @@ class CoreManager
 
   _resolveTarget: (target) ->
     # Fallback to currentProject if target not given
-    if not target? and not @currentProject?
-      return Promise.reject({code: -1, message:"Provide a target or select a project before saving"})
-
-    target = @currentProject.id() if not target?
-    Promise.resolve(target)
+    target = target or @currentProject.id() if @currentProject?
+    target
 
   executeOperations: (operations, target) ->
     @POST('write', {operations}, target)
@@ -132,17 +129,30 @@ class CoreManager
   nativeQuery: (query, target) ->
     @POST("query.native", {query}, target)
 
-  REQUEST: (type, path, payload, target) ->
-    @_resolveTarget(target).then((target) =>
-      payload.target = target
-      if @currentUser?
-        payload.authToken = @currentUser.authToken
+  wipe: ->
+    @POST("application.wipe")
 
-      if type is "GET"
-        return @commController.GET(path, payload)
-      else
-        return @commController.POST(path, payload)
-    )
+  readACL: (aclId) ->
+    @GET("acl.read", {id: aclId})
+
+  writeACL: (acl) ->
+    console.log(acl)
+    @POST("acl.write", {acl})
+
+  deleteACL: (aclId) ->
+    @POST("acl.delete", {id: aclId})
+
+  REQUEST: (type, path, payload, target) =>
+    payload = payload or {}
+    payload.target = @_resolveTarget(target)
+    if @currentUser?
+      payload.authToken = @currentUser.authToken
+
+    if type is "GET"
+      return @commController.GET(path, payload)
+    else
+      return @commController.POST(path, payload)
+
 
   GET: (path, payload, target) ->
     @REQUEST("GET", path, payload, target)

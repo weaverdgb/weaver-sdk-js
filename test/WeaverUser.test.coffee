@@ -104,8 +104,103 @@ describe 'WeaverUser Test', ->
     return
 
 
+  it 'should create the admin user upon initialization', (done) ->
+    done()
+
+  it 'should create the admin role upon initialization', (done) ->
+    done()
+
+  it 'should allow only the admin to wipe a project', (done) ->
+    done()
 
 
+
+  it 'should create a new project by default on private ACL', (done) ->
+    project = new Weaver.Project()
+
+
+    project.create().then(->
+      Weaver.useProject(project)
+
+      # project.getACL() # null or WeaverACL object
+
+      # By default, any project created will have automatically the user ACL
+      # This also applies to created roles, so members of that role cant change it
+      # And also to users themselves.
+      # project.setACL(new Weaver.ACL(Weaver.currentUser()))
+
+
+    )
+
+    done()
+
+  it 'should deny other users from reading project nodes on private ACL', (done) ->
+    done()
+
+  it 'should deny other users from writing project nodes on private ACL', (done) ->
+    done()
+
+  it 'should allow other users from reading project nodes on public ACL', (done) ->
+    done()
+
+  it 'should allow other users from writing project nodes on public ACL', (done) ->
+    done()
+
+  it 'should allow other users from reading project nodes on role ACL ', (done) ->
+    done()
+
+  it 'should allow other users from writing project nodes on role ACL ', (done) ->
+    done()
+
+  it 'should allow other users from reading project nodes on child role ACL ', (done) ->
+    done()
+
+  it 'should allow other users from writing project nodes on child role ACL ', (done) ->
+    done()
+
+
+  it 'should restrict read access when getting nodes', (done) ->
+    done()
+
+  it 'should restrict read access when querying nodes', (done) ->
+    done()
+
+  it 'should restrict write access when writing nodes', (done) ->
+    done()
+
+
+  it 'should ', (done) ->
+    done()
+
+  it 'should ', (done) ->
+    done()
+
+  it 'should ', (done) ->
+    done()
+
+  it 'should ', (done) ->
+    done()
+
+
+
+  it 'should fail signing up with an existing username', (done) ->
+    username = cuid()
+    password = cuid()
+    user     = new Weaver.User(username, password, "centaurus@univer.se")
+
+    Weaver.signOut().then(->
+      user.signUp()
+    ).then(->
+      Weaver.signOut()
+    ).then(->
+      adminSignin()
+    ).then(->
+      sameUsernameUser = new Weaver.User(username, cuid(), "centaurus@univer.se")
+      sameUsernameUser.signUp()
+    ).catch(->
+      done()
+    )
+    return
 
 
 
@@ -147,17 +242,6 @@ describe 'WeaverUser Test', ->
     )
 
 
-  it 'should fail signing up with an existing username', ->
-    Weaver.User.logIn('phoenix','phoenix')
-    .then(->
-      Weaver.User.signUp('phoenix','andromeda','andromeda@univer.se','andromedas','SYSUNITE')
-    ).then(->
-      Weaver.User.signUp('phoenix','andromeda','centaurus@univer.se','andromedas','SYSUNITE')
-    ).then(->
-      assert(false)
-    ).catch((error)->
-      assert.equal(error.code, Weaver.Error.DUPLICATE_VALUE)
-    )
 
   it 'should fail signing up with an existing email', ->
     Weaver.User.signUp('phoenix','andromedas','andromedas@univer.se','andromedas','SYSUNITE')

@@ -63,6 +63,9 @@ class Weaver
   signIn: (username, password) ->
     @coreManager.signInUser(username, password)
 
+  wipe: ->
+    @coreManager.wipe()
+
 
 # Export
 weaver = new Weaver()

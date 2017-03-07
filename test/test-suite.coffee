@@ -25,10 +25,14 @@ global.sinon   = sinon
 project = null
 WEAVER_ENDPOINT = config.get("weaver.endpoint")
 
-signup = ->
-  # Create user
-  user = new Weaver.User(cuid(), cuid(), "test@weaverplatform.com")
-  user.signUp()
+global.adminSignin = ->
+  Weaver.signIn('admin', 'admin')
+
+createProject = ->
+  project = new Weaver.Project()
+  project.create().then(->
+    Weaver.useProject(project)
+  )
 
 wipe = (systemWipe) ->
   return
@@ -40,29 +44,22 @@ wipe = (systemWipe) ->
 
 # Runs before all tests
 before (done) ->
+
   Weaver.connect(WEAVER_ENDPOINT)
-  .then(->
-    wipe(true)
-  ).then(->
-    signup()
-  )
-  .then(->
-    # To not wait long for project creation, set the retry timeout to low
-    Weaver.Project.READY_RETRY_TIMEOUT = 10  # ms
-
-    # Create project and use it
-    project = new Weaver.Project()
-    project.create()
-
-  ).then(->
-    Weaver.useProject(project)
-    # Authenticate
-    done()
-  ).catch((e) -> console.log e)
+  .then(-> adminSignin())
+  .then(-> Weaver.wipe())
+  .then(-> adminSignin())
+  .then(-> createProject())
+  .then(-> done())
+  .catch(console.log)
   return
+
+
 
 # Runs after all tests
 after (done) ->
+  done()
+  return
   project.destroy().then(->
     wipe(true)
   ).then(->
@@ -71,10 +68,9 @@ after (done) ->
   return
 
 # Runs after each test
+# Let the tests define this one?
 afterEach ->
-  signup().then(->
-    wipe()
-  )
+  return
 
 
 # TODO: Full system clear of weaver server including projects and users
