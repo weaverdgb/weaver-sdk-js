@@ -1,4 +1,4 @@
-require("./test-suite")()
+require("./test-suite")
 
 # Weaver
 Weaver = require('./../src/Weaver')
