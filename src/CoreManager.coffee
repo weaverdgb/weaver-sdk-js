@@ -153,8 +153,6 @@ class CoreManager
       return @commController.POST(path, payload)
 
 
-    )
-
   sendFile: (file) ->
     @commController.POST('file.upload', file)
 
