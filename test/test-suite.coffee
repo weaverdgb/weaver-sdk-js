@@ -1,32 +1,7 @@
-# Libs
-Promise      = require('bluebird')
-config       = require('config')
-cuid         = require('cuid')
-chai         = require('chai')
-sinon        = require('sinon')
-Weaver       = require('../src/Weaver')
+require("./globalize")
 
-# Use chai as promised
-chai.use(require('chai-as-promised'));
-
-# You need to call chai.should() before being able to wrap everything with should
-chai.should();
-
-# Expose global fields (within all tests)
-global.Promise = Promise
-global.Weaver  = Weaver
-global.cuid    = cuid
-global.expect  = chai.expect
-global.assert  = chai.assert
-global.should  = chai.should
-global.sinon   = sinon
-
-# Local vars
+Promise = require('bluebird')
 project = null
-WEAVER_ENDPOINT = config.get("weaver.endpoint")
-
-global.adminSignin = ->
-  Weaver.signIn('admin', 'admin')
 
 createProject = ->
   project = new Weaver.Project()

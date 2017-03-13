@@ -1,23 +1,26 @@
 Weaver = require('./Weaver')
+cuid   = require('cuid')
 
-class WeaverProject extends Weaver.SystemNode
+class WeaverProject
 
   @READY_RETRY_TIMEOUT: 200
 
-  # TODO: Pass name instead of nodeId, nodeId must not be able to be given
-  constructor: (@nodeId) ->
-    super(@nodeId)
+  constructor: (@name) ->
+    @name = @name or 'unnamed'
+    @projectId = cuid()
     @_created = false
+
+  id: ->
+    @projectId
 
   create: ->
     coreManager = Weaver.getCoreManager()
-    id = @id()
 
-    coreManager.createProject(id).then(->  # Wait till project gets read
-      new Promise((resolve) ->
+    coreManager.createProject(@projectId, @name).then(=>  # Wait till project gets read
+      new Promise((resolve) =>
 
-        checkReady = ->
-          coreManager.readyProject(id).then((res) ->
+        checkReady = =>
+          coreManager.readyProject(@projectId).then((res) =>
             if not res.ready
               setTimeout(checkReady, WeaverProject.READY_RETRY_TIMEOUT) # Check again after some time
             else
@@ -27,17 +30,10 @@ class WeaverProject extends Weaver.SystemNode
         checkReady()
       )
     )
-    .then(=> # Project is ready, create the node
+    .then(=> # Project is ready
       @_created = true
-      @set("type", "project")
-      @save()
+      @
     )
-
-  save: ->
-    if not @_created
-      Promise.reject({error: -1, message: 'Should call create() first before saving'})
-    else
-      super()
 
   destroy: ->
     super().then(=>
@@ -54,16 +50,12 @@ class WeaverProject extends Weaver.SystemNode
     coreManager = Weaver.getCoreManager()
     coreManager.wipe(@id())
 
-  @load: (nodeId) ->
-    super(nodeId, WeaverProject)
-
-  @get: (nodeId) ->
-    super(nodeId, WeaverProject)
+  getACL: ->
+    coreManager = Weaver.getCoreManager()
+    coreManager.getACL(@projectId)
 
   @list: ->
-    new Weaver.Query("$SYSTEM").equalTo("type", "project").find().then((projs)->
-      (new Weaver.Project(proj.id()) for proj in projs)
-    )
+    Promise.resolve([])
 
 module.exports = WeaverProject
 

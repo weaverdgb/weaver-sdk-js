@@ -60,8 +60,17 @@ class CoreManager
   listProjects: ->
     @GET("project")
 
-  createProject: (id) ->
-    @POST("project.create", {id}, "$SYSTEM")
+  createProject: (id, name) ->
+    @POST("project.create", {id, name})
+
+  createRole: (role) ->
+    @POST("role.create", {role})
+
+  getACL: (objectId) ->
+    @GET("acl.read.byObject", {objectId}).then((aclObject) ->
+      Weaver.ACL.loadFromServerObject(aclObject)
+    )
+
 
   signInUser: (username, password) ->
     @POST("auth.signIn", {username, password}, "$SYSTEM").then((authToken) =>
@@ -133,7 +142,9 @@ class CoreManager
     @POST("application.wipe")
 
   readACL: (aclId) ->
-    @GET("acl.read", {id: aclId})
+    @GET("acl.read", {id: aclId}).then((aclObject) ->
+      Weaver.ACL.loadFromServerObject(aclObject)
+    )
 
   writeACL: (acl) ->
     @POST("acl.write", {acl})
@@ -147,6 +158,8 @@ class CoreManager
     if @currentUser?
       payload.authToken = @currentUser.authToken
 
+    #console.log(path)
+    #console.log(payload)
     if type is "GET"
       return @commController.GET(path, payload)
     else

@@ -7,7 +7,7 @@ WeaverError = Weaver.Error
 class WeaverUser
 
   constructor: (@username, @password, @email) ->
-    @userId = cuid()
+    @userId   = cuid()
     @_created = false
 
   @get: (authToken) ->
@@ -26,8 +26,12 @@ class WeaverUser
   # Saves the user without signing up
   create: ->
     coreManager = Weaver.getCoreManager()
-    coreManager.signUpUser(@)
+    coreManager.signUpUser(@).then((user) =>
+      delete @password
+      user
+    )
 
+  # Saves the user and signs in as current user
   signUp: ->
     coreManager = Weaver.getCoreManager()
     @create().then((authToken) =>

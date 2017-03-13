@@ -15,7 +15,7 @@ describe 'WeaverUser Test', ->
       assert.equal(user.id(), Weaver.currentUser().id())
       assert.isTrue(user.authToken?)
 
-      # Sign out and signin again
+      # Sign out and sign in again
       Weaver.signOut()
     ).then(->
       expect(Weaver.currentUser()).to.be.undefined

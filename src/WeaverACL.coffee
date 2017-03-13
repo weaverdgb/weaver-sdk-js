@@ -21,10 +21,27 @@ class WeaverACL
     @_roleWriteMap = {}
 
     @_userWrite[user.id()] = true if user?
+    @_created = false
     @_deleted = false
 
   id: ->
     @id
+
+  @loadFromServerObject: (aclObject) ->
+
+    acl = new WeaverACL()
+    # Copy
+    acl._id       = aclObject.id
+    acl._created = true
+    acl._publicRead  = aclObject.publicRead
+    acl._publicWrite = aclObject.publicWrite
+
+    acl._userReadMap[u]  = null for u in aclObject.userRead
+    acl._userWriteMap[u] = null for u in aclObject.userWrite
+    acl._roleReadMap[u]  = null for u in aclObject.roleRead
+    acl._roleWriteMap[u] = null for u in aclObject.roleWrite
+
+    acl
 
   # Read from server
   @load: (aclId) ->
@@ -66,28 +83,28 @@ class WeaverACL
     @publicWrite
 
   setUserReadAccess: (user, allowed) ->
-    @userReadMap[user.id()] = allowed
+    @_userReadMap[user.id()] = allowed
 
   setUserWriteAccess: (user, allowed) ->
-    @userWriteMap[user.id()] = allowed
+    @_userWriteMap[user.id()] = allowed
 
   getUserReadAccess: (user) ->
-    @userReadMap[user.id()] or false
+    @_userReadMap[user.id()] or false
 
   getUserWriteAccess: (user) ->
-    @userWriteMap[user.id()] or false
+    @_userWriteMap[user.id()] or false
 
   setRoleReadAccess: (role, allowed) ->
-    @roleReadMap[role.id()] = allowed
+    @_roleReadMap[role.id()] = allowed
 
   setRoleWriteAccess: (role, allowed) ->
-    @roleWriteMap[role.id()] = allowed
+    @_roleWriteMap[role.id()] = allowed
 
   getRoleReadAccess: (role) ->
-    @roleReadMap[role.id()] or false
+    @_roleReadMap[role.id()] or false
 
   getRoleWriteAccess: (role) ->
-    @roleWriteMap[role.id()] or false
+    @_roleWriteMap[role.id()] or false
 
 
 module.exports = WeaverACL
