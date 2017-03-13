@@ -50,7 +50,7 @@ describe 'Integration Test', ->
 
     ).then((node) ->
 
-      # Check that load the node from server works
+      # Check that loading the node from the server works
       Weaver.Node.load('adminPrivateNode')
 
     ).then((node) ->
@@ -119,6 +119,7 @@ describe 'Integration Test', ->
       # Assert that writing is still not allowed
       node.set('name', 'Sonic')
       node.save()
+
     ).catch((error) ->
       assert error.code
     ).then(->
