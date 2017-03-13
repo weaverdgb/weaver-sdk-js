@@ -5,9 +5,9 @@ class WeaverProject
 
   @READY_RETRY_TIMEOUT: 200
 
-  constructor: (@name) ->
+  constructor: (@name, @projectId) ->
     @name = @name or 'unnamed'
-    @projectId = cuid()
+    @projectId = @projectId or cuid()
     @_created = false
 
   id: ->
@@ -45,6 +45,10 @@ class WeaverProject
 
   getAllRelations:->
     Weaver.getCoreManager().getAllRelations(@id())
+
+  destroy: ->
+    coreManager = Weaver.getCoreManager()
+    coreManager.deleteProject(@id())
 
   wipe: ->
     coreManager = Weaver.getCoreManager()

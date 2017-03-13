@@ -23,7 +23,3 @@ global.sinon   = sinon
 
 # Configuration
 global.WEAVER_ENDPOINT = config.get("weaver.endpoint")
-
-# Functions
-global.adminSignin = ->
-  Weaver.signIn('admin', 'admin')

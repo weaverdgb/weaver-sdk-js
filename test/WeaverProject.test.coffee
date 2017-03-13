@@ -3,7 +3,7 @@ require("./test-suite")
 describe 'WeaverProject Test', ->
 
   it 'should create projects with given id', (done) ->
-    project = new Weaver.Project("test")
+    project = new Weaver.Project("name", "test")
     project.create().then((p) =>
       expect(p.id()).to.equal("test")
       project.destroy()

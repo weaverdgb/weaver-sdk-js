@@ -32,6 +32,9 @@ class Weaver
   version: ->
     require('../package.json').version
 
+  serverVersion: ->
+    @coreManager.serverVersion()
+
   local: (routes) ->
     @_registerClasses()
     @_local = true

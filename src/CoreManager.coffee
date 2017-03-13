@@ -33,6 +33,9 @@ class CoreManager
   executeOperations: (operations, target) ->
     @POST('write', {operations}, target)
 
+  serverVersion: ->
+    @POST('application.version')
+
   getUsersDB: ->
     @users
 
@@ -111,10 +114,7 @@ class CoreManager
     @POST("project.ready", {id}, "$SYSTEM")
 
   deleteProject: (id) ->
-    @POST("project.delete", {id}, "$SYSTEM")
-
-  getNode: (nodeId, target)->
-    @POST('read', {nodeId}, target)
+    @POST("project.delete", {id}, id)
 
   getAllNodes: (attributes, target)->
     @POST('nodes', {attributes}, target)
@@ -146,8 +146,11 @@ class CoreManager
       Weaver.ACL.loadFromServerObject(aclObject)
     )
 
+  createACL: (acl) ->
+    @POST("acl.create", {acl})
+
   writeACL: (acl) ->
-    @POST("acl.write", {acl})
+    @POST("acl.update", {acl})
 
   deleteACL: (aclId) ->
     @POST("acl.delete", {id: aclId})

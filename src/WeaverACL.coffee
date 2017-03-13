@@ -25,10 +25,9 @@ class WeaverACL
     @_deleted = false
 
   id: ->
-    @id
+    @_id
 
   @loadFromServerObject: (aclObject) ->
-
     acl = new WeaverACL()
     # Copy
     acl._id       = aclObject.id
@@ -46,9 +45,7 @@ class WeaverACL
   # Read from server
   @load: (aclId) ->
     coreManager = Weaver.getCoreManager()
-    coreManager.readACL(aclId).then((aclObject) ->
-      aclObject
-    )
+    coreManager.readACL(aclId)
 
   save: ->
     # Convert to array for all values that are true
@@ -61,7 +58,14 @@ class WeaverACL
     @_roleWrite = trueKeys(@_roleWriteMap)
 
     coreManager = Weaver.getCoreManager()
-    coreManager.writeACL(@)
+
+    if not @_created
+      coreManager.createACL(@).then(=>
+        @_created = true
+        @
+      )
+    else
+      coreManager.writeACL(@)
 
   delete: ->
     coreManager = Weaver.getCoreManager()

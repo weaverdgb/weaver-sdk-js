@@ -125,6 +125,12 @@ describe 'Integration Test', ->
     ).then(->
 
       # Give john write access to the project by creating a write role and adding john to it
+      # First sign in as admin
+      Weaver.signIn('admin', 'admin')
+
+    ).then(->
+
+      # Add the new write role
       writeRole = new Weaver.Role("Alpha Project Write role")
       writeRole.addUser(reg.john)
       writeRole.save()
