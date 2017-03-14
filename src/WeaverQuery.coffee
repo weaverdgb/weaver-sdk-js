@@ -63,15 +63,15 @@ class WeaverQuery
 
       @
 
-    equalTo: (key, value) ->
-      delete @_conditions[key]
-      @_equals[key] = value
-      @
-
     _addCondition: (key, condition, value) ->
       delete @_equals[key]
       @_conditions[key] = @_conditions[key] or {}
       @_conditions[key][condition] = value
+      @
+
+    equalTo: (key, value) ->
+      delete @_conditions[key]
+      @_equals[key] = value
       @
 
     notEqualTo: (key, value) ->
@@ -88,6 +88,18 @@ class WeaverQuery
 
     greaterThanOrEqualTo: (key, value) ->
       @_addCondition(key, '$gte', value);
+
+    hasRelationIn: (key, node) ->
+      @_addCondition(key, '$relIn', node.id());
+
+    hasRelationOut: (key, node) ->
+      @_addCondition(key, '$relOut', node.id());
+
+    hasNoRelationIn: (key, node) ->
+      @_addCondition(key, '$noRelIn', node.id());
+
+    hasNoRelationOut: (key, node) ->
+      @_addCondition(key, '$noRelOut', node.id());
 
     containedIn: (key, values) ->
       @_addCondition(key, '$in', values);
