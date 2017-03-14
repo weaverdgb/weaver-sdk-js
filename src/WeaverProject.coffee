@@ -20,8 +20,8 @@ class WeaverProject
       new Promise((resolve) =>
 
         checkReady = =>
-          coreManager.readyProject(@projectId).then((res) =>
-            if not res.ready
+          coreManager.readyProject(@projectId).then((ready) =>
+            if not ready
               setTimeout(checkReady, WeaverProject.READY_RETRY_TIMEOUT) # Check again after some time
             else
               resolve()
