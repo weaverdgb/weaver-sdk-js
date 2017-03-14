@@ -116,6 +116,16 @@ class WeaverNode
       @
     )
 
+  # Save everything related to all the nodes in the array in one database call
+  # No checking for overlapping elements in linked network per element
+  @batchSave: (array, project) ->
+    operations = []
+    for node in array
+      operations = operations.concat(node._collectPendingWrites())
+
+    coreManager = Weaver.getCoreManager()
+    coreManager.executeOperations(operations, project)
+
 
   # Removes node
   destroy: (project) ->
