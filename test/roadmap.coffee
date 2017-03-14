@@ -91,7 +91,16 @@ cities = new Weaver.Query()
 cities.equals("name", "Delft")
 
 friends = new Weaver.Query()
-friends.equals("type", new Weaver.Node("Friend"))
+friends.relation("type", new Weaver.Node("Friend"))    # use this way
+friends.startsWith("name", "Di")
+friends.matchesQuery('livingIn', cities)
+friends.find()
+
+friends = new Weaver.Query()
+friends.hasRelationOut("type", new Weaver.Node("Friend"))    # use this way
+friends.hasRelationIn("type", new Weaver.Node("Friend"))    # use this way
+friends.hasNoRelationOut("type", new Weaver.Node("Friend"))    # use this way
+friends.hasNoRelationIn("type", new Weaver.Node("Friend"))    # use this way
 friends.startsWith("name", "Di")
 friends.matchesQuery('livingIn', cities)
 friends.find()
