@@ -90,16 +90,16 @@ class WeaverQuery
       @_addCondition(key, '$gte', value);
 
     hasRelationIn: (key, node) ->
-      @_addCondition(key, '$relIn', node.id());
+      @_addCondition(key, '$relIn', if node then node.id() else null);
 
     hasRelationOut: (key, node) ->
-      @_addCondition(key, '$relOut', node.id());
+      @_addCondition(key, '$relOut', if node then node.id() else null);
 
     hasNoRelationIn: (key, node) ->
-      @_addCondition(key, '$noRelIn', node.id());
+      @_addCondition(key, '$noRelIn', if node then node.id() else null);
 
     hasNoRelationOut: (key, node) ->
-      @_addCondition(key, '$noRelOut', node.id());
+      @_addCondition(key, '$noRelOut', if node then node.id() else null);
 
     containedIn: (key, values) ->
       @_addCondition(key, '$in', values);
