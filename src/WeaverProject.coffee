@@ -59,7 +59,8 @@ class WeaverProject
     coreManager.getACL(@projectId)
 
   @list: ->
-    Promise.resolve([])
+    coreManager = Weaver.getCoreManager()
+    coreManager.listProjects()
 
 module.exports = WeaverProject
 

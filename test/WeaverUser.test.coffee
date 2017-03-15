@@ -113,25 +113,7 @@ describe 'WeaverUser Test', ->
   it 'should allow only the admin to wipe a project', (done) ->
     done()
 
-
-
   it 'should create a new project by default on private ACL', (done) ->
-    project = new Weaver.Project()
-
-
-    project.create().then(->
-      Weaver.useProject(project)
-
-      # project.getACL() # null or WeaverACL object
-
-      # By default, any project created will have automatically the user ACL
-      # This also applies to created roles, so members of that role cant change it
-      # And also to users themselves.
-      # project.setACL(new Weaver.ACL(Weaver.currentUser()))
-
-
-    )
-
     done()
 
   it 'should deny other users from reading project nodes on private ACL', (done) ->
@@ -158,7 +140,6 @@ describe 'WeaverUser Test', ->
   it 'should allow other users from writing project nodes on child role ACL ', (done) ->
     done()
 
-
   it 'should restrict read access when getting nodes', (done) ->
     done()
 
@@ -167,20 +148,6 @@ describe 'WeaverUser Test', ->
 
   it 'should restrict write access when writing nodes', (done) ->
     done()
-
-
-  it 'should ', (done) ->
-    done()
-
-  it 'should ', (done) ->
-    done()
-
-  it 'should ', (done) ->
-    done()
-
-  it 'should ', (done) ->
-    done()
-
 
 
   it 'should fail signing up with an existing username', (done) ->
@@ -201,73 +168,3 @@ describe 'WeaverUser Test', ->
       done()
     )
     return
-
-
-
-  return
-
-  # TODO: Fix this on server
-  it 'should destroy a user', (done) ->
-    username = cuid()
-    password = cuid()
-    user     = new Weaver.User(username, password, "centaurus@univer.se")
-
-    # TODO: Change all these codes into creating a user without signing up
-    Weaver.signOut().then(->
-      user.signUp()
-    ).then(->
-      user.destroy()
-    ).then(->
-      # Sign in
-      Weaver.signIn(username, password)
-    ).catch((err) ->
-      # TODO: Assert error code
-      # assert.equal(err.code, Weaver.Error.USERNAME_NOT_FOUND)
-      console.log err
-      done()
-    )
-    return
-
-
-
-
-
-
-
-  it 'should fail sign out if no user is signed in', ->
-    weaverUser = new Weaver.User()
-    weaverUser.logOut()
-    .then().catch((err) ->
-      assert.equal(err.code, Weaver.Error.USERNAME_NOT_FOUND)
-    )
-
-
-
-  it 'should fail signing up with an existing email', ->
-    Weaver.User.signUp('phoenix','andromedas','andromedas@univer.se','andromedas','SYSUNITE')
-    .then(->
-      Weaver.User.signUp('phoenix','andro','andromedas@univer.se','andromedas','SYSUNITE')
-    ).then(->
-      assert(false)
-    ).catch((error)->
-      assert.equal(error.code, Weaver.Error.DUPLICATE_VALUE)
-    )
-
-  it 'should retrieve the list of all users', ->
-    Weaver.User.list('phoenix','SYSUNITE')
-    .then((res) ->
-      res.should.contain({ userName: 'phoenix',userEmail: 'PLACEHOLDER@PLACE.HOLDER'})
-    )
-
-  it 'should fail retrieving the list with users when the user is not signed in', ->
-    Weaver.User.list('andromeda','SYSUNITE')
-    .then((res) ->
-      assert(false)
-    ).catch((error) ->
-      assert.equal(error.code, Weaver.Error.SESSION_MISSING)
-    )
-
-  it 'should also set other fields', ->
-    return
-    # Other fields are also possible
-    #user.set("phone", "+31637562188");
