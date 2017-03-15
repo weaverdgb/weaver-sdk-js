@@ -22,13 +22,14 @@ class WeaverNode
 
     new Weaver.Query(target).get(nodeId)
 
-  _loadFromQuery: (object) ->
+  _loadFromQuery: (object, Constructor) ->
+    Constructor = Constructor or WeaverNode
     @nodeId     = object.nodeId
     @attributes = object.attributes
 
     for key, targetNodes of object.relations
       for node in targetNodes
-        @relation(key).add(new WeaverNode()._loadFromQuery(node))
+        @relation(key).add(new Constructor()._loadFromQuery(node, Constructor))
 
     @._clearPendingWrites()
     @

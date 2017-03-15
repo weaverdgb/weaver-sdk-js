@@ -24,10 +24,12 @@ class WeaverQuery
       @_order       = []
       @_ascending   = true
 
-    find: ->
+    find: (Constructor) ->
+
+      Constructor = Constructor or Weaver.Node
       coreManager = Weaver.getCoreManager()
       coreManager.query(@).then((nodes) ->
-        (new Weaver.Node()._loadFromQuery(node) for node in nodes)
+        (new Constructor()._loadFromQuery(node) for node in nodes)
       )
 
     count: ->
