@@ -24,10 +24,12 @@ class WeaverQuery
       @_order       = []
       @_ascending   = true
 
-    find: ->
+    find: (Constructor) ->
+
+      Constructor = Constructor or Weaver.Node
       coreManager = Weaver.getCoreManager()
       coreManager.query(@).then((nodes) ->
-        (new Weaver.Node()._loadFromQuery(node) for node in nodes)
+        (new Constructor()._loadFromQuery(node) for node in nodes)
       )
 
     count: ->
@@ -63,15 +65,15 @@ class WeaverQuery
 
       @
 
-    equalTo: (key, value) ->
-      delete @_conditions[key]
-      @_equals[key] = value
-      @
-
     _addCondition: (key, condition, value) ->
       delete @_equals[key]
       @_conditions[key] = @_conditions[key] or {}
       @_conditions[key][condition] = value
+      @
+
+    equalTo: (key, value) ->
+      delete @_conditions[key]
+      @_equals[key] = value
       @
 
     notEqualTo: (key, value) ->
@@ -88,6 +90,18 @@ class WeaverQuery
 
     greaterThanOrEqualTo: (key, value) ->
       @_addCondition(key, '$gte', value);
+
+    hasRelationIn: (key, node) ->
+      @_addCondition(key, '$relIn', if node then node.id() else null);
+
+    hasRelationOut: (key, node) ->
+      @_addCondition(key, '$relOut', if node then node.id() else null);
+
+    hasNoRelationIn: (key, node) ->
+      @_addCondition(key, '$noRelIn', if node then node.id() else null);
+
+    hasNoRelationOut: (key, node) ->
+      @_addCondition(key, '$noRelOut', if node then node.id() else null);
 
     containedIn: (key, values) ->
       @_addCondition(key, '$in', values);

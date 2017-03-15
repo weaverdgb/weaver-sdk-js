@@ -150,3 +150,25 @@ describe 'WeaverNode test', ->
     c.relation('to').add(a)
 
     a.save()
+
+  it 'should not blow up when saving in circular chain', ->
+    a = new Weaver.Node()
+    b = new Weaver.Node()
+    c = new Weaver.Node()
+
+    Weaver.Node.batchSave([a,b,c])
+    .then(() ->
+      Weaver.Node.load(a.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.id(), a.id())
+    )
+    .then(() ->
+      Weaver.Node.load(b.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.id(), b.id())
+    )
+    .then(() ->
+      Weaver.Node.load(c.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.id(), c.id())
+    )

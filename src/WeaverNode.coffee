@@ -22,13 +22,14 @@ class WeaverNode
 
     new Weaver.Query(target).get(nodeId)
 
-  _loadFromQuery: (object) ->
+  _loadFromQuery: (object, Constructor) ->
+    Constructor = Constructor or WeaverNode
     @nodeId     = object.nodeId
     @attributes = object.attributes
 
     for key, targetNodes of object.relations
       for node in targetNodes
-        @relation(key).add(new WeaverNode()._loadFromQuery(node))
+        @relation(key).add(new Constructor()._loadFromQuery(node, Constructor))
 
     @._clearPendingWrites()
     @
@@ -115,6 +116,16 @@ class WeaverNode
       @_clearPendingWrites()
       @
     )
+
+  # Save everything related to all the nodes in the array in one database call
+  # No checking for overlapping elements in linked network per element
+  @batchSave: (array, project) ->
+    operations = []
+    for node in array
+      operations = operations.concat(node._collectPendingWrites())
+
+    coreManager = Weaver.getCoreManager()
+    coreManager.executeOperations(operations, project)
 
 
   # Removes node
