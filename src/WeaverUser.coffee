@@ -45,14 +45,6 @@ class WeaverUser
     coreManager = Weaver.getCoreManager()
     coreManager.destroyUser(@)
 
-
-
-
-
-
-
-
-
   save: ->
     if not @_created
       Promise.reject({error: -1, message: 'Should call signUp() first before saving'})
@@ -64,42 +56,6 @@ class WeaverUser
 
   @list: ->
     new Weaver.Query("$SYSTEM").equalTo("type", "user").find()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
   @logIn: (user, password) ->
