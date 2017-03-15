@@ -2,11 +2,10 @@ Weaver           = require('./Weaver')
 writeFile        = require('fs-writefile-promise')
 Error            = require('./Error')
 WeaverError      = require('./WeaverError')
-WeaverSystemNode = require('./WeaverSystemNode')
 readFile         = require('fs-readfile-promise')
 
 
-class WeaverFile extends Weaver.SystemNode
+class WeaverFile
 
   constructor: (@nodeId) ->
     super(@nodeId)

@@ -5,13 +5,10 @@ cuid             = require('cuid')
 Promise          = require('bluebird')
 SocketController = require('./SocketController')
 LocalController  = require('./LocalController')
-loki             = require('lokijs')
 
 class CoreManager
 
   constructor: ->
-    @db = new loki('weaver-sdk')
-    @users = @db.addCollection('users')
     @currentProject = null
 
   connect: (endpoint) ->
@@ -36,27 +33,6 @@ class CoreManager
   serverVersion: ->
     @POST('application.version')
 
-  getUsersDB: ->
-    @users
-
-  getProjectsDB: ->
-    @projects
-
-  logIn: (credentials) ->
-    @POST('logIn',credentials)
-
-  signUp: (newUserPayload) ->
-    @POST('signUp',newUserPayload)
-
-  signOff: (userPayload) ->
-    @POST('signOff',userPayload)
-
-  permission: (userPayload) ->
-    @POST('permission',userPayload)
-
-  createApplication: (newApplication) ->
-    @POST('application',newApplication)
-
   serverVersion: ->
     @GET("application.version")
 
@@ -73,7 +49,6 @@ class CoreManager
     @GET("acl.read.byObject", {objectId}).then((aclObject) ->
       Weaver.ACL.loadFromServerObject(aclObject)
     )
-
 
   signInUser: (username, password) ->
     @POST("auth.signIn", {username, password}, "$SYSTEM").then((authToken) =>
@@ -107,9 +82,6 @@ class CoreManager
       return
     )
 
-  createUser: (id) ->
-    @POST("users.create", {id})
-
   readyProject: (id) ->
     @POST("project.ready", {id}, "$SYSTEM")
 
@@ -124,9 +96,6 @@ class CoreManager
 
   wipe: (target)->
     @POST('wipe', {}, target)
-
-  usersList: (usersList) ->
-    @POST('usersList', usersList)
 
   query: (query) ->
     # Remove target

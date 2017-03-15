@@ -137,7 +137,7 @@ class WeaverNode
       undefined
     )
 
-  #
+  # TODO: Implement
   setACL: (acl) ->
     return
 
