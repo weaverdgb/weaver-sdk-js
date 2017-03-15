@@ -1,19 +1,18 @@
 require("./globalize")
 
-
-# Runs before all tests
+# Runs before all tests (even across files)
 before (done) ->
+  Weaver.connect(WEAVER_ENDPOINT).then(-> done())
+  return
 
-  Weaver.connect(WEAVER_ENDPOINT)
-  .then(->
-    Weaver.wipe()
-  )
+# Runs after each test in each file
+beforeEach (done) ->
+  Weaver.wipe()
   .then(->
     Weaver.signIn('admin', 'admin')
   )
   .then(->
-    project = new Weaver.Project()
-    project.create()
+    new Weaver.Project().create()
   )
   .then((project) ->
     Weaver.useProject(project)

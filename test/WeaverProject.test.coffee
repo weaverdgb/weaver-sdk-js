@@ -6,7 +6,6 @@ describe 'WeaverProject Test', ->
     project = new Weaver.Project("name", "test")
     project.create().then((p) =>
       expect(p.id()).to.equal("test")
-      project.destroy()
       done()
     )
     return
@@ -16,7 +15,6 @@ describe 'WeaverProject Test', ->
     project = new Weaver.Project()
     project.create().then((p) =>
       expect(p.id()).to.equal(project.id())
-      project.destroy()
       done()
     )
     return
@@ -33,7 +31,6 @@ describe 'WeaverProject Test', ->
       Weaver.Project.load(project.id())
     ).then((loadedProject) ->
       expect(loadedProject.get("name")).to.equal("test")
-      project.destroy()
       done()
     )
     return
@@ -74,8 +71,6 @@ describe 'WeaverProject Test', ->
 
     ).then(->
       done()
-    ).finally( ->
-      Promise.all([a.destroy()])
     )
     return
 
@@ -84,8 +79,6 @@ describe 'WeaverProject Test', ->
     test = new Weaver.Project()
     test.create().then(->
       Weaver.useProject(test)
-    ).then( ->
-      test.destroy()
     ).then(->
       done()
     )
@@ -98,8 +91,6 @@ describe 'WeaverProject Test', ->
       Weaver.useProject(prj)
       p = Weaver.currentProject()
       expect(p).to.equal(test)
-    ).then( ->
-      test.destroy()
     ).then(->
       done()
     )
