@@ -51,9 +51,9 @@ class CoreManager
     )
 
   signInUser: (username, password) ->
-    @POST("auth.signIn", {username, password}, "$SYSTEM").then((authToken) =>
+    @POST("user.signIn", {username, password}, "$SYSTEM").then((authToken) =>
       @currentUser = Weaver.User.get(authToken)
-      @POST("auth.getUser", {}, "$SYSTEM")
+      @POST("user.read", {}, "$SYSTEM")
     ).then((serverUser) =>
       @currentUser.populateFromServer(serverUser)
       @currentUser
@@ -66,18 +66,18 @@ class CoreManager
       password: user.password
       email: user.email
 
-    @POST("auth.signUp", payload, "$SYSTEM")
+    @POST("user.signUp", payload, "$SYSTEM")
 
 
   destroyUser: (user) ->
     payload =
       username: user.username
 
-    @POST("auth.destroyUser", payload, "$SYSTEM")
+    @POST("user.delete", payload, "$SYSTEM")
 
 
   signOutCurrentUser: ->
-    @POST("auth.signOut", {}, "$SYSTEM").then(=>
+    @POST("user.signOut", {}, "$SYSTEM").then(=>
       @currentUser = undefined
       return
     )
