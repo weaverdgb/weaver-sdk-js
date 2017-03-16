@@ -1,5 +1,6 @@
-Weaver = require('./Weaver')
-cuid   = require('cuid')
+cuid        = require('cuid')
+Weaver      = require('./Weaver')
+CoreManager = Weaver.getCoreManager()
 
 class WeaverProject
 
@@ -14,13 +15,11 @@ class WeaverProject
     @projectId
 
   create: ->
-    coreManager = Weaver.getCoreManager()
-
-    coreManager.createProject(@projectId, @name).then(=>  # Wait till project gets read
+    CoreManager.createProject(@projectId, @name).then(=>  # Wait till project gets read
       new Promise((resolve) =>
 
         checkReady = =>
-          coreManager.readyProject(@projectId).then((ready) =>
+          CoreManager.readyProject(@projectId).then((ready) =>
             if not ready
               setTimeout(checkReady, WeaverProject.READY_RETRY_TIMEOUT) # Check again after some time
             else
@@ -37,30 +36,26 @@ class WeaverProject
 
   destroy: ->
     super().then(=>
-      Weaver.getCoreManager().deleteProject(@id())
+      CoreManager.deleteProject(@id())
     )
 
   getAllNodes: (attributes)->
-    Weaver.getCoreManager().getAllNodes(attributes, @id())
+    CoreManager.getAllNodes(attributes, @id())
 
   getAllRelations:->
-    Weaver.getCoreManager().getAllRelations(@id())
+    CoreManager.getAllRelations(@id())
 
   destroy: ->
-    coreManager = Weaver.getCoreManager()
-    coreManager.deleteProject(@id())
+    CoreManager.deleteProject(@id())
 
   wipe: ->
-    coreManager = Weaver.getCoreManager()
-    coreManager.wipe(@id())
+    CoreManager.wipe(@id())
 
   getACL: ->
-    coreManager = Weaver.getCoreManager()
-    coreManager.getACL(@projectId)
+    CoreManager.getACL(@projectId)
 
   @list: ->
-    coreManager = Weaver.getCoreManager()
-    coreManager.listProjects()
+    CoreManager.listProjects()
 
 module.exports = WeaverProject
 

@@ -1,3 +1,4 @@
+return
 require("./test-suite")
 path = require('path')
 readFile = require('fs-readfile-promise')

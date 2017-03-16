@@ -1,5 +1,6 @@
-Weaver = require('./Weaver')
-cuid   = require('cuid')
+Weaver      = require('./Weaver')
+CoreManager = Weaver.getCoreManager()
+cuid        = require('cuid')
 
 # For any node, you can specify which users and roles are allowed to read the node, and which users and roles are
 # allowed to modify an node. To support this type of security, each node has an access control list,
@@ -23,14 +24,13 @@ class WeaverRole
     @_users = @getUsers()
     @_roles = @getRoles()
 
-    coreManager = Weaver.getCoreManager()
     if not @_created
-      coreManager.createRole(@).then(=>
+      CoreManager.createRole(@).then(=>
         @_created = true
         @
       )
     else
-      coreManager.updateRole(@)
+      CoreManager.updateRole(@)
 
   id: ->
     @roleId
@@ -54,10 +54,8 @@ class WeaverRole
     (roleId for roleId, val of @_rolesMap)
 
   delete: ->
-    coreManager = Weaver.getCoreManager()
-    coreManager.deleteRole(@id()).then(=>
+    CoreManager.deleteRole(@id()).then(=>
       @_deleted = true
-      return
     )
 
 module.exports = WeaverRole

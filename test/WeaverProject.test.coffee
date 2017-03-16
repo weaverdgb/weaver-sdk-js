@@ -20,10 +20,7 @@ describe 'WeaverProject Test', ->
     return
 
 
-  it 'should create projects with attributes', (done) ->
-    done()
-    return # TODO: Implement this
-
+  it.skip 'should create projects with attributes', (done) ->
     project = new Weaver.Project()
     project.set("name", "test")
     project.create().then((p) ->
@@ -36,10 +33,7 @@ describe 'WeaverProject Test', ->
     return
 
 
-  it 'should delete projects', (done) ->
-    done()
-    return # TODO: Project loading does not work, implement this
-
+  it.skip 'should delete projects', (done) ->
     test = new Weaver.Project()
     test.create().then((project) ->
       project.destroy().catch((e) ->
@@ -48,7 +42,6 @@ describe 'WeaverProject Test', ->
     ).then(->
       Weaver.Project.load(test.id())
     ).catch((error) ->
-      console.log(error)
       assert.equal(error.code, Weaver.Error.NODE_NOT_FOUND)
       done()
     )

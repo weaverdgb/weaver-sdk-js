@@ -1,5 +1,6 @@
-Weaver = require('./Weaver')
-util   = require('./util')
+Weaver      = require('./Weaver')
+CoreManager = Weaver.getCoreManager()
+util        = require('./util')
 
 # Converts a string into a regex that matches it.
 # Surrounding with \Q .. \E does this, we just need to escape any \E's in
@@ -27,15 +28,13 @@ class WeaverQuery
     find: (Constructor) ->
 
       Constructor = Constructor or Weaver.Node
-      coreManager = Weaver.getCoreManager()
-      coreManager.query(@).then((nodes) ->
+      CoreManager.query(@).then((nodes) ->
         (new Constructor()._loadFromQuery(node) for node in nodes)
       )
 
     count: ->
       @_count = true
-      coreManager = Weaver.getCoreManager()
-      coreManager.query(@)
+      CoreManager.query(@)
 
     first: ->
       @_limit = 1
@@ -190,12 +189,10 @@ class WeaverQuery
 
     # Create, Update, Enter, Leave, Delete
     subscribe: ->
-      coreManager = Weaver.getCoreManager()
-      coreManager.subscribe(@)
+      CoreManager.subscribe(@)
 
     nativeQuery: (query)->
-      coreManager = Weaver.getCoreManager()
-      coreManager.nativeQuery(query, Weaver.currentProject().id())
+      CoreManager.nativeQuery(query, Weaver.currentProject().id())
 
 # Export
 module.exports = WeaverQuery

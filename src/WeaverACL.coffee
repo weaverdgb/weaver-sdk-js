@@ -1,4 +1,5 @@
-Weaver = require('./Weaver')
+Weaver      = require('./Weaver')
+CoreManager = Weaver.getCoreManager()
 
 # For projects, users and nodes, you can specify which users and roles are allowed to read, and which
 # users and roles are allowed to modify.
@@ -7,7 +8,7 @@ Weaver = require('./Weaver')
 # implemented by this WeaverACL class.
 class WeaverACL
 
-  constructor: (user) ->
+  constructor: ->
     @_id          = cuid()
     @_objects     = []
     @_publicRead  = false
@@ -20,7 +21,6 @@ class WeaverACL
     @_roleReadMap  = {}
     @_roleWriteMap = {}
 
-    @_userWrite[user.id()] = true if user?
     @_created = false
     @_deleted = false
 
@@ -44,32 +44,29 @@ class WeaverACL
 
   # Read from server
   @load: (aclId) ->
-    coreManager = Weaver.getCoreManager()
-    coreManager.readACL(aclId)
+    CoreManager.readACL(aclId)
 
   save: ->
     # Convert to array for all values that are true
     trueKeys = (object) ->
       (key for key, value of object when value)
 
+    # TODO: Create a transferobject, also for WeaverRole and WeaverProject, dont pollute the @
     @_userRead  = trueKeys(@_userReadMap)
     @_userWrite = trueKeys(@_userWriteMap)
     @_roleRead  = trueKeys(@_roleReadMap)
     @_roleWrite = trueKeys(@_roleWriteMap)
 
-    coreManager = Weaver.getCoreManager()
-
     if not @_created
-      coreManager.createACL(@).then(=>
+      CoreManager.createACL(@).then(=>
         @_created = true
         @
       )
     else
-      coreManager.writeACL(@)
+      CoreManager.writeACL(@)
 
   delete: ->
-    coreManager = Weaver.getCoreManager()
-    coreManager.deleteACL(@).then(=>
+    CoreManager.deleteACL(@).then(=>
       @_deleted = true
       return
     )

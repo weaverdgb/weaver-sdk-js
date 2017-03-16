@@ -119,11 +119,9 @@ describe 'WeaverNode test', ->
       assert.equal(loadedNode.get('name'), 'Bar')
     )
 
-  it 'should give an error if node already exists', ->
-    return # TODO implement this
+  it.skip 'should give an error if node already exists', ->
     node1 = new Weaver.Node('a')
     node2 = new Weaver.Node('a')
-
 
     node1.save().then(->
       node2.save()

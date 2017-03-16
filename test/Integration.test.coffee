@@ -57,14 +57,17 @@ describe 'Integration Test', ->
 
       # Signup with a different user and assess that that user has no right to read this project
       john = new Weaver.User('john', "secretSauce", "john@doe.com")
-      john.signUp()
       reg.john = john # Save for later
+
+      john.signUp()
 
     ).then(->
 
       # Now we should not be able to load the private node
       Weaver.Node.load('adminPrivateNode')
 
+    ).then(->
+      assert false
     ).catch((error) ->
       assert error.code
     ).then(->
@@ -120,6 +123,8 @@ describe 'Integration Test', ->
       node.set('name', 'Sonic')
       node.save()
 
+    ).then(->
+      assert false
     ).catch((error) ->
       assert error.code
     ).then(->
@@ -156,10 +161,6 @@ describe 'Integration Test', ->
 
       assert.equal(node.get('name'), 'Sonic')
 
-    ).then(->
-    ).then(->
-    ).then(->
-    ).then(->
     ).then(->
       done()
     )

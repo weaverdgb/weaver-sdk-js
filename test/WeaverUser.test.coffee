@@ -104,50 +104,35 @@ describe 'WeaverUser Test', ->
     return
 
 
-  it 'should create the admin user upon initialization', (done) ->
-    done()
+  it.skip 'should create the admin user upon initialization', (done) ->
 
-  it 'should create the admin role upon initialization', (done) ->
-    done()
+  it.skip 'should create the admin role upon initialization', (done) ->
 
-  it 'should allow only the admin to wipe a project', (done) ->
-    done()
+  it.skip 'should allow only the admin to wipe a project', (done) ->
 
-  it 'should create a new project by default on private ACL', (done) ->
-    done()
+  it.skip 'should create a new project by default on private ACL', (done) ->
 
-  it 'should deny other users from reading project nodes on private ACL', (done) ->
-    done()
+  it.skip 'should deny other users from reading project nodes on private ACL', (done) ->
 
-  it 'should deny other users from writing project nodes on private ACL', (done) ->
-    done()
+  it.skip 'should deny other users from writing project nodes on private ACL', (done) ->
 
-  it 'should allow other users from reading project nodes on public ACL', (done) ->
-    done()
+  it.skip 'should allow other users from reading project nodes on public ACL', (done) ->
 
-  it 'should allow other users from writing project nodes on public ACL', (done) ->
-    done()
+  it.skip 'should allow other users from writing project nodes on public ACL', (done) ->
 
-  it 'should allow other users from reading project nodes on role ACL ', (done) ->
-    done()
+  it.skip 'should allow other users from reading project nodes on role ACL ', (done) ->
 
-  it 'should allow other users from writing project nodes on role ACL ', (done) ->
-    done()
+  it.skip 'should allow other users from writing project nodes on role ACL ', (done) ->
 
-  it 'should allow other users from reading project nodes on child role ACL ', (done) ->
-    done()
+  it.skip 'should allow other users from reading project nodes on child role ACL ', (done) ->
 
-  it 'should allow other users from writing project nodes on child role ACL ', (done) ->
-    done()
+  it.skip 'should allow other users from writing project nodes on child role ACL ', (done) ->
 
-  it 'should restrict read access when getting nodes', (done) ->
-    done()
+  it.skip 'should restrict read access when getting nodes', (done) ->
 
-  it 'should restrict read access when querying nodes', (done) ->
-    done()
+  it.skip 'should restrict read access when querying nodes', (done) ->
 
-  it 'should restrict write access when writing nodes', (done) ->
-    done()
+  it.skip 'should restrict write access when writing nodes', (done) ->
 
 
   it 'should fail signing up with an existing username', (done) ->
