@@ -16,7 +16,6 @@ class Weaver
     @Node        = require('./WeaverNode')
     @Model       = require('./WeaverModel')
     @Relation    = require('./WeaverRelation')
-    @SystemNode  = require('./WeaverSystemNode')
     @Project     = require('./WeaverProject')
     @Query       = require('./WeaverQuery')
     @ACL         = require('./WeaverACL')
@@ -31,6 +30,9 @@ class Weaver
 
   version: ->
     require('../package.json').version
+
+  serverVersion: ->
+    @coreManager.serverVersion()
 
   local: (routes) ->
     @_registerClasses()
@@ -56,6 +58,15 @@ class Weaver
 
   currentUser: ->
     @coreManager.currentUser
+
+  signOut: ->
+    @coreManager.signOutCurrentUser()
+
+  signIn: (username, password) ->
+    @coreManager.signInUser(username, password)
+
+  wipe: ->
+    @coreManager.wipe()
 
 
 # Export

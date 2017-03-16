@@ -1,3 +1,4 @@
+return
 require("./test-suite")
 path = require('path')
 readFile = require('fs-readfile-promise')
@@ -14,7 +15,7 @@ describe 'WeaverFile test', ->
       file = res
       assert.equal(res.split('-')[1],'weaverIcon.png')
     )
-  
+
   it 'should fails create a new file, because the file does not exits on local machine', ->
     weaverFile = new Weaver.File()
     fileTemp = '../foo.bar'
@@ -23,7 +24,7 @@ describe 'WeaverFile test', ->
     ).catch((err) ->
       assert.equal(err.code,Weaver.Error.FILE_NOT_EXISTS_ERROR)
     )
-  
+
   it 'should retrieve a file by fileName', ->
     if !fs.existsSync(tmpDir)
       fs.mkdirSync(tmpDir)
@@ -39,8 +40,8 @@ describe 'WeaverFile test', ->
         assert.equal(destBuff.toString(),originBuff.toString())
       )
     )
-  
-  
+
+
   it 'should fails retrieving a file, because the file does not exits on server', ->
     weaverFile = new Weaver.File()
     pathTemp = path.join(__dirname,'../tmp/weaver-icon.png')
@@ -50,7 +51,7 @@ describe 'WeaverFile test', ->
     ).catch((err) ->
       assert.equal(err.code,Weaver.Error.FILE_NOT_EXISTS_ERROR)
     )
-  
+
   it 'should fails retrieving a file, because the project does not exits on server', ->
     weaverFile = new Weaver.File()
     pathTemp = path.join(__dirname,'../tmp/weaver-icon.png')
@@ -60,7 +61,7 @@ describe 'WeaverFile test', ->
     ).catch((err) ->
       assert.equal(err.code,Weaver.Error.FILE_NOT_EXISTS_ERROR)
     )
-  
+
   it 'should retrieve a file by ID', ->
     weaverFile = new Weaver.File()
     pathTemp = path.join(__dirname,"../tmp/id-#{file}")
@@ -74,7 +75,7 @@ describe 'WeaverFile test', ->
         assert.equal(destBuff.toString(),originBuff.toString())
       )
     )
-  
+
   it 'should fails retrieving a file by ID, because there is no file matching this ID', ->
     weaverFile = new Weaver.File()
     pathTemp = path.join(__dirname,'../tmp/weaver-icon.png')
@@ -84,7 +85,7 @@ describe 'WeaverFile test', ->
     ).catch((err) ->
       assert.equal(err.code,Weaver.Error.FILE_NOT_EXISTS_ERROR)
     )
-    
+
   it 'should deletes a file by name', ->
     weaverFile = new Weaver.File()
     weaverFile.deleteFile("#{file}",'area51')
@@ -97,7 +98,7 @@ describe 'WeaverFile test', ->
         assert.equal(err.code,Weaver.Error.FILE_NOT_EXISTS_ERROR)
       )
     )
-    
+
   it 'should deletes a file by id', ->
     weaverFile = new Weaver.File()
     fileTemp = path.join(__dirname,'../icon.png')
@@ -115,7 +116,7 @@ describe 'WeaverFile test', ->
         )
       )
     )
-    
+
   it 'should fails trying to delete a file because the project does not exists', ->
     weaverFile = new Weaver.File()
     weaverFile.deleteFile("#{file}",'area69')
@@ -124,7 +125,7 @@ describe 'WeaverFile test', ->
     ).catch((err) ->
       assert.equal(err.code,Weaver.Error.FILE_NOT_EXISTS_ERROR)
     )
-    
+
   it 'should fails trying to delete a file by ID because the project does not exists', ->
     weaverFile = new Weaver.File()
     weaverFile.deleteFileByID("#{file}",'area69')
@@ -133,4 +134,3 @@ describe 'WeaverFile test', ->
     ).catch((err) ->
       assert.equal(err.code,Weaver.Error.FILE_NOT_EXISTS_ERROR)
     )
-    

@@ -1,6 +1,7 @@
-cuid       = require('cuid')
-Weaver     = require('./Weaver')
-Operation  = require('./Operation')
+cuid        = require('cuid')
+Weaver      = require('./Weaver')
+CoreManager = Weaver.getCoreManager()
+Operation   = require('./Operation')
 
 class WeaverNode
 
@@ -111,8 +112,7 @@ class WeaverNode
 
   # Save node and all values / relations and relation objects to server
   save: (project) ->
-    coreManager = Weaver.getCoreManager()
-    coreManager.executeOperations(@_collectPendingWrites(), project).then(=>
+    CoreManager.executeOperations(@_collectPendingWrites(), project).then(=>
       @_clearPendingWrites()
       @
     )
@@ -124,20 +124,18 @@ class WeaverNode
     for node in array
       operations = operations.concat(node._collectPendingWrites())
 
-    coreManager = Weaver.getCoreManager()
-    coreManager.executeOperations(operations, project)
+    CoreManager.executeOperations(operations, project)
 
 
   # Removes node
   destroy: (project) ->
-    coreManager = Weaver.getCoreManager()
-    coreManager.executeOperations([Operation.Node(@).destroy()], project).then(=>
+    CoreManager.executeOperations([Operation.Node(@).destroy()], project).then(=>
       @destroyed = true
       @saved = false
       undefined
     )
 
-  #
+  # TODO: Implement
   setACL: (acl) ->
     return
 

@@ -1,10 +1,9 @@
 Weaver           = require('./Weaver')
 Error            = require('./Error')
 WeaverError      = require('./WeaverError')
-WeaverSystemNode = require('./WeaverSystemNode')
 
 
-class WeaverFileBrowser extends Weaver.SystemNode
+class WeaverFileBrowser
 
   constructor: (@nodeId) ->
     super(@nodeId)

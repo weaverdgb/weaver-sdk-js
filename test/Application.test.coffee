@@ -2,13 +2,9 @@ require("./test-suite")
 
 Weaver = require('./../src/Weaver')
 
-describe 'WeaverSDK Application test', ->
-
-  before (done) ->
-    Weaver.initialize(WEAVER_ADDRESS).then(-> done())
-    return
-
+describe 'Application test', ->
 
   it 'should get the weaver-server version', ->
-    version = Weaver.getCoreManager().getCommController().GET('application.version')
-    version.should.eventually.be.a('string')
+    Weaver.serverVersion().then((version) ->
+      version.should.be.a('string')
+    )

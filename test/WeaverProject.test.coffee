@@ -3,10 +3,9 @@ require("./test-suite")
 describe 'WeaverProject Test', ->
 
   it 'should create projects with given id', (done) ->
-    project = new Weaver.Project("test")
+    project = new Weaver.Project("name", "test")
     project.create().then((p) =>
       expect(p.id()).to.equal("test")
-      project.destroy()
       done()
     )
     return
@@ -16,13 +15,12 @@ describe 'WeaverProject Test', ->
     project = new Weaver.Project()
     project.create().then((p) =>
       expect(p.id()).to.equal(project.id())
-      project.destroy()
       done()
     )
     return
 
 
-  it 'should create projects with attributes', (done) ->
+  it.skip 'should create projects with attributes', (done) ->
     project = new Weaver.Project()
     project.set("name", "test")
     project.create().then((p) ->
@@ -30,13 +28,12 @@ describe 'WeaverProject Test', ->
       Weaver.Project.load(project.id())
     ).then((loadedProject) ->
       expect(loadedProject.get("name")).to.equal("test")
-      project.destroy()
       done()
     )
     return
 
 
-  it 'should delete projects', (done) ->
+  it.skip 'should delete projects', (done) ->
     test = new Weaver.Project()
     test.create().then((project) ->
       project.destroy().catch((e) ->
@@ -51,28 +48,22 @@ describe 'WeaverProject Test', ->
     return
 
 
+  # Note that this assumes the projectPool has at least room for two projects
+  # TODO: Have a test configuration for Weaver Server with multiple projectPools
   it 'should list projects', (done) ->
-    a = new Weaver.Project("a")
-    b = new Weaver.Project("b")
+    a = new Weaver.Project("A", "a")
 
-    a.set('name', 'A')
     a.create().then(->
-      b.create()
-    ).then(->
       Weaver.Project.list()
     ).then((list) ->
-      expect(list.length).to.equal(3)
+      expect(list.length).to.equal(2)
 
-      loadedA = p for p in list when p.id() is 'a'
-      loadedB = p for p in list when p.id() is 'b'
+      loadedA = p for p in list when p.id is 'a'
 
-      expect(loadedA.get("name")).to.equal('A')
-      expect(loadedB.get("name")).to.be.undefined
+      expect(loadedA.name).to.equal('A')
 
     ).then(->
       done()
-    ).finally( ->
-      Promise.all([a.destroy(), b.destroy()])
     )
     return
 
@@ -81,8 +72,6 @@ describe 'WeaverProject Test', ->
     test = new Weaver.Project()
     test.create().then(->
       Weaver.useProject(test)
-    ).then( ->
-      test.destroy()
     ).then(->
       done()
     )
@@ -95,8 +84,6 @@ describe 'WeaverProject Test', ->
       Weaver.useProject(prj)
       p = Weaver.currentProject()
       expect(p).to.equal(test)
-    ).then( ->
-      test.destroy()
     ).then(->
       done()
     )
