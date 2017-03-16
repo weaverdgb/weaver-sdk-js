@@ -64,6 +64,16 @@ class WeaverNode
     @
 
 
+  # Update attribute by incrementing the value, the result depends on concurrent requests, so check the result
+  increment: (field, value, project) ->
+
+    operation = Operation.Node(@).incrementAttribute(field, value)
+    CoreManager.executeOperations([operation], project).then((response)=>
+      @attributes[field] = response.incrementedTo if response? and response.incrementedTo?
+      @
+    )
+
+
   # Remove attribute
   unset: (field) ->
     delete @attributes[field]
