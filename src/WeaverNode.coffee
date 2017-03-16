@@ -61,6 +61,7 @@ class WeaverNode
     # Save change as pending
     @pendingWrites.push(Operation.Node(@).unsetAttribute(field))
     @pendingWrites.push(Operation.Node(@).setAttribute(field, value))
+    @
 
 
   # Remove attribute
@@ -69,6 +70,7 @@ class WeaverNode
 
     # Save change as pending
     @pendingWrites.push(Operation.Node(@).unsetAttribute(field))
+    @
 
 
   # Create a new Relation
@@ -103,6 +105,7 @@ class WeaverNode
         node._clearPendingWrites() if node.isDirty()
 
       relation.pendingWrites = []
+    @
 
 
   # Checks whether needs saving
