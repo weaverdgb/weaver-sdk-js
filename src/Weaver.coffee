@@ -21,10 +21,7 @@ class Weaver
     @ACL         = require('./WeaverACL')
     @Role        = require('./WeaverRole')
     @User        = require('./WeaverUser')
-    if window?
-      @FileBrowser      = require('./WeaverFileBrowser')
-    else
-      @File      = require('./WeaverFile')
+    @File        = require('./WeaverFile')
     @Error       = require('./WeaverError')
     @LegacyError = require('./Error')         # TODO: Clean out in another PR
 

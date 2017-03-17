@@ -5,6 +5,9 @@ cuid             = require('cuid')
 Promise          = require('bluebird')
 SocketController = require('./SocketController')
 LocalController  = require('./LocalController')
+request          = require('request')
+Error            = require('./Error')
+WeaverError      = require('./WeaverError')
 
 class CoreManager
 
@@ -12,8 +15,10 @@ class CoreManager
     @currentProject = null
 
   connect: (endpoint) ->
+    @endpoint = endpoint
     @commController = new SocketController(endpoint)
     @commController.connect()
+
 
   local: (routes) ->
     @commController = new LocalController(routes)
@@ -138,26 +143,36 @@ class CoreManager
       return @commController.POST(path, payload)
 
 
-  sendFile: (file) ->
-    @commController.POST('file.upload', file)
-
-  getFile: (file) ->
-    @commController.POST('file.download',file)
-
-  getFileByID: (file) ->
-    @commController.POST('file.downloadByID',file)
-
-  getFileBrowser: (file) ->
-    @commController.POST('file.browser.sdk.download',file)
-
-  getFileByIDBrowser: (file) ->
-    @commController.POST('file.browser.sdk.downloadByID',file)
-
   deleteFile: (file) ->
     @commController.POST('file.delete',file)
 
   deleteFileByID: (file) ->
     @commController.POST('file.deleteByID',file)
+
+  uploadFile: (formData) ->
+    new Promise((resolve, reject) =>
+      request.post({url:"#{@endpoint}/upload", formData: formData}, (err, httpResponse, body) ->
+        if err
+          if err.code is 'ENOENT'
+            reject(Error WeaverError.FILE_NOT_EXISTS_ERROR,"The file #{err.path} does not exits")
+          else
+            reject(Error WeaverError.OTHER_CAUSE,"Unknown error")
+        else
+          resolve(httpResponse.body)
+      )
+    )
+
+  downloadFile: (payload) ->
+    request.get("#{@endpoint}/file/download?payload=#{payload}")
+    .on('response', (res) ->
+      res
+    )
+
+  downloadFileByID: (payload) ->
+    request.get("#{@endpoint}/file/downloadByID?payload=#{payload}")
+    .on('response', (res) ->
+      res
+    )
 
   GET: (path, payload, target) ->
     @REQUEST("GET", path, payload, target)

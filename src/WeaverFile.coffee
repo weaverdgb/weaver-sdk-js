@@ -3,9 +3,10 @@ writeFile        = require('fs-writefile-promise')
 Error            = require('./Error')
 WeaverError      = require('./WeaverError')
 readFile         = require('fs-readfile-promise')
+fs               = require('fs')
 
 
-class WeaverFile
+class WeaverFile extends Weaver.Node
 
   constructor: (@nodeId) ->
     super(@nodeId)
@@ -13,64 +14,70 @@ class WeaverFile
   @get: (nodeId) ->
     super(nodeId, WeaverFile)
 
-  saveFile: (path, fileName, project) ->
+  saveFile: (path, fileName, project, authToken) ->
     coreManager = Weaver.getCoreManager()
-    readFile(path)
-    .then((file) ->
-      fileBody = {
-        buffer: file
-        target: project
-        fileName
-      }
-      coreManager.sendFile(fileBody)
-    ).catch((err) ->
-      if err.code is 'ENOENT'
-        Promise.reject(Error WeaverError.FILE_NOT_EXISTS_ERROR,"The file #{fileName} for upload at #{project} does not exits")
-      else
-        Promise.reject(Error WeaverError.OTHER_CAUSE,"Something went wrong trying to read the local file #{fileName}")
+    formData = {
+      file: fs.createReadStream(path)
+      authToken
+      target:project
+      fileName
+    }
+    coreManager.uploadFile(formData)
+
+  getFile: (path, fileName, project, authToken) ->
+    coreManager = Weaver.getCoreManager()
+    new Promise((resolve, reject) =>
+      try
+        payload = {
+          fileName
+          target: project
+          authToken
+        }
+        fileStream = fs.createWriteStream(path)
+        coreManager.downloadFile(JSON.stringify(payload))
+        .pipe(fileStream)
+        fileStream.on('finish', ->
+          resolve(fileStream.path)
+        )
+      catch error
+        reject(Error WeaverError.OTHER_CAUSE,"Something went wrong")
     )
-  getFile: (path, fileName, project) ->
+
+  getFileByID: (path, id, project, authToken) ->
+    coreManager = Weaver.getCoreManager()
+    new Promise((resolve, reject) =>
+      try
+        payload = {
+          id
+          target: project
+          authToken
+        }
+        fileStream = fs.createWriteStream(path)
+        coreManager.downloadFileByID(JSON.stringify(payload))
+        .pipe(fileStream)
+        fileStream.on('finish', ->
+          resolve(fileStream.path)
+        )
+      catch error
+        reject(Error WeaverError.OTHER_CAUSE,"Something went wrong")
+    )
+
+  deleteFile: (fileName, project, authToken) ->
     coreManager = Weaver.getCoreManager()
     file = {
       fileName
       target: project
-    }
-    coreManager.getFile(file)
-    .then((buffer) ->
-      if buffer.code?
-        Promise.reject(Error WeaverError.FILE_NOT_EXISTS_ERROR,"The requested file #{fileName} at #{project} does not exits")
-      else if Object.keys(buffer).length is 0
-        Promise.reject(Error WeaverError.FILE_NOT_EXISTS_ERROR,"The requested file #{fileName} can\'t be retrieved because #{project} does not exists")
-      else
-        writeFile(path, buffer)
-    )
-  getFileByID: (path, id, project) ->
-    coreManager = Weaver.getCoreManager()
-    file = {
-      id
-      target: project
-    }
-    coreManager.getFileByID(file)
-    .then((buffer) ->
-      if buffer.code?
-        Promise.reject(Error WeaverError.FILE_NOT_EXISTS_ERROR,"The requested file #{id} at #{project} does not exits")
-      else if Object.keys(buffer).length is 0
-        Promise.reject(Error WeaverError.FILE_NOT_EXISTS_ERROR,"The requested file #{id} can\'t be retrieved because #{project} does not exists")
-      else
-        writeFile(path, buffer)
-    )
-  deleteFile: (fileName, project) ->
-    coreManager = Weaver.getCoreManager()
-    file = {
-      fileName
-      target: project
+      authToken
     }
     coreManager.deleteFile(file)
-  deleteFileByID: (id, project) ->
+
+  deleteFileByID: (id, project, authToken) ->
     coreManager = Weaver.getCoreManager()
     file = {
       id
       target: project
+      authToken
     }
     coreManager.deleteFileByID(file)
+
 module.exports = WeaverFile
