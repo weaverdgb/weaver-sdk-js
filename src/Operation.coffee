@@ -14,6 +14,9 @@ NodeOperation = (node) ->
   unsetAttribute: (key) ->
     {action: Action.REMOVE_ATTRIBUTE, id: node.id(), key}
 
+  incrementAttribute: (key, value) ->
+    {action: Action.INCREMENT_ATTRIBUTE, id: node.id(), key, value}
+
   createRelation: (key, to) ->
     {action: Action.CREATE_RELATION, from: node.id(), key, to}
 
