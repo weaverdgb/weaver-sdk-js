@@ -54,6 +54,21 @@ describe 'WeaverNode test', ->
       assert.equal(loadedNode.get('length'), 3)
     )
 
+  it 'should increment an exiting number attribute', ->
+    node = new Weaver.Node()
+    node.set('length', 3)
+
+    node.save().then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.get('length'), 3)
+      node.increment('length', 2)
+    ).then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.get('length'), 5)
+    )
+
   it 'should set a new number double attribute', ->
     node = new Weaver.Node()
     node.set('halved', 1.5)
