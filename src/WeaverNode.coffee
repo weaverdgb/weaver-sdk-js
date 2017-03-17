@@ -67,10 +67,16 @@ class WeaverNode
   # Update attribute by incrementing the value, the result depends on concurrent requests, so check the result
   increment: (field, value, project) ->
 
+    if not @attributes[field]?
+      throw new Error
+    if typeof value isnt 'number'
+      throw new Error
+
     operation = Operation.Node(@).incrementAttribute(field, value)
-    CoreManager.executeOperations([operation], project).then((response)=>
-      @attributes[field] = response.incrementedTo if response? and response.incrementedTo?
-      @
+    CoreManager.executeOperations([operation], project).then((res)=>
+      if res? and res.incrementedTo?
+        @attributes[field] = res.incrementedTo
+        res.incrementedTo
     )
 
 
