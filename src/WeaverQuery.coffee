@@ -29,25 +29,30 @@ class WeaverQuery
 
       Constructor = Constructor or Weaver.Node
       CoreManager.query(@).then((nodes) ->
-        (new Constructor()._loadFromQuery(node) for node in nodes)
+        list = []
+        for node in nodes
+          instance = new Constructor()
+          instance._loadFromQuery(node)
+          list.push(instance)
+        list
       )
 
     count: ->
       @_count = true
       CoreManager.query(@)
 
-    first: ->
+    first: (Constructor) ->
       @_limit = 1
-      @find().then((res) ->
+      @find(Constructor).then((res) ->
         if res.length is 0
           Promise.reject({code:101, "Node not found"})
         else
           res[0]
       )
 
-    get: (node) ->
+    get: (node, Constructor) ->
       @restrict(node)
-      @first()
+      @first(Constructor)
 
     restrict: (nodes) ->
       addRestrict = (node) =>

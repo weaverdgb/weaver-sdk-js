@@ -19,9 +19,10 @@ class WeaverNode
 
   # Node loading from server
   @load: (nodeId, target, Constructor) ->
+
     Constructor = WeaverNode if not Constructor?
 
-    new Weaver.Query(target).get(nodeId)
+    new Weaver.Query(target).get(nodeId, Constructor)
 
   _loadFromQuery: (object, Constructor) ->
     Constructor = Constructor or WeaverNode
@@ -30,7 +31,9 @@ class WeaverNode
 
     for key, targetNodes of object.relations
       for node in targetNodes
-        @relation(key).add(new Constructor()._loadFromQuery(node, Constructor))
+        instance = new Constructor()
+        instance._loadFromQuery(node, Constructor)
+        @relation(key).add(instance)
 
     @._clearPendingWrites()
     @
