@@ -23,6 +23,15 @@ describe 'WeaverHistory test', ->
       history.getHistory(node.id())
     ).then((response) ->
       console.log(response)
+
+
+      history = new Weaver.History()
+      history.forUser('admin')
+      history.fromDateTime('2017-03-23 12:38')
+#      history.beforeDateTime('2017-03-23 12:39')
+      history.getHistory(node.id(), 'name')
+    ).then((response) ->
+      console.log(response)
       done()
     )
 
