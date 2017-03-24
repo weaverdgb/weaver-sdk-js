@@ -10,11 +10,14 @@ define = (action, attributes) ->
 Action.CREATE_NODE            = define 'create-node',         ['id']
 Action.REMOVE_NODE            = define 'remove-node',         ['id']
 Action.CREATE_ATTRIBUTE       = define 'create-attribute',    ['id', 'key', 'value', 'datatype']
-Action.INCREMENT_ATTRIBUTE    = define 'increment-attribute', ['id', 'key', 'value']
 Action.REMOVE_ATTRIBUTE       = define 'remove-attribute',    ['id', 'key']
 Action.CREATE_RELATION        = define 'create-relation',     ['from', 'key', 'to' ]          # only one relation with this key can exist between these two node ids
 Action.REMOVE_RELATION        = define 'remove-relation',     ['from', 'key', 'to' ]
-Action.OBJECTIFY_RELATION     = define 'objectify-relation',  ['from', 'key', 'to', 'id' ]
 Action.MERGE_NODES            = define 'merge-nodes',         ['id_into', 'id_merge']
+
+# Operations that return an answer
+# these should be the only operation in the submitted array
+Action.INCREMENT_ATTRIBUTE    = define 'increment-attribute', ['id', 'key', 'value']
+Action.OBJECTIFY_RELATION     = define 'objectify-relation',  ['from', 'key', 'to', 'id' ]
 
 module.exports = {Action, Signature}
