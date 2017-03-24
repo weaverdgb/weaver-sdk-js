@@ -22,8 +22,8 @@ NodeOperation = (node) ->
   createRelation: (key, to) ->
     {action: Action.CREATE_RELATION, from: node.id(), key, to}
 
-  updateRelation: (key, to) ->
-    {action: Action.UPDATE_RELATION, from: node.id(), key, to}
+  updateRelation: (key, oldTo, newTo) ->
+    {action: Action.UPDATE_RELATION, from: node.id(), key, oldTo, newTo}
 
   removeRelation: (key, to) ->
     {action: Action.REMOVE_RELATION, from: node.id(), key, to}

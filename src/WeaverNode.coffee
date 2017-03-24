@@ -59,11 +59,14 @@ class WeaverNode
 
   # Update attribute
   set: (field, value) ->
-    @attributes[field] = value
+    if @attributes[field]?
+      @attributes[field] = value
+      @pendingWrites.push(Operation.Node(@).updateAttribute(field, value))
 
-    # Save change as pending
-    @pendingWrites.push(Operation.Node(@).unsetAttribute(field))
-    @pendingWrites.push(Operation.Node(@).setAttribute(field, value))
+    else
+      @attributes[field] = value
+      @pendingWrites.push(Operation.Node(@).setAttribute(field, value))
+
     @
 
 
