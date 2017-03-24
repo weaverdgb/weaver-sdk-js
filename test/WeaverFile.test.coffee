@@ -1,14 +1,16 @@
 require("./test-suite")
-path = require('path')
+
+path     = require('path')
 readFile = require('fs-readfile-promise')
-fs = require('fs')
+fs       = require('fs')
 
 describe 'WeaverFile test', ->
   file = ''
   tmpDir = path.join(__dirname,"../tmp")
 
   it 'should create a new file', ->
-    this.timeout(10000) # This timeout is high cose the 1st time minio takes more time (extra time creating a bucket)
+    this.timeout(10000) # This timeout is high because the 1st time minio takes more time (extra time creating a bucket)
+
     weaverFile = new Weaver.File()
     fileTemp = path.join(__dirname,'../icon.png')
     weaverFile.saveFile(fileTemp, 'weaverIcon.png', 'area51',  'eyJhbGciOiJSUzI1NiJ9.eyIkaW50X3Blcm1')
@@ -17,7 +19,7 @@ describe 'WeaverFile test', ->
       assert.equal(res.split('-')[1],'weaverIcon.png')
     )
 
-  it 'should fails create a new file, because the file does not exits on local machine', ->
+  it 'should fail creating a new file, because the file does not exists on local machine', ->
     weaverFile = new Weaver.File()
     fileTemp = '../foo.bar'
     weaverFile.saveFile(fileTemp, 'foo.bar', 'area51', 'eyJhbGciOiJSUzI1NiJ9.eyIkaW50X3Blcm1')
@@ -28,8 +30,9 @@ describe 'WeaverFile test', ->
     )
 
   it 'should retrieve a file by fileName', ->
-    if !fs.existsSync(tmpDir)
+    if not fs.existsSync(tmpDir)
       fs.mkdirSync(tmpDir)
+
     weaverFile = new Weaver.File()
     destFile = path.join(__dirname,"../tmp/#{file}")
     originFile = path.join(__dirname,'../icon.png')
@@ -38,13 +41,13 @@ describe 'WeaverFile test', ->
       readFile(res)
     ).then((destBuff) ->
       readFile(originFile)
-      .then((originBuff) ->
-        assert.equal(destBuff.toString(),originBuff.toString())
-      )
+    )
+    .then((originBuff) ->
+      assert.equal(destBuff.toString(),originBuff.toString())
     )
 
 
-  it 'should fails retrieving a file, because the file does not exits on server', ->
+  it 'should fail retrieving a file, because the file does not exits on server', ->
     weaverFile = new Weaver.File()
     pathTemp = path.join(__dirname,'../tmp/weaver-icon.png')
     weaverFile.getFile(pathTemp,'foo.bar','area51','eyJhbGciOiJSUzI1NiJ9.eyIkaW50X3Blcm1')
@@ -54,7 +57,8 @@ describe 'WeaverFile test', ->
       assert(true)
     )
 
-  it 'should fails retrieving a file, because the project does not exits on server', ->
+  # Delete this because already taken care of
+  it 'should fail retrieving a file, because the project does not exits on server', ->
     weaverFile = new Weaver.File()
     pathTemp = path.join(__dirname,'../tmp/weaver-icon.png')
     weaverFile.getFile(pathTemp,'weaver-icon.png','fooBar','eyJhbGciOiJSUzI1NiJ9.eyIkaW50X3Blcm1')
@@ -79,7 +83,7 @@ describe 'WeaverFile test', ->
       )
     )
 
-  it 'should fails retrieving a file by ID, because there is no file matching this ID', ->
+  it 'should fail retrieving a file by ID, because there is no file matching this ID', ->
     weaverFile = new Weaver.File()
     pathTemp = path.join(__dirname,'../tmp/weaver-icon.png')
     weaverFile.getFileByID(pathTemp,'f4k31d','area51','eyJhbGciOiJSUzI1NiJ9.eyIkaW50X3Blcm1')
@@ -90,7 +94,7 @@ describe 'WeaverFile test', ->
       # assert.equal(err.code,Weaver.Error.FILE_NOT_EXISTS_ERROR)
     )
 
-  it 'should deletes a file by name', ->
+  it 'should delete a file by name', ->
     weaverFile = new Weaver.File()
     weaverFile.deleteFile("#{file}",'area51','eyJhbGciOiJSUzI1NiJ9.eyIkaW50X3Blcm1')
     .then( ->
@@ -103,7 +107,7 @@ describe 'WeaverFile test', ->
       )
     )
 
-  it 'should deletes a file by id', ->
+  it 'should delete a file by id', ->
     weaverFile = new Weaver.File()
     fileTemp = path.join(__dirname,'../icon.png')
     weaverFile.saveFile(fileTemp, 'weaverIcon.png', 'area51','eyJhbGciOiJSUzI1NiJ9.eyIkaW50X3Blcm1')
