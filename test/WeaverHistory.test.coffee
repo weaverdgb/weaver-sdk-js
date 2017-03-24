@@ -6,6 +6,7 @@ describe 'WeaverHistory test', ->
 
   it 'should set a new string attribute', (done)->
     node = new Weaver.Node()
+    nodeB = new Weaver.Node()
 
     node.save().then((node) ->
       node.set('name', 'Foo')
@@ -20,20 +21,27 @@ describe 'WeaverHistory test', ->
 
 
       history = new Weaver.History()
-      history.getHistory(node.id())
+      history.getHistory(node)
     ).then((response) ->
       console.log(response)
 
+      nodeB.save()
+    ).then(->
+
+      history = new Weaver.History()
+      history.getHistory([node, nodeB])
+    ).then((response) ->
+      console.log(response)
 
       history = new Weaver.History()
       history.forUser('admin')
       history.fromDateTime('2017-03-23 12:38')
 #      history.beforeDateTime('2017-03-23 12:39')
-      history.getHistory(node.id(), 'name')
+      history.getHistory(node, 'name')
     ).then((response) ->
       console.log(response)
       done()
     )
 
-    return "Hasta la vista, baby"
+    return
 
