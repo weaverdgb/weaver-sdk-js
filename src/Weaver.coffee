@@ -17,6 +17,7 @@ class Weaver
     @Model       = require('./WeaverModel')
     @Relation    = require('./WeaverRelation')
     @Project     = require('./WeaverProject')
+    @History     = require('./WeaverHistory')
     @Query       = require('./WeaverQuery')
     @ACL         = require('./WeaverACL')
     @Role        = require('./WeaverRole')

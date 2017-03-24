@@ -94,6 +94,10 @@ class CoreManager
   getAllRelations: (target)->
     @GET('relations', target)
 
+  getHistory: (payload, target)->
+    @GET('history', payload, target)
+
+
   wipe: (target)->
     @POST('wipe', {}, target)
 
