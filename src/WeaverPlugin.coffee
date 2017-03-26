@@ -10,31 +10,34 @@ class WeaverPlugin
     @._description = serverObject.description
     @._functions   = serverObject.functions
 
-    # Parse functions
+    # Parse functions that will be accessible from @
     serverObject.functions.forEach((f) =>
       @[f.name] = (args...) ->
 
-        # Build payload from arguments
+        # Build payload from arguments based on function require
         payload = {}
-        for r, index in f.require
-          payload[r] = args[index]
+        payload[r] = args[index] for r, index in f.require
 
+        # Execute by route and payload
         CoreManager.executePluginFunction(f.route, payload)
     )
 
+  # Load given plugin from server
   @load: (name) ->
     CoreManager.getPlugin(name)
 
-  # Parse for easy reading
+  # Parse plugin functions for easy reading
   printFunctions: ->
-    functions = []
-    for f in @_functions
+
+    # Example: The function add with require x and y becomes add(x,y)
+    prettyFunction = (f) ->
       args = ""
       args += r + "," for r in f.require
       args = args.slice(0, -1) # Remove last comma
-      functions.push("#{f.name}(#{args})")
 
-    functions
+      "#{f.name}(#{args})"
+
+    (prettyFunction(f) for f in @_functions)
 
   getPluginName: ->
     @_name
@@ -50,6 +53,5 @@ class WeaverPlugin
 
   @list: ->
     CoreManager.listPlugins()
-
 
 module.exports = WeaverPlugin
