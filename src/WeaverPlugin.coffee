@@ -34,7 +34,6 @@ class WeaverPlugin
       args = ""
       args += r + "," for r in f.require
       args = args.slice(0, -1) # Remove last comma
-
       "#{f.name}(#{args})"
 
     (prettyFunction(f) for f in @_functions)
