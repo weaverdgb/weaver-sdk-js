@@ -55,3 +55,9 @@ describe 'WeaverPlugin test', ->
     )
 
   it.skip 'should deny execution access if not permitted', ->
+
+  it.skip 'should be able to give role access to plugin execution', ->
+
+  it.skip 'should be able to give user access to plugin execution', ->
+
+  it.skip 'should not list a plugin of which access is not permitted', ->
