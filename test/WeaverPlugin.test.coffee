@@ -4,13 +4,54 @@ describe 'WeaverPlugin test', ->
 
   it 'should list available plugins', ->
     Weaver.Plugin.list().then((plugins) ->
-      console.dir(plugins, {depth: null})
+      assert.equal(plugins.length, 2)
     )
-#
-#    node.save().then((node) ->
-#      Weaver.Node.load(node.id())
-#    ).then((loadedNode) ->
-#      assert.equal(loadedNode.id(), node.id())
-#    ).catch((Err) -> console.log(Err))
-#
-#
+
+  it 'should get a single plugin', ->
+    Weaver.Plugin.load('calculator').then((plugin) ->
+      assert.equal(plugin.getPluginName(), 'calculator')
+    )
+
+  it 'should raise an error when plugin is not found', ->
+    Weaver.Plugin.load('someplugin').then((plugin) ->
+      assert(false)
+    ).catch((error) ->
+      assert.equal(error.code, -1)
+    )
+
+  it 'should call plugin functions on calculator', ->
+    plugin = null
+    Weaver.Plugin.load('calculator').then((p) ->
+      plugin = p
+      plugin.getBase()
+    ).then((base) ->
+      assert.equal(base, 'Base-10')
+
+      plugin.add(5, 8)
+    ).then((result) ->
+      assert.equal(result, 13)
+
+      plugin.subtract(140, 40)
+    ).then((result) ->
+      assert.equal(result, 100)
+    )
+
+  it 'should call plugin functions on nodes-counter', ->
+    plugin = null
+    Weaver.Plugin.load('nodes-counter').then((p) ->
+      plugin = p
+      plugin.countNodes()
+    ).then((result) ->
+      assert.equal(result, '500')
+    )
+
+  it 'should raise an error when a function is incorrectly called', ->
+    Weaver.Plugin.load('calculator').then((plugin) ->
+      plugin.add(4) # Missing field y
+    ).then(->
+      assert(false)
+    ).catch((error) ->
+      assert.equal(error.code, -1)
+    )
+
+  it.skip 'should deny execution access if not permitted', ->
