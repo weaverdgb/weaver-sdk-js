@@ -39,6 +39,9 @@ class CoreManager
   listProjects: ->
     @GET("project")
 
+  listPlugins: ->
+    @GET("plugins")
+
   createProject: (id, name) ->
     @POST("project.create", {id, name})
 
