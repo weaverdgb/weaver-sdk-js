@@ -14,7 +14,7 @@ NodeOperation = (node) ->
     {action: Action.CREATE_ATTRIBUTE, id: node.id(), key, value, datatype}
 
   updateAttribute: (key, value, datatype) ->
-    {action: Action.CREATE_ATTRIBUTE, id: node.id(), key, value, datatype}
+    {action: Action.UPDATE_ATTRIBUTE, id: node.id(), key, value, datatype}
 
   unsetAttribute: (key) ->
     {action: Action.REMOVE_ATTRIBUTE, id: node.id(), key}
@@ -28,8 +28,8 @@ NodeOperation = (node) ->
   removeRelation: (key, to) ->
     {action: Action.REMOVE_RELATION, from: node.id(), key, to}
 
-  mergeNodes: (id_into, id_merge) ->
-    {action: Action.MERGE_NODES, id_into, id_merge}
+  mergeNodes: (idInto, idMerge) ->
+    {action: Action.MERGE_NODES, idInto, idMerge}
 
   # Operations that return an answer
 
