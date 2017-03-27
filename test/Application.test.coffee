@@ -8,3 +8,13 @@ describe 'Application test', ->
     Weaver.serverVersion().then((version) ->
       version.should.be.a('string')
     )
+
+  it 'should return server time', ->
+    Weaver.serverTime().then((time) ->
+      console.log(time)
+    )
+
+  it 'should return server time again', ->
+    Weaver.serverTime().then((time) ->
+      console.log(time)
+    )

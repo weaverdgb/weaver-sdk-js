@@ -27,6 +27,14 @@ class CoreManager
     target = target or @currentProject.id() if @currentProject?
     target
 
+  localTimeOffset: ->
+    startRequest = new Date().getTime()
+    @GET("application.time").then((serverTime)->
+      endRequest = new Date().getTime()
+      localTime = endRequest - Math.round((endRequest - startRequest) / 2)
+      localTime - serverTime
+    )
+
   executeOperations: (operations, target) ->
     @POST('write', {operations}, target)
 
