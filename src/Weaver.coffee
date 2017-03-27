@@ -44,7 +44,9 @@ class Weaver
   connect: (endpoint) ->
     @_registerClasses()
     @_connected = true
-    @coreManager.connect(endpoint)
+    @coreManager.connect(endpoint).then(=>
+      @coreManager.updateLocalTimeOffset()
+    )
 
   getCoreManager: ->
     @coreManager

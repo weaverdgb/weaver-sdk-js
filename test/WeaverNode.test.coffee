@@ -34,6 +34,19 @@ describe 'WeaverNode test', ->
       assert.equal(loadedNode.get('name'), 'Foo')
     )
 
+  it 'should update a string attribute', ->
+    node = new Weaver.Node()
+
+    node.save().then((node) ->
+      node.set('name', 'Foo')
+      node.set('name', 'Bar')
+      node.save()
+    ).then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.get('name'), 'Bar')
+    )
+
   it 'should set a new boolean attribute', ->
     node = new Weaver.Node()
     node.set('isBar', false)
@@ -102,6 +115,19 @@ describe 'WeaverNode test', ->
       Weaver.Node.load(foo.id())
     ).then((loadedNode) ->
       assert.isDefined(loadedNode.relation('comesBefore').nodes[bar.id()])
+    )
+
+  it 'should update a relation', ->
+    foo = new Weaver.Node()
+    bar = new Weaver.Node()
+    ono = new Weaver.Node()
+    foo.relation('comesBefore').add(bar)
+    foo.relation('comesBefore').update(bar, ono)
+
+    Weaver.Node.batchSave([foo, bar, ono]).then(->
+      Weaver.Node.load(foo.id())
+    ).then((loadedNode) ->
+      assert.isDefined(loadedNode.relation('comesBefore').nodes[ono.id()])
     )
 
   it 'should remove a relation', ->

@@ -10,6 +10,7 @@ class CoreManager
 
   constructor: ->
     @currentProject = null
+    @timeOffset = 0
 
   connect: (endpoint) ->
     @commController = new SocketController(endpoint)
@@ -26,6 +27,24 @@ class CoreManager
     # Fallback to currentProject if target not given
     target = target or @currentProject.id() if @currentProject?
     target
+
+  serverTime: ->
+    clientTime = new Date().getTime()
+    clientTime - @timeOffset
+
+  updateLocalTimeOffset: ->
+    @localTimeOffset().then((offset)=>
+      @timeOffset = offset
+      offset
+    )
+
+  localTimeOffset: ->
+    startRequest = new Date().getTime()
+    @GET("application.time").then((serverTime)->
+      endRequest = new Date().getTime()
+      localTime = endRequest - Math.round((endRequest - startRequest) / 2)
+      localTime - serverTime
+    )
 
   executeOperations: (operations, target) ->
     @POST('write', {operations}, target)

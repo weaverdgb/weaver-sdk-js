@@ -16,7 +16,6 @@ class WeaverNode
     # All operations that need to get saved
     @pendingWrites = [Operation.Node(@).create()]
 
-
   # Node loading from server
   @load: (nodeId, target, Constructor) ->
 
@@ -59,11 +58,14 @@ class WeaverNode
 
   # Update attribute
   set: (field, value) ->
-    @attributes[field] = value
+    if @attributes[field]?
+      @attributes[field] = value
+      @pendingWrites.push(Operation.Node(@).updateAttribute(field, value))
 
-    # Save change as pending
-    @pendingWrites.push(Operation.Node(@).unsetAttribute(field))
-    @pendingWrites.push(Operation.Node(@).setAttribute(field, value))
+    else
+      @attributes[field] = value
+      @pendingWrites.push(Operation.Node(@).setAttribute(field, value))
+
     @
 
 
