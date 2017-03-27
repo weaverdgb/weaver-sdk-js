@@ -17,7 +17,9 @@ class Weaver
     @Model       = require('./WeaverModel')
     @Relation    = require('./WeaverRelation')
     @Project     = require('./WeaverProject')
+    @History     = require('./WeaverHistory')
     @Query       = require('./WeaverQuery')
+    @Plugin      = require('./WeaverPlugin')
     @ACL         = require('./WeaverACL')
     @Role        = require('./WeaverRole')
     @User        = require('./WeaverUser')
@@ -39,7 +41,9 @@ class Weaver
   connect: (endpoint) ->
     @_registerClasses()
     @_connected = true
-    @coreManager.connect(endpoint)
+    @coreManager.connect(endpoint).then(=>
+      @coreManager.updateLocalTimeOffset()
+    )
 
   getCoreManager: ->
     @coreManager
