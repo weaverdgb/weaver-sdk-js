@@ -16,9 +16,6 @@ class WeaverNode
     # All operations that need to get saved
     @pendingWrites = [Operation.Node(@).create()]
 
-  now: ->
-    CoreManager.serverTime()
-
   # Node loading from server
   @load: (nodeId, target, Constructor) ->
 

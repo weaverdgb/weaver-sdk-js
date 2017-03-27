@@ -10,7 +10,7 @@ class CoreManager
 
   constructor: ->
     @currentProject = null
-    @timeOffset  = null
+    @timeOffset = 0
 
   connect: (endpoint) ->
     @commController = new SocketController(endpoint)
@@ -30,8 +30,6 @@ class CoreManager
 
   serverTime: ->
     clientTime = new Date().getTime()
-    if not @timeOffset
-      throw Error('time not synchronised, please call CoreManager.updateLocalTimeOffset()')
     clientTime - @timeOffset
 
   updateLocalTimeOffset: ->
