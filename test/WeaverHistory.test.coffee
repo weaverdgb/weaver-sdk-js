@@ -36,7 +36,7 @@ describe 'WeaverHistory test', ->
       history = new Weaver.History()
       history.forUser('admin')
       history.fromDateTime('2017-03-23 12:38')
-#      history.beforeDateTime('2017-03-23 12:39')
+      history.beforeDateTime('2018-03-23 12:39')
       history.getHistory(node, 'name')
     ).then((response) ->
       console.log(response)

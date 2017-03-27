@@ -10,6 +10,7 @@ class CoreManager
 
   constructor: ->
     @currentProject = null
+    @timeOffset  = null
 
   connect: (endpoint) ->
     @commController = new SocketController(endpoint)
@@ -26,6 +27,18 @@ class CoreManager
     # Fallback to currentProject if target not given
     target = target or @currentProject.id() if @currentProject?
     target
+
+  serverTime: ->
+    clientTime = new Date().getTime()
+    if not @timeOffset
+      throw Error('time not synchronised, please call CoreManager.updateLocalTimeOffset()')
+    clientTime - @timeOffset
+
+  updateLocalTimeOffset: ->
+    @localTimeOffset().then((offset)=>
+      @timeOffset = offset
+      offset
+    )
 
   localTimeOffset: ->
     startRequest = new Date().getTime()

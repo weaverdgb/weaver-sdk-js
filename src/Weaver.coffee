@@ -11,7 +11,6 @@ class Weaver
     @coreManager = new CoreManager()
     @_connected  = false
     @_local      = false
-    @timeOffset  = null
 
   _registerClasses: ->
     @Node        = require('./WeaverNode')
@@ -37,20 +36,6 @@ class Weaver
   serverVersion: ->
     @coreManager.serverVersion()
 
-  serverTime: ->
-    clientTime = new Date().getTime()
-    if not @timeOffset
-      return @updateLocalTimeOffset().then((offset)->
-        clientTime - offset
-      )
-    Promise.resolve(clientTime - @timeOffset)
-
-  updateLocalTimeOffset: ->
-    @coreManager.localTimeOffset().then((offset)=>
-      @timeOffset = offset
-      offset
-    )
-
   local: (routes) ->
     @_registerClasses()
     @_local = true
@@ -59,7 +44,9 @@ class Weaver
   connect: (endpoint) ->
     @_registerClasses()
     @_connected = true
-    @coreManager.connect(endpoint)
+    @coreManager.connect(endpoint).then(=>
+      @coreManager.updateLocalTimeOffset()
+    )
 
   getCoreManager: ->
     @coreManager
