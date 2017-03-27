@@ -50,6 +50,19 @@ class CoreManager
   createProject: (id, name) ->
     @POST("project.create", {id, name})
 
+  listPlugins: ->
+    @GET("plugins").then((plugins) ->
+      (new Weaver.Plugin(p) for p in plugins)
+    )
+
+  getPlugin: (name) ->
+    @POST("plugin.read", {name}).then((plugin) ->
+      new Weaver.Plugin(plugin)
+    )
+
+  executePluginFunction: (route, payload) ->
+    @POST(route, payload)
+
   createRole: (role) ->
     @POST("role.create", {role})
 
