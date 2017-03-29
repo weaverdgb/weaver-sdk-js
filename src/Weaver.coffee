@@ -72,6 +72,9 @@ class Weaver
   wipe: ->
     @coreManager.wipe()
 
+  setScheduler: (fn) ->
+    Promise.setScheduler(fn)
+
 
 # Export
 weaver = new Weaver()
