@@ -164,8 +164,7 @@ class WeaverNode
   # Removes node
   destroy: (project) ->
     CoreManager.executeOperations([Operation.Node(@).destroy()], project).then(=>
-      @destroyed = true
-      @saved = false
+      delete @[key] for key of @
       undefined
     )
 
