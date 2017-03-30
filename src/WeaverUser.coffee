@@ -7,12 +7,12 @@ class WeaverUser
 
   constructor: (@username, @password, @email) ->
     @userId   = cuid()
-    @_created = false
+    @_stored = false
 
   @get: (authToken) ->
     user = new Weaver.User()
     user.userId    = undefined
-    user._created  = true
+    user._stored  = true
     user.authToken = authToken
     user
 
@@ -33,7 +33,7 @@ class WeaverUser
   signUp: ->
     @create().then((authToken) =>
       @authToken = authToken
-      @_created = true
+      @_stored = true
       CoreManager.currentUser = @
     )
 

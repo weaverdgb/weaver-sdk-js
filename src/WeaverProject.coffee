@@ -9,7 +9,7 @@ class WeaverProject
   constructor: (@name, @projectId) ->
     @name = @name or 'unnamed'
     @projectId = @projectId or cuid()
-    @_created = false
+    @_stored = false
 
   id: ->
     @projectId
@@ -30,7 +30,7 @@ class WeaverProject
       )
     )
     .then(=> # Project is ready
-      @_created = true
+      @_stored = true
       @
     )
 

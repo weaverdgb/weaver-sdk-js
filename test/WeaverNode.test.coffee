@@ -4,11 +4,24 @@ describe 'WeaverNode test', ->
 
   it 'should create a new node', ->
     node = new Weaver.Node()
+    assert(!node._loaded)
+    assert(!node._stored)
 
     node.save().then((node) ->
+      assert(!node._loaded)
+      assert(node._stored)
+
       Weaver.Node.load(node.id())
     ).then((loadedNode) ->
+      assert(loadedNode._loaded)
+      assert(loadedNode._stored)
       assert.equal(loadedNode.id(), node.id())
+
+      Weaver.Node.get(node.id())
+    ).then((getNode) ->
+      assert(!getNode._loaded)
+      assert(!getNode._stored)
+
     ).catch((Err) -> console.log(Err))
 
   it 'should remove a node', ->
@@ -111,10 +124,27 @@ describe 'WeaverNode test', ->
     bar = new Weaver.Node()
     foo.relation('comesBefore').add(bar)
 
+    assert(!foo._loaded)
+    assert(!foo._stored)
+    assert(!bar._loaded)
+    assert(!bar._stored)
+
     foo.save().then(->
+
+      assert(!foo._loaded)
+      assert(foo._stored)
+      assert(!bar._loaded)
+      assert(bar._stored)
+
       Weaver.Node.load(foo.id())
     ).then((loadedNode) ->
+
       assert.isDefined(loadedNode.relation('comesBefore').nodes[bar.id()])
+
+      assert(loadedNode._loaded)
+      assert(loadedNode._stored)
+      assert(!loadedNode.relation('comesBefore').nodes[bar.id()]._loaded)
+      assert(loadedNode.relation('comesBefore').nodes[bar.id()]._stored)
     )
 
   it 'should update a relation', ->

@@ -12,7 +12,7 @@ class WeaverRole
     @roleId = cuid()
 
     # State
-    @_created = false
+    @_stored = false
     @_deleted = false
 
     # Locally these are objects, whereas the server expects arrays
@@ -24,9 +24,9 @@ class WeaverRole
     @_users = @getUsers()
     @_roles = @getRoles()
 
-    if not @_created
+    if not @_stored
       CoreManager.createRole(@).then(=>
-        @_created = true
+        @_stored = true
         @
       )
     else

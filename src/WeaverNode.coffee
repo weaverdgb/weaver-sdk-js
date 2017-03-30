@@ -8,6 +8,8 @@ class WeaverNode
   constructor: (@nodeId) ->
     # Generate random id if not given
     @nodeId = cuid() if not @nodeId?
+    @_stored = false       # if true, available in database, local node can hold unsaved changes
+    @_loaded = false       # if true, all information from the database was localised on construction
 
     # Store all attributes and relations in these objects
     @attributes = {}
@@ -21,7 +23,11 @@ class WeaverNode
   @load: (nodeId, target, Constructor) ->
     Constructor = WeaverNode if not Constructor?
 
-    new Weaver.Query(target).get(nodeId, Constructor)
+    new Weaver.Query(target).get(nodeId, Constructor).then((node)->
+      node._setStored()
+      node._loaded = true
+      node
+    )
 
   _loadFromQuery: (object, Constructor) ->
     Constructor = Constructor or WeaverNode
@@ -123,6 +129,15 @@ class WeaverNode
     @
 
 
+  _setStored: ->
+    @_stored = true
+
+    for key, relation of @relations
+      for id, node of relation.nodes
+        node._setStored() if not node._stored
+    @
+
+
   # Checks whether needs saving
   isDirty: ->
     @pendingWrites.length isnt 0
@@ -132,6 +147,7 @@ class WeaverNode
   save: (project) ->
     CoreManager.executeOperations(@_collectPendingWrites(), project).then(=>
       @_clearPendingWrites()
+      @_setStored()
       @
     )
 
