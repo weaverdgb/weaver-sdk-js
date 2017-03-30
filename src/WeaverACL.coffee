@@ -21,7 +21,7 @@ class WeaverACL
     @_roleReadMap  = {}
     @_roleWriteMap = {}
 
-    @_created = false
+    @_stored = false
     @_deleted = false
 
   id: ->
@@ -31,7 +31,7 @@ class WeaverACL
     acl = new WeaverACL()
     # Copy
     acl._id       = aclObject.id
-    acl._created = true
+    acl._stored = true
     acl._publicRead  = aclObject.publicRead
     acl._publicWrite = aclObject.publicWrite
 
@@ -57,9 +57,9 @@ class WeaverACL
     @_roleRead  = trueKeys(@_roleReadMap)
     @_roleWrite = trueKeys(@_roleWriteMap)
 
-    if not @_created
+    if not @_stored
       CoreManager.createACL(@).then(=>
-        @_created = true
+        @_stored = true
         @
       )
     else
