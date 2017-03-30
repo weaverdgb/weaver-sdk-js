@@ -9,6 +9,7 @@ class WeaverNode
     # Generate random id if not given
     @nodeId = cuid() if not @nodeId?
     @_stored = false
+    @_loaded = true
 
     # Store all attributes and relations in these objects
     @attributes = {}
@@ -28,12 +29,14 @@ class WeaverNode
     Constructor = Constructor or WeaverNode
     @nodeId     = object.nodeId
     @_stored    = true
+    @_loaded    = true
     @attributes = object.attributes
 
     for key, targetNodes of object.relations
       for node in targetNodes
         instance = new Constructor()
         instance._loadFromQuery(node, Constructor)
+        instance._loaded = false
         @relation(key).add(instance)
 
     @._clearPendingWrites(true)
@@ -44,6 +47,7 @@ class WeaverNode
   @get: (nodeId, Constructor) ->
     Constructor = WeaverNode if not Constructor?
     node = new Constructor(nodeId)
+    node._loaded = false
     node._clearPendingWrites()
     node
 
