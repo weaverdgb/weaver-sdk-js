@@ -158,7 +158,12 @@ class WeaverNode
     for node in array
       operations = operations.concat(node._collectPendingWrites())
 
-    CoreManager.executeOperations(operations, project)
+    CoreManager.executeOperations(operations, project).then(
+      for node in array
+        node._clearPendingWrites()
+        node._setStored()
+      array
+    )
 
 
   # Removes node
