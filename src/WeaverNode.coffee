@@ -8,6 +8,7 @@ class WeaverNode
   constructor: (@nodeId) ->
     # Generate random id if not given
     @nodeId = cuid() if not @nodeId?
+    @_stored = false
 
     # Store all attributes and relations in these objects
     @attributes = {}
@@ -26,6 +27,7 @@ class WeaverNode
   _loadFromQuery: (object, Constructor) ->
     Constructor = Constructor or WeaverNode
     @nodeId     = object.nodeId
+    @_stored    = true
     @attributes = object.attributes
 
     for key, targetNodes of object.relations
@@ -34,7 +36,7 @@ class WeaverNode
         instance._loadFromQuery(node, Constructor)
         @relation(key).add(instance)
 
-    @._clearPendingWrites()
+    @._clearPendingWrites(true)
     @
 
 
@@ -118,12 +120,13 @@ class WeaverNode
 
 
   # Clear all pendingWrites, used for instance after saving or when loading a node
-  _clearPendingWrites: ->
+  _clearPendingWrites: (stored)->
     @pendingWrites = []
+    @_stored = true if stored?
 
     for key, relation of @relations
       for id, node of relation.nodes
-        node._clearPendingWrites() if node.isDirty()
+        node._clearPendingWrites(stored) if node.isDirty()
 
       relation.pendingWrites = []
     @
@@ -137,7 +140,7 @@ class WeaverNode
   # Save node and all values / relations and relation objects to server
   save: (project) ->
     CoreManager.executeOperations(@_collectPendingWrites(), project).then(=>
-      @_clearPendingWrites()
+      @_clearPendingWrites(true)
       @
     )
 
