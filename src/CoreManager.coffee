@@ -13,6 +13,7 @@ class CoreManager
 
   constructor: ->
     @currentProject = null
+    @timeOffset = 0
 
   connect: (endpoint) ->
     @endpoint = endpoint
@@ -40,6 +41,25 @@ class CoreManager
 
     payload
 
+  serverTime: ->
+    clientTime = new Date().getTime()
+    clientTime - @timeOffset
+
+  updateLocalTimeOffset: ->
+    @localTimeOffset().then((offset)=>
+      @timeOffset = offset
+      offset
+    )
+
+  localTimeOffset: ->
+    startRequest = new Date().getTime()
+    @GET("application.time").then((serverTime)->
+      endRequest = new Date().getTime()
+      localTime = endRequest - Math.round((endRequest - startRequest) / 2)
+      localTime - serverTime
+    )
+
+
   executeOperations: (operations, target) ->
     @POST('write', {operations}, target)
 
@@ -54,6 +74,19 @@ class CoreManager
 
   createProject: (id, name) ->
     @POST("project.create", {id, name})
+
+  listPlugins: ->
+    @GET("plugins").then((plugins) ->
+      (new Weaver.Plugin(p) for p in plugins)
+    )
+
+  getPlugin: (name) ->
+    @POST("plugin.read", {name}).then((plugin) ->
+      new Weaver.Plugin(plugin)
+    )
+
+  executePluginFunction: (route, payload) ->
+    @POST(route, payload)
 
   createRole: (role) ->
     @POST("role.create", {role})
@@ -106,6 +139,10 @@ class CoreManager
 
   getAllRelations: (target)->
     @GET('relations', target)
+
+  getHistory: (payload, target)->
+    @GET('history', payload, target)
+
 
   wipe: (target)->
     @POST('wipe', {}, target)
