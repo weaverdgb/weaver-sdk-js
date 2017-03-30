@@ -20,7 +20,7 @@ class WeaverQuery
       @_select     = []
       @_count       = false
       @_hollow      = false
-      @_limit       = 100
+      @_limit       = 99999
       @_skip        = 0
       @_order       = []
       @_ascending   = true
