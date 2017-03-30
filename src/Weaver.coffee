@@ -23,10 +23,8 @@ class Weaver
     @ACL         = require('./WeaverACL')
     @Role        = require('./WeaverRole')
     @User        = require('./WeaverUser')
-    if window?
-      @FileBrowser      = require('./WeaverFileBrowser')
-    else
-      @File      = require('./WeaverFile')
+    if !window?
+      @File        = require('./WeaverFile') # avoiding problems on browsers trying to load node's fs stuff
     @Error       = require('./WeaverError')
     @LegacyError = require('./Error')         # TODO: Clean out in another PR
 
