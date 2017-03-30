@@ -4,6 +4,7 @@ Error            = require('./Error')
 WeaverError      = require('./WeaverError')
 readFile         = require('fs-readfile-promise')
 fs               = require('fs')
+CoreManager      = Weaver.getCoreManager()
 
 
 class WeaverFile extends Weaver.Node
@@ -14,46 +15,22 @@ class WeaverFile extends Weaver.Node
   @get: (nodeId) ->
     super(nodeId, WeaverFile)
 
-  saveFile: (path, fileName, project, authToken) ->
-    coreManager = Weaver.getCoreManager()
+  saveFile: (path, fileName) ->
     formData = {
       file: fs.createReadStream(path)
-      authToken
-      target:project
       fileName
     }
-    coreManager.uploadFile(formData)
+    CoreManager.uploadFile(formData)
 
-  getFile: (path, fileName, project, authToken) ->
-    coreManager = Weaver.getCoreManager()
-    new Promise((resolve, reject) =>
-      try
-        payload = {
-          fileName
-          target: project
-          authToken
-        }
-        fileStream = fs.createWriteStream(path)
-        coreManager.downloadFile(JSON.stringify(payload))
-        .pipe(fileStream)
-        fileStream.on('finish', ->
-          resolve(fileStream.path)
-        )
-      catch error
-        reject(Error WeaverError.OTHER_CAUSE,"Something went wrong")
-    )
 
-  getFileByID: (path, id, project, authToken) ->
-    coreManager = Weaver.getCoreManager()
+  getFileByID: (path, id) ->
     new Promise((resolve, reject) =>
       try
         payload = {
           id
-          target: project
-          authToken
         }
         fileStream = fs.createWriteStream(path)
-        coreManager.downloadFileByID(JSON.stringify(payload))
+        CoreManager.downloadFileByID(payload)
         .pipe(fileStream)
         fileStream.on('finish', ->
           resolve(fileStream.path)
@@ -62,22 +39,10 @@ class WeaverFile extends Weaver.Node
         reject(Error WeaverError.OTHER_CAUSE,"Something went wrong")
     )
 
-  deleteFile: (fileName, project, authToken) ->
-    coreManager = Weaver.getCoreManager()
-    file = {
-      fileName
-      target: project
-      authToken
-    }
-    coreManager.deleteFile(file)
-
-  deleteFileByID: (id, project, authToken) ->
-    coreManager = Weaver.getCoreManager()
+  deleteFileByID: (id) ->
     file = {
       id
-      target: project
-      authToken
     }
-    coreManager.deleteFileByID(file)
+    CoreManager.deleteFileByID(file)
 
 module.exports = WeaverFile

@@ -32,6 +32,14 @@ class CoreManager
     target = target or @currentProject.id() if @currentProject?
     target
 
+  _resolvePayload: (payload, target) ->
+    payload = payload or {}
+    payload.target = @_resolveTarget(target)
+    if @currentUser?
+      payload.authToken = @currentUser.authToken
+
+    payload
+
   executeOperations: (operations, target) ->
     @POST('write', {operations}, target)
 
@@ -129,27 +137,25 @@ class CoreManager
   deleteACL: (aclId) ->
     @POST("acl.delete", {id: aclId})
 
-  REQUEST: (type, path, payload, target) =>
-    payload = payload or {}
-    payload.target = @_resolveTarget(target)
-    if @currentUser?
-      payload.authToken = @currentUser.authToken
 
-    #console.log(path)
-    #console.log(payload)
+  REQUEST: (type, path, payload, target) =>
+    payload = @_resolvePayload(payload, target)
+
     if type is "GET"
       return @commController.GET(path, payload)
     else
       return @commController.POST(path, payload)
 
+  REQUEST_HTTP: (path, payload, target) ->
+    payload = @_resolvePayload(payload, target)
 
-  deleteFile: (file) ->
-    @commController.POST('file.delete',file)
 
   deleteFileByID: (file) ->
+    file = @_resolvePayload(file)
     @commController.POST('file.deleteByID',file)
 
   uploadFile: (formData) ->
+    formData = @_resolvePayload(formData)
     new Promise((resolve, reject) =>
       request.post({url:"#{@endpoint}/upload", formData: formData}, (err, httpResponse, body) ->
         if err
@@ -162,13 +168,9 @@ class CoreManager
       )
     )
 
-  downloadFile: (payload) ->
-    request.get("#{@endpoint}/file/download?payload=#{payload}")
-    .on('response', (res) ->
-      res
-    )
-
-  downloadFileByID: (payload) ->
+  downloadFileByID: (payload, target) ->
+    payload = @_resolvePayload(payload, target)
+    payload = JSON.stringify(payload)
     request.get("#{@endpoint}/file/downloadByID?payload=#{payload}")
     .on('response', (res) ->
       res
@@ -176,6 +178,9 @@ class CoreManager
 
   GET: (path, payload, target) ->
     @REQUEST("GET", path, payload, target)
+
+  GET_HTTP: (path, payload, target) ->
+
 
   POST: (path, payload, target) ->
     @REQUEST("POST", path, payload, target)
