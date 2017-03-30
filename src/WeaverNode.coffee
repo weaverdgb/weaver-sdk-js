@@ -108,7 +108,6 @@ class WeaverNode
           operations = operations.concat(node._collectPendingWrites(collected))
 
       operations = operations.concat(relation.pendingWrites)
-    console.log operations
     operations
 
 
@@ -131,8 +130,6 @@ class WeaverNode
 
   # Save node and all values / relations and relation objects to server
   save: (project) ->
-    console.log '=^^=|_PROJECT'
-    console.log project
     CoreManager.executeOperations(@_collectPendingWrites(), project).then(=>
       @_clearPendingWrites()
       @

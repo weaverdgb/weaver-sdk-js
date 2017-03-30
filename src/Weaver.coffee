@@ -70,6 +70,11 @@ class Weaver
   wipe: ->
     @coreManager.wipe()
 
+  # Function is needed by the weaver-sdk-angular. This sets a callback
+  # on the promise library for the digestion cycle to work.
+  setScheduler: (fn) ->
+    Promise.setScheduler(fn)
+
 
 # Export
 weaver = new Weaver()
