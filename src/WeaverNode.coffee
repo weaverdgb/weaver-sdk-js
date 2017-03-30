@@ -47,6 +47,7 @@ class WeaverNode
   @get: (nodeId, Constructor) ->
     Constructor = WeaverNode if not Constructor?
     node = new Constructor(nodeId)
+    node._stored = true
     node._loaded = false
     node._clearPendingWrites()
     node
