@@ -8,8 +8,8 @@ class WeaverNode
   constructor: (@nodeId) ->
     # Generate random id if not given
     @nodeId = cuid() if not @nodeId?
-    @_stored = false
-    @_loaded = true
+    @_stored = false       # if true, available in database, local node can hold unsaved changes
+    @_loaded = false       # if true, all information from the database was localised on construction
 
     # Store all attributes and relations in these objects
     @attributes = {}
@@ -23,23 +23,24 @@ class WeaverNode
 
     Constructor = WeaverNode if not Constructor?
 
-    new Weaver.Query(target).get(nodeId, Constructor)
+    new Weaver.Query(target).get(nodeId, Constructor).then((node)->
+      node._setStored()
+      node._loaded = true
+      node
+    )
 
   _loadFromQuery: (object, Constructor) ->
     Constructor = Constructor or WeaverNode
     @nodeId     = object.nodeId
-    @_stored    = true
-    @_loaded    = true
     @attributes = object.attributes
 
     for key, targetNodes of object.relations
       for node in targetNodes
         instance = new Constructor()
         instance._loadFromQuery(node, Constructor)
-        instance._loaded = false
         @relation(key).add(instance)
 
-    @._clearPendingWrites(true)
+    @._clearPendingWrites()
     @
 
 
@@ -47,8 +48,6 @@ class WeaverNode
   @get: (nodeId, Constructor) ->
     Constructor = WeaverNode if not Constructor?
     node = new Constructor(nodeId)
-    node._stored = true
-    node._loaded = false
     node._clearPendingWrites()
     node
 
@@ -125,15 +124,23 @@ class WeaverNode
 
 
   # Clear all pendingWrites, used for instance after saving or when loading a node
-  _clearPendingWrites: (stored)->
+  _clearPendingWrites: ->
     @pendingWrites = []
-    @_stored = true if stored?
 
     for key, relation of @relations
       for id, node of relation.nodes
-        node._clearPendingWrites(stored) if node.isDirty()
+        node._clearPendingWrites() if node.isDirty()
 
       relation.pendingWrites = []
+    @
+
+
+  _setStored: ->
+    @_stored = true
+
+    for key, relation of @relations
+      for id, node of relation.nodes
+        node._setStored() if not node._stored
     @
 
 
@@ -145,7 +152,8 @@ class WeaverNode
   # Save node and all values / relations and relation objects to server
   save: (project) ->
     CoreManager.executeOperations(@_collectPendingWrites(), project).then(=>
-      @_clearPendingWrites(true)
+      @_clearPendingWrites()
+      @_setStored()
       @
     )
 
