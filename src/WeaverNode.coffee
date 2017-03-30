@@ -18,9 +18,9 @@ class WeaverNode
     # All operations that need to get saved
     @pendingWrites = [Operation.Node(@).create()]
 
+
   # Node loading from server
   @load: (nodeId, target, Constructor) ->
-
     Constructor = WeaverNode if not Constructor?
 
     new Weaver.Query(target).get(nodeId, Constructor).then((node)->
@@ -36,9 +36,7 @@ class WeaverNode
 
     for key, targetNodes of object.relations
       for node in targetNodes
-        instance = new Constructor()
-        instance._loadFromQuery(node, Constructor)
-        @relation(key).add(instance)
+        @relation(key).add(new Constructor()._loadFromQuery(node, Constructor))
 
     @._clearPendingWrites()
     @
@@ -64,14 +62,11 @@ class WeaverNode
 
   # Update attribute
   set: (field, value) ->
-    if @attributes[field]?
-      @attributes[field] = value
-      @pendingWrites.push(Operation.Node(@).updateAttribute(field, value))
+    @attributes[field] = value
 
-    else
-      @attributes[field] = value
-      @pendingWrites.push(Operation.Node(@).setAttribute(field, value))
-
+    # Save change as pending
+    @pendingWrites.push(Operation.Node(@).unsetAttribute(field))
+    @pendingWrites.push(Operation.Node(@).setAttribute(field, value))
     @
 
 
@@ -119,7 +114,6 @@ class WeaverNode
           operations = operations.concat(node._collectPendingWrites(collected))
 
       operations = operations.concat(relation.pendingWrites)
-
     operations
 
 
