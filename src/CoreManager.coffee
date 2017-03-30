@@ -216,7 +216,6 @@ class CoreManager
   GET: (path, payload, target) ->
     @REQUEST("GET", path, payload, target)
 
-  GET_HTTP: (path, payload, target) ->
 
 
   POST: (path, payload, target) ->

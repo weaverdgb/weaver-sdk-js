@@ -7,7 +7,7 @@ fs               = require('fs')
 CoreManager      = Weaver.getCoreManager()
 
 
-class WeaverFile extends Weaver.Node
+class WeaverFile
 
   constructor: (@nodeId) ->
     super(@nodeId)
