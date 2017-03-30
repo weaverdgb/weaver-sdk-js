@@ -9,12 +9,6 @@ CoreManager      = Weaver.getCoreManager()
 
 class WeaverFile
 
-  constructor: (@nodeId) ->
-    super(@nodeId)
-
-  @get: (nodeId) ->
-    super(nodeId, WeaverFile)
-
   saveFile: (path, fileName) ->
     formData = {
       file: fs.createReadStream(path)
