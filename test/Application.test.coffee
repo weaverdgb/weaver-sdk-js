@@ -10,11 +10,12 @@ describe 'Application test', ->
     )
 
   it 'should return server time', ->
-    Weaver.getCoreManager().serverTime().then((time) ->
+    Weaver.getCoreManager().updateLocalTimeOffset()
+    .then(
+      time = Weaver.getCoreManager().serverTime()
       console.log(time)
     )
 
   it 'should return server time again', ->
-    Weaver.getCoreManager().serverTime().then((time) ->
-      console.log(time)
-    )
+    time = Weaver.getCoreManager().serverTime()
+    console.log(time)

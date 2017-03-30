@@ -23,7 +23,7 @@ describe 'WeaverHistory test', ->
       history = new Weaver.History()
       history.getHistory(node)
     ).then((response) ->
-      console.log(response)
+#      console.log(response)
 
       nodeB.save()
     ).then(->
@@ -31,7 +31,7 @@ describe 'WeaverHistory test', ->
       history = new Weaver.History()
       history.getHistory([node, nodeB])
     ).then((response) ->
-      console.log(response)
+#      console.log(response)
 
       history = new Weaver.History()
       history.forUser('admin')
@@ -39,7 +39,7 @@ describe 'WeaverHistory test', ->
       history.beforeDateTime('2018-03-23 12:39')
       history.getHistory(node, 'name')
     ).then((response) ->
-      console.log(response)
+#      console.log(response)
       done()
     )
 
