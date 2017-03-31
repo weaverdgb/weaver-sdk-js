@@ -6,8 +6,10 @@ readFile         = require('fs-readfile-promise')
 fs               = require('fs')
 CoreManager      = Weaver.getCoreManager()
 
-
 class WeaverFile
+
+  constructor: (@fileName) ->
+
 
   saveFile: (path, fileName) ->
     formData = {

@@ -5,8 +5,6 @@ readFile = require('fs-readfile-promise')
 fs       = require('fs')
 
 describe 'WeaverFile test', ->
-  file = ''
-  tmpDir = path.join(__dirname,"../tmp")
 
   it 'should create a new file', ->
     this.timeout(15000) # This timeout is high because the 1st time minio takes more time (extra time creating a bucket)
@@ -15,7 +13,6 @@ describe 'WeaverFile test', ->
     fileTemp = path.join(__dirname,'../icon.png')
     weaverFile.saveFile(fileTemp, 'weaverIcon.png')
     .then((res) ->
-      file = res
       assert.equal(res.split('-')[1],'weaverIcon.png')
     )
 
@@ -42,7 +39,7 @@ describe 'WeaverFile test', ->
 
 
 
-  it 'should retrieve a file by ID', ->
+  it 'should retrieve a file', ->
     this.timeout(15000)
     fileID = ''
     pathTemp = ''
@@ -64,7 +61,7 @@ describe 'WeaverFile test', ->
       )
     )
 
-  it 'should fail retrieving a file by ID, because there is no file matching this ID', ->
+  it 'should fail retrieving a file, because there is no file matching this ID', ->
     weaverFile = new Weaver.File()
     pathTemp = path.join(__dirname,'../tmp/weaver-icon.png')
     weaverFile.getFileByID(pathTemp,'f4k31d')
@@ -74,8 +71,9 @@ describe 'WeaverFile test', ->
       assert(true)
     )
 
-  it 'should delete a file by id', ->
+  it 'should delete a file', ->
     this.timeout(15000)
+    file = null
     weaverFile = new Weaver.File()
     fileTemp = path.join(__dirname,'../icon.png')
     weaverFile.saveFile(fileTemp, 'weaverIcon.png')
