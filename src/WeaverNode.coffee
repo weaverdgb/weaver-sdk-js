@@ -23,11 +23,7 @@ class WeaverNode
   @load: (nodeId, target, Constructor) ->
     Constructor = WeaverNode if not Constructor?
 
-    new Weaver.Query(target).get(nodeId, Constructor).then((node)->
-      node._setStored()
-      node._loaded = true
-      node
-    )
+    new Weaver.Query(target).get(nodeId, Constructor)
 
   _loadFromQuery: (object, Constructor) ->
     Constructor = Constructor or WeaverNode

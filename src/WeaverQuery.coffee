@@ -33,6 +33,9 @@ class WeaverQuery
         for node in nodes
           instance = new Constructor()
           instance._loadFromQuery(node)
+          instance._setStored()
+          instance._loaded = true
+
           list.push(instance)
         list
       )
