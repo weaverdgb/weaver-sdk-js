@@ -67,6 +67,11 @@ class Weaver
   signIn: (username, password) ->
     @coreManager.signInUser(username, password)
 
+  status: ->
+    commController: @coreManager.commController
+    currentUser:    @currentUser()
+    currentProject: @currentProject()
+
   wipe: ->
     @coreManager.wipe()
 
