@@ -105,6 +105,7 @@ class CoreManager
       @currentUser
     )
 
+  # Sign the user in using an authToken
   signInToken: (authToken) ->
     @POST("user.signInToken", {authToken}, "$SYSTEM").then((authToken) =>
       @currentUser = Weaver.User.get(authToken)
