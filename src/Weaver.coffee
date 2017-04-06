@@ -64,8 +64,15 @@ class Weaver
   signOut: ->
     @coreManager.signOutCurrentUser()
 
-  signIn: (username, password) ->
-    @coreManager.signInUser(username, password)
+  # args may be username/password or a token
+  signIn: (args...) ->
+    if args.length > 1
+      username = args[0] || null
+      password = args[1] || null
+      return @coreManager.signInUser(username, password)
+    else
+      token = args[0] || null
+      @coreManager.signInToken(token)
 
   status: ->
     commController: @coreManager.commController

@@ -105,6 +105,15 @@ class CoreManager
       @currentUser
     )
 
+  signInToken: (authToken) ->
+    @POST("user.signInToken", {authToken}, "$SYSTEM").then((authToken) =>
+      @currentUser = Weaver.User.get(authToken)
+      @POST("user.read", {}, "$SYSTEM")
+    ).then((serverUser) =>
+      @currentUser.populateFromServer(serverUser)
+      @currentUser
+    )
+
   signUpUser: (user) ->
     payload =
       userId: user.userId
