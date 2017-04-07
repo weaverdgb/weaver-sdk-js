@@ -22,7 +22,7 @@ describe 'BB reporting pluging testing', ->
       }
 
       cell = {
-        value: 'The choosen One xD'
+        value: 'The choosen One Craaaap xD'
         type: 'String'
       }
 
