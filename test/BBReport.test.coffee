@@ -22,14 +22,22 @@ describe 'BB reporting pluging testing', ->
       }
 
       cell = {
-        value: 'The value'
+        value: 'The choosen One xD'
         type: 'String'
       }
 
       for i in [0..100]
         data[0][i] = {"#{i}":cell}
 
+      console.log Weaver.currentProject()
+      console.log Weaver.currentUser()
+
+
+
+
       bbReport.createExcelReport(data,'file.xlsx', projectId)
     ).then((res) ->
       console.log res
+      console.log "http://localhost:9487/file/downloadByID?payload=%7B%22id%22%3A%22#{res.split('-')[0]}%22%2C%22target%22%3A%22#{Weaver.currentProject().projectId}%22%2C%22authToken%22%3A%22#{Weaver.currentUser().authToken}%22%7D"
+
     )
