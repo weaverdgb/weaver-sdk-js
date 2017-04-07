@@ -9,7 +9,7 @@ before (done) ->
 beforeEach (done) ->
   Weaver.wipe()
   .then(->
-    Weaver.signIn('admin', 'admin')
+    Weaver.signInWithUsername('admin', 'admin')
   )
   .then(->
     new Weaver.Project().create()

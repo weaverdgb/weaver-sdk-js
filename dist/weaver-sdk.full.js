@@ -101279,9 +101279,8 @@ module.exports={
   "scripts": {
     "prepublish": "coffee -o lib -c src",
     "test": "./node_modules/.bin/istanbul cover _mocha --",
-    "browser-test":"if which electron >/dev/null;then echo ok you already have electron installed globally;else npm install electron -g; fi;./node_modules/electron-mocha/bin/electron-mocha --renderer --debug --interactive $(ls test/*.test.coffee | grep -Ev 'WeaverFile.test.coffee')",
-    "node-test":"./node_modules/mocha/bin/mocha $(ls test/*.test.coffee | grep -Ev 'WeaverFileBrowser.test.coffee') || true"
-
+    "browser-test": "if which electron >/dev/null;then echo ok you already have electron installed globally;else npm install electron -g; fi;./node_modules/electron-mocha/bin/electron-mocha --renderer --debug --interactive $(ls test/*.test.coffee | grep -Ev 'WeaverFile.test.coffee')",
+    "node-test": "./node_modules/mocha/bin/mocha $(ls test/*.test.coffee | grep -Ev 'WeaverFileBrowser.test.coffee') || true"
   }
 }
 
@@ -101435,19 +101434,13 @@ module.exports={
       });
     };
 
-    CoreManager.prototype.signInUser = function(username, password) {
-      return this.POST("user.signIn", {
+    CoreManager.prototype.signInUsername = function(username, password) {
+      return this.POST("user.signInUsername", {
         username: username,
         password: password
       }, "$SYSTEM").then((function(_this) {
         return function(authToken) {
-          _this.currentUser = Weaver.User.get(authToken);
-          return _this.POST("user.read", {}, "$SYSTEM");
-        };
-      })(this)).then((function(_this) {
-        return function(serverUser) {
-          _this.currentUser.populateFromServer(serverUser);
-          return _this.currentUser;
+          return _this._handleSignIn(authToken);
         };
       })(this));
     };
@@ -101457,10 +101450,14 @@ module.exports={
         authToken: authToken
       }, "$SYSTEM").then((function(_this) {
         return function(authToken) {
-          _this.currentUser = Weaver.User.get(authToken);
-          return _this.POST("user.read", {}, "$SYSTEM");
+          return _this._handleSignIn(authToken);
         };
-      })(this)).then((function(_this) {
+      })(this));
+    };
+
+    CoreManager.prototype._handleSignIn = function(authToken) {
+      this.currentUser = Weaver.User.get(authToken);
+      return this.POST("user.read", {}, "$SYSTEM").then((function(_this) {
         return function(serverUser) {
           _this.currentUser.populateFromServer(serverUser);
           return _this.currentUser;
@@ -101873,8 +101870,7 @@ module.exports={
 
 },{"bluebird":72,"socket.io-client":336}],414:[function(require,module,exports){
 (function() {
-  var CoreManager, Promise, Weaver, weaver,
-    slice = [].slice;
+  var CoreManager, Promise, Weaver, weaver;
 
   Promise = require('bluebird');
 
@@ -101953,17 +101949,12 @@ module.exports={
       return this.coreManager.signOutCurrentUser();
     };
 
-    Weaver.prototype.signIn = function() {
-      var args, password, token, username;
-      args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
-      if (args.length > 1) {
-        username = args[0] || null;
-        password = args[1] || null;
-        return this.coreManager.signInUser(username, password);
-      } else {
-        token = args[0] || null;
-        return this.coreManager.signInToken(token);
-      }
+    Weaver.prototype.signInWithUsername = function(username, password) {
+      return this.coreManager.signInUsername(username, password);
+    };
+
+    Weaver.prototype.signInWithToken = function(authToken) {
+      return this.coreManager.signInToken(authToken);
     };
 
     Weaver.prototype.status = function() {
