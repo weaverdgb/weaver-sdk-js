@@ -1,12 +1,17 @@
-Weaver      = require('./Weaver')
-CoreManager = Weaver.getCoreManager()
+WeaverRoot  = require('./WeaverRoot')
+
 
 # For projects, users and nodes, you can specify which users and roles are allowed to read, and which
 # users and roles are allowed to modify.
 #
 # To support this type of security, each of these objects have an access control list,
 # implemented by this WeaverACL class.
-class WeaverACL
+class WeaverACL extends WeaverRoot
+
+  getClass: ->
+    WeaverACL
+  @getClass: ->
+    WeaverACL
 
   constructor: ->
     @_id          = cuid()
@@ -44,7 +49,7 @@ class WeaverACL
 
   # Read from server
   @load: (aclId) ->
-    CoreManager.readACL(aclId)
+    @getClass().getWeaver().getCoreManager().readACL(aclId)
 
   save: ->
     # Convert to array for all values that are true
@@ -58,15 +63,15 @@ class WeaverACL
     @_roleWrite = trueKeys(@_roleWriteMap)
 
     if not @_stored
-      CoreManager.createACL(@).then(=>
+      @getWeaver().getCoreManager().createACL(@).then(=>
         @_stored = true
         @
       )
     else
-      CoreManager.writeACL(@)
+      @getWeaver().getCoreManager().writeACL(@)
 
   delete: ->
-    CoreManager.deleteACL(@).then(=>
+    @getWeaver().getCoreManager().deleteACL(@).then(=>
       @_deleted = true
       return
     )

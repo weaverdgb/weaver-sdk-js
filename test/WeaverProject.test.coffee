@@ -71,7 +71,7 @@ describe 'WeaverProject Test', ->
   it 'should allow setting an active project', (done) ->
     test = new Weaver.Project()
     test.create().then(->
-      Weaver.useProject(test)
+      weaver.useProject(test)
     ).then(->
       done()
     )
@@ -81,8 +81,8 @@ describe 'WeaverProject Test', ->
   it 'should support getting the active project', (done) ->
     test = new Weaver.Project()
     test.create().then((prj) ->
-      Weaver.useProject(prj)
-      p = Weaver.currentProject()
+      weaver.useProject(prj)
+      p = weaver.currentProject()
       expect(p).to.equal(test)
     ).then(->
       done()
@@ -91,7 +91,7 @@ describe 'WeaverProject Test', ->
 
 
   it 'should raise an error while saving without currentProject', (done) ->
-    Weaver.useProject(null)
+    weaver.useProject(null)
     node = new Weaver.Node()
     node.save().catch((error)->
       assert.equal(error.code, -1)

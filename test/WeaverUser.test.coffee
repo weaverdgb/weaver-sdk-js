@@ -8,23 +8,23 @@ describe 'WeaverUser Test', ->
     user = new Weaver.User(username, "centaurus123", "centaurus@univer.se")
 
     assert.isTrue(not user.authToken?)
-    Weaver.signOut().then(->
+    weaver.signOut().then(->
       user.signUp()
     ).then(->
 
-      assert.equal(user.id(), Weaver.currentUser().id())
+      assert.equal(user.id(), weaver.currentUser().id())
       assert.isTrue(user.authToken?)
 
       # Sign out and sign in again
-      Weaver.signOut()
+      weaver.signOut()
     ).then(->
-      expect(Weaver.currentUser()).to.be.undefined
+      expect(weaver.currentUser()).to.be.undefined
 
       # Sign in
-      Weaver.signIn(username, 'centaurus123')
+      weaver.signIn(username, 'centaurus123')
     ).then((loadedUser) ->
 
-      assert.equal(loadedUser.id(), Weaver.currentUser().id())
+      assert.equal(loadedUser.id(), weaver.currentUser().id())
 
       # Assert email and username are set, while password is not set
       assert.equal(loadedUser.username, username)
@@ -36,7 +36,7 @@ describe 'WeaverUser Test', ->
 
 
   it 'should sign out a user', (done) ->
-    Weaver.signOut().then( ->
+    weaver.signOut().then( ->
       # Writing is now not permitted
       node = new Weaver.Node()
       node.save()
@@ -59,13 +59,13 @@ describe 'WeaverUser Test', ->
     password = cuid()
     user     = new Weaver.User(username, password, "centaurus@univer.se")
 
-    Weaver.signOut().then(->
+    weaver.signOut().then(->
       user.signUp()
     ).then(->
-      Weaver.signOut()
+      weaver.signOut()
     ).then(->
       # Sign in
-      Weaver.signIn('username', password)
+      weaver.signIn('username', password)
     ).catch((err) ->
       # TODO: Assert error code
       # assert.equal(err.code, Weaver.Error.USERNAME_NOT_FOUND)
@@ -79,13 +79,13 @@ describe 'WeaverUser Test', ->
     password = cuid()
     user     = new Weaver.User(username, password, "centaurus@univer.se")
 
-    Weaver.signOut().then(->
+    weaver.signOut().then(->
       user.signUp()
     ).then(->
-      Weaver.signOut()
+      weaver.signOut()
     ).then(->
       # Sign in
-      Weaver.signIn(username, 'password')
+      weaver.signIn(username, 'password')
     ).catch((err) ->
       # TODO: Assert error code
       done()
@@ -94,9 +94,9 @@ describe 'WeaverUser Test', ->
 
 
   it 'should fail to login with non existing user', (done) ->
-    Weaver.signOut().then(->
+    weaver.signOut().then(->
       # Sign in
-      Weaver.signIn('username', 'password')
+      weaver.signIn('username', 'password')
     ).catch((err) ->
       # TODO: Assert error code
       done()
@@ -140,10 +140,10 @@ describe 'WeaverUser Test', ->
     password = cuid()
     user     = new Weaver.User(username, password, "centaurus@univer.se")
 
-    Weaver.signOut().then(->
+    weaver.signOut().then(->
       user.signUp()
     ).then(->
-      Weaver.signOut()
+      weaver.signOut()
     ).then(->
       adminSignin()
     ).then(->

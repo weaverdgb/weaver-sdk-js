@@ -1,8 +1,12 @@
 cuid        = require('cuid')
-Weaver      = require('./Weaver')
-CoreManager = Weaver.getCoreManager()
+WeaverRoot  = require('./WeaverRoot')
 
-class WeaverProject
+class WeaverProject extends WeaverRoot
+
+  getClass: ->
+    WeaverProject
+  @getClass: ->
+    WeaverProject
 
   @READY_RETRY_TIMEOUT: 200
 
@@ -15,11 +19,11 @@ class WeaverProject
     @projectId
 
   create: ->
-    CoreManager.createProject(@projectId, @name).then(=>  # Wait till project gets read
+    @getWeaver().getCoreManager().createProject(@projectId, @name).then(=>  # Wait till project gets read
       new Promise((resolve) =>
 
         checkReady = =>
-          CoreManager.readyProject(@projectId).then((ready) =>
+          @getWeaver().getCoreManager().readyProject(@projectId).then((ready) =>
             if not ready
               setTimeout(checkReady, WeaverProject.READY_RETRY_TIMEOUT) # Check again after some time
             else
@@ -36,26 +40,26 @@ class WeaverProject
 
   destroy: ->
     super().then(=>
-      CoreManager.deleteProject(@id())
+      @getWeaver().getCoreManager().deleteProject(@id())
     )
 
   getAllNodes: (attributes)->
-    CoreManager.getAllNodes(attributes, @id())
+    @getWeaver().getCoreManager().getAllNodes(attributes, @id())
 
   getAllRelations:->
-    CoreManager.getAllRelations(@id())
+    @getWeaver().getCoreManager().getAllRelations(@id())
 
   destroy: ->
-    CoreManager.deleteProject(@id())
+    @getWeaver().getCoreManager().deleteProject(@id())
 
   wipe: ->
-    CoreManager.wipe(@id())
+    @getWeaver().getCoreManager().wipe(@id())
 
   getACL: ->
-    CoreManager.getACL(@projectId)
+    @getWeaver().getCoreManager().getACL(@projectId)
 
   @list: ->
-    CoreManager.listProjects()
+    @getWeaver().getCoreManager().listProjects()
 
 module.exports = WeaverProject
 

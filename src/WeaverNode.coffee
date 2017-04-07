@@ -1,9 +1,13 @@
 cuid        = require('cuid')
-Weaver      = require('./Weaver')
-CoreManager = Weaver.getCoreManager()
 Operation   = require('./Operation')
+WeaverRoot  = require('./WeaverRoot')
 
-class WeaverNode
+class WeaverNode extends WeaverRoot
+
+  getClass: ->
+    WeaverNode
+  @getClass: ->
+    WeaverNode
 
   constructor: (@nodeId) ->
     # Generate random id if not given
@@ -22,7 +26,7 @@ class WeaverNode
   # Node loading from server
   @load: (nodeId, target, Constructor) ->
     Constructor = WeaverNode if not Constructor?
-
+    Weaver = @getWeaverClass()
     new Weaver.Query(target).get(nodeId, Constructor)
 
   _loadFromQuery: (object, Constructor) ->
@@ -75,7 +79,7 @@ class WeaverNode
       throw new Error
 
     operation = Operation.Node(@).incrementAttribute(field, value)
-    CoreManager.executeOperations([operation], project).then((res)=>
+    @getWeaver().getCoreManager().executeOperations([operation], project).then((res)=>
       if res? and res.incrementedTo?
         @attributes[field] = res.incrementedTo
         res.incrementedTo
@@ -93,6 +97,7 @@ class WeaverNode
 
   # Create a new Relation
   relation: (key) ->
+    Weaver = @getWeaverClass()
     @relations[key] = new Weaver.Relation(@, key) if not @relations[key]?
     @relations[key]
 
@@ -141,7 +146,7 @@ class WeaverNode
 
   # Save node and all values / relations and relation objects to server
   save: (project) ->
-    CoreManager.executeOperations(@_collectPendingWrites(), project).then(=>
+    @getWeaver().getCoreManager().executeOperations(@_collectPendingWrites(), project).then(=>
       @_clearPendingWrites()
       @_setStored()
       @
@@ -154,7 +159,7 @@ class WeaverNode
     for node in array
       operations = operations.concat(node._collectPendingWrites())
 
-    CoreManager.executeOperations(operations, project).then(
+    @getWeaver().getCoreManager().executeOperations(operations, project).then(
       for node in array
         node._clearPendingWrites()
         node._setStored()
@@ -164,7 +169,7 @@ class WeaverNode
 
   # Removes node
   destroy: (project) ->
-    CoreManager.executeOperations([Operation.Node(@).destroy()], project).then(=>
+    @getWeaver().getCoreManager().executeOperations([Operation.Node(@).destroy()], project).then(=>
       delete @[key] for key of @
       undefined
     )

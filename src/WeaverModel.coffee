@@ -28,6 +28,7 @@ class WeaverModel extends Weaver.Node
 
   setStatic: (key, val)->
 
+    Weaver = @getWeaverClass()
     throw new Error(Weaver.Error.CANNOT_SET_DEEP_STATIC) if util.isArray(@definition[key])
 
     if @definition[key].charAt(0) is '@'# add static relation for all model instances
@@ -49,6 +50,7 @@ class WeaverModel extends Weaver.Node
     @structure(@definition)
 
   @loadModel: (id)-> # utility function to load a fully initialised Model from an id
+    Weaver = @getWeaverClass()
     Weaver.Node.load(id).then((node)=>
       model = new Weaver.Model(id)
       model._loadFromQuery(node)
@@ -57,6 +59,7 @@ class WeaverModel extends Weaver.Node
 
   loadMember: (id)-> # utility function to load a fully initialised ModelMember from an id, given an associated Model
     MemberClass = @buildClass()
+    Weaver = @getWeaverClass()
     Weaver.Node.load(id).then((res)->
       member = new MemberClass(res.nodeId)
       member._loadFromQuery(res)
@@ -77,6 +80,7 @@ class WeaverModel extends Weaver.Node
         staticProps = _statics
         super(@nodeId)
 
+        Weaver = @getWeaverClass()
         for key,val of staticProps.rels
           for rel in val
             @relation(key).add(new Weaver.Node(rel.nodeId))
@@ -118,6 +122,7 @@ class WeaverModel extends Weaver.Node
 
       setProp: (key, val)->
 
+        Weaver = @getWeaverClass()
         return Error Weaver.Error.MODEL_PROPERTY_NOT_FOUND if not @definition[key]?
 
         if @definition[key].charAt(0) is '@' #util.isArray(@definition[key])# adds new relation

@@ -8,8 +8,14 @@ LocalController  = require('./LocalController')
 request          = require('request')
 Error            = require('./Error')
 WeaverError      = require('./WeaverError')
+WeaverRoot       = require('./WeaverRoot')
 
-class CoreManager
+class CoreManager extends WeaverRoot
+
+  getClass: ->
+    CoreManager
+  @getClass: ->
+    CoreManager
 
   constructor: ->
     @currentProject = null
@@ -76,11 +82,13 @@ class CoreManager
     @POST("project.create", {id, name})
 
   listPlugins: ->
+    Weaver = @getWeaverClass()
     @GET("plugins").then((plugins) ->
       (new Weaver.Plugin(p) for p in plugins)
     )
 
   getPlugin: (name) ->
+    Weaver = @getWeaverClass()
     @POST("plugin.read", {name}).then((plugin) ->
       new Weaver.Plugin(plugin)
     )
@@ -92,11 +100,13 @@ class CoreManager
     @POST("role.create", {role})
 
   getACL: (objectId) ->
+    Weaver = @getWeaverClass()
     @GET("acl.read.byObject", {objectId}).then((aclObject) ->
       Weaver.ACL.loadFromServerObject(aclObject)
     )
 
   signInUser: (username, password) ->
+    Weaver = @getWeaverClass()
     @POST("user.signIn", {username, password}, "$SYSTEM").then((authToken) =>
       @currentUser = Weaver.User.get(authToken)
       @POST("user.read", {}, "$SYSTEM")
@@ -161,6 +171,7 @@ class CoreManager
     @POST("application.wipe")
 
   readACL: (aclId) ->
+    Weaver = @getWeaverClass()
     @GET("acl.read", {id: aclId}).then((aclObject) ->
       Weaver.ACL.loadFromServerObject(aclObject)
     )

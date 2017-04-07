@@ -2,8 +2,7 @@ Action = require('./WriteOperation').Action
 
 NodeOperation = (node) ->
 
-  Weaver      = require('./Weaver')
-  timestamp   = Weaver.getCoreManager().serverTime()
+  timestamp   = node.getWeaver().getCoreManager().serverTime()
 
   # Silent operations (can be bundled)
 
