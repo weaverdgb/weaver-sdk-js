@@ -108,6 +108,13 @@ describe 'WeaverUser Test', ->
     )
     return
 
+  it 'should fail to login with non valid token', (done) ->
+    Weaver.signOut().then(->
+      Weaver.signInWithToken('some invalid token')
+    ).catch((err) ->
+      done()
+    )
+    return
 
   it 'should fail to login with non existing user', (done) ->
     Weaver.signOut().then(->
