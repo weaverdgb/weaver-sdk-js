@@ -2,11 +2,9 @@ require("./test-suite")
 
 describe 'WeaverUser Test', ->
 
-
   it 'should sign up a user', (done) ->
     username = cuid()
     user = new Weaver.User(username, "centaurus123", "centaurus@univer.se")
-
     assert.isTrue(not user.authToken?)
     Weaver.signOut().then(->
       user.signUp()
@@ -34,7 +32,7 @@ describe 'WeaverUser Test', ->
     )
     return
 
-  it 'should sign in using a token', ->
+  it 'should sign in an admin using a token', ->
     authToken = null;
     # Sign in to obtain a token
     Weaver.signInWithUsername('admin', 'admin').then((user) ->
@@ -49,6 +47,30 @@ describe 'WeaverUser Test', ->
       assert.equal('admin', user.username)
       assert.isTrue(user.authToken?)
     )
+
+  it 'should sign in a user using a token', ->
+    authToken = null;
+    username = cuid()
+    user = new Weaver.User(username, "centaurus123", "centaurus@univer.se")
+    # Assert that user has no authToken
+    assert.isTrue(not user.authToken?)
+    if(Weaver.currentUser())
+      Weaver.signOut().then( ->
+        # Sign up a new user and obtain a token
+        user.signUp()
+      ).then(->
+        authToken = user.authToken
+        # Sign out again
+        Weaver.signOut()
+      ).then( ->
+        # Try to sign in with obtained token
+        Weaver.signInWithToken(authToken)
+      ).then((user) ->
+        # Verify logged in user
+        assert.equal(username, user.username)
+        assert.isTrue(user.authToken?)
+      )
+
 
 
   it 'should sign out a user', (done) ->
@@ -111,6 +133,8 @@ describe 'WeaverUser Test', ->
   it 'should fail to login with non valid token', (done) ->
     Weaver.signOut().then(->
       Weaver.signInWithToken('some invalid token')
+    ).then((user) ->
+      assert(false)
     ).catch((err) ->
       done()
     )
