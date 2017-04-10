@@ -105,12 +105,23 @@ class CoreManager extends WeaverRoot
       Weaver.ACL.loadFromServerObject(aclObject)
     )
 
-  signInUser: (username, password) ->
+  signInUsername: (username, password) ->
+    @POST("user.signInUsername", {username, password}, "$SYSTEM")
+      .then((authToken) =>
+        @_handleSignIn(authToken)
+      )
+
+  # Sign the user in using an authToken
+  signInToken: (authToken) ->
+    @POST("user.signInToken", {authToken}, "$SYSTEM")
+      .then((authToken) =>
+        @_handleSignIn(authToken)
+      )
+
+  _handleSignIn: (authToken) ->
     Weaver = @getWeaverClass()
-    @POST("user.signIn", {username, password}, "$SYSTEM").then((authToken) =>
-      @currentUser = Weaver.User.get(authToken)
-      @POST("user.read", {}, "$SYSTEM")
-    ).then((serverUser) =>
+    @currentUser = Weaver.User.get(authToken)
+    @POST("user.read", {}, "$SYSTEM").then((serverUser) =>
       @currentUser.populateFromServer(serverUser)
       @currentUser
     )
@@ -151,6 +162,9 @@ class CoreManager extends WeaverRoot
     @GET('relations', target)
 
   getHistory: (payload, target)->
+    @GET('history', payload, target)
+
+  dumpHistory: (payload, target)->
     @GET('history', payload, target)
 
 

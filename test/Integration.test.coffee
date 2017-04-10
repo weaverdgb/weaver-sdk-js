@@ -27,7 +27,7 @@ describe 'Integration Test', ->
 
       # There is always an admin user that we can use to sign in
       # Default username and password are set in weaver-server config file
-      Weaver.signIn('admin', 'admin')
+      Weaver.signInWithUsername('admin', 'admin')
 
     ).then(->
 
@@ -80,7 +80,7 @@ describe 'Integration Test', ->
       4. Add this role to the project ACL as read allowed
       ###
 
-      Weaver.signIn('admin', 'admin')
+      Weaver.signInWithUsername('admin', 'admin')
 
     ).then(->
 
@@ -108,7 +108,7 @@ describe 'Integration Test', ->
     ).then(->
 
       # Now sign in as John to test project read access
-      Weaver.signIn('john', 'secretSauce')
+      Weaver.signInWithUsername('john', 'secretSauce')
 
     ).then(->
 
@@ -131,7 +131,7 @@ describe 'Integration Test', ->
 
       # Give john write access to the project by creating a write role and adding john to it
       # First sign in as admin
-      Weaver.signIn('admin', 'admin')
+      Weaver.signInWithUsername('admin', 'admin')
 
     ).then(->
 

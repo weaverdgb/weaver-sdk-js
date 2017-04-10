@@ -66,8 +66,13 @@ class Weaver
   signOut: ->
     @coreManager.signOutCurrentUser()
 
-  signIn: (username, password) ->
-    @coreManager.signInUser(username, password)
+  # Sign in using username and password
+  signInWithUsername: (username, password) ->
+    @coreManager.signInUsername(username, password)
+
+  # Sign in using a JSON webtoken
+  signInWithToken: (authToken) ->
+    @coreManager.signInToken(authToken)
 
   wipe: ->
     @coreManager.wipe()
