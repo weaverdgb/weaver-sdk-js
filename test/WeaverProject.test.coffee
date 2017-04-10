@@ -6,15 +6,16 @@ describe 'WeaverProject Test', ->
     project = new Weaver.Project("name", "test")
     project.create().then((p) =>
       expect(p.id()).to.equal("test")
+      p.destroy()
       done()
     )
     return
-
 
   it 'should create projects with no given id', (done) ->
     project = new Weaver.Project()
     project.create().then((p) =>
       expect(p.id()).to.equal(project.id())
+      p.destroy()
       done()
     )
     return
@@ -63,6 +64,7 @@ describe 'WeaverProject Test', ->
       expect(loadedA.name).to.equal('A')
 
     ).then(->
+      a.destroy()
       done()
     )
     return
@@ -73,10 +75,10 @@ describe 'WeaverProject Test', ->
     test.create().then(->
       Weaver.useProject(test)
     ).then(->
+      test.destroy()
       done()
     )
     return
-
 
   it 'should support getting the active project', (done) ->
     test = new Weaver.Project()
@@ -85,10 +87,10 @@ describe 'WeaverProject Test', ->
       p = Weaver.currentProject()
       expect(p).to.equal(test)
     ).then(->
+      test.destroy()
       done()
     )
     return
-
 
   it 'should raise an error while saving without currentProject', (done) ->
     Weaver.useProject(null)
