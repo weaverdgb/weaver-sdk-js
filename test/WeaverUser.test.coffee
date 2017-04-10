@@ -19,7 +19,7 @@ describe 'WeaverUser Test', ->
       expect(weaver.currentUser()).to.be.undefined
 
       # Sign in
-      Weaver.signInWithUsername(username, 'centaurus123')
+      weaver.signInWithUsername(username, 'centaurus123')
     ).then((loadedUser) ->
 
       assert.equal(loadedUser.id(), weaver.currentUser().id())
@@ -35,13 +35,13 @@ describe 'WeaverUser Test', ->
   it 'should sign in an admin using a token', ->
     authToken = null;
     # Sign in to obtain a token
-    Weaver.signInWithUsername('admin', 'admin').then((user) ->
+    weaver.signInWithUsername('admin', 'admin').then((user) ->
       authToken = user.authToken
       # Sign out again
-      Weaver.signOut()
+      weaver.signOut()
     ).then( ->
       # Try to sign in with obtained token
-      Weaver.signInWithToken(authToken)
+      weaver.signInWithToken(authToken)
     ).then((user) ->
       # Verify logged in user
       assert.equal('admin', user.username)
@@ -54,17 +54,17 @@ describe 'WeaverUser Test', ->
     user = new Weaver.User(username, "centaurus123", "centaurus@univer.se")
     # Assert that user has no authToken
     assert.isTrue(not user.authToken?)
-    if(Weaver.currentUser())
-      Weaver.signOut().then( ->
+    if(weaver.currentUser())
+      weaver.signOut().then( ->
         # Sign up a new user and obtain a token
         user.signUp()
       ).then(->
         authToken = user.authToken
         # Sign out again
-        Weaver.signOut()
+        weaver.signOut()
       ).then( ->
         # Try to sign in with obtained token
-        Weaver.signInWithToken(authToken)
+        weaver.signInWithToken(authToken)
       ).then((user) ->
         # Verify logged in user
         assert.equal(username, user.username)
@@ -103,7 +103,7 @@ describe 'WeaverUser Test', ->
       weaver.signOut()
     ).then(->
       # Sign in
-      Weaver.signInWithUsername('username', password)
+      weaver.signInWithUsername('username', password)
     ).catch((err) ->
       # TODO: Assert error code
       # assert.equal(err.code, Weaver.Error.USERNAME_NOT_FOUND)
@@ -123,7 +123,7 @@ describe 'WeaverUser Test', ->
       weaver.signOut()
     ).then(->
       # Sign in
-      Weaver.signInWithUsername(username, 'password')
+      weaver.signInWithUsername(username, 'password')
     ).catch((err) ->
       # TODO: Assert error code
       done()
@@ -131,8 +131,8 @@ describe 'WeaverUser Test', ->
     return
 
   it 'should fail to login with non valid token', (done) ->
-    Weaver.signOut().then(->
-      Weaver.signInWithToken('some invalid token')
+    weaver.signOut().then(->
+      weaver.signInWithToken('some invalid token')
     ).then((user) ->
       assert(false)
     ).catch((err) ->
@@ -143,7 +143,7 @@ describe 'WeaverUser Test', ->
   it 'should fail to login with non existing user', (done) ->
     weaver.signOut().then(->
       # Sign in
-      Weaver.signInWithUsername('username', 'password')
+      weaver.signInWithUsername('username', 'password')
     ).catch((err) ->
       # TODO: Assert error code
       done()
