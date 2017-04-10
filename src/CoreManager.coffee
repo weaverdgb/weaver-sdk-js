@@ -140,7 +140,7 @@ class CoreManager
     )
 
   readyProject: (id) ->
-    @POST("project.ready", {id}, "$SYSTEM")
+    @GET("project.ready", {id}, "$SYSTEM")
 
   deleteProject: (id) ->
     @POST("project.delete", {id}, id)
