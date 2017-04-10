@@ -29,25 +29,27 @@ describe 'WeaverProject Test', ->
       Weaver.Project.load(project.id())
     ).then((loadedProject) ->
       expect(loadedProject.get("name")).to.equal("test")
+      p.destroy()
       done()
     )
     return
 
 
-  it.skip 'should delete projects', (done) ->
+  it 'should delete projects', (done) ->
     test = new Weaver.Project()
-    test.create().then((project) ->
+    id = 'deleteid'
+    test.create(id).then((project) ->
       project.destroy().catch((e) ->
         assert(false)
       )
     ).then(->
-      Weaver.Project.load(test.id())
-    ).catch((error) ->
-      assert.equal(error.code, Weaver.Error.NODE_NOT_FOUND)
+      Weaver.Project.list()
+    ).then((list)->
+      filtered = (i for i in list when i.id is id)
+      expect(filtered).to.have.length.be(0)
       done()
     )
     return
-
 
   # Note that this assumes the projectPool has at least room for two projects
   # TODO: Have a test configuration for Weaver Server with multiple projectPools
