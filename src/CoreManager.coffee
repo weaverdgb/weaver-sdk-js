@@ -154,6 +154,9 @@ class CoreManager
   getHistory: (payload, target)->
     @GET('history', payload, target)
 
+  dumpHistory: (payload, target)->
+    @GET('history', payload, target)
+
 
   wipe: (target)->
     @POST('wipe', {}, target)
