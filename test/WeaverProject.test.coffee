@@ -69,7 +69,7 @@ describe 'WeaverProject Test', ->
     return
 
 
-  it.skip 'should allow setting an active project', (done) ->
+  it 'should allow setting an active project', (done) ->
     test = new Weaver.Project()
     test.create().then(->
       Weaver.useProject(test)
