@@ -25,4 +25,4 @@ beforeEach (done) ->
   return
 
 afterEach ->
-  project.destroy()
+  Weaver.wipe()

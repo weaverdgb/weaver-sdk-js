@@ -1,7 +1,6 @@
 require("./test-suite")
 
 describe 'WeaverProject Test', ->
-
   it.skip 'should create projects with given id', (done) ->
     project = new Weaver.Project("name", "test")
     project.create().then((p) =>
@@ -20,7 +19,6 @@ describe 'WeaverProject Test', ->
     )
     return
 
-
   it.skip 'should create projects with attributes', (done) ->
     project = new Weaver.Project()
     project.set("name", "test")
@@ -33,7 +31,6 @@ describe 'WeaverProject Test', ->
       done()
     )
     return
-
 
   it 'should delete projects', (done) ->
     test = new Weaver.Project()
