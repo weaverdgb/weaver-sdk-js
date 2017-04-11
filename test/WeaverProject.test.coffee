@@ -10,7 +10,7 @@ describe 'WeaverProject Test', ->
     )
     return
 
-  it.skip 'should create projects with no given id', (done) ->
+  it 'should create projects with no given id', (done) ->
     project = new Weaver.Project()
     project.create().then((p) =>
       expect(p.id()).to.equal(project.id())
