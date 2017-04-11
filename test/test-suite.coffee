@@ -14,7 +14,7 @@ beforeEach (done) ->
   .then(->
     new Weaver.Project().create()
   )
-  .tren((project) ->
+  .then((project) ->
     Weaver.useProject(project)
     done()
   )
