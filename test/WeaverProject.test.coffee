@@ -1,7 +1,7 @@
 require("./test-suite")
 
 describe 'WeaverProject Test', ->
-  it.skip 'should create projects with given id', (done) ->
+  it 'should create projects with given id', (done) ->
     project = new Weaver.Project("name", "test")
     project.create().then((p) =>
       expect(p.id()).to.equal("test")
