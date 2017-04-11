@@ -5,8 +5,6 @@ before (done) ->
   Weaver.connect(WEAVER_ENDPOINT).then(-> done())
   return
 
-project = undefined
-
 # Runs after each test in each file
 beforeEach (done) ->
   Weaver.wipe()
@@ -16,9 +14,8 @@ beforeEach (done) ->
   .then(->
     new Weaver.Project().create()
   )
-  .then((p) ->
-    project = p
-    Weaver.useProject(p)
+  .tren((project) ->
+    Weaver.useProject(project)
     done()
   )
   .catch(console.log)
