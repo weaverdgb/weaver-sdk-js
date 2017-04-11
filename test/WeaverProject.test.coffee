@@ -50,7 +50,7 @@ describe 'WeaverProject Test', ->
 
   # Note that this assumes the projectPool has at least room for two projects
   # TODO: Have a test configuration for Weaver Server with multiple projectPools
-  it.skip 'should list projects', (done) ->
+  it 'should list projects', (done) ->
     a = new Weaver.Project("A", "a")
 
     a.create().then(->
