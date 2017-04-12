@@ -20,3 +20,6 @@ beforeEach (done) ->
   )
   .catch(console.log)
   return
+
+afterEach ->
+  Weaver.wipe()

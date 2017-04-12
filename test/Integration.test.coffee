@@ -15,13 +15,11 @@ describe 'Integration Test', ->
     # Connect to the server
     Weaver.connect(WEAVER_ENDPOINT)
     .then(->
-
       # This test assumes a fully initialized Weaver Server, meaning
       # - no users or projects
       # - no data in any database
       # We therefore call the wipe function that only works in Development mode
       Weaver.wipe()
-
     )
     .then(->
 
