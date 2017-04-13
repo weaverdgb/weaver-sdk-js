@@ -1,4 +1,5 @@
-require("./test-suite")
+weaver = require("./test-suite")
+
 
 describe 'Application test', ->
 
