@@ -36,7 +36,9 @@ class WeaverNode extends WeaverRoot
 
     for key, targetNodes of object.relations
       for node in targetNodes
-        @relation(key).add(new Constructor()._loadFromQuery(node, Constructor))
+        instance = new Constructor()
+        instance._loadFromQuery(node, Constructor)
+        @relation(key).add(instance)
 
     @._clearPendingWrites()
     @
@@ -62,11 +64,14 @@ class WeaverNode extends WeaverRoot
 
   # Update attribute
   set: (field, value) ->
-    @attributes[field] = value
+    if @attributes[field]?
+      @attributes[field] = value
+      @pendingWrites.push(Operation.Node(@).updateAttribute(field, value))
 
-    # Save change as pending
-    @pendingWrites.push(Operation.Node(@).unsetAttribute(field))
-    @pendingWrites.push(Operation.Node(@).setAttribute(field, value))
+    else
+      @attributes[field] = value
+      @pendingWrites.push(Operation.Node(@).setAttribute(field, value))
+
     @
 
 

@@ -42,7 +42,7 @@ describe 'WeaverHistory test', ->
     history.limit(100)
     history.dumpHistory()
     .then((response) ->
-      assert.equal(response.length,100)
+      assert.isAtMost(response.length,100)
     )
 
   it 'should retrieve 2 lines of history for the user admin', ->

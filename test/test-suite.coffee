@@ -25,8 +25,3 @@ beforeEach (done) ->
   )
   .catch(console.log)
   return
-
-afterEach ->
-  weaver.wipe()
-
-module.exports = weaver
