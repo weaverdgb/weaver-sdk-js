@@ -69,8 +69,8 @@ class CoreManager extends WeaverRoot
   executeOperations: (operations, target) ->
     @POST('write', {operations}, target)
 
-  serverVersion: ->
-    @POST('application.version')
+#  serverVersion: ->
+#    @POST('application.version')
 
   serverVersion: ->
     @GET("application.version")
@@ -167,9 +167,8 @@ class CoreManager extends WeaverRoot
   dumpHistory: (payload, target)->
     @GET('history', payload, target)
 
-
-  wipe: (target)->
-    @POST('wipe', {}, target)
+#  wipe: (target)->
+#    @POST('wipe', {}, target)
 
   query: (query) ->
     # Remove target
