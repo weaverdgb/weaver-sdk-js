@@ -26,7 +26,7 @@ class WeaverHistory extends WeaverRoot
     @limit = value
 
   dumpHistory: () ->
-    CoreManager.dumpHistory({@limit})
+    @getWeaver().getCoreManager().dumpHistory({@limit})
 
   getHistory: (nodeField, keyField, toField)->
     typeIsArray = Array.isArray || ( value ) -> return {}.toString.call( value ) is '[object Array]'

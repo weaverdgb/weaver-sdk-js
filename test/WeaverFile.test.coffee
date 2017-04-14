@@ -1,4 +1,5 @@
-require("./test-suite")
+weaver = require("./test-suite")
+Weaver = weaver.getClass()
 
 path     = require('path')
 readFile = require('fs-readfile-promise')

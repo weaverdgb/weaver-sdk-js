@@ -1,11 +1,9 @@
-# Libs
 Promise = require('bluebird')
-
-# Dependencies
+WeaverRoot  = require('./WeaverRoot')
 CoreManager = require('./CoreManager')
 
-# Main class exposing all features
-class Weaver
+
+class Weaver extends WeaverRoot
 
   getClass: ->
     Weaver
@@ -14,13 +12,17 @@ class Weaver
 
   constructor: ->
 
+    if Weaver.weaver?
+      throw new Error('Do not instantiate Weaver twice')
+
+    Weaver.weaver = @
+
     Weaver.ACL.weaver = @
     Weaver.CoreManager.weaver = @
     if Weaver.File
       Weaver.File.weaver = @
     Weaver.History.weaver = @
     Weaver.Node.weaver  = @
-    #    Weaver.Model.weaver = @
     Weaver.Node.weaver = @
     Weaver.Plugin.weaver = @
     Weaver.Project.weaver = @
@@ -43,8 +45,8 @@ class Weaver
     @coreManager.local(routes)
 
   connect: (endpoint) ->
-    @_connected = true
     @coreManager.connect(endpoint).then(=>
+      @_connected = true
       @coreManager.updateLocalTimeOffset()
     )
 
@@ -92,7 +94,6 @@ if !window?
 
 Weaver.History     = require('./WeaverHistory')
 Weaver.Node        = require('./WeaverNode')
-#Weaver.Model       = require('./WeaverModel')
 Weaver.Plugin      = require('./WeaverPlugin')
 Weaver.Project     = require('./WeaverProject')
 Weaver.Query       = require('./WeaverQuery')

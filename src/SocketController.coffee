@@ -7,8 +7,17 @@ class SocketController
   constructor: (@address) ->
 
   connect: ->
-    @io = io.connect(@address, {reconnection: true})
-    Promise.resolve()
+    new Promise((resolve, reject) =>
+      @io = io.connect(@address, {reconnection: true})
+      @io.on('connect', ->
+        resolve()
+      ).on('connect_error', ->
+        reject('connect_error')
+      ).on('connect_timeout', ->
+        reject('connect_timeout')
+      ).on('error', ->
+        reject('error'))
+    )
 
   emit: (key, body) ->
     new Promise((resolve, reject) =>

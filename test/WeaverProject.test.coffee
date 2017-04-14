@@ -1,4 +1,5 @@
-require("./test-suite")
+weaver = require("./test-suite")
+Weaver = weaver.getClass()
 
 describe 'WeaverProject Test', ->
   it 'should create projects with given id', (done) ->

@@ -19,11 +19,13 @@ class WeaverProject extends WeaverRoot
     @projectId
 
   create: ->
-    @getWeaver().getCoreManager().createProject(@projectId, @name).then(=>  # Wait till project gets read
+    coreManager = @getWeaver().getCoreManager()
+    coreManager.createProject(@projectId, @name)
+    .then(=>  # Wait till project gets read
       new Promise((resolve) =>
 
         checkReady = =>
-          @getWeaver().getCoreManager().readyProject(@projectId).then((ready) =>
+          coreManager.readyProject(@projectId).then((ready) =>
             if not ready
               setTimeout(checkReady, WeaverProject.READY_RETRY_TIMEOUT) # Check again after some time
             else

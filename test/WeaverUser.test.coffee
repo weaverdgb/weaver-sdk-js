@@ -1,4 +1,5 @@
-require("./test-suite")
+weaver = require("./test-suite")
+Weaver = weaver.getClass()
 
 describe 'WeaverUser Test', ->
 

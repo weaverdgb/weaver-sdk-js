@@ -63,6 +63,8 @@ class WeaverQuery extends WeaverRoot
     @first(Constructor)
 
   restrict: (nodes) ->
+
+    Weaver = @getWeaverClass()
     addRestrict = (node) =>
       if util.isString(node)
         @_restrict.push(node)
@@ -206,8 +208,7 @@ class WeaverQuery extends WeaverRoot
     @getWeaver().getCoreManager().subscribe(@)
 
   nativeQuery: (query)->
-    Weaver = @getWeaverClass()
-    @getWeaver().getCoreManager().nativeQuery(query, Weaver.currentProject().id())
+    @getWeaver().getCoreManager().nativeQuery(query, @getWeaver().currentProject().id())
 
 # Export
 module.exports = WeaverQuery
