@@ -22,7 +22,7 @@ describe 'WeaverNode test', ->
       assert(!getNode._loaded)
       assert(!getNode._stored)
 
-    ).catch((Err) -> console.log(Err))
+    )
 
   it 'should remove a node', ->
     node = new Weaver.Node()
