@@ -107,6 +107,25 @@ class WeaverNode extends WeaverRoot
     @relations[key]
 
 
+  clone: (keyMap, caller) ->
+    clone = new WeaverNode()
+    clone.set(field, value) for field, value of @attributes
+    self = @
+    for key, rel of @relations
+      for id, node of rel.nodes
+        if keyMap[key]?
+          Constructor = keyMap[key]
+          Constructor.load(id).then((node)->
+            node.clone({}, self).then((node)->
+              clone.relation(key).add(node)
+              Promise.resolve(clone)
+            )
+          )
+        else
+          clone.relation(key).add(node)
+          Promise.resolve(clone)
+
+
   # Go through each relation and recursively add all pendingWrites per relation AND that of the objects
   _collectPendingWrites: (collected) ->
     # Register to keep track which nodes have been collected to prevent recursive blowup
