@@ -159,10 +159,10 @@ class WeaverNode
     operations = []
     for node in array
       operations = operations.concat(node._collectPendingWrites())
+      node._clearPendingWrites()
 
     CoreManager.executeOperations(operations, project).then(
       for node in array
-        node._clearPendingWrites()
         node._setStored()
       array
     )
