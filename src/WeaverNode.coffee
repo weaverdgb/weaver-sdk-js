@@ -130,6 +130,7 @@ class WeaverNode extends WeaverRoot
   _collectPendingWrites: (collected) ->
     # Register to keep track which nodes have been collected to prevent recursive blowup
     collected  = {} if not collected?
+    collected[@id()] = true
     operations = @pendingWrites
 
     for key, relation of @relations
@@ -182,10 +183,10 @@ class WeaverNode extends WeaverRoot
     operations = []
     for node in array
       operations = operations.concat(node._collectPendingWrites())
+      node._clearPendingWrites()
 
     @getWeaver().getCoreManager().executeOperations(operations, project).then(
       for node in array
-        node._clearPendingWrites()
         node._setStored()
       array
     )
