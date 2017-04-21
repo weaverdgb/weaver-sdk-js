@@ -38,7 +38,7 @@ describe 'WeaverHistory test', ->
 
     return
 
-  it 'should retrieve 100 lines of history dump', ->
+  it.skip 'should retrieve 100 lines of history dump', ->
     history = new Weaver.History()
     history.limit(100)
     history.dumpHistory()
@@ -46,7 +46,7 @@ describe 'WeaverHistory test', ->
       assert.isAtMost(response.length,100)
     )
 
-  it 'should retrieve 2 lines of history for the user admin', ->
+  it.skip 'should retrieve 2 lines of history for the user admin', ->
     history = new Weaver.History()
     history.limit(2)
     history.forUser('admin')

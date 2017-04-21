@@ -25,8 +25,8 @@ class WeaverProject extends WeaverRoot
       new Promise((resolve) =>
 
         checkReady = =>
-          coreManager.readyProject(@projectId).then((ready) =>
-            if not ready
+          coreManager.readyProject(@projectId).then((project) =>
+            if not project.ready
               setTimeout(checkReady, WeaverProject.READY_RETRY_TIMEOUT) # Check again after some time
             else
               resolve()
