@@ -220,7 +220,7 @@ describe 'WeaverNode test', ->
 
     a.save()
 
-  it 'should not blow up when saving in circular chain', ->
+  it 'should not blow up when batch saving in circular chain', ->
     a = new Weaver.Node()
     b = new Weaver.Node()
     c = new Weaver.Node()
