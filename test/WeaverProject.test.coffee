@@ -49,7 +49,6 @@ describe 'WeaverProject Test', ->
     return
 
   # Note that this assumes the projectPool has at least room for two projects
-  # TODO: Have a test configuration for Weaver Server with multiple projectPools
   it 'should list projects', (done) ->
     a = new Weaver.Project("A", "a")
 
