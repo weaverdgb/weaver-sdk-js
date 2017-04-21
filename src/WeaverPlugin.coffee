@@ -1,11 +1,7 @@
-WeaverRoot  = require('./WeaverRoot')
+Weaver      = require('./Weaver')
+CoreManager = Weaver.getCoreManager()
 
-class WeaverPlugin extends WeaverRoot
-
-  getClass: ->
-    WeaverPlugin
-  @getClass: ->
-    WeaverPlugin
+class WeaverPlugin
 
   constructor: (serverObject) ->
     @._name        = serverObject.name
@@ -23,12 +19,12 @@ class WeaverPlugin extends WeaverRoot
         payload[r] = args[index] for r, index in f.require
 
         # Execute by route and payload
-        @getWeaver().getCoreManager().executePluginFunction(f.route, payload)
+        CoreManager.executePluginFunction(f.route, payload)
     )
 
   # Load given plugin from server
   @load: (name) ->
-    @getWeaver().getCoreManager().getPlugin(name)
+    CoreManager.getPlugin(name)
 
   # Parse plugin functions for easy reading
   printFunctions: ->
@@ -55,6 +51,6 @@ class WeaverPlugin extends WeaverRoot
     @_description
 
   @list: ->
-    @getWeaver().getCoreManager().listPlugins()
+    CoreManager.listPlugins()
 
 module.exports = WeaverPlugin

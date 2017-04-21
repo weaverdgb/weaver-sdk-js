@@ -1,6 +1,6 @@
+require("./globalize")
+
 Promise = require('bluebird')
-weaver = require("./test-suite")
-Weaver = weaver.getClass()
 
 alphaProject = null
 betaProject  = null
@@ -12,17 +12,20 @@ describe 'Integration Test', ->
     # Map to save state between promises
     reg = {}
 
-    # Weaver is already connected by test-suite
-    # This test assumes a fully initialized Weaver Server, meaning
-    # - no users or projects
-    # - no data in any database
-    # We therefore call the wipe function that only works in Development mode
-    weaver.wipe()
+    # Connect to the server
+    Weaver.connect(WEAVER_ENDPOINT)
+    .then(->
+      # This test assumes a fully initialized Weaver Server, meaning
+      # - no users or projects
+      # - no data in any database
+      # We therefore call the wipe function that only works in Development mode
+      Weaver.wipe()
+    )
     .then(->
 
       # There is always an admin user that we can use to sign in
       # Default username and password are set in weaver-server config file
-      weaver.signInWithUsername('admin', 'admin')
+      Weaver.signInWithUsername('admin', 'admin')
 
     ).then(->
 
@@ -33,7 +36,7 @@ describe 'Integration Test', ->
     ).then(->
 
       # Use the created project for creating nodes
-      weaver.useProject(alphaProject)
+      Weaver.useProject(alphaProject)
 
       # Create a node
       # By default, this will create an ACL that only allows currentUser (being admin) to read/write this node
@@ -75,7 +78,7 @@ describe 'Integration Test', ->
       4. Add this role to the project ACL as read allowed
       ###
 
-      weaver.signInWithUsername('admin', 'admin')
+      Weaver.signInWithUsername('admin', 'admin')
 
     ).then(->
 
@@ -90,7 +93,7 @@ describe 'Integration Test', ->
     ).then((readRole) ->
 
       # Load the ACL of currentProject
-      weaver.currentProject().getACL()
+      Weaver.currentProject().getACL()
 
     ).then((projectACL) ->
 
@@ -103,7 +106,7 @@ describe 'Integration Test', ->
     ).then(->
 
       # Now sign in as John to test project read access
-      weaver.signInWithUsername('john', 'secretSauce')
+      Weaver.signInWithUsername('john', 'secretSauce')
 
     ).then(->
 
@@ -126,7 +129,7 @@ describe 'Integration Test', ->
 
       # Give john write access to the project by creating a write role and adding john to it
       # First sign in as admin
-      weaver.signInWithUsername('admin', 'admin')
+      Weaver.signInWithUsername('admin', 'admin')
 
     ).then(->
 

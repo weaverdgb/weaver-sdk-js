@@ -1,38 +1,32 @@
+# Libs
 Promise = require('bluebird')
-WeaverRoot  = require('./WeaverRoot')
+
+# Dependencies
 CoreManager = require('./CoreManager')
 
-
-class Weaver extends WeaverRoot
-
-  getClass: ->
-    Weaver
-  @getClass: ->
-    Weaver
+# Main class exposing all features
+class Weaver
 
   constructor: ->
-
-    if Weaver.weaver?
-      throw new Error('Do not instantiate Weaver twice')
-
-    Weaver.weaver = @
-
-    Weaver.ACL.weaver = @
-    Weaver.CoreManager.weaver = @
-    if Weaver.File
-      Weaver.File.weaver = @
-    Weaver.History.weaver = @
-    Weaver.Node.weaver  = @
-    Weaver.Node.weaver = @
-    Weaver.Plugin.weaver = @
-    Weaver.Project.weaver = @
-    Weaver.Query.weaver = @
-    Weaver.Role.weaver = @
-    Weaver.User.weaver = @
-
     @coreManager = new CoreManager()
     @_connected  = false
     @_local      = false
+
+  _registerClasses: ->
+    @Node        = require('./WeaverNode')
+    @Model       = require('./WeaverModel')
+    @Relation    = require('./WeaverRelation')
+    @Project     = require('./WeaverProject')
+    @History     = require('./WeaverHistory')
+    @Query       = require('./WeaverQuery')
+    @Plugin      = require('./WeaverPlugin')
+    @ACL         = require('./WeaverACL')
+    @Role        = require('./WeaverRole')
+    @User        = require('./WeaverUser')
+    if !window?
+      @File        = require('./WeaverFile') # avoiding problems on browsers trying to load node's fs stuff
+    @Error       = require('./WeaverError')
+    @LegacyError = require('./Error')         # TODO: Clean out in another PR
 
   version: ->
     require('../package.json').version
@@ -41,12 +35,14 @@ class Weaver extends WeaverRoot
     @coreManager.serverVersion()
 
   local: (routes) ->
+    @_registerClasses()
     @_local = true
     @coreManager.local(routes)
 
   connect: (endpoint) ->
+    @_registerClasses()
+    @_connected = true
     @coreManager.connect(endpoint).then(=>
-      @_connected = true
       @coreManager.updateLocalTimeOffset()
     )
 
@@ -76,6 +72,11 @@ class Weaver extends WeaverRoot
   signInWithToken: (authToken) ->
     @coreManager.signInToken(authToken)
 
+  status: ->
+    commController: @coreManager.commController
+    currentUser:    @currentUser()
+    currentProject: @currentProject()
+
   wipe: ->
     @coreManager.wipe()
 
@@ -85,30 +86,7 @@ class Weaver extends WeaverRoot
     Promise.setScheduler(fn)
 
 
-
-# Those hold a reference to the weaver instance
-Weaver.ACL         = require('./WeaverACL')
-Weaver.CoreManager = require('./CoreManager')
-if !window?
-  Weaver.File      = require('./WeaverFile') # avoiding problems on browsers trying to load node's fs stuff
-
-Weaver.History     = require('./WeaverHistory')
-Weaver.Node        = require('./WeaverNode')
-Weaver.Plugin      = require('./WeaverPlugin')
-Weaver.Project     = require('./WeaverProject')
-Weaver.Query       = require('./WeaverQuery')
-Weaver.Role        = require('./WeaverRole')
-Weaver.User        = require('./WeaverUser')
-
-# Those do not hold a reference
-Weaver.Relation    = require('./WeaverRelation')
-Weaver.Error       = require('./WeaverError')
-Weaver.LegacyError = require('./Error')
-
 # Export
-#weaver = new Weaver()
-#module.exports = weaver             # Node
-#window.Weaver  = weaver if window?  # Browser
-module.exports = Weaver             # Node
-window.Weaver  = Weaver if window?  # Browser
-
+weaver = new Weaver()
+module.exports = weaver             # Node
+window.Weaver  = weaver if window?  # Browser

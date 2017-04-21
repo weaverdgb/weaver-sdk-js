@@ -1,20 +1,21 @@
-weaver = require("./test-suite")
+require("./test-suite")
 
+Weaver = require('./../src/Weaver')
 
 describe 'Application test', ->
 
   it 'should get the weaver-server version', ->
-    weaver.serverVersion().then((version) ->
+    Weaver.serverVersion().then((version) ->
       version.should.be.a('string')
     )
 
   it 'should return server time', ->
-    weaver.getCoreManager().updateLocalTimeOffset()
+    Weaver.getCoreManager().updateLocalTimeOffset()
     .then(
-      time = weaver.getCoreManager().serverTime()
+      time = Weaver.getCoreManager().serverTime()
       console.log(time)
     )
 
   it 'should return server time again', ->
-    time = weaver.getCoreManager().serverTime()
+    time = Weaver.getCoreManager().serverTime()
     console.log(time)

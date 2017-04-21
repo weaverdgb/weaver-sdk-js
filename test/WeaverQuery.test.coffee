@@ -1,5 +1,4 @@
-weaver = require("./test-suite")
-Weaver = weaver.getClass()
+require("./test-suite")
 
 describe 'WeaverQuery Test', ->
 

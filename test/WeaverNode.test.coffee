@@ -1,5 +1,4 @@
-weaver = require("./test-suite")
-Weaver = weaver.getClass()
+require("./test-suite")
 
 describe 'WeaverNode test', ->
 
@@ -221,7 +220,7 @@ describe 'WeaverNode test', ->
 
     a.save()
 
-  it 'should batch store nodes', ->
+  it 'should not blow up when saving in circular chain', ->
     a = new Weaver.Node()
     b = new Weaver.Node()
     c = new Weaver.Node()
@@ -241,70 +240,4 @@ describe 'WeaverNode test', ->
       Weaver.Node.load(c.id())
     ).then((loadedNode) ->
       assert.equal(loadedNode.id(), c.id())
-    )
-
-  it.skip 'should clone a node', ->
-
-    a = new Weaver.Node()
-    b = new Weaver.Node()
-    c = new Weaver.Node()
-    cloned = null
-
-    a.set('name', 'Foo')
-    b.set('name', 'Bar')
-    c.set('name', 'Dear')
-
-    a.relation('to').add(b)
-    b.relation('to').add(c)
-    c.relation('to').add(a)
-
-    Weaver.Node.batchSave([a,b,c])
-    .then(->
-      Weaver.Node.load(a.id())
-    ).then((node) ->
-      node.clone()
-    ).then((node) ->
-      cloned = node
-
-      assert.notEqual(cloned.id(), a.id())
-      assert.equal(cloned.get('name'), 'Foo')
-      to = value for key, value of cloned.relation('to').nodes
-      assert.equal(to.id(), b.id())
-
-      Weaver.Node.load(c.id())
-    ).then((node) ->
-      assert.isDefined(node.relation('to').nodes[cloned.id()])
-    )
-
-  it.skip 'should recursively clone a node', ->
-
-    a = new Weaver.Node()
-    b = new Weaver.Node()
-    c = new Weaver.Node()
-    cloned = null
-
-    a.set('name', 'Foo')
-    b.set('name', 'Bar')
-    c.set('name', 'Dear')
-
-    a.relation('to').add(b)
-    b.relation('to').add(c)
-    c.relation('to').add(a)
-
-    Weaver.Node.batchSave([a,b,c])
-    .then(->
-      Weaver.Node.load(a.id())
-    ).then((node) ->
-      node.clone({'to':Weaver.Node})
-    ).then((node) ->
-      cloned = node
-
-      assert.notEqual(cloned.id(), a.id())
-      assert.equal(cloned.get('name'), 'Foo')
-      to = value for key, value of cloned.relation('to').nodes
-      assert.notEqual(to.id(), b.id())
-
-      Weaver.Node.load(c.id())
-    ).then((node) ->
-      assert.isDefined(node.relation('to').nodes[cloned.id()])
     )

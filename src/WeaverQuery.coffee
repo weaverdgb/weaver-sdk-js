@@ -1,5 +1,6 @@
+Weaver      = require('./Weaver')
+CoreManager = Weaver.getCoreManager()
 util        = require('./util')
-WeaverRoot  = require('./WeaverRoot')
 
 # Converts a string into a regex that matches it.
 # Surrounding with \Q .. \E does this, we just need to escape any \E's in
@@ -8,207 +9,198 @@ quote = (s) ->
   '\\Q' + s.replace('\\E', '\\E\\\\E\\Q') + '\\E';
 
 
-class WeaverQuery extends WeaverRoot
+class WeaverQuery
 
-  getClass: ->
-    WeaverQuery
-  @getClass: ->
-    WeaverQuery
+    constructor: (@target) ->
+      @_restrict   = []
+      @_equals     = {}
+      @_orQueries  = []
+      @_conditions = {}
+      @_include    = []
+      @_select     = []
+      @_count       = false
+      @_hollow      = false
+      @_limit       = 99999
+      @_skip        = 0
+      @_order       = []
+      @_ascending   = true
 
-  constructor: (@target) ->
-    @_restrict   = []
-    @_equals     = {}
-    @_orQueries  = []
-    @_conditions = {}
-    @_include    = []
-    @_select     = []
-    @_count       = false
-    @_hollow      = false
-    @_limit       = 99999
-    @_skip        = 0
-    @_order       = []
-    @_ascending   = true
+    find: (Constructor) ->
 
-  find: (Constructor) ->
+      Constructor = Constructor or Weaver.Node
+      CoreManager.query(@).then((nodes) ->
+        list = []
+        for node in nodes
+          instance = new Constructor()
+          instance._loadFromQuery(node)
+          instance._setStored()
+          instance._loaded = true
 
-    Weaver = @getWeaverClass()
-    Constructor = Constructor or Weaver.Node
-    @getWeaver().getCoreManager().query(@).then((nodes) ->
-      list = []
-      for node in nodes
-        instance = new Constructor()
-        instance._loadFromQuery(node)
-        instance._setStored()
-        instance._loaded = true
+          list.push(instance)
+        list
+      )
 
-        list.push(instance)
-      list
-    )
+    count: ->
+      @_count = true
+      CoreManager.query(@)
 
-  count: ->
-    @_count = true
-    @getWeaver().getCoreManager().query(@)
+    first: (Constructor) ->
+      @_limit = 1
+      @find(Constructor).then((res) ->
+        if res.length is 0
+          Promise.reject({code:101, "Node not found"})
+        else
+          res[0]
+      )
 
-  first: (Constructor) ->
-    @_limit = 1
-    @find(Constructor).then((res) ->
-      if res.length is 0
-        Promise.reject({code:101, "Node not found"})
+    get: (node, Constructor) ->
+      @restrict(node)
+      @first(Constructor)
+
+    restrict: (nodes) ->
+      addRestrict = (node) =>
+        if util.isString(node)
+          @_restrict.push(node)
+        else if node instanceof Weaver.Node
+          @_restrict.push(node.id())
+
+      if util.isArray(nodes)
+        @_restrict = [] # Clear
+        addRestrict(node) for node in nodes
       else
-        res[0]
-    )
+        addRestrict(nodes)
 
-  get: (node, Constructor) ->
-    @restrict(node)
-    @first(Constructor)
+      @
 
-  restrict: (nodes) ->
+    _addCondition: (key, condition, value) ->
+      delete @_equals[key]
+      @_conditions[key] = @_conditions[key] or {}
+      @_conditions[key][condition] = value
+      @
 
-    Weaver = @getWeaverClass()
-    addRestrict = (node) =>
-      if util.isString(node)
-        @_restrict.push(node)
-      else if node instanceof Weaver.Node
-        @_restrict.push(node.id())
+    equalTo: (key, value) ->
+      delete @_conditions[key]
+      @_equals[key] = value
+      @
 
-    if util.isArray(nodes)
-      @_restrict = [] # Clear
-      addRestrict(node) for node in nodes
-    else
-      addRestrict(nodes)
+    notEqualTo: (key, value) ->
+      @_addCondition(key, '$ne', value);
 
-    @
+    lessThan: (key, value) ->
+      @_addCondition(key, '$lt', value);
 
-  _addCondition: (key, condition, value) ->
-    delete @_equals[key]
-    @_conditions[key] = @_conditions[key] or {}
-    @_conditions[key][condition] = value
-    @
+    greaterThan: (key, value) ->
+      @_addCondition(key, '$gt', value);
 
-  equalTo: (key, value) ->
-    delete @_conditions[key]
-    @_equals[key] = value
-    @
+    lessThanOrEqualTo: (key, value) ->
+      @_addCondition(key, '$lte', value);
 
-  notEqualTo: (key, value) ->
-    @_addCondition(key, '$ne', value);
+    greaterThanOrEqualTo: (key, value) ->
+      @_addCondition(key, '$gte', value);
 
-  lessThan: (key, value) ->
-    @_addCondition(key, '$lt', value);
+    hasRelationIn: (key, node) ->
+      @_addCondition(key, '$relIn', if node then node.id() else null);
 
-  greaterThan: (key, value) ->
-    @_addCondition(key, '$gt', value);
+    hasRelationOut: (key, node) ->
+      @_addCondition(key, '$relOut', if node then node.id() else null);
 
-  lessThanOrEqualTo: (key, value) ->
-    @_addCondition(key, '$lte', value);
+    hasNoRelationIn: (key, node) ->
+      @_addCondition(key, '$noRelIn', if node then node.id() else null);
 
-  greaterThanOrEqualTo: (key, value) ->
-    @_addCondition(key, '$gte', value);
+    hasNoRelationOut: (key, node) ->
+      @_addCondition(key, '$noRelOut', if node then node.id() else null);
 
-  hasRelationIn: (key, node) ->
-    @_addCondition(key, '$relIn', if node then node.id() else null);
+    containedIn: (key, values) ->
+      @_addCondition(key, '$in', values);
 
-  hasRelationOut: (key, node) ->
-    @_addCondition(key, '$relOut', if node then node.id() else null);
+    notContainedIn: (key, values) ->
+      @_addCondition(key, '$nin', values);
 
-  hasNoRelationIn: (key, node) ->
-    @_addCondition(key, '$noRelIn', if node then node.id() else null);
+    containsAll: (key, values) ->
+      @_addCondition(key, '$all', values);
 
-  hasNoRelationOut: (key, node) ->
-    @_addCondition(key, '$noRelOut', if node then node.id() else null);
+    exists: (key) ->
+      @_addCondition(key, '$exists', true);
 
-  containedIn: (key, values) ->
-    @_addCondition(key, '$in', values);
+    doesNotExist: (key) ->
+      @_addCondition(key, '$exists', false);
 
-  notContainedIn: (key, values) ->
-    @_addCondition(key, '$nin', values);
+    matches: (key, value) ->
+      @_addCondition(key, '$regex', value);
 
-  containsAll: (key, values) ->
-    @_addCondition(key, '$all', values);
+    contains: (key, value) ->
+      @_addCondition(key, '$regex', quote(value));
 
-  exists: (key) ->
-    @_addCondition(key, '$exists', true);
+    startsWith: (key, value) ->
+      @_addCondition(key, '$regex', '^' + quote(value));
 
-  doesNotExist: (key) ->
-    @_addCondition(key, '$exists', false);
+    endsWith: (key, value) ->
+      @_addCondition(key, '$regex', quote(value) + '$');
 
-  matches: (key, value) ->
-    @_addCondition(key, '$regex', value);
+    matchesQuery: (key, weaverQuery) ->
+      @_addCondition(key, '$inQuery', weaverQuery);
 
-  contains: (key, value) ->
-    @_addCondition(key, '$regex', quote(value));
+    doesNotMatchQuery: (key, query) ->
+      @_addCondition(key, '$notInQuery', query);
 
-  startsWith: (key, value) ->
-    @_addCondition(key, '$regex', '^' + quote(value));
+    matchesKeyQuery: (key, queryKey, query) ->
+      @_addCondition(key, '$select', {queryKey, query});
 
-  endsWith: (key, value) ->
-    @_addCondition(key, '$regex', quote(value) + '$');
+    doesNotMatchKeyInQuery: (key, queryKey, query) ->
+      @_addCondition(key, '$dontSelect', {queryKey, query});
 
-  matchesQuery: (key, weaverQuery) ->
-    @_addCondition(key, '$inQuery', weaverQuery);
+    order: (keys, ascending) ->
+      @_order     = keys
+      @_ascending = ascending
+      @
 
-  doesNotMatchQuery: (key, query) ->
-    @_addCondition(key, '$notInQuery', query);
+    ascending: (keys) ->
+      @order(keys, true)
 
-  matchesKeyQuery: (key, queryKey, query) ->
-    @_addCondition(key, '$select', {queryKey, query});
+    descending: (keys) ->
+      @order(keys, false)
 
-  doesNotMatchKeyInQuery: (key, queryKey, query) ->
-    @_addCondition(key, '$dontSelect', {queryKey, query});
+    skip: (skip) ->
+      if typeof skip isnt 'number' or skip < 0
+        throw new Error('You can only skip by a positive number')
 
-  order: (keys, ascending) ->
-    @_order     = keys
-    @_ascending = ascending
-    @
+      @_skip = skip
+      @
 
-  ascending: (keys) ->
-    @order(keys, true)
+    limit: (limit) ->
+      if typeof limit isnt 'number' or limit < 0
+        throw new Error('You can only set the limit to a positive number')
 
-  descending: (keys) ->
-    @order(keys, false)
+      @_limit = limit
+      @
 
-  skip: (skip) ->
-    if typeof skip isnt 'number' or skip < 0
-      throw new Error('You can only skip by a positive number')
+    include: (keys) ->
+      @_include = keys
+      @
 
-    @_skip = skip
-    @
+    select: (keys) ->
+      @_select = keys
+      @
 
-  limit: (limit) ->
-    if typeof limit isnt 'number' or limit < 0
-      throw new Error('You can only set the limit to a positive number')
+    hollow: (value) ->
+      @_hollow = value
+      @
 
-    @_limit = limit
-    @
+    or: (queries) ->
+      @_orQueries = queries
+      @
 
-  include: (keys) ->
-    @_include = keys
-    @
+    @or: (queries) ->
+      query = new Weaver.Query()
+      query.or(queries)
+      query
 
-  select: (keys) ->
-    @_select = keys
-    @
+    # Create, Update, Enter, Leave, Delete
+    subscribe: ->
+      CoreManager.subscribe(@)
 
-  hollow: (value) ->
-    @_hollow = value
-    @
-
-  or: (queries) ->
-    @_orQueries = queries
-    @
-
-  @or: (queries) ->
-    Weaver = @getWeaverClass()
-    query = new Weaver.Query()
-    query.or(queries)
-    query
-
-  # Create, Update, Enter, Leave, Delete
-  subscribe: ->
-    @getWeaver().getCoreManager().subscribe(@)
-
-  nativeQuery: (query)->
-    @getWeaver().getCoreManager().nativeQuery(query, @getWeaver().currentProject().id())
+    nativeQuery: (query)->
+      CoreManager.nativeQuery(query, Weaver.currentProject().id())
 
 # Export
 module.exports = WeaverQuery

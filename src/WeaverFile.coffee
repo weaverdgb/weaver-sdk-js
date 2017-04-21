@@ -1,25 +1,20 @@
-fs               = require('fs')
-readFile         = require('fs-readfile-promise')
+Weaver           = require('./Weaver')
 writeFile        = require('fs-writefile-promise')
-WeaverRoot       = require('./WeaverRoot')
-WeaverError      = require('./WeaverError')
 Error            = require('./Error')
+WeaverError      = require('./WeaverError')
+readFile         = require('fs-readfile-promise')
+fs               = require('fs')
+CoreManager      = Weaver.getCoreManager()
 
 
-
-class WeaverFile extends WeaverRoot
-
-  getClass: ->
-    WeaverFile
-  @getClass: ->
-    WeaverFile
+class WeaverFile
 
   saveFile: (path, fileName) ->
     formData = {
       file: fs.createReadStream(path)
       fileName
     }
-    @getWeaver().getCoreManager().uploadFile(formData)
+    CoreManager.uploadFile(formData)
 
 
   getFileByID: (path, id) ->
@@ -29,7 +24,7 @@ class WeaverFile extends WeaverRoot
           id
         }
         fileStream = fs.createWriteStream(path)
-        @getWeaver().getCoreManager().downloadFileByID(payload)
+        CoreManager.downloadFileByID(payload)
         .pipe(fileStream)
         fileStream.on('finish', ->
           resolve(fileStream.path)
@@ -42,6 +37,6 @@ class WeaverFile extends WeaverRoot
     file = {
       id
     }
-    @getWeaver().getCoreManager().deleteFileByID(file)
+    CoreManager.deleteFileByID(file)
 
 module.exports = WeaverFile
