@@ -55,7 +55,7 @@ class WeaverProject extends WeaverRoot
     @getWeaver().getCoreManager().deleteProject(@id())
 
   wipe: ->
-    @getWeaver().getCoreManager().wipe(@id())
+    @getWeaver().getCoreManager().wipeProject(@id())
 
   getACL: ->
     @getWeaver().getCoreManager().getACL(@projectId)

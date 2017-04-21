@@ -167,8 +167,8 @@ class CoreManager extends WeaverRoot
   dumpHistory: (payload, target)->
     @GET('history', payload, target)
 
-#  wipe: (target)->
-#    @POST('wipe', {}, target)
+  wipeProject: (target)->
+    @POST('wipe', {}, target)
 
   query: (query) ->
     # Remove target
