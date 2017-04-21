@@ -1,25 +1,30 @@
 require("./globalize")
+Weaver = require("../src/Weaver.coffee")
+weaver = new Weaver()
 
 # Runs before all tests (even across files)
 before (done) ->
-  Weaver.connect(WEAVER_ENDPOINT).then(-> done())
+  weaver.connect(WEAVER_ENDPOINT)
+  .then(->
+    done()
+  ).catch(console.log)
   return
 
 # Runs after each test in each file
 beforeEach (done) ->
-  Weaver.wipe()
+  weaver.wipe()
   .then(->
-    Weaver.signInWithUsername('admin', 'admin')
-  )
-  .then(->
-    new Weaver.Project().create()
-  )
-  .then((project) ->
-    Weaver.useProject(project)
+    weaver.signInWithUsername('admin', 'admin')
+  ).then(->
+    project = new Weaver.Project()
+    project.create()
+  ).then((project) ->
+    weaver.useProject(project)
     done()
-  )
-  .catch(console.log)
+  ).catch(console.log)
   return
 
 afterEach ->
-  Weaver.wipe()
+  weaver.wipe()
+
+module.exports = weaver

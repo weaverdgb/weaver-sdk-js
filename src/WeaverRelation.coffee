@@ -1,4 +1,3 @@
-Weaver    = require('./Weaver')
 Operation = require('./Operation')
 
 class WeaverRelation

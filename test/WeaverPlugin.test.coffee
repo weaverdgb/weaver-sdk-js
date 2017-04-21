@@ -1,10 +1,11 @@
-require("./test-suite")
+weaver = require("./test-suite")
+Weaver = weaver.getClass()
 
 describe 'WeaverPlugin test', ->
 
   it 'should list available plugins', ->
     Weaver.Plugin.list().then((plugins) ->
-      assert.equal(plugins.length, 2)
+      expect(plugins).to.have.length.be.at.least(2)
     )
 
   it 'should get a single plugin', ->
