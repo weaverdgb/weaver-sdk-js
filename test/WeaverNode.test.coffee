@@ -243,7 +243,7 @@ describe 'WeaverNode test', ->
       assert.equal(loadedNode.id(), c.id())
     )
 
-  it 'should clone a node', ->
+  it.skip 'should clone a node', ->
 
     a = new Weaver.Node()
     b = new Weaver.Node()
@@ -276,7 +276,7 @@ describe 'WeaverNode test', ->
       assert.isDefined(node.relation('to').nodes[cloned.id()])
     )
 
-  it 'should recursively clone a node', ->
+  it.skip 'should recursively clone a node', ->
 
     a = new Weaver.Node()
     b = new Weaver.Node()
