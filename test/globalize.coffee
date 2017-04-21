@@ -4,7 +4,6 @@ config       = require('config')
 cuid         = require('cuid')
 chai         = require('chai')
 sinon        = require('sinon')
-Weaver       = require('../src/Weaver')
 
 # Use chai as promised
 chai.use(require('chai-as-promised'));
@@ -14,7 +13,6 @@ chai.should();
 
 # From libs
 global.Promise = Promise
-global.Weaver  = Weaver
 global.cuid    = cuid
 global.expect  = chai.expect
 global.assert  = chai.assert

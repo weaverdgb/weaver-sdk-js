@@ -1,16 +1,21 @@
 cuid        = require('cuid')
-Weaver      = require('./Weaver')
-CoreManager = Weaver.getCoreManager()
 Promise     = require('bluebird')
+WeaverRoot  = require('./WeaverRoot')
 
-class WeaverUser
+
+class WeaverUser extends WeaverRoot
+
+  getClass: ->
+    WeaverUser
+  @getClass: ->
+    WeaverUser
 
   constructor: (@username, @password, @email) ->
     @userId   = cuid()
     @_stored = false
 
   @get: (authToken) ->
-    user = new Weaver.User()
+    user = new WeaverUser()
     user.userId    = undefined
     user._stored  = true
     user.authToken = authToken
@@ -24,7 +29,7 @@ class WeaverUser
 
   # Saves the user without signing up
   create: ->
-    CoreManager.signUpUser(@).then((user) =>
+    @getWeaver().getCoreManager().signUpUser(@).then((user) =>
       delete @password
       user
     )
@@ -34,11 +39,11 @@ class WeaverUser
     @create().then((authToken) =>
       @authToken = authToken
       @_stored = true
-      CoreManager.currentUser = @
+      @getWeaver().getCoreManager().currentUser = @
     )
 
   destroy: ->
-    CoreManager.destroyUser(@)
+    @getWeaver().getCoreManager().destroyUser(@)
 
   @list: ->
     Promise.resolve([]) # TODO: Implement
