@@ -106,6 +106,7 @@ class WeaverNode
   _collectPendingWrites: (collected) ->
     # Register to keep track which nodes have been collected to prevent recursive blowup
     collected  = {} if not collected?
+    collected[@id()] = true
     operations = @pendingWrites
 
     for key, relation of @relations
