@@ -160,7 +160,19 @@ For development environments:
 
 `$ grunt dev`
 
+## Tests
 
+### NodeJS test
+
+Based on mocha
+
+`$ npm run node-test`
+
+### Browser test
+
+Based on electron mocha
+
+`$ npm run browser-test`
 
 
 ## Todo
@@ -248,7 +260,7 @@ Include a model member in the definition for another model.
 ```javascript
     manModel.structure({
       name:"hasName"
-      type:"@hasType"
+      type: ["@hasType", typeModel.id()]
       latinName: "hasLatinName"
     })
     .setStatic("latinName", "Homo sapien")
@@ -258,7 +270,7 @@ Include a model member in the definition for another model.
  (the one with id 'lib:Man', also the root of the `manType` model member).
 
  You can even chain getters together to return deep properties of a model member.
- ```
+ ```javascript
     typeModel = new Weaver.Model("Type")
     typeModel.structure({
       name:"hasLabel"
@@ -270,9 +282,9 @@ Include a model member in the definition for another model.
 
     manModel.structure({
       name:"hasName"
-      type:"@hasType"
+      type:["@hasType", typeModel.id()]
       latinName: "hasLatinName"
-      nameOfType: ['type','name']
+      nameOfType: "type.name"  //use a '.' to seperate path segments
     })
     .setStatic("latinName", "Homo sapien")
     .setStatic("type", manType)

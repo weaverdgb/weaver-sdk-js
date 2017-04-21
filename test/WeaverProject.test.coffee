@@ -1,28 +1,26 @@
-require("./test-suite")
+weaver = require("./test-suite")
+Weaver = weaver.getClass()
 
 describe 'WeaverProject Test', ->
-
   it 'should create projects with given id', (done) ->
-    project = new Weaver.Project("test")
+    project = new Weaver.Project("name", "test")
     project.create().then((p) =>
       expect(p.id()).to.equal("test")
-      project.destroy()
+      p.destroy()
       done()
     )
     return
-
 
   it 'should create projects with no given id', (done) ->
     project = new Weaver.Project()
     project.create().then((p) =>
       expect(p.id()).to.equal(project.id())
-      project.destroy()
+      p.destroy()
       done()
     )
     return
 
-
-  it 'should create projects with attributes', (done) ->
+  it.skip 'should create projects with attributes', (done) ->
     project = new Weaver.Project()
     project.set("name", "test")
     project.create().then((p) ->
@@ -30,49 +28,43 @@ describe 'WeaverProject Test', ->
       Weaver.Project.load(project.id())
     ).then((loadedProject) ->
       expect(loadedProject.get("name")).to.equal("test")
-      project.destroy()
+      p.destroy()
       done()
     )
     return
 
-
   it 'should delete projects', (done) ->
     test = new Weaver.Project()
-    test.create().then((project) ->
+    id = 'deleteid'
+    test.create(id).then((project) ->
       project.destroy().catch((e) ->
         assert(false)
       )
     ).then(->
-      Weaver.Project.load(test.id())
-    ).catch((error) ->
-      assert.equal(error.code, Weaver.Error.NODE_NOT_FOUND)
+      Weaver.Project.list()
+    ).then((list)->
+      filtered = (i for i in list when i.id is id)
+      expect(filtered).to.have.length.be(0)
       done()
     )
     return
 
-
+  # Note that this assumes the projectPool has at least room for two projects
   it 'should list projects', (done) ->
-    a = new Weaver.Project("a")
-    b = new Weaver.Project("b")
+    a = new Weaver.Project("A", "a")
 
-    a.set('name', 'A')
     a.create().then(->
-      b.create()
-    ).then(->
       Weaver.Project.list()
     ).then((list) ->
-      expect(list.length).to.equal(3)
+      expect(list.length).to.equal(2)
 
-      loadedA = p for p in list when p.id() is 'a'
-      loadedB = p for p in list when p.id() is 'b'
+      loadedA = p for p in list when p.id is 'a'
 
-      expect(loadedA.get("name")).to.equal('A')
-      expect(loadedB.get("name")).to.be.undefined
+      expect(loadedA.name).to.equal('A')
 
     ).then(->
+      a.destroy()
       done()
-    ).finally( ->
-      Promise.all([a.destroy(), b.destroy()])
     )
     return
 
@@ -80,31 +72,27 @@ describe 'WeaverProject Test', ->
   it 'should allow setting an active project', (done) ->
     test = new Weaver.Project()
     test.create().then(->
-      Weaver.useProject(test)
-    ).then( ->
-      test.destroy()
+      weaver.useProject(test)
     ).then(->
+      test.destroy()
       done()
     )
     return
-
 
   it 'should support getting the active project', (done) ->
     test = new Weaver.Project()
     test.create().then((prj) ->
-      Weaver.useProject(prj)
-      p = Weaver.currentProject()
+      weaver.useProject(prj)
+      p = weaver.currentProject()
       expect(p).to.equal(test)
-    ).then( ->
-      test.destroy()
     ).then(->
+      test.destroy()
       done()
     )
     return
 
-
   it 'should raise an error while saving without currentProject', (done) ->
-    Weaver.useProject(null)
+    weaver.useProject(null)
     node = new Weaver.Node()
     node.save().catch((error)->
       assert.equal(error.code, -1)

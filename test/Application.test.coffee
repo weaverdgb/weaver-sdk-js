@@ -1,14 +1,20 @@
-require("./test-suite")()
+weaver = require("./test-suite")
 
-Weaver = require('./../src/Weaver')
 
-describe 'WeaverSDK Application test', ->
-
-  before (done) ->
-    Weaver.initialize(WEAVER_ADDRESS).then(-> done())
-    return
-
+describe 'Application test', ->
 
   it 'should get the weaver-server version', ->
-    version = Weaver.getCoreManager().getCommController().GET('application.version')
-    version.should.eventually.be.a('string')
+    weaver.serverVersion().then((version) ->
+      version.should.be.a('string')
+    )
+
+  it 'should return server time', ->
+    weaver.getCoreManager().updateLocalTimeOffset()
+    .then(
+      time = weaver.getCoreManager().serverTime()
+      console.log(time)
+    )
+
+  it 'should return server time again', ->
+    time = weaver.getCoreManager().serverTime()
+    console.log(time)

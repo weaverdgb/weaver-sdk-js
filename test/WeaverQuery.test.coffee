@@ -1,4 +1,5 @@
-require("./test-suite")
+weaver = require("./test-suite")
+Weaver = weaver.getClass()
 
 describe 'WeaverQuery Test', ->
 
@@ -94,4 +95,55 @@ describe 'WeaverQuery Test', ->
         expect(nodes.length).to.equal(1)
         expect(nodes[0].id()).to.equal("b")
       )
+    )
+
+  it 'should do relation check a relation', ->
+    a = new Weaver.Node("a")
+    b = new Weaver.Node("b")
+    c = new Weaver.Node("c")
+    a.relation("link").add(b)
+
+
+    Promise.all([a.save(), c.save()]).then(->
+
+      new Weaver.Query()
+      .hasRelationOut("link", b)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        expect(nodes[0].id()).to.equal("a")
+      )
+
+      new Weaver.Query()
+      .hasRelationIn("link", a)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        expect(nodes[0].id()).to.equal("b")
+      )
+
+      new Weaver.Query()
+      .hasNoRelationOut("link", b)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(2)
+        expect(nodes[0].id()).to.equal("b")
+        expect(nodes[1].id()).to.equal("c")
+      )
+
+      new Weaver.Query()
+      .hasNoRelationIn("link", a)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(2)
+        expect(nodes[0].id()).to.equal("a")
+        expect(nodes[1].id()).to.equal("c")
+      )
+    )
+
+  it 'should run a native query', ->
+
+    query = "select * where { ?s ?p ?o }"
+
+    q = new Weaver.Query()
+    q.nativeQuery(query).then((res)->
+      assert.include(res.head.vars, 's')
+      assert.include(res.head.vars, 'p')
+      assert.include(res.head.vars, 'o')
     )

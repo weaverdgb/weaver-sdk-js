@@ -1,4 +1,3 @@
-Weaver    = require('./Weaver')
 Operation = require('./Operation')
 
 class WeaverRelation
@@ -16,6 +15,11 @@ class WeaverRelation
   add: (node) ->
     @nodes[node.id()] = node
     @pendingWrites.push(Operation.Node(@parent).createRelation(@key, node.id()))
+
+  update: (oldNode, newNode) ->
+    delete @nodes[oldNode.id()]
+    @nodes[newNode.id()] = newNode
+    @pendingWrites.push(Operation.Node(@parent).updateRelation(@key, oldNode.id(), newNode.id()))
 
   remove: (node) ->
     delete @nodes[node.id()]

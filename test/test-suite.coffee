@@ -1,76 +1,27 @@
-# Libs
-Promise      = require('bluebird')
-config       = require('config')
-cuid         = require('cuid')
-chai         = require('chai')
-sinon        = require('sinon')
-Weaver       = require('../src/Weaver')
+require("./globalize")
+Weaver = require("../src/Weaver.coffee")
+weaver = new Weaver()
 
-# Use chai as promised
-chai.use(require('chai-as-promised'));
-
-# You need to call chai.should() before being able to wrap everything with should
-chai.should();
-
-# Expose global fields (within all tests)
-global.Promise = Promise
-global.Weaver  = Weaver
-global.cuid    = cuid
-global.expect  = chai.expect
-global.assert  = chai.assert
-global.should  = chai.should
-global.sinon   = sinon
-
-# Local vars
-project = null
-WEAVER_ENDPOINT = config.get("weaver.endpoint")
-
-wipe = (systemWipe) ->
-  coreManager = Weaver.getCoreManager()
-  Promise.all([
-    coreManager.wipe("$SYSTEM") if systemWipe
-    coreManager.wipe(project.id()) if project?
-  ])
-
-# Runs before all tests
-before (done) ->
-  Weaver.connect(WEAVER_ENDPOINT)
-  .then(->
-    wipe(true)
+# Runs before all tests (even across files)
+before ->
+  weaver.connect(WEAVER_ENDPOINT).then(->
+    weaver.wipe()
   ).then(->
-    # To not wait long for project creation, set the retry timeout to low
-    Weaver.Project.READY_RETRY_TIMEOUT = 1  # ms
-
-    # Create project and use it
+    weaver.signInWithUsername('admin', 'admin')
+  ).then(->
     project = new Weaver.Project()
     project.create()
-  ).then(->
-    Weaver.useProject(project)
-    # Authenticate
-    done()
+  ).then((project) ->
+    weaver.useProject(project)
   )
-  .catch((e)->
-    console.log(e)
-  )
-  return
 
-# Runs after all tests
-after (done) ->
-  project.destroy().then(->
-    wipe(true)
-  ).then(->
-    done()
-  )
-  .catch((e)->
-    console.log(e)
-  )
-  return
+after ->
+  weaver.wipe()
 
-# Runs before each test
-beforeEach (done)->
-  done()
-  return
+# Runs after each test in each file
+beforeEach ->
+  weaver.signInWithUsername('admin', 'admin').then(->
+    weaver.currentProject().wipe()
+  )
 
-# Runs after each test
-afterEach ->
-  wipe()
+module.exports = weaver

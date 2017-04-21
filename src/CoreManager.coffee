@@ -5,18 +5,27 @@ cuid             = require('cuid')
 Promise          = require('bluebird')
 SocketController = require('./SocketController')
 LocalController  = require('./LocalController')
-loki             = require('lokijs')
+request          = require('request')
+Error            = require('./Error')
+WeaverError      = require('./WeaverError')
+WeaverRoot       = require('./WeaverRoot')
 
-class CoreManager
+class CoreManager extends WeaverRoot
+
+  getClass: ->
+    CoreManager
+  @getClass: ->
+    CoreManager
 
   constructor: ->
-    @db = new loki('weaver-sdk')
-    @users = @db.addCollection('users')
     @currentProject = null
+    @timeOffset = 0
 
   connect: (endpoint) ->
+    @endpoint = endpoint
     @commController = new SocketController(endpoint)
     @commController.connect()
+
 
   local: (routes) ->
     @commController = new LocalController(routes)
@@ -27,35 +36,41 @@ class CoreManager
 
   _resolveTarget: (target) ->
     # Fallback to currentProject if target not given
-    if not target? and not @currentProject?
-      return Promise.reject({code: -1, message:"Provide a target or select a project before saving"})
+    target = target or @currentProject.id() if @currentProject?
+    target
 
-    target = @currentProject.id() if not target?
-    Promise.resolve(target)
+  _resolvePayload: (payload, target) ->
+    payload = payload or {}
+    payload.target = @_resolveTarget(target)
+    if @currentUser?
+      payload.authToken = @currentUser.authToken
+
+    payload
+
+  serverTime: ->
+    clientTime = new Date().getTime()
+    clientTime - @timeOffset
+
+  updateLocalTimeOffset: ->
+    @localTimeOffset().then((offset)=>
+      @timeOffset = offset
+      offset
+    )
+
+  localTimeOffset: ->
+    startRequest = new Date().getTime()
+    @GET("application.time").then((serverTime)->
+      endRequest = new Date().getTime()
+      localTime = endRequest - Math.round((endRequest - startRequest) / 2)
+      localTime - serverTime
+    )
+
 
   executeOperations: (operations, target) ->
     @POST('write', {operations}, target)
 
-  getUsersDB: ->
-    @users
-
-  getProjectsDB: ->
-    @projects
-
-  logIn: (credentials) ->
-    @POST('logIn',credentials)
-
-  signUp: (newUserPayload) ->
-    @POST('signUp',newUserPayload)
-
-  signOff: (userPayload) ->
-    @POST('signOff',userPayload)
-
-  permission: (userPayload) ->
-    @POST('permission',userPayload)
-
-  createApplication: (newApplication) ->
-    @POST('application',newApplication)
+#  serverVersion: ->
+#    @POST('application.version')
 
   serverVersion: ->
     @GET("application.version")
@@ -63,8 +78,53 @@ class CoreManager
   listProjects: ->
     @GET("project")
 
-  createProject: (id) ->
-    @POST("project.create", {id}, "$SYSTEM")
+  createProject: (id, name) ->
+    @POST("project.create", {id, name})
+
+  listPlugins: ->
+    Weaver = @getWeaverClass()
+    @GET("plugins").then((plugins) ->
+      (new Weaver.Plugin(p) for p in plugins)
+    )
+
+  getPlugin: (name) ->
+    Weaver = @getWeaverClass()
+    @POST("plugin.read", {name}).then((plugin) ->
+      new Weaver.Plugin(plugin)
+    )
+
+  executePluginFunction: (route, payload) ->
+    @POST(route, payload)
+
+  createRole: (role) ->
+    @POST("role.create", {role})
+
+  getACL: (objectId) ->
+    Weaver = @getWeaverClass()
+    @GET("acl.read.byObject", {objectId}).then((aclObject) ->
+      Weaver.ACL.loadFromServerObject(aclObject)
+    )
+
+  signInUsername: (username, password) ->
+    @POST("user.signInUsername", {username, password}, "$SYSTEM")
+      .then((authToken) =>
+        @_handleSignIn(authToken)
+      )
+
+  # Sign the user in using an authToken
+  signInToken: (authToken) ->
+    @POST("user.signInToken", {authToken}, "$SYSTEM")
+      .then((authToken) =>
+        @_handleSignIn(authToken)
+      )
+
+  _handleSignIn: (authToken) ->
+    Weaver = @getWeaverClass()
+    @currentUser = Weaver.User.get(authToken)
+    @POST("user.read", {}, "$SYSTEM").then((serverUser) =>
+      @currentUser.populateFromServer(serverUser)
+      @currentUser
+    )
 
   signUpUser: (user) ->
     payload =
@@ -73,19 +133,27 @@ class CoreManager
       password: user.password
       email: user.email
 
-    @POST("auth.signUp", payload, "$SYSTEM")
+    @POST("user.signUp", payload, "$SYSTEM")
 
-  createUser: (id) ->
-    @POST("users.create", {id})
+
+  destroyUser: (user) ->
+    payload =
+      username: user.username
+
+    @POST("user.delete", payload, "$SYSTEM")
+
+
+  signOutCurrentUser: ->
+    @POST("user.signOut", {}, "$SYSTEM").then(=>
+      @currentUser = undefined
+      return
+    )
 
   readyProject: (id) ->
-    @POST("project.ready", {id}, "$SYSTEM")
+    @GET("project.ready", {id}, "$SYSTEM")
 
   deleteProject: (id) ->
-    @POST("project.delete", {id}, "$SYSTEM")
-
-  getNode: (nodeId, target)->
-    @POST('read', {nodeId}, target)
+    @POST("project.delete", {id}, id)
 
   getAllNodes: (attributes, target)->
     @POST('nodes', {attributes}, target)
@@ -93,11 +161,14 @@ class CoreManager
   getAllRelations: (target)->
     @GET('relations', target)
 
-  wipe: (target)->
-    @POST('wipe', {}, target)
+  getHistory: (payload, target)->
+    @GET('history', payload, target)
 
-  usersList: (usersList) ->
-    @POST('usersList', usersList)
+  dumpHistory: (payload, target)->
+    @GET('history', payload, target)
+
+  wipeProject: (target)->
+    @POST('wipe', {}, target)
 
   query: (query) ->
     # Remove target
@@ -109,36 +180,67 @@ class CoreManager
   nativeQuery: (query, target) ->
     @POST("query.native", {query}, target)
 
-  REQUEST: (type, path, payload, target) ->
-    @_resolveTarget(target).then((target) =>
-      payload.target = target
-      if @currentUser?
-        payload.sessionId = @currentUser._sessionId
+  wipe: ->
+    @POST("application.wipe")
 
-      if type is "GET"
-        @commController.GET(path, payload)
-      else
-        @commController.POST(path, payload)
-
+  readACL: (aclId) ->
+    Weaver = @getWeaverClass()
+    @GET("acl.read", {id: aclId}).then((aclObject) ->
+      Weaver.ACL.loadFromServerObject(aclObject)
     )
-    
-  sendFile: (file) ->
-    @commController.POST('uploadFile', file)
-    
-  getFile: (file) ->
-    @commController.POST('downloadFile',file)
-    
-  getFileByID: (file) ->
-    @commController.POST('downloadFileByID',file)
-    
-  deleteFile: (file) ->
-    @commController.POST('deleteFile',file)
-    
+
+  createACL: (acl) ->
+    @POST("acl.create", {acl})
+
+  writeACL: (acl) ->
+    @POST("acl.update", {acl})
+
+  deleteACL: (aclId) ->
+    @POST("acl.delete", {id: aclId})
+
+
+  REQUEST: (type, path, payload, target) =>
+    payload = @_resolvePayload(payload, target)
+
+    if type is "GET"
+      return @commController.GET(path, payload)
+    else
+      return @commController.POST(path, payload)
+
+  REQUEST_HTTP: (path, payload, target) ->
+    payload = @_resolvePayload(payload, target)
+
+
   deleteFileByID: (file) ->
-    @commController.POST('deleteFileByID',file)
+    file = @_resolvePayload(file)
+    @commController.POST('file.deleteByID',file)
+
+  uploadFile: (formData) ->
+    formData = @_resolvePayload(formData)
+    new Promise((resolve, reject) =>
+      request.post({url:"#{@endpoint}/upload", formData: formData}, (err, httpResponse, body) ->
+        if err
+          if err.code is 'ENOENT'
+            reject(Error WeaverError.FILE_NOT_EXISTS_ERROR,"The file #{err.path} does not exits")
+          else
+            reject(Error WeaverError.OTHER_CAUSE,"Unknown error")
+        else
+          resolve(httpResponse.body)
+      )
+    )
+
+  downloadFileByID: (payload, target) ->
+    payload = @_resolvePayload(payload, target)
+    payload = JSON.stringify(payload)
+    request.get("#{@endpoint}/file/downloadByID?payload=#{payload}")
+    .on('response', (res) ->
+      res
+    )
 
   GET: (path, payload, target) ->
     @REQUEST("GET", path, payload, target)
+
+
 
   POST: (path, payload, target) ->
     @REQUEST("POST", path, payload, target)

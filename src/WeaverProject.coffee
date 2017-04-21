@@ -1,24 +1,32 @@
-Weaver = require('./Weaver')
+cuid        = require('cuid')
+WeaverRoot  = require('./WeaverRoot')
 
-class WeaverProject extends Weaver.SystemNode
+class WeaverProject extends WeaverRoot
+
+  getClass: ->
+    WeaverProject
+  @getClass: ->
+    WeaverProject
 
   @READY_RETRY_TIMEOUT: 200
 
-  # TODO: Pass name instead of nodeId, nodeId must not be able to be given
-  constructor: (@nodeId) ->
-    super(@nodeId)
-    @_created = false
+  constructor: (@name, @projectId) ->
+    @name = @name or 'unnamed'
+    @projectId = @projectId or cuid()
+    @_stored = false
+
+  id: ->
+    @projectId
 
   create: ->
-    coreManager = Weaver.getCoreManager()
-    id = @id()
+    coreManager = @getWeaver().getCoreManager()
+    coreManager.createProject(@projectId, @name)
+    .then(=>  # Wait till project gets read
+      new Promise((resolve) =>
 
-    coreManager.createProject(id).then(->  # Wait till project gets read
-      new Promise((resolve) ->
-
-        checkReady = ->
-          coreManager.readyProject(id).then((res) ->
-            if not res.ready
+        checkReady = =>
+          coreManager.readyProject(@projectId).then((project) =>
+            if not project.ready
               setTimeout(checkReady, WeaverProject.READY_RETRY_TIMEOUT) # Check again after some time
             else
               resolve()
@@ -27,41 +35,33 @@ class WeaverProject extends Weaver.SystemNode
         checkReady()
       )
     )
-    .then(=> # Project is ready, create the node
-      @_created = true
-      @set("type", "project")
-      @save()
+    .then(=> # Project is ready
+      @_stored = true
+      @
     )
-
-  save: ->
-    if not @_created
-      Promise.reject({error: -1, message: 'Should call create() first before saving'})
-    else
-      super()
 
   destroy: ->
     super().then(=>
-      Weaver.getCoreManager().deleteProject(@id())
+      @getWeaver().getCoreManager().deleteProject(@id())
     )
 
   getAllNodes: (attributes)->
-    Weaver.getCoreManager().getAllNodes(attributes, @id())
+    @getWeaver().getCoreManager().getAllNodes(attributes, @id())
 
   getAllRelations:->
-    Weaver.getCoreManager().getAllRelations(@id())
+    @getWeaver().getCoreManager().getAllRelations(@id())
+
+  destroy: ->
+    @getWeaver().getCoreManager().deleteProject(@id())
 
   wipe: ->
-    coreManager = Weaver.getCoreManager()
-    coreManager.wipe(@id())
+    @getWeaver().getCoreManager().wipeProject(@id())
 
-  @load: (nodeId) ->
-    super(nodeId, WeaverProject)
-
-  @get: (nodeId) ->
-    super(nodeId, WeaverProject)
+  getACL: ->
+    @getWeaver().getCoreManager().getACL(@projectId)
 
   @list: ->
-    new Weaver.Query("$SYSTEM").equalTo("type", "project").find()
+    @getWeaver().getCoreManager().listProjects()
 
 module.exports = WeaverProject
 
