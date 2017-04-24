@@ -21,9 +21,9 @@ class CoreManager extends WeaverRoot
     @currentProject = null
     @timeOffset = 0
 
-  connect: (endpoint) ->
+  connect: (endpoint, options) ->
     @endpoint = endpoint
-    @commController = new SocketController(endpoint)
+    @commController = new SocketController(endpoint, options)
     @commController.connect()
 
 
