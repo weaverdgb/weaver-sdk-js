@@ -44,8 +44,8 @@ class Weaver extends WeaverRoot
     @_local = true
     @coreManager.local(routes)
 
-  connect: (endpoint) ->
-    @coreManager.connect(endpoint).then(=>
+  connect: (endpoint, options) ->
+    @coreManager.connect(endpoint, options).then(=>
       @_connected = true
       @coreManager.updateLocalTimeOffset()
     )
