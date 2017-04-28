@@ -48,19 +48,21 @@ NodeOperation = (node) ->
       key
     }
 
-  createRelation: (key, to) ->
+  createRelation: (key, to, id) ->
     {
       timestamp
       action: Action.CREATE_RELATION
+      id
       from: node.id()
       key
       to
     }
 
-  updateRelation: (key, oldTo, newTo) ->
+  updateRelation: (key, oldTo, newTo, id) ->
     {
       timestamp
       action: Action.UPDATE_RELATION
+      id
       from: node.id()
       key
       oldTo
