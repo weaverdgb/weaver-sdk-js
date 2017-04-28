@@ -9,19 +9,18 @@ class LocalController
     $.routes   = routes
     $.handler  = {}
 
-    res =
-      success: (data) ->
-        Promise.resolve(data)
-      fail: (error) ->
-        Promise.reject(error)
+    (handler for name, handler of routes).forEach((routeHandler) =>
+      routeHandler.allRoutes().forEach((route) =>
+        res =
+          success: (data) ->
+            Promise.resolve(data)
+          fail: (error) ->
+            Promise.reject(error)
 
-    for name, routeHandler of routes
-      for route in routeHandler.allRoutes()
         $.handler[route] = (payload) ->
           routeHandler.handleRequest(route, {payload}, res)
-
-  _emit: (key, payload) ->
-    $.getBus().emit(key, {payload})
+      )
+    )
 
   GET: (path) ->
     $.handler[path]()
