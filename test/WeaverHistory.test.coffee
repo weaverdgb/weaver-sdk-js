@@ -5,7 +5,7 @@ describe 'WeaverHistory test', ->
 
 
 
-  it 'should set a new string attribute', (done)->
+  it 'should set a new string attribute', ->
     node = new Weaver.Node()
     nodeB = new Weaver.Node()
 
@@ -22,37 +22,39 @@ describe 'WeaverHistory test', ->
       history = new Weaver.History()
       history.getHistory(node)
     ).then((response) ->
+      expect(response).to.have.length.be(3)
       nodeB.save()
     ).then(->
       history = new Weaver.History()
-      history.getHistory([node, nodeB])
+      h = history.getHistory([node, nodeB])
     ).then((response) ->
+      expect(response).to.have.length.be(4)
       history = new Weaver.History()
       history.forUser('admin')
       history.fromDateTime('2017-03-23 12:38')
       history.beforeDateTime('2018-03-23 12:39')
       history.getHistory(node, 'name')
-    ).then((response) ->
-      done()
     )
 
-    return
-
-  it.skip 'should retrieve 100 lines of history dump', ->
-    history = new Weaver.History()
-    history.limit(100)
-    history.dumpHistory()
-    .then((response) ->
-      assert.isAtMost(response.length,100)
+  it 'should limit history', ->
+    Promise.all((new Weaver.Node()).save() for i in [0..30]).then( ->
+      history = new Weaver.History()
+      history.limit(20)
+      history.dumpHistory()
+      .then((response) ->
+        expect(response).to.have.length.be(20)
+      )
     )
 
-  it.skip 'should retrieve 2 lines of history for the user admin', ->
-    history = new Weaver.History()
-    history.limit(2)
-    history.forUser('admin')
-    history.dumpHistory()
-    .then((response) ->
-      assert.equal(response.length,2)
-      for row in response
-        assert.equal(row.user,'admin')
+  it 'should retrieve 2 lines of history for the user admin', ->
+    Promise.all((new Weaver.Node()).save() for i in [0..1]).then(->
+      history = new Weaver.History()
+      history.limit(2)
+      history.forUser('admin')
+      history.dumpHistory()
+      .then((response) ->
+        assert.equal(response.length,2)
+        for row in response
+          assert.equal(row.user,'admin')
+      )
     )

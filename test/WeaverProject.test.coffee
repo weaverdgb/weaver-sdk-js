@@ -2,7 +2,7 @@ weaver = require("./test-suite")
 Weaver = weaver.getClass()
 
 describe 'WeaverProject Test', ->
-  it 'should create projects with given id', (done) ->
+  it.skip 'should create projects with given id', (done) ->
     project = new Weaver.Project("name", "test")
     project.create().then((p) =>
       expect(p.id()).to.equal("test")
@@ -11,7 +11,7 @@ describe 'WeaverProject Test', ->
     )
     return
 
-  it 'should create projects with no given id', (done) ->
+  it.skip 'should create projects with no given id', (done) ->
     project = new Weaver.Project()
     project.create().then((p) =>
       expect(p.id()).to.equal(project.id())
@@ -33,7 +33,7 @@ describe 'WeaverProject Test', ->
     )
     return
 
-  it 'should delete projects', (done) ->
+  it.skip 'should delete projects', (done) ->
     test = new Weaver.Project()
     id = 'deleteid'
     test.create(id).then((project) ->
@@ -70,7 +70,7 @@ describe 'WeaverProject Test', ->
     return
 
 
-  it 'should allow setting an active project', (done) ->
+  it.skip 'should allow setting an active project', (done) ->
     test = new Weaver.Project()
     test.create().then(->
       weaver.useProject(test)
@@ -80,7 +80,7 @@ describe 'WeaverProject Test', ->
     )
     return
 
-  it 'should support getting the active project', (done) ->
+  it.skip 'should support getting the active project', (done) ->
     test = new Weaver.Project()
     test.create().then((prj) ->
       weaver.useProject(prj)
@@ -93,10 +93,13 @@ describe 'WeaverProject Test', ->
     return
 
   it 'should raise an error while saving without currentProject', (done) ->
+    p = weaver.currentProject()
     weaver.useProject(null)
     node = new Weaver.Node()
     node.save().catch((error)->
       assert.equal(error.code, -1)
       done()
+    ).finally(->
+      weaver.useProject(p)
     )
     return
