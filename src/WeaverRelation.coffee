@@ -23,7 +23,8 @@ class WeaverRelation extends WeaverRoot
   to: (node)->
     throw new Error("No relation to a node with this id: #{node.id()}") if not @relationNodes[node.id()]
     Weaver = @getWeaverClass()
-    Weaver.RelationNode.load(@relationNodes[node.id()].id(), Weaver.RelationNode)
+    console.log("about to load #{@relationNodes[node.id()].id()}")
+    Weaver.RelationNode.load(@relationNodes[node.id()].id(), null, Weaver.RelationNode)
 
   all: ->
     (node for key, node of @nodes)

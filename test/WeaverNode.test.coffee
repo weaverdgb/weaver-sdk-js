@@ -120,64 +120,6 @@ describe 'WeaverNode test', ->
       assert.equal(loadedNode.get('name'), undefined)
     )
 
-  it 'should add a new relation', ->
-    foo = new Weaver.Node()
-    bar = new Weaver.Node()
-    foo.relation('comesBefore').add(bar)
-
-    assert(!foo._loaded)
-    assert(!foo._stored)
-    assert(!bar._loaded)
-    assert(!bar._stored)
-
-    foo.save().then(->
-
-      assert(!foo._loaded)
-      assert(foo._stored)
-      assert(!bar._loaded)
-      assert(bar._stored)
-
-      Weaver.Node.load(foo.id())
-    ).then((loadedNode) ->
-
-      assert.isDefined(loadedNode.relation('comesBefore').nodes[bar.id()])
-
-      assert(loadedNode._loaded)
-      assert(loadedNode._stored)
-      assert(!loadedNode.relation('comesBefore').nodes[bar.id()]._loaded)
-      assert(loadedNode.relation('comesBefore').nodes[bar.id()]._stored)
-    )
-
-  it 'should update a relation', ->
-    foo = new Weaver.Node()
-    bar = new Weaver.Node()
-    ono = new Weaver.Node()
-    foo.relation('comesBefore').add(bar)
-    foo.relation('comesBefore').update(bar, ono)
-
-    Weaver.Node.batchSave([foo, bar, ono]).then(->
-      Weaver.Node.load(foo.id())
-    ).then((loadedNode) ->
-      assert.isDefined(loadedNode.relation('comesBefore').nodes[ono.id()])
-    )
-
-  it 'should remove a relation', ->
-    foo = new Weaver.Node()
-    bar = new Weaver.Node()
-    foo.relation('comesBefore').add(bar)
-
-    foo.save().then(->
-      Weaver.Node.load(foo.id())
-    ).then((loadedNode) ->
-      loadedNode.relation('comesBefore').remove(bar)
-      loadedNode.save()
-    ).then( ->
-      Weaver.Node.load(foo.id())
-    ).then((loadedNode) ->
-      relations = (k for k of loadedNode.relations)
-      assert.lengthOf(relations, 0)
-    )
-
   it 'should set an existing attribute with new value', ->
     node = new Weaver.Node()
     node.set('name', 'Foo')
