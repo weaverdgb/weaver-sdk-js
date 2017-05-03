@@ -36,7 +36,7 @@ class WeaverQuery extends WeaverRoot
     @getWeaver().getCoreManager().query(@).then((nodes) ->
       list = []
       for node in nodes
-        instance = new Constructor()
+        instance = new Constructor(node.nodeId)
         instance._loadFromQuery(node)
         instance._setStored()
         instance._loaded = true

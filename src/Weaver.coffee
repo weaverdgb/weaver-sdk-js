@@ -22,11 +22,12 @@ class Weaver extends WeaverRoot
     if Weaver.File
       Weaver.File.weaver = @
     Weaver.History.weaver = @
-    Weaver.Node.weaver  = @
     Weaver.Node.weaver = @
     Weaver.Plugin.weaver = @
     Weaver.Project.weaver = @
     Weaver.Query.weaver = @
+    Weaver.Relation.weaver = @
+    Weaver.RelationNode.weaver = @
     Weaver.Role.weaver = @
     Weaver.User.weaver = @
 
@@ -87,23 +88,24 @@ class Weaver extends WeaverRoot
 
 
 # Those hold a reference to the weaver instance
-Weaver.ACL         = require('./WeaverACL')
-Weaver.CoreManager = require('./CoreManager')
+Weaver.ACL          = require('./WeaverACL')
+Weaver.CoreManager  = require('./CoreManager')
 if !window?
-  Weaver.File      = require('./WeaverFile') # avoiding problems on browsers trying to load node's fs stuff
+  Weaver.File       = require('./WeaverFile') # avoiding problems on browsers trying to load node's fs stuff
 
-Weaver.History     = require('./WeaverHistory')
-Weaver.Node        = require('./WeaverNode')
-Weaver.Plugin      = require('./WeaverPlugin')
-Weaver.Project     = require('./WeaverProject')
-Weaver.Query       = require('./WeaverQuery')
-Weaver.Role        = require('./WeaverRole')
-Weaver.User        = require('./WeaverUser')
+Weaver.History      = require('./WeaverHistory')
+Weaver.Node         = require('./WeaverNode')
+Weaver.Plugin       = require('./WeaverPlugin')
+Weaver.Project      = require('./WeaverProject')
+Weaver.Query        = require('./WeaverQuery')
+Weaver.Relation     = require('./WeaverRelation')
+Weaver.RelationNode = require('./WeaverRelationNode')
+Weaver.Role         = require('./WeaverRole')
+Weaver.User         = require('./WeaverUser')
 
-# Those do not hold a reference
-Weaver.Relation    = require('./WeaverRelation')
-Weaver.Error       = require('./WeaverError')
-Weaver.LegacyError = require('./Error')
+# Those do not hold  a reference
+Weaver.Error        = require('./WeaverError')
+Weaver.LegacyError  = require('./Error')
 
 # Export
 #weaver = new Weaver()
