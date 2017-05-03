@@ -18,14 +18,15 @@ class WeaverRelationNode extends WeaverNode
     @attributes = {}
     @relations  = {}
 
-
-  to: ()->
-    null
-
-  from: ()->
-    null
+    @toNode = null        # Wip, this is fairly impossible to query this from the server currently
+    @fromNode = null      # Wip, this is fairly impossible to query this from the server currently
 
 
+  to: ->
+    @toNode
+
+  from: ->
+    @fromNode
 
   # override
   destroy: (project) ->

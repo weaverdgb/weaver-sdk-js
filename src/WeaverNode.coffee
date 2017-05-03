@@ -31,14 +31,14 @@ class WeaverNode extends WeaverRoot
 
   _loadFromQuery: (object, Constructor) ->
     Constructor = Constructor or WeaverNode
-    @nodeId     = object.nodeId
     @attributes = object.attributes
 
     for key, targetNodes of object.relations
       for node in targetNodes
-        instance = new Constructor()
+        instance = new Constructor(node.nodeId)
         instance._loadFromQuery(node, Constructor)
-        @relation(key).add(instance)
+        relId = object.relationNodeIds[key][node.nodeId]
+        @relation(key).add(instance, relId)
 
     @._clearPendingWrites()
     @

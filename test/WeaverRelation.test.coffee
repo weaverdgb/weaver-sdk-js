@@ -1,14 +1,13 @@
 weaver = require("./test-suite")
 Weaver = weaver.getClass()
 
-describe 'WeaverNode relation test', ->
+describe 'WeaverNode relation and WeaverRelationNode test', ->
 
   it 'should add a new relation without id', ->
     foo = new Weaver.Node()
     bar = new Weaver.Node()
-
-    console.log("foos id: #{foo.id()}")
-    console.log("bars id: #{bar.id()}")
+    rel = null
+    loadedRel = null
 
     assert(!foo._loaded)
     assert(!foo._stored)
@@ -18,8 +17,6 @@ describe 'WeaverNode relation test', ->
     foo.relation('comesBefore').add(bar)
     foo.save().then(->
 
-      console.log(foo.relations['comesBefore'])
-
       assert(!foo._loaded)
       assert(foo._stored)
       assert(!bar._loaded)
@@ -27,16 +24,14 @@ describe 'WeaverNode relation test', ->
 
       foo.relation('comesBefore').to(bar)
 
-    ).then((rel)->
+    ).then((relation)->
 
+      rel = relation
       assert.isTrue(rel instanceof Weaver.RelationNode)
       assert.isDefined(rel)
       assert.isDefined(rel.id())
 
-
       Weaver.Node.load(foo.id())
-
-
     ).then((loadedNode) ->
 
       assert.isDefined(loadedNode.relation('comesBefore').nodes[bar.id()])
@@ -46,11 +41,22 @@ describe 'WeaverNode relation test', ->
       assert(!loadedNode.relation('comesBefore').nodes[bar.id()]._loaded)
       assert(loadedNode.relation('comesBefore').nodes[bar.id()]._stored)
 
-      console.log(loadedNode.relations['comesBefore'])
-
       loadedNode.relation('comesBefore').to(bar)
-#    ).then((loadedRel) ->
-#      assert.equal(loadedRel.id(), rel.id())
+    ).then((relation) ->
+      loadedRel = relation
+      assert.isTrue(loadedRel instanceof Weaver.RelationNode)
+      assert.equal(loadedRel.id(), rel.id())
+
+# todo: see ticket WEAV-132
+#      loadedRel.to()
+#    ).then((to) ->
+#      assert.isTrue(to instanceof Weaver.Node)
+#      assert.equal(to.id(), bar.id())
+#
+#      loadedRel.from()
+#    ).then((from) ->
+#      assert.isTrue(from instanceof Weaver.Node)
+#      assert.equal(from.id(), foo.id())
     )
 
   it 'should add a new relation with id', ->
