@@ -4,11 +4,15 @@ Promise  = require('bluebird')
 
 class SocketController
 
-  constructor: (@address) ->
+  constructor: (@address, @options) ->
+    defaultOptions =
+      reconnection: true
+
+    @options = @options or defaultOptions
 
   connect: ->
     new Promise((resolve, reject) =>
-      @io = io.connect(@address, {reconnection: true})
+      @io = io.connect(@address, @options)
       @io.on('connect', ->
         resolve()
       ).on('connect_error', ->

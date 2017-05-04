@@ -123,7 +123,7 @@ describe 'WeaverQuery Test', ->
       new Weaver.Query()
       .hasNoRelationOut("link", b)
       .find().then((nodes) ->
-        expect(nodes.length).to.equal(2)
+        expect(nodes.length).to.equal(3)
         expect(nodes[0].id()).to.equal("b")
         expect(nodes[1].id()).to.equal("c")
       )
@@ -131,7 +131,7 @@ describe 'WeaverQuery Test', ->
       new Weaver.Query()
       .hasNoRelationIn("link", a)
       .find().then((nodes) ->
-        expect(nodes.length).to.equal(2)
+        expect(nodes.length).to.equal(3)
         expect(nodes[0].id()).to.equal("a")
         expect(nodes[1].id()).to.equal("c")
       )
