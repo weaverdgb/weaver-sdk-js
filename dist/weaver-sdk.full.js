@@ -101392,7 +101392,7 @@ module.exports = yeast;
 },{}],400:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "2.2.4",
+  "version": "2.2.5-rc.1",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -101452,7 +101452,7 @@ module.exports={
     "node": ">=6.9"
   },
   "scripts": {
-    "prepublish": "coffee -o lib -c src",
+    "prepublish": "coffee -o lib -c src && grunt dev",
     "test": "./node_modules/.bin/istanbul cover _mocha --",
     "browser-test": "if which electron >/dev/null;then echo ok you already have electron installed globally;else npm install electron -g; fi;./node_modules/electron-mocha/bin/electron-mocha --renderer --debug --interactive $(ls test/*.test.coffee | grep -Ev 'WeaverFile.test.coffee')",
     "node-test": "./node_modules/mocha/bin/mocha $(ls test/*.test.coffee | grep -Ev 'WeaverFileBrowser.test.coffee') || true",
@@ -102021,11 +102021,13 @@ module.exports={
 
 },{"./WriteOperation":421}],405:[function(require,module,exports){
 (function() {
-  var Promise, SocketController, io;
+  var Promise, SocketController, io, pjson;
 
   io = require('socket.io-client');
 
   Promise = require('bluebird');
+
+  pjson = require('../package.json');
 
   SocketController = (function() {
     function SocketController(address, options) {
@@ -102036,6 +102038,7 @@ module.exports={
         reconnection: true
       };
       this.options = this.options || defaultOptions;
+      this.options.query = "sdkVersion=" + pjson.version;
     }
 
     SocketController.prototype.connect = function() {
@@ -102048,8 +102051,8 @@ module.exports={
             return reject('connect_error');
           }).on('connect_timeout', function() {
             return reject('connect_timeout');
-          }).on('error', function() {
-            return reject('error');
+          }).on('error', function(err) {
+            return reject(err || 'error');
           });
         };
       })(this));
@@ -102087,7 +102090,7 @@ module.exports={
 
 }).call(this);
 
-},{"bluebird":72,"socket.io-client":341}],406:[function(require,module,exports){
+},{"../package.json":400,"bluebird":72,"socket.io-client":341}],406:[function(require,module,exports){
 (function() {
   var CoreManager, Promise, Weaver, WeaverRoot,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
@@ -103901,7 +103904,7 @@ module.exports={
 
   Action.REMOVE_ATTRIBUTE = define('remove-attribute', ['timestamp', 'id', 'key']);
 
-  Action.CREATE_RELATION = define('create-relation', ['timestamp', 'from', 'key', 'to']);
+  Action.CREATE_RELATION = define('create-relation', ['timestamp', 'from', 'key', 'to', 'id']);
 
   Action.UPDATE_RELATION = define('update-relation', ['timestamp', 'from', 'key', 'oldTo', 'newTo']);
 
