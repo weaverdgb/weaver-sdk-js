@@ -1,6 +1,7 @@
 # Libs
 io       = require('socket.io-client')
 Promise  = require('bluebird')
+pjson    = require('../package.json')
 
 class SocketController
 
@@ -9,6 +10,7 @@ class SocketController
       reconnection: true
 
     @options = @options or defaultOptions
+    @options.query = "sdkVersion=#{pjson.version}"
 
   connect: ->
     new Promise((resolve, reject) =>
@@ -19,8 +21,9 @@ class SocketController
         reject('connect_error')
       ).on('connect_timeout', ->
         reject('connect_timeout')
-      ).on('error', ->
-        reject('error'))
+      ).on('error', (err) ->
+        reject(err or 'error')
+      )
     )
 
   emit: (key, body) ->
