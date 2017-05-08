@@ -1,7 +1,24 @@
-[![Build Status](https://img.shields.io/travis/weaverplatform/weaver-sdk-js/develop.svg)](http://travis-ci.org/weaverplatform/weaver-sdk-js)[![codecov](https://img.shields.io/codecov/c/github/weaverplatform/weaver-sdk-js/develop.svg?maxAge=0)](https://codecov.io/gh/weaverplatform/weaver-sdk-js)[![Npm](https://img.shields.io/npm/v/weaver-sdk.svg)](https://www.npmjs.com/package/weaver-sdk)
+<div align="center">
+  <br />
+  <p>
+    <a href="http://weaverplatform.com"><img
+		width="350px" src="icon.png" alt="weaver" /></a>
+  </p>
+  <br />
+  <p>
+    <a href="https://www.npmjs.com/package/weaver-sdk"><img src="https://img.shields.io/npm/v/weaver-sdk.svg?maxAge=3600" alt="NPM version" /></a>
+    <a href="https://www.npmjs.com/package/weaver-sdk"><img src="https://img.shields.io/npm/dt/weaver-sdk.svg?maxAge=3600" alt="NPM downloads" /></a>
+		<a href="https://codecov.io/gh/weaverplatform/weaver-sdk-js"><img src="https://img.shields.io/codecov/c/github/weaverplatform/weaver-sdk-js/develop.svg?maxAge=0" alt="Code coverage" /></a>
+    <a href="https://travis-ci.org/weaverplatform/weaver-sdk-js"><img src="https://travis-ci.org/weaverplatform/weaver-sdk-js.svg" alt="Build status" /></a>
+    <a href="https://david-dm.org/weaverplatform/weaver-sdk-js"><img src="https://img.shields.io/david/weaverplatform/weaver-sdk-js.svg?maxAge=3600" alt="Dependencies" /></a>
+  </p>
+  <p>
+    <a href="https://nodei.co/npm/weaver-sdk/"><img src="https://nodei.co/npm/weaver-sdk.png?downloads=true&stars=true" alt="NPM info" /></a>
+  </p>
+</div>
 
 
-# Weaver SDK for JavaScript
+## Weaver SDK for JavaScript
 A library that gives you access to the Weaver platform from your JavaScript app.
 
 ## API
