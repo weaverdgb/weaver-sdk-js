@@ -40,10 +40,10 @@ class WeaverACL extends WeaverRoot
     acl._publicRead  = aclObject.publicRead
     acl._publicWrite = aclObject.publicWrite
 
-    acl._userReadMap[u]  = null for u in aclObject.userRead
-    acl._userWriteMap[u] = null for u in aclObject.userWrite
-    acl._roleReadMap[u]  = null for u in aclObject.roleRead
-    acl._roleWriteMap[u] = null for u in aclObject.roleWrite
+    acl._userReadMap[u]  = true for u in aclObject.userRead
+    acl._userWriteMap[u] = true for u in aclObject.userWrite
+    acl._roleReadMap[u]  = true for u in aclObject.roleRead
+    acl._roleWriteMap[u] = true for u in aclObject.roleWrite
 
     acl
 
