@@ -101392,7 +101392,7 @@ module.exports = yeast;
 },{}],400:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "2.2.5",
+  "version": "2.2.6-beta.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -101462,10 +101462,8 @@ module.exports={
 
 },{}],401:[function(require,module,exports){
 (function() {
-  var CoreManager, Error, LocalController, Promise, SocketController, WeaverError, WeaverRoot, _, cuid, io, request,
-    bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
-    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty;
+  var CoreManager, Error, LocalController, Promise, SocketController, Weaver, WeaverError, _, cuid, io, request,
+    bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   _ = require('lodash');
 
@@ -101475,29 +101473,19 @@ module.exports={
 
   Promise = require('bluebird');
 
+  request = require('request');
+
   SocketController = require('./SocketController');
 
   LocalController = require('./LocalController');
 
-  request = require('request');
-
   Error = require('./Error');
+
+  Weaver = require('./Weaver');
 
   WeaverError = require('./WeaverError');
 
-  WeaverRoot = require('./WeaverRoot');
-
-  CoreManager = (function(superClass) {
-    extend(CoreManager, superClass);
-
-    CoreManager.prototype.getClass = function() {
-      return CoreManager;
-    };
-
-    CoreManager.getClass = function() {
-      return CoreManager;
-    };
-
+  CoreManager = (function() {
     function CoreManager() {
       this.REQUEST = bind(this.REQUEST, this);
       this.currentProject = null;
@@ -101583,8 +101571,6 @@ module.exports={
     };
 
     CoreManager.prototype.listPlugins = function() {
-      var Weaver;
-      Weaver = this.getWeaverClass();
       return this.GET("plugins").then(function(plugins) {
         var i, len, p, results;
         results = [];
@@ -101597,8 +101583,6 @@ module.exports={
     };
 
     CoreManager.prototype.getPlugin = function(name) {
-      var Weaver;
-      Weaver = this.getWeaverClass();
       return this.POST("plugin.read", {
         name: name
       }).then(function(plugin) {
@@ -101617,8 +101601,6 @@ module.exports={
     };
 
     CoreManager.prototype.getACL = function(objectId) {
-      var Weaver;
-      Weaver = this.getWeaverClass();
       return this.GET("acl.read.byObject", {
         objectId: objectId
       }).then(function(aclObject) {
@@ -101648,8 +101630,6 @@ module.exports={
     };
 
     CoreManager.prototype._handleSignIn = function(authToken) {
-      var Weaver;
-      Weaver = this.getWeaverClass();
       this.currentUser = Weaver.User.get(authToken);
       return this.POST("user.read", {}, "$SYSTEM").then((function(_this) {
         return function(serverUser) {
@@ -101740,8 +101720,6 @@ module.exports={
     };
 
     CoreManager.prototype.readACL = function(aclId) {
-      var Weaver;
-      Weaver = this.getWeaverClass();
       return this.GET("acl.read", {
         id: aclId
       }).then(function(aclObject) {
@@ -101825,13 +101803,13 @@ module.exports={
 
     return CoreManager;
 
-  })(WeaverRoot);
+  })();
 
   module.exports = CoreManager;
 
 }).call(this);
 
-},{"./Error":402,"./LocalController":403,"./SocketController":405,"./WeaverError":409,"./WeaverRoot":419,"bluebird":72,"cuid":119,"lodash":252,"request":319,"socket.io-client":341}],402:[function(require,module,exports){
+},{"./Error":402,"./LocalController":403,"./SocketController":405,"./Weaver":406,"./WeaverError":409,"bluebird":72,"cuid":119,"lodash":252,"request":319,"socket.io-client":341}],402:[function(require,module,exports){
 (function() {
   module.exports = function(code, message) {
     return {
@@ -101903,13 +101881,15 @@ module.exports={
 
 },{"bluebird":72}],404:[function(require,module,exports){
 (function() {
-  var Action, NodeOperation;
+  var Action, NodeOperation, Weaver;
 
   Action = require('./WriteOperation').Action;
 
+  Weaver = require('./Weaver');
+
   NodeOperation = function(node) {
     var timestamp;
-    timestamp = node.getWeaver().getCoreManager().serverTime();
+    timestamp = Weaver.getCoreManager().serverTime();
     return {
       create: function() {
         return {
@@ -102019,7 +101999,7 @@ module.exports={
 
 }).call(this);
 
-},{"./WriteOperation":421}],405:[function(require,module,exports){
+},{"./Weaver":406,"./WriteOperation":420}],405:[function(require,module,exports){
 (function() {
   var Promise, SocketController, io, pjson;
 
@@ -102092,47 +102072,30 @@ module.exports={
 
 },{"../package.json":400,"bluebird":72,"socket.io-client":341}],406:[function(require,module,exports){
 (function() {
-  var CoreManager, Promise, Weaver, WeaverRoot,
-    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty;
+  var Promise, Weaver;
 
   Promise = require('bluebird');
 
-  WeaverRoot = require('./WeaverRoot');
-
-  CoreManager = require('./CoreManager');
-
-  Weaver = (function(superClass) {
-    extend(Weaver, superClass);
-
-    Weaver.prototype.getClass = function() {
-      return Weaver;
-    };
-
-    Weaver.getClass = function() {
-      return Weaver;
-    };
-
+  Weaver = (function() {
     function Weaver() {
       if (Weaver.weaver != null) {
         throw new Error('Do not instantiate Weaver twice');
       }
-      Weaver.weaver = this;
-      Weaver.ACL.weaver = this;
-      Weaver.CoreManager.weaver = this;
-      if (Weaver.File) {
-        Weaver.File.weaver = this;
-      }
-      Weaver.History.weaver = this;
-      Weaver.Node.weaver = this;
-      Weaver.Plugin.weaver = this;
-      Weaver.Project.weaver = this;
-      Weaver.Query.weaver = this;
-      Weaver.Relation.weaver = this;
-      Weaver.RelationNode.weaver = this;
-      Weaver.Role.weaver = this;
-      Weaver.User.weaver = this;
-      this.coreManager = new CoreManager();
+      Weaver.instance = this;
+      this.Node = Weaver.Node;
+      this.ACL = Weaver.ACL;
+      this.CoreManager = Weaver.CoreManager;
+      this.History = Weaver.History;
+      this.Plugin = Weaver.Plugin;
+      this.Project = Weaver.Project;
+      this.Query = Weaver.Query;
+      this.Relation = Weaver.Relation;
+      this.RelationNode = Weaver.RelationNode;
+      this.Role = Weaver.Role;
+      this.User = Weaver.User;
+      this.Error = Weaver.Error;
+      this.LegacyError = Weaver.LegacyError;
+      this.coreManager = new Weaver.CoreManager();
       this._connected = false;
       this._local = false;
     }
@@ -102199,39 +102162,20 @@ module.exports={
       return Promise.setScheduler(fn);
     };
 
+    Weaver.getInstance = function() {
+      if (!this.instance) {
+        throw new Error('Please instantiate Weaver before calling getInstance!');
+      }
+      return this.instance;
+    };
+
+    Weaver.getCoreManager = function() {
+      return this.getInstance().getCoreManager();
+    };
+
     return Weaver;
 
-  })(WeaverRoot);
-
-  Weaver.ACL = require('./WeaverACL');
-
-  Weaver.CoreManager = require('./CoreManager');
-
-  if (typeof window === "undefined" || window === null) {
-    Weaver.File = require('./WeaverFile');
-  }
-
-  Weaver.History = require('./WeaverHistory');
-
-  Weaver.Node = require('./WeaverNode');
-
-  Weaver.Plugin = require('./WeaverPlugin');
-
-  Weaver.Project = require('./WeaverProject');
-
-  Weaver.Query = require('./WeaverQuery');
-
-  Weaver.Relation = require('./WeaverRelation');
-
-  Weaver.RelationNode = require('./WeaverRelationNode');
-
-  Weaver.Role = require('./WeaverRole');
-
-  Weaver.User = require('./WeaverUser');
-
-  Weaver.Error = require('./WeaverError');
-
-  Weaver.LegacyError = require('./Error');
+  })();
 
   module.exports = Weaver;
 
@@ -102239,27 +102183,45 @@ module.exports={
     window.Weaver = Weaver;
   }
 
+  module.exports.Node = require('./WeaverNode');
+
+  module.exports.ACL = require('./WeaverACL');
+
+  module.exports.CoreManager = require('./CoreManager');
+
+  module.exports.History = require('./WeaverHistory');
+
+  module.exports.Plugin = require('./WeaverPlugin');
+
+  module.exports.Project = require('./WeaverProject');
+
+  module.exports.Query = require('./WeaverQuery');
+
+  module.exports.Relation = require('./WeaverRelation');
+
+  module.exports.RelationNode = require('./WeaverRelationNode');
+
+  module.exports.Role = require('./WeaverRole');
+
+  module.exports.User = require('./WeaverUser');
+
+  module.exports.Error = require('./WeaverError');
+
+  module.exports.LegacyError = require('./Error');
+
+  if (typeof window === "undefined" || window === null) {
+    module.exports.File = require('./WeaverFile');
+  }
+
 }).call(this);
 
-},{"../package.json":400,"./CoreManager":401,"./Error":402,"./WeaverACL":407,"./WeaverError":409,"./WeaverFile":410,"./WeaverHistory":411,"./WeaverNode":412,"./WeaverPlugin":413,"./WeaverProject":414,"./WeaverQuery":415,"./WeaverRelation":416,"./WeaverRelationNode":417,"./WeaverRole":418,"./WeaverRoot":419,"./WeaverUser":420,"bluebird":72}],407:[function(require,module,exports){
+},{"../package.json":400,"./CoreManager":401,"./Error":402,"./WeaverACL":407,"./WeaverError":409,"./WeaverFile":410,"./WeaverHistory":411,"./WeaverNode":412,"./WeaverPlugin":413,"./WeaverProject":414,"./WeaverQuery":415,"./WeaverRelation":416,"./WeaverRelationNode":417,"./WeaverRole":418,"./WeaverUser":419,"bluebird":72}],407:[function(require,module,exports){
 (function() {
-  var WeaverACL, WeaverRoot,
-    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty;
+  var Weaver, WeaverACL;
 
-  WeaverRoot = require('./WeaverRoot');
+  Weaver = require('./Weaver');
 
-  WeaverACL = (function(superClass) {
-    extend(WeaverACL, superClass);
-
-    WeaverACL.prototype.getClass = function() {
-      return WeaverACL;
-    };
-
-    WeaverACL.getClass = function() {
-      return WeaverACL;
-    };
-
+  WeaverACL = (function() {
     function WeaverACL() {
       this._id = cuid();
       this._objects = [];
@@ -102308,7 +102270,7 @@ module.exports={
     };
 
     WeaverACL.load = function(aclId) {
-      return this.getClass().getWeaver().getCoreManager().readACL(aclId);
+      return Weaver.getCoreManager().readACL(aclId);
     };
 
     WeaverACL.prototype.save = function() {
@@ -102329,19 +102291,19 @@ module.exports={
       this._roleRead = trueKeys(this._roleReadMap);
       this._roleWrite = trueKeys(this._roleWriteMap);
       if (!this._stored) {
-        return this.getWeaver().getCoreManager().createACL(this).then((function(_this) {
+        return Weaver.getCoreManager().createACL(this).then((function(_this) {
           return function() {
             _this._stored = true;
             return _this;
           };
         })(this));
       } else {
-        return this.getWeaver().getCoreManager().writeACL(this);
+        return Weaver.getCoreManager().writeACL(this);
       }
     };
 
     WeaverACL.prototype["delete"] = function() {
-      return this.getWeaver().getCoreManager().deleteACL(this).then((function(_this) {
+      return Weaver.getCoreManager().deleteACL(this).then((function(_this) {
         return function() {
           _this._deleted = true;
         };
@@ -102398,13 +102360,13 @@ module.exports={
 
     return WeaverACL;
 
-  })(WeaverRoot);
+  })();
 
   module.exports = WeaverACL;
 
 }).call(this);
 
-},{"./WeaverRoot":419}],408:[function(require,module,exports){
+},{"./Weaver":406}],408:[function(require,module,exports){
 (function() {
   module.exports = {
     DATE: 'date'
@@ -102552,9 +102514,7 @@ module.exports={
 
 },{}],410:[function(require,module,exports){
 (function() {
-  var Error, WeaverError, WeaverFile, WeaverRoot, fs, readFile, writeFile,
-    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty;
+  var Error, Weaver, WeaverError, WeaverFile, fs, readFile, writeFile;
 
   fs = require('fs');
 
@@ -102562,26 +102522,14 @@ module.exports={
 
   writeFile = require('fs-writefile-promise');
 
-  WeaverRoot = require('./WeaverRoot');
+  Weaver = require('./Weaver');
 
   WeaverError = require('./WeaverError');
 
   Error = require('./Error');
 
-  WeaverFile = (function(superClass) {
-    extend(WeaverFile, superClass);
-
-    function WeaverFile() {
-      return WeaverFile.__super__.constructor.apply(this, arguments);
-    }
-
-    WeaverFile.prototype.getClass = function() {
-      return WeaverFile;
-    };
-
-    WeaverFile.getClass = function() {
-      return WeaverFile;
-    };
+  WeaverFile = (function() {
+    function WeaverFile() {}
 
     WeaverFile.prototype.saveFile = function(path, fileName) {
       var formData;
@@ -102589,7 +102537,7 @@ module.exports={
         file: fs.createReadStream(path),
         fileName: fileName
       };
-      return this.getWeaver().getCoreManager().uploadFile(formData);
+      return Weaver.getCoreManager().uploadFile(formData);
     };
 
     WeaverFile.prototype.getFileByID = function(path, id) {
@@ -102601,7 +102549,7 @@ module.exports={
               id: id
             };
             fileStream = fs.createWriteStream(path);
-            _this.getWeaver().getCoreManager().downloadFileByID(payload).pipe(fileStream);
+            Weaver.getCoreManager().downloadFileByID(payload).pipe(fileStream);
             return fileStream.on('finish', function() {
               return resolve(fileStream.path);
             });
@@ -102618,36 +102566,24 @@ module.exports={
       file = {
         id: id
       };
-      return this.getWeaver().getCoreManager().deleteFileByID(file);
+      return Weaver.getCoreManager().deleteFileByID(file);
     };
 
     return WeaverFile;
 
-  })(WeaverRoot);
+  })();
 
   module.exports = WeaverFile;
 
 }).call(this);
 
-},{"./Error":402,"./WeaverError":409,"./WeaverRoot":419,"fs":181,"fs-readfile-promise":172,"fs-writefile-promise":176}],411:[function(require,module,exports){
+},{"./Error":402,"./Weaver":406,"./WeaverError":409,"fs":181,"fs-readfile-promise":172,"fs-writefile-promise":176}],411:[function(require,module,exports){
 (function() {
-  var WeaverHistory, WeaverRoot,
-    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty;
+  var Weaver, WeaverHistory;
 
-  WeaverRoot = require('./WeaverRoot');
+  Weaver = require('./Weaver');
 
-  WeaverHistory = (function(superClass) {
-    extend(WeaverHistory, superClass);
-
-    WeaverHistory.prototype.getClass = function() {
-      return WeaverHistory;
-    };
-
-    WeaverHistory.getClass = function() {
-      return WeaverHistory;
-    };
-
+  WeaverHistory = (function() {
     function WeaverHistory() {}
 
     WeaverHistory.prototype.forUser = function(userId) {
@@ -102671,7 +102607,7 @@ module.exports={
     };
 
     WeaverHistory.prototype.dumpHistory = function() {
-      return this.getWeaver().getCoreManager().dumpHistory({
+      return Weaver.getCoreManager().dumpHistory({
         limit: this.limit
       });
     };
@@ -102692,7 +102628,7 @@ module.exports={
       })() : [nodeField.id()];
       keys = typeIsArray(keyField) ? keyField : keyField != null ? [keyField] : void 0;
       tos = typeIsArray(toField) ? toField : toField != null ? [toField] : void 0;
-      return this.getWeaver().getCoreManager().getHistory({
+      return Weaver.getCoreManager().getHistory({
         ids: ids,
         keys: keys,
         tos: tos,
@@ -102705,35 +102641,23 @@ module.exports={
 
     return WeaverHistory;
 
-  })(WeaverRoot);
+  })();
 
   module.exports = WeaverHistory;
 
 }).call(this);
 
-},{"./WeaverRoot":419}],412:[function(require,module,exports){
+},{"./Weaver":406}],412:[function(require,module,exports){
 (function() {
-  var Operation, WeaverNode, WeaverRoot, cuid,
-    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty;
+  var Operation, Weaver, WeaverNode, cuid;
 
   cuid = require('cuid');
 
   Operation = require('./Operation');
 
-  WeaverRoot = require('./WeaverRoot');
+  Weaver = require('./Weaver');
 
-  WeaverNode = (function(superClass) {
-    extend(WeaverNode, superClass);
-
-    WeaverNode.prototype.getClass = function() {
-      return WeaverNode;
-    };
-
-    WeaverNode.getClass = function() {
-      return WeaverNode;
-    };
-
+  WeaverNode = (function() {
     function WeaverNode(nodeId1) {
       this.nodeId = nodeId1;
       if (this.nodeId == null) {
@@ -102747,11 +102671,9 @@ module.exports={
     }
 
     WeaverNode.load = function(nodeId, target, Constructor) {
-      var Weaver;
       if (Constructor == null) {
         Constructor = WeaverNode;
       }
-      Weaver = this.getWeaverClass();
       return new Weaver.Query(target).get(nodeId, Constructor);
     };
 
@@ -102812,7 +102734,7 @@ module.exports={
         throw new Error;
       }
       operation = Operation.Node(this).incrementAttribute(field, value);
-      return this.getWeaver().getCoreManager().executeOperations([operation], project).then((function(_this) {
+      return Weaver.getCoreManager().executeOperations([operation], project).then((function(_this) {
         return function(res) {
           if ((res != null) && (res.incrementedTo != null)) {
             _this.attributes[field] = res.incrementedTo;
@@ -102829,8 +102751,6 @@ module.exports={
     };
 
     WeaverNode.prototype.relation = function(key) {
-      var Weaver;
-      Weaver = this.getWeaverClass();
       if (this.relations[key] == null) {
         this.relations[key] = new Weaver.Relation(this, key);
       }
@@ -102938,7 +102858,7 @@ module.exports={
     };
 
     WeaverNode.prototype.save = function(project) {
-      return this.getWeaver().getCoreManager().executeOperations(this._collectPendingWrites(), project).then((function(_this) {
+      return Weaver.getCoreManager().executeOperations(this._collectPendingWrites(), project).then((function(_this) {
         return function() {
           _this._clearPendingWrites();
           _this._setStored();
@@ -102955,7 +102875,7 @@ module.exports={
         operations = operations.concat(node._collectPendingWrites());
         node._clearPendingWrites();
       }
-      return this.getWeaver().getCoreManager().executeOperations(operations, project).then((function() {
+      return Weaver.getCoreManager().executeOperations(operations, project).then((function() {
         var j, len1, results;
         results = [];
         for (j = 0, len1 = array.length; j < len1; j++) {
@@ -102967,7 +102887,7 @@ module.exports={
     };
 
     WeaverNode.prototype.destroy = function(project) {
-      return this.getWeaver().getCoreManager().executeOperations([Operation.Node(this).destroy()], project).then((function(_this) {
+      return Weaver.getCoreManager().executeOperations([Operation.Node(this).destroy()], project).then((function(_this) {
         return function() {
           var key;
           for (key in _this) {
@@ -102982,32 +102902,20 @@ module.exports={
 
     return WeaverNode;
 
-  })(WeaverRoot);
+  })();
 
   module.exports = WeaverNode;
 
 }).call(this);
 
-},{"./Operation":404,"./WeaverRoot":419,"cuid":119}],413:[function(require,module,exports){
+},{"./Operation":404,"./Weaver":406,"cuid":119}],413:[function(require,module,exports){
 (function() {
-  var WeaverPlugin, WeaverRoot,
-    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty,
+  var Weaver, WeaverPlugin,
     slice = [].slice;
 
-  WeaverRoot = require('./WeaverRoot');
+  Weaver = require('./Weaver');
 
-  WeaverPlugin = (function(superClass) {
-    extend(WeaverPlugin, superClass);
-
-    WeaverPlugin.prototype.getClass = function() {
-      return WeaverPlugin;
-    };
-
-    WeaverPlugin.getClass = function() {
-      return WeaverPlugin;
-    };
-
+  WeaverPlugin = (function() {
     function WeaverPlugin(serverObject) {
       this._name = serverObject.name;
       this._version = serverObject.version;
@@ -103025,14 +102933,14 @@ module.exports={
               r = ref[index];
               payload[r] = args[index];
             }
-            return this.getWeaver().getCoreManager().executePluginFunction(f.route, payload);
+            return Weaver.getCoreManager().executePluginFunction(f.route, payload);
           };
         };
       })(this));
     }
 
     WeaverPlugin.load = function(name) {
-      return this.getWeaver().getCoreManager().getPlugin(name);
+      return Weaver.getCoreManager().getPlugin(name);
     };
 
     WeaverPlugin.prototype.printFunctions = function() {
@@ -103074,38 +102982,26 @@ module.exports={
     };
 
     WeaverPlugin.list = function() {
-      return this.getWeaver().getCoreManager().listPlugins();
+      return Weaver.getCoreManager().listPlugins();
     };
 
     return WeaverPlugin;
 
-  })(WeaverRoot);
+  })();
 
   module.exports = WeaverPlugin;
 
 }).call(this);
 
-},{"./WeaverRoot":419}],414:[function(require,module,exports){
+},{"./Weaver":406}],414:[function(require,module,exports){
 (function() {
-  var WeaverProject, WeaverRoot, cuid,
-    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty;
+  var Weaver, WeaverProject, cuid;
 
   cuid = require('cuid');
 
-  WeaverRoot = require('./WeaverRoot');
+  Weaver = require('./Weaver');
 
-  WeaverProject = (function(superClass) {
-    extend(WeaverProject, superClass);
-
-    WeaverProject.prototype.getClass = function() {
-      return WeaverProject;
-    };
-
-    WeaverProject.getClass = function() {
-      return WeaverProject;
-    };
-
+  WeaverProject = (function() {
     WeaverProject.READY_RETRY_TIMEOUT = 200;
 
     function WeaverProject(name, projectId) {
@@ -103122,7 +103018,7 @@ module.exports={
 
     WeaverProject.prototype.create = function() {
       var coreManager;
-      coreManager = this.getWeaver().getCoreManager();
+      coreManager = Weaver.getCoreManager();
       return coreManager.createProject(this.projectId, this.name).then((function(_this) {
         return function() {
           return new Promise(function(resolve) {
@@ -103150,68 +103046,56 @@ module.exports={
     WeaverProject.prototype.destroy = function() {
       return WeaverProject.__super__.destroy.call(this).then((function(_this) {
         return function() {
-          return _this.getWeaver().getCoreManager().deleteProject(_this.id());
+          return Weaver.getCoreManager().deleteProject(_this.id());
         };
       })(this));
     };
 
     WeaverProject.prototype.getAllNodes = function(attributes) {
-      return this.getWeaver().getCoreManager().getAllNodes(attributes, this.id());
+      return Weaver.getCoreManager().getAllNodes(attributes, this.id());
     };
 
     WeaverProject.prototype.getAllRelations = function() {
-      return this.getWeaver().getCoreManager().getAllRelations(this.id());
+      return Weaver.getCoreManager().getAllRelations(this.id());
     };
 
     WeaverProject.prototype.destroy = function() {
-      return this.getWeaver().getCoreManager().deleteProject(this.id());
+      return Weaver.getCoreManager().deleteProject(this.id());
     };
 
     WeaverProject.prototype.wipe = function() {
-      return this.getWeaver().getCoreManager().wipeProject(this.id());
+      return Weaver.getCoreManager().wipeProject(this.id());
     };
 
     WeaverProject.prototype.getACL = function() {
-      return this.getWeaver().getCoreManager().getACL(this.projectId);
+      return Weaver.getCoreManager().getACL(this.projectId);
     };
 
     WeaverProject.list = function() {
-      return this.getWeaver().getCoreManager().listProjects();
+      return Weaver.getCoreManager().listProjects();
     };
 
     return WeaverProject;
 
-  })(WeaverRoot);
+  })();
 
   module.exports = WeaverProject;
 
 }).call(this);
 
-},{"./WeaverRoot":419,"cuid":119}],415:[function(require,module,exports){
+},{"./Weaver":406,"cuid":119}],415:[function(require,module,exports){
 (function() {
-  var WeaverQuery, WeaverRoot, quote, util,
-    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty;
+  var Weaver, WeaverQuery, quote, util;
 
   util = require('./util');
 
-  WeaverRoot = require('./WeaverRoot');
+  Weaver = require('./Weaver');
 
   quote = function(s) {
     return '\\Q' + s.replace('\\E', '\\E\\\\E\\Q') + '\\E';
   };
 
-  WeaverQuery = (function(superClass) {
-    extend(WeaverQuery, superClass);
-
-    WeaverQuery.prototype.getClass = function() {
-      return WeaverQuery;
-    };
-
-    WeaverQuery.getClass = function() {
-      return WeaverQuery;
-    };
-
+  WeaverQuery = (function() {
     function WeaverQuery(target) {
       this.target = target;
       this._restrict = [];
@@ -103229,10 +103113,8 @@ module.exports={
     }
 
     WeaverQuery.prototype.find = function(Constructor) {
-      var Weaver;
-      Weaver = this.getWeaverClass();
       Constructor = Constructor || Weaver.Node;
-      return this.getWeaver().getCoreManager().query(this).then(function(nodes) {
+      return Weaver.getCoreManager().query(this).then(function(nodes) {
         var i, instance, len, list, node;
         list = [];
         for (i = 0, len = nodes.length; i < len; i++) {
@@ -103249,7 +103131,7 @@ module.exports={
 
     WeaverQuery.prototype.count = function() {
       this._count = true;
-      return this.getWeaver().getCoreManager().query(this);
+      return Weaver.getCoreManager().query(this);
     };
 
     WeaverQuery.prototype.first = function(Constructor) {
@@ -103272,8 +103154,7 @@ module.exports={
     };
 
     WeaverQuery.prototype.restrict = function(nodes) {
-      var Weaver, addRestrict, i, len, node;
-      Weaver = this.getWeaverClass();
+      var addRestrict, i, len, node;
       addRestrict = (function(_this) {
         return function(node) {
           if (util.isString(node)) {
@@ -103453,50 +103334,37 @@ module.exports={
     };
 
     WeaverQuery.or = function(queries) {
-      var Weaver, query;
-      Weaver = this.getWeaverClass();
+      var query;
       query = new Weaver.Query();
       query.or(queries);
       return query;
     };
 
     WeaverQuery.prototype.subscribe = function() {
-      return this.getWeaver().getCoreManager().subscribe(this);
+      return Weaver.getCoreManager().subscribe(this);
     };
 
     WeaverQuery.prototype.nativeQuery = function(query) {
-      return this.getWeaver().getCoreManager().nativeQuery(query, this.getWeaver().currentProject().id());
+      return Weaver.getCoreManager().nativeQuery(query, Weaver.getInstance().currentProject().id());
     };
 
     return WeaverQuery;
 
-  })(WeaverRoot);
+  })();
 
   module.exports = WeaverQuery;
 
 }).call(this);
 
-},{"./WeaverRoot":419,"./util":422}],416:[function(require,module,exports){
+},{"./Weaver":406,"./util":421}],416:[function(require,module,exports){
 (function() {
-  var Operation, WeaverRelation, WeaverRoot,
-    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty;
+  var Operation, Weaver, WeaverRelation;
 
   Operation = require('./Operation');
 
-  WeaverRoot = require('./WeaverRoot');
+  Weaver = require('./Weaver');
 
-  WeaverRelation = (function(superClass) {
-    extend(WeaverRelation, superClass);
-
-    WeaverRelation.prototype.getClass = function() {
-      return WeaverRelation;
-    };
-
-    WeaverRelation.getClass = function() {
-      return WeaverRelation;
-    };
-
+  WeaverRelation = (function() {
     function WeaverRelation(parent, key1) {
       this.parent = parent;
       this.key = key1;
@@ -103514,11 +103382,9 @@ module.exports={
     };
 
     WeaverRelation.prototype.to = function(node) {
-      var Weaver;
       if (!this.relationNodes[node.id()]) {
         throw new Error("No relation to a node with this id: " + (node.id()));
       }
-      Weaver = this.getWeaverClass();
       return Weaver.RelationNode.load(this.relationNodes[node.id()].id(), null, Weaver.RelationNode);
     };
 
@@ -103534,12 +103400,10 @@ module.exports={
     };
 
     WeaverRelation.prototype.add = function(node, relId) {
-      var Weaver;
       if (relId == null) {
         relId = cuid();
       }
       this.nodes[node.id()] = node;
-      Weaver = this.getWeaverClass();
       this.relationNodes[node.id()] = Weaver.RelationNode.get(relId, Weaver.RelationNode);
       return this.pendingWrites.push(Operation.Node(this.parent).createRelation(this.key, node.id(), relId));
     };
@@ -103560,15 +103424,15 @@ module.exports={
 
     return WeaverRelation;
 
-  })(WeaverRoot);
+  })();
 
   module.exports = WeaverRelation;
 
 }).call(this);
 
-},{"./Operation":404,"./WeaverRoot":419}],417:[function(require,module,exports){
+},{"./Operation":404,"./Weaver":406}],417:[function(require,module,exports){
 (function() {
-  var Operation, WeaverNode, WeaverRelationNode, cuid,
+  var Operation, Weaver, WeaverNode, WeaverRelationNode, cuid,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
 
@@ -103576,18 +103440,12 @@ module.exports={
 
   Operation = require('./Operation');
 
+  Weaver = require('./Weaver');
+
   WeaverNode = require('./WeaverNode');
 
   WeaverRelationNode = (function(superClass) {
     extend(WeaverRelationNode, superClass);
-
-    WeaverRelationNode.prototype.getClass = function() {
-      return WeaverRelationNode;
-    };
-
-    WeaverRelationNode.getClass = function() {
-      return WeaverRelationNode;
-    };
 
     function WeaverRelationNode(nodeId) {
       this.nodeId = nodeId;
@@ -103611,7 +103469,7 @@ module.exports={
     };
 
     WeaverRelationNode.prototype.destroy = function(project) {
-      return this.getWeaver().getCoreManager().executeOperations([Operation.Node(this).destroy()], project).then((function(_this) {
+      return Weaver.getCoreManager().executeOperations([Operation.Node(this).destroy()], project).then((function(_this) {
         return function() {
           var key;
           for (key in _this) {
@@ -103630,27 +103488,15 @@ module.exports={
 
 }).call(this);
 
-},{"./Operation":404,"./WeaverNode":412,"cuid":119}],418:[function(require,module,exports){
+},{"./Operation":404,"./Weaver":406,"./WeaverNode":412,"cuid":119}],418:[function(require,module,exports){
 (function() {
-  var WeaverRole, WeaverRoot, cuid,
-    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty;
+  var Weaver, WeaverRole, cuid;
 
   cuid = require('cuid');
 
-  WeaverRoot = require('./WeaverRoot');
+  Weaver = require('./Weaver');
 
-  WeaverRole = (function(superClass) {
-    extend(WeaverRole, superClass);
-
-    WeaverRole.prototype.getClass = function() {
-      return WeaverRole;
-    };
-
-    WeaverRole.getClass = function() {
-      return WeaverRole;
-    };
-
+  WeaverRole = (function() {
     function WeaverRole(name) {
       this.name = name;
       this.name = this.name || "unnamed";
@@ -103665,14 +103511,14 @@ module.exports={
       this._users = this.getUsers();
       this._roles = this.getRoles();
       if (!this._stored) {
-        return this.getWeaver().getCoreManager().createRole(this).then((function(_this) {
+        return Weaver.getCoreManager().createRole(this).then((function(_this) {
           return function() {
             _this._stored = true;
             return _this;
           };
         })(this));
       } else {
-        return this.getWeaver().getCoreManager().updateRole(this);
+        return Weaver.getCoreManager().updateRole(this);
       }
     };
 
@@ -103719,7 +103565,7 @@ module.exports={
     };
 
     WeaverRole.prototype["delete"] = function() {
-      return this.getWeaver().getCoreManager().deleteRole(this.id()).then((function(_this) {
+      return Weaver.getCoreManager().deleteRole(this.id()).then((function(_this) {
         return function() {
           return _this._deleted = true;
         };
@@ -103728,88 +103574,23 @@ module.exports={
 
     return WeaverRole;
 
-  })(WeaverRoot);
+  })();
 
   module.exports = WeaverRole;
 
 }).call(this);
 
-},{"./WeaverRoot":419,"cuid":119}],419:[function(require,module,exports){
+},{"./Weaver":406,"cuid":119}],419:[function(require,module,exports){
 (function() {
-  var WeaverRoot;
-
-  WeaverRoot = (function() {
-    function WeaverRoot() {}
-
-    WeaverRoot.prototype.getClass = function() {
-      return WeaverRoot;
-    };
-
-    WeaverRoot.getClass = function() {
-      return WeaverRoot;
-    };
-
-    WeaverRoot.weaver = null;
-
-    WeaverRoot.getWeaver = function() {
-      if (this.weaver == null) {
-        throw new Error('Please set a reference to the Weaver instance first');
-      }
-      return this.weaver;
-    };
-
-    WeaverRoot.getWeaverClass = function() {
-      if (this.weaver == null) {
-        throw new Error('Please set a reference to the Weaver instance first');
-      }
-      return this.weaver.getClass();
-    };
-
-    WeaverRoot.prototype.getWeaver = function() {
-      if (this.getClass().weaver == null) {
-        throw new Error('Please set a reference to the Weaver instance first');
-      }
-      return this.getClass().weaver;
-    };
-
-    WeaverRoot.prototype.getWeaverClass = function() {
-      if (this.getClass().weaver == null) {
-        throw new Error('Please set a reference to the Weaver instance first');
-      }
-      return this.getClass().weaver.getClass();
-    };
-
-    return WeaverRoot;
-
-  })();
-
-  module.exports = WeaverRoot;
-
-}).call(this);
-
-},{}],420:[function(require,module,exports){
-(function() {
-  var Promise, WeaverRoot, WeaverUser, cuid,
-    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty;
+  var Promise, Weaver, WeaverUser, cuid;
 
   cuid = require('cuid');
 
   Promise = require('bluebird');
 
-  WeaverRoot = require('./WeaverRoot');
+  Weaver = require('./Weaver');
 
-  WeaverUser = (function(superClass) {
-    extend(WeaverUser, superClass);
-
-    WeaverUser.prototype.getClass = function() {
-      return WeaverUser;
-    };
-
-    WeaverUser.getClass = function() {
-      return WeaverUser;
-    };
-
+  WeaverUser = (function() {
     function WeaverUser(username, password, email) {
       this.username = username;
       this.password = password;
@@ -103842,7 +103623,7 @@ module.exports={
     };
 
     WeaverUser.prototype.create = function() {
-      return this.getWeaver().getCoreManager().signUpUser(this).then((function(_this) {
+      return Weaver.getCoreManager().signUpUser(this).then((function(_this) {
         return function(user) {
           delete _this.password;
           return user;
@@ -103855,13 +103636,13 @@ module.exports={
         return function(authToken) {
           _this.authToken = authToken;
           _this._stored = true;
-          return _this.getWeaver().getCoreManager().currentUser = _this;
+          return Weaver.getCoreManager().currentUser = _this;
         };
       })(this));
     };
 
     WeaverUser.prototype.destroy = function() {
-      return this.getWeaver().getCoreManager().destroyUser(this);
+      return Weaver.getCoreManager().destroyUser(this);
     };
 
     WeaverUser.list = function() {
@@ -103870,13 +103651,13 @@ module.exports={
 
     return WeaverUser;
 
-  })(WeaverRoot);
+  })();
 
   module.exports = WeaverUser;
 
 }).call(this);
 
-},{"./WeaverRoot":419,"bluebird":72,"cuid":119}],421:[function(require,module,exports){
+},{"./Weaver":406,"bluebird":72,"cuid":119}],420:[function(require,module,exports){
 (function() {
   var Action, Signature, define;
 
@@ -103923,7 +103704,7 @@ module.exports={
 
 }).call(this);
 
-},{}],422:[function(require,module,exports){
+},{}],421:[function(require,module,exports){
 (function() {
   var flatten, typeShouldBe;
 
@@ -103963,4 +103744,4 @@ module.exports={
 
 }).call(this);
 
-},{}]},{},[401,402,403,404,405,422,406,408,409,411,413,417,419,421]);
+},{}]},{},[401,402,403,404,405,421,406,408,409,411,413,417,420]);
