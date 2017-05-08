@@ -3,19 +3,14 @@ _                = require('lodash')
 io               = require('socket.io-client')
 cuid             = require('cuid')
 Promise          = require('bluebird')
+request          = require('request')
 SocketController = require('./SocketController')
 LocalController  = require('./LocalController')
-request          = require('request')
 Error            = require('./Error')
+Weaver           = require('./Weaver')
 WeaverError      = require('./WeaverError')
-WeaverRoot       = require('./WeaverRoot')
 
-class CoreManager extends WeaverRoot
-
-  getClass: ->
-    CoreManager
-  @getClass: ->
-    CoreManager
+class CoreManager
 
   constructor: ->
     @currentProject = null
@@ -82,13 +77,11 @@ class CoreManager extends WeaverRoot
     @POST("project.create", {id, name})
 
   listPlugins: ->
-    Weaver = @getWeaverClass()
     @GET("plugins").then((plugins) ->
       (new Weaver.Plugin(p) for p in plugins)
     )
 
   getPlugin: (name) ->
-    Weaver = @getWeaverClass()
     @POST("plugin.read", {name}).then((plugin) ->
       new Weaver.Plugin(plugin)
     )
@@ -100,7 +93,6 @@ class CoreManager extends WeaverRoot
     @POST("role.create", {role})
 
   getACL: (objectId) ->
-    Weaver = @getWeaverClass()
     @GET("acl.read.byObject", {objectId}).then((aclObject) ->
       Weaver.ACL.loadFromServerObject(aclObject)
     )
@@ -119,7 +111,6 @@ class CoreManager extends WeaverRoot
       )
 
   _handleSignIn: (authToken) ->
-    Weaver = @getWeaverClass()
     @currentUser = Weaver.User.get(authToken)
     @POST("user.read", {}, "$SYSTEM").then((serverUser) =>
       @currentUser.populateFromServer(serverUser)
@@ -184,7 +175,6 @@ class CoreManager extends WeaverRoot
     @POST("application.wipe")
 
   readACL: (aclId) ->
-    Weaver = @getWeaverClass()
     @GET("acl.read", {id: aclId}).then((aclObject) ->
       Weaver.ACL.loadFromServerObject(aclObject)
     )

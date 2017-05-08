@@ -1,37 +1,15 @@
 Promise = require('bluebird')
-WeaverRoot  = require('./WeaverRoot')
-CoreManager = require('./CoreManager')
 
-
-class Weaver extends WeaverRoot
-
-  getClass: ->
-    Weaver
-  @getClass: ->
-    Weaver
+class Weaver
 
   constructor: ->
 
     if Weaver.weaver?
       throw new Error('Do not instantiate Weaver twice')
 
-    Weaver.weaver = @
+    Weaver.instance = @
 
-    Weaver.ACL.weaver = @
-    Weaver.CoreManager.weaver = @
-    if Weaver.File
-      Weaver.File.weaver = @
-    Weaver.History.weaver = @
-    Weaver.Node.weaver = @
-    Weaver.Plugin.weaver = @
-    Weaver.Project.weaver = @
-    Weaver.Query.weaver = @
-    Weaver.Relation.weaver = @
-    Weaver.RelationNode.weaver = @
-    Weaver.Role.weaver = @
-    Weaver.User.weaver = @
-
-    @coreManager = new CoreManager()
+    @coreManager = new Weaver.CoreManager()
     @_connected  = false
     @_local      = false
 
@@ -85,32 +63,37 @@ class Weaver extends WeaverRoot
   setScheduler: (fn) ->
     Promise.setScheduler(fn)
 
+  # Returns the Weaver instance if instantiated. This should be called from
+  # a static reference
+  @getInstance: ->
+    if(not @instance)
+      throw new Error('Please instantiate Weaver before calling getInstance!')
 
+    @instance
 
-# Those hold a reference to the weaver instance
-Weaver.ACL          = require('./WeaverACL')
-Weaver.CoreManager  = require('./CoreManager')
-if !window?
-  Weaver.File       = require('./WeaverFile') # avoiding problems on browsers trying to load node's fs stuff
-
-Weaver.History      = require('./WeaverHistory')
-Weaver.Node         = require('./WeaverNode')
-Weaver.Plugin       = require('./WeaverPlugin')
-Weaver.Project      = require('./WeaverProject')
-Weaver.Query        = require('./WeaverQuery')
-Weaver.Relation     = require('./WeaverRelation')
-Weaver.RelationNode = require('./WeaverRelationNode')
-Weaver.Role         = require('./WeaverRole')
-Weaver.User         = require('./WeaverUser')
-
-# Those do not hold  a reference
-Weaver.Error        = require('./WeaverError')
-Weaver.LegacyError  = require('./Error')
+  # Returns the coremanager if Weaver is instantiated. This should be called from
+  # a static reference
+  @getCoreManager: ->
+    @getInstance().getCoreManager()
 
 # Export
-#weaver = new Weaver()
-#module.exports = weaver             # Node
-#window.Weaver  = weaver if window?  # Browser
 module.exports = Weaver             # Node
 window.Weaver  = Weaver if window?  # Browser
 
+# Require Weaver objects after exporting Weaver to prevent circular dependency
+# issues
+module.exports.Node         = require('./WeaverNode')
+module.exports.ACL          = require('./WeaverACL')
+module.exports.CoreManager  = require('./CoreManager')
+module.exports.History      = require('./WeaverHistory')
+module.exports.Plugin       = require('./WeaverPlugin')
+module.exports.Project      = require('./WeaverProject')
+module.exports.Query        = require('./WeaverQuery')
+module.exports.Relation     = require('./WeaverRelation')
+module.exports.RelationNode = require('./WeaverRelationNode')
+module.exports.Role         = require('./WeaverRole')
+module.exports.User         = require('./WeaverUser')
+module.exports.Error        = require('./WeaverError')
+module.exports.LegacyError  = require('./Error')
+if !window? # Prevent issues with WeaverFile when in browser
+  module.exports.File       = require('./WeaverFile')

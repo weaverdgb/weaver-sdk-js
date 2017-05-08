@@ -1,20 +1,14 @@
 cuid        = require('cuid')
 Operation   = require('./Operation')
-WeaverRoot  = require('./WeaverRoot')
+Weaver      = require('./Weaver')
 
-class WeaverNode extends WeaverRoot
-
-  getClass: ->
-    WeaverNode
-  @getClass: ->
-    WeaverNode
+class WeaverNode
 
   constructor: (@nodeId) ->
     # Generate random id if not given
     @nodeId = cuid() if not @nodeId?
     @_stored = false       # if true, available in database, local node can hold unsaved changes
     @_loaded = false       # if true, all information from the database was localised on construction
-
     # Store all attributes and relations in these objects
     @attributes = {}
     @relations  = {}
@@ -26,7 +20,6 @@ class WeaverNode extends WeaverRoot
   # Node loading from server
   @load: (nodeId, target, Constructor) ->
     Constructor = WeaverNode if not Constructor?
-    Weaver = @getWeaverClass()
     new Weaver.Query(target).get(nodeId, Constructor)
 
   _loadFromQuery: (object, Constructor) ->
@@ -84,7 +77,7 @@ class WeaverNode extends WeaverRoot
       throw new Error
 
     operation = Operation.Node(@).incrementAttribute(field, value)
-    @getWeaver().getCoreManager().executeOperations([operation], project).then((res)=>
+    Weaver.getCoreManager().executeOperations([operation], project).then((res)=>
       if res? and res.incrementedTo?
         @attributes[field] = res.incrementedTo
         res.incrementedTo
@@ -102,7 +95,6 @@ class WeaverNode extends WeaverRoot
 
   # Create a new Relation
   relation: (key) ->
-    Weaver = @getWeaverClass()
     @relations[key] = new Weaver.Relation(@, key) if not @relations[key]?
     @relations[key]
 
@@ -171,7 +163,7 @@ class WeaverNode extends WeaverRoot
 
   # Save node and all values / relations and relation objects to server
   save: (project) ->
-    @getWeaver().getCoreManager().executeOperations(@_collectPendingWrites(), project).then(=>
+    Weaver.getCoreManager().executeOperations(@_collectPendingWrites(), project).then(=>
       @_clearPendingWrites()
       @_setStored()
       @
@@ -185,7 +177,7 @@ class WeaverNode extends WeaverRoot
       operations = operations.concat(node._collectPendingWrites())
       node._clearPendingWrites()
 
-    @getWeaver().getCoreManager().executeOperations(operations, project).then(
+    Weaver.getCoreManager().executeOperations(operations, project).then(
       for node in array
         node._setStored()
       array
@@ -194,7 +186,7 @@ class WeaverNode extends WeaverRoot
 
   # Removes node
   destroy: (project) ->
-    @getWeaver().getCoreManager().executeOperations([Operation.Node(@).destroy()], project).then(=>
+    Weaver.getCoreManager().executeOperations([Operation.Node(@).destroy()], project).then(=>
       delete @[key] for key of @
       undefined
     )
