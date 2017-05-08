@@ -9,6 +9,22 @@ class Weaver
 
     Weaver.instance = @
 
+    # Make Weaver objects available through the instance
+    # FIXME: Should probably be done with a for loop or something
+    @Node = Weaver.Node
+    @ACL = Weaver.ACL
+    @CoreManager = Weaver.CoreManager
+    @History = Weaver.History
+    @Plugin = Weaver.Plugin
+    @Project = Weaver.Project
+    @Query = Weaver.Query
+    @Relation = Weaver.Relation
+    @RelationNode = Weaver.RelationNode
+    @Role = Weaver.Role
+    @User = Weaver.User
+    @Error = Weaver.Error
+    @LegacyError = Weaver.LegacyError
+
     @coreManager = new Weaver.CoreManager()
     @_connected  = false
     @_local      = false
