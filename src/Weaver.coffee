@@ -24,6 +24,8 @@ class Weaver
     @User = Weaver.User
     @Error = Weaver.Error
     @LegacyError = Weaver.LegacyError
+    if !window?
+      @File = Weaver.File
 
     @coreManager = new Weaver.CoreManager()
     @_connected  = false
