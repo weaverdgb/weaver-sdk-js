@@ -2,9 +2,6 @@ weaver = require("./test-suite")
 Weaver = require('../src/Weaver')
 
 describe 'WeaverHistory test', ->
-
-
-
   it 'should set a new string attribute', ->
     node = new Weaver.Node()
     nodeB = new Weaver.Node()

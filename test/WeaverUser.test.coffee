@@ -1,4 +1,5 @@
 weaver = require("./test-suite")
+cuid   = require('cuid')
 Weaver = require('../src/Weaver')
 
 describe 'WeaverUser Test', ->
