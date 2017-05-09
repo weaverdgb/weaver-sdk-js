@@ -4,7 +4,7 @@ class Weaver
 
   constructor: ->
 
-    if Weaver.weaver?
+    if Weaver.instance?
       throw new Error('Do not instantiate Weaver twice')
 
     Weaver.instance = @
