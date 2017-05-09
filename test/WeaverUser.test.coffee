@@ -1,4 +1,5 @@
 weaver = require("./test-suite")
+cuid   = require('cuid')
 Weaver = weaver.getClass()
 
 describe 'WeaverUser Test', ->

@@ -1,7 +1,7 @@
 weaver = require("./test-suite")
 Weaver = weaver.getClass()
 
-describe 'WeaverNode relation and WeaverRelationNode test', ->
+describe 'Weaver relation and WeaverRelationNode test', ->
 
   it 'should add a new relation without id', ->
     foo = new Weaver.Node()
