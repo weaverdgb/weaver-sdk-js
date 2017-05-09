@@ -101392,7 +101392,7 @@ module.exports = yeast;
 },{}],400:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "2.2.5",
+  "version": "2.2.8",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -102243,9 +102243,11 @@ module.exports={
 
 },{"../package.json":400,"./CoreManager":401,"./Error":402,"./WeaverACL":407,"./WeaverError":409,"./WeaverFile":410,"./WeaverHistory":411,"./WeaverNode":412,"./WeaverPlugin":413,"./WeaverProject":414,"./WeaverQuery":415,"./WeaverRelation":416,"./WeaverRelationNode":417,"./WeaverRole":418,"./WeaverRoot":419,"./WeaverUser":420,"bluebird":72}],407:[function(require,module,exports){
 (function() {
-  var WeaverACL, WeaverRoot,
+  var WeaverACL, WeaverRoot, cuid,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
+
+  cuid = require('cuid');
 
   WeaverRoot = require('./WeaverRoot');
 
@@ -102287,22 +102289,22 @@ module.exports={
       ref = aclObject.userRead;
       for (i = 0, len = ref.length; i < len; i++) {
         u = ref[i];
-        acl._userReadMap[u] = null;
+        acl._userReadMap[u] = true;
       }
       ref1 = aclObject.userWrite;
       for (j = 0, len1 = ref1.length; j < len1; j++) {
         u = ref1[j];
-        acl._userWriteMap[u] = null;
+        acl._userWriteMap[u] = true;
       }
       ref2 = aclObject.roleRead;
       for (k = 0, len2 = ref2.length; k < len2; k++) {
         u = ref2[k];
-        acl._roleReadMap[u] = null;
+        acl._roleReadMap[u] = true;
       }
       ref3 = aclObject.roleWrite;
       for (l = 0, len3 = ref3.length; l < len3; l++) {
         u = ref3[l];
-        acl._roleWriteMap[u] = null;
+        acl._roleWriteMap[u] = true;
       }
       return acl;
     };
@@ -102404,7 +102406,7 @@ module.exports={
 
 }).call(this);
 
-},{"./WeaverRoot":419}],408:[function(require,module,exports){
+},{"./WeaverRoot":419,"cuid":119}],408:[function(require,module,exports){
 (function() {
   module.exports = {
     DATE: 'date'
@@ -103478,9 +103480,11 @@ module.exports={
 
 },{"./WeaverRoot":419,"./util":422}],416:[function(require,module,exports){
 (function() {
-  var Operation, WeaverRelation, WeaverRoot,
+  var Operation, WeaverRelation, WeaverRoot, cuid,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
+
+  cuid = require('cuid');
 
   Operation = require('./Operation');
 
@@ -103566,7 +103570,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Operation":404,"./WeaverRoot":419}],417:[function(require,module,exports){
+},{"./Operation":404,"./WeaverRoot":419,"cuid":119}],417:[function(require,module,exports){
 (function() {
   var Operation, WeaverNode, WeaverRelationNode, cuid,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
