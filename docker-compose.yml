@@ -1,4 +1,4 @@
-version: '2.1'
+version: '2'
 services:
   database:
     image: tenforce/virtuoso:1.1.0-virtuoso7.2.4
