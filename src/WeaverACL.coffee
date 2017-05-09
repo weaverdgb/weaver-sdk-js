@@ -64,7 +64,9 @@ class WeaverACL
         @
       )
     else
-      Weaver.getCoreManager().writeACL(@)
+      Weaver.getCoreManager().writeACL(@).then(=>
+        @
+      )
 
   delete: ->
     Weaver.getCoreManager().deleteACL(@).then(=>

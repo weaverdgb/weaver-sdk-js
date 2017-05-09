@@ -73,6 +73,9 @@ class CoreManager
   listProjects: ->
     @GET("project")
 
+  listUsers: ->
+    @GET("users")
+
   createProject: (id, name) ->
     @POST("project.create", {id, name})
 

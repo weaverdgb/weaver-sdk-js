@@ -16,6 +16,14 @@ class WeaverUser
     user.authToken = authToken
     user
 
+  @loadFromServerObject: (user) ->
+    u = new Weaver.User()
+    u._stored = true
+    u.username = user.username
+    u.email    = user.email
+    u.userId   = user.userId
+    u
+
   populateFromServer: (serverUser) ->
     @[key] = value for key, value of serverUser
 
@@ -24,16 +32,16 @@ class WeaverUser
 
   # Saves the user without signing up
   create: ->
-    Weaver.getCoreManager().signUpUser(@).then((user) =>
+    Weaver.getCoreManager().signUpUser(@).then((authToken) =>
       delete @password
-      user
+      @_stored   = true
+      @authToken = authToken
+      return
     )
 
   # Saves the user and signs in as current user
   signUp: ->
-    @create().then((authToken) =>
-      @authToken = authToken
-      @_stored = true
+    @create().then(=>
       Weaver.getCoreManager().currentUser = @
     )
 
@@ -41,7 +49,9 @@ class WeaverUser
     Weaver.getCoreManager().destroyUser(@)
 
   @list: ->
-    Promise.resolve([]) # TODO: Implement
+    @getWeaver().getCoreManager().listUsers().then((users) ->
+      (WeaverUser.loadFromServerObject(u) for u in users)
+    )
 
 # Export
 module.exports = WeaverUser
