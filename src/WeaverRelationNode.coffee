@@ -1,13 +1,9 @@
 cuid        = require('cuid')
 Operation   = require('./Operation')
+Weaver      = require('./Weaver')
 WeaverNode  = require('./WeaverNode')
 
 class WeaverRelationNode extends WeaverNode
-
-  getClass: ->
-    WeaverRelationNode
-  @getClass: ->
-    WeaverRelationNode
 
   constructor: (@nodeId) ->
     throw new Error("Please always supply a relId when constructing WeaverRelationNode") if not @nodeId?
@@ -30,7 +26,7 @@ class WeaverRelationNode extends WeaverNode
 
   # override
   destroy: (project) ->
-    @getWeaver().getCoreManager().executeOperations([Operation.Node(@).destroy()], project).then(=>
+    Weaver.getCoreManager().executeOperations([Operation.Node(@).destroy()], project).then(=>
       delete @[key] for key of @
       undefined
     )

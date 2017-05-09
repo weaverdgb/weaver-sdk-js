@@ -1,15 +1,10 @@
 cuid        = require('cuid')
-WeaverRoot  = require('./WeaverRoot')
+Weaver      = require('./Weaver')
 
 # For any node, you can specify which users and roles are allowed to read the node, and which users and roles are
 # allowed to modify an node. To support this type of security, each node has an access control list,
 # implemented by the WeaverACL class.
-class WeaverRole extends WeaverRoot
-
-  getClass: ->
-    WeaverRole
-  @getClass: ->
-    WeaverRole
+class WeaverRole
 
   constructor: (@name) ->
     @name = @name or "unnamed"
@@ -29,12 +24,12 @@ class WeaverRole extends WeaverRoot
     @_roles = @getRoles()
 
     if not @_stored
-      @getWeaver().getCoreManager().createRole(@).then(=>
+      Weaver.getCoreManager().createRole(@).then(=>
         @_stored = true
         @
       )
     else
-      @getWeaver().getCoreManager().updateRole(@)
+      Weaver.getCoreManager().updateRole(@)
 
   id: ->
     @roleId
@@ -58,7 +53,7 @@ class WeaverRole extends WeaverRoot
     (roleId for roleId, val of @_rolesMap)
 
   delete: ->
-    @getWeaver().getCoreManager().deleteRole(@id()).then(=>
+    Weaver.getCoreManager().deleteRole(@id()).then(=>
       @_deleted = true
     )
 

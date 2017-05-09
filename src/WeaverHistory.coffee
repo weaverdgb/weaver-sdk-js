@@ -1,13 +1,8 @@
-WeaverRoot  = require('./WeaverRoot')
+Weaver  = require('./Weaver')
 
 
 
-class WeaverHistory extends WeaverRoot
-
-  getClass: ->
-    WeaverHistory
-  @getClass: ->
-    WeaverHistory
+class WeaverHistory
 
   constructor: () ->
 
@@ -26,14 +21,14 @@ class WeaverHistory extends WeaverRoot
     @limit = value
 
   dumpHistory: () ->
-    @getWeaver().getCoreManager().dumpHistory({@limit})
+    Weaver.getCoreManager().dumpHistory({@limit})
 
   getHistory: (nodeField, keyField, toField)->
     typeIsArray = Array.isArray || ( value ) -> return {}.toString.call( value ) is '[object Array]'
     ids = if typeIsArray nodeField then (node.id() for node in nodeField) else [nodeField.id()]
     keys = if typeIsArray keyField then keyField else [keyField] if keyField?
     tos = if typeIsArray toField then toField else [toField] if toField?
-    @getWeaver().getCoreManager().getHistory({ids, keys, tos, @fromDateTime, @beforeDateTime, @users, @limit})
+    Weaver.getCoreManager().getHistory({ids, keys, tos, @fromDateTime, @beforeDateTime, @users, @limit})
 
 # Export
 module.exports = WeaverHistory

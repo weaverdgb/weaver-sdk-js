@@ -1,5 +1,5 @@
 util        = require('./util')
-WeaverRoot  = require('./WeaverRoot')
+Weaver      = require('./Weaver')
 
 # Converts a string into a regex that matches it.
 # Surrounding with \Q .. \E does this, we just need to escape any \E's in
@@ -8,12 +8,7 @@ quote = (s) ->
   '\\Q' + s.replace('\\E', '\\E\\\\E\\Q') + '\\E';
 
 
-class WeaverQuery extends WeaverRoot
-
-  getClass: ->
-    WeaverQuery
-  @getClass: ->
-    WeaverQuery
+class WeaverQuery
 
   constructor: (@target) ->
     @_restrict   = []
@@ -31,9 +26,8 @@ class WeaverQuery extends WeaverRoot
 
   find: (Constructor) ->
 
-    Weaver = @getWeaverClass()
     Constructor = Constructor or Weaver.Node
-    @getWeaver().getCoreManager().query(@).then((nodes) ->
+    Weaver.getCoreManager().query(@).then((nodes) ->
       list = []
       for node in nodes
         instance = new Constructor(node.nodeId)
@@ -47,7 +41,7 @@ class WeaverQuery extends WeaverRoot
 
   count: ->
     @_count = true
-    @getWeaver().getCoreManager().query(@)
+    Weaver.getCoreManager().query(@)
 
   first: (Constructor) ->
     @_limit = 1
@@ -64,7 +58,6 @@ class WeaverQuery extends WeaverRoot
 
   restrict: (nodes) ->
 
-    Weaver = @getWeaverClass()
     addRestrict = (node) =>
       if util.isString(node)
         @_restrict.push(node)
@@ -198,17 +191,16 @@ class WeaverQuery extends WeaverRoot
     @
 
   @or: (queries) ->
-    Weaver = @getWeaverClass()
     query = new Weaver.Query()
     query.or(queries)
     query
 
   # Create, Update, Enter, Leave, Delete
   subscribe: ->
-    @getWeaver().getCoreManager().subscribe(@)
+    Weaver.getCoreManager().subscribe(@)
 
   nativeQuery: (query)->
-    @getWeaver().getCoreManager().nativeQuery(query, @getWeaver().currentProject().id())
+    Weaver.getCoreManager().nativeQuery(query, Weaver.getInstance().currentProject().id())
 
 # Export
 module.exports = WeaverQuery

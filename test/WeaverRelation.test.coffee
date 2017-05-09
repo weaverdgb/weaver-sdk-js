@@ -1,5 +1,5 @@
 weaver = require("./test-suite")
-Weaver = weaver.getClass()
+Weaver = require('../src/Weaver')
 
 describe 'Weaver relation and WeaverRelationNode test', ->
 
