@@ -1,4 +1,4 @@
-version: '2'
+version: '2.1'
 services:
   database:
     image: tenforce/virtuoso:1.1.0-virtuoso7.2.4
@@ -40,6 +40,11 @@ services:
     - VIRTUOSO_DB_USER=dba
     - VIRTUOSO_DB_PASSWORD=myDbaPassword
     - VIRTUOSO_DB_PATH=jdbc:virtuoso://database:1111
+    healthcheck:
+      test: ["CMD","/usr/health.sh"]
+      interval: 5s
+      timeout: 2s
+      retries: 10
 
   file-system:
     image: minio/minio:RELEASE.2017-04-25T01-27-49Z
