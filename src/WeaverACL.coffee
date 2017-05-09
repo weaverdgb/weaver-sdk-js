@@ -1,3 +1,4 @@
+cuid        = require('cuid')
 WeaverRoot  = require('./WeaverRoot')
 
 

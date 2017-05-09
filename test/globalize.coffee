@@ -12,8 +12,6 @@ chai.use(require('chai-as-promised'));
 chai.should();
 
 # From libs
-global.Promise = Promise
-global.cuid    = cuid
 global.expect  = chai.expect
 global.assert  = chai.assert
 global.should  = chai.should
