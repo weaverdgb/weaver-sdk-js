@@ -1,12 +1,11 @@
-weaver  = require("./test-suite")
-Weaver  = weaver.getClass()
+weaver = require("./test-suite")
+Weaver = require('../src/Weaver')
 Promise = require('bluebird')
 
 describe 'WeaverACL test', ->
 
   it 'should create a new ACL', ->
     acl = new Weaver.ACL()
-
     acl.save().then((acl) ->
       Weaver.ACL.load(acl.id())
     ).then((loadedACL) ->
@@ -42,8 +41,7 @@ describe 'WeaverACL test', ->
       loadedACL.save()
 
     ).then((acl) ->
-
-      Weaver.ACL.load(acl.id())
+      Weaver.ACL.load(acl.id)
 
     ).then((loadedACL) ->
 

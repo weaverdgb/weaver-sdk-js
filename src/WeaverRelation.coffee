@@ -1,13 +1,8 @@
 cuid = require('cuid')
 Operation = require('./Operation')
-WeaverRoot  = require('./WeaverRoot')
+Weaver  = require('./Weaver')
 
-class WeaverRelation extends WeaverRoot
-
-  getClass: ->
-    WeaverRelation
-  @getClass: ->
-    WeaverRelation
+class WeaverRelation
 
   constructor: (@parent, @key) ->
     @pendingWrites = []   # All operations that need to get saved
@@ -23,7 +18,6 @@ class WeaverRelation extends WeaverRoot
 
   to: (node)->
     throw new Error("No relation to a node with this id: #{node.id()}") if not @relationNodes[node.id()]
-    Weaver = @getWeaverClass()
     Weaver.RelationNode.load(@relationNodes[node.id()].id(), null, Weaver.RelationNode)
 
   all: ->
@@ -32,7 +26,6 @@ class WeaverRelation extends WeaverRoot
   add: (node, relId) ->
     relId = cuid() if not relId?
     @nodes[node.id()] = node
-    Weaver = @getWeaverClass()
     @relationNodes[node.id()] = Weaver.RelationNode.get(relId, Weaver.RelationNode)
     @pendingWrites.push(Operation.Node(@parent).createRelation(@key, node.id(), relId))
 

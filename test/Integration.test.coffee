@@ -1,6 +1,6 @@
 Promise = require('bluebird')
 weaver = require("./test-suite")
-Weaver = weaver.getClass()
+Weaver = require('../src/Weaver')
 
 alphaProject = null
 betaProject  = null
