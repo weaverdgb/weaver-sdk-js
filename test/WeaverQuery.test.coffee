@@ -1,6 +1,10 @@
 weaver = require("./test-suite")
 Weaver = require('../src/Weaver')
 
+checkNodeInResult = (nodes, nodeId) ->
+  ids = (i.id() for i in nodes)
+  expect(ids).to.contain(nodeId)
+
 describe 'WeaverQuery Test', ->
 
   it 'should restrict to a single node', ->
@@ -13,7 +17,7 @@ describe 'WeaverQuery Test', ->
       .restrict(a)
       .find().then((nodes) ->
         expect(nodes.length).to.equal(1)
-        expect(nodes[0].id()).to.equal("a")
+        checkNodeInResult(nodes, 'a')
       )
     )
 
@@ -27,8 +31,8 @@ describe 'WeaverQuery Test', ->
       .restrict([a,c])
       .find().then((nodes) ->
         expect(nodes.length).to.equal(2)
-        expect(nodes[0].id()).to.equal("a")
-        expect(nodes[1].id()).to.equal("c")
+        checkNodeInResult(nodes, 'a')
+        checkNodeInResult(nodes, 'c')
       )
     )
 
@@ -41,14 +45,14 @@ describe 'WeaverQuery Test', ->
       .restrict(a)
       .find().then((nodes) ->
         expect(nodes.length).to.equal(1)
-        expect(nodes[0].id()).to.equal("a")
+        checkNodeInResult(nodes, 'a')
       )
     ).then(->
       new Weaver.Query()
       .restrict("a")
       .find().then((nodes) ->
         expect(nodes.length).to.equal(1)
-        expect(nodes[0].id()).to.equal("a")
+        checkNodeInResult(nodes, 'a')
       )
     ).then(->
       new Weaver.Query()
@@ -77,7 +81,7 @@ describe 'WeaverQuery Test', ->
       .equalTo("isRed", true)
       .find().then((nodes) ->
         expect(nodes.length).to.equal(1)
-        expect(nodes[0].id()).to.equal("a")
+        checkNodeInResult(nodes, 'a')
       )
     )
 
@@ -93,7 +97,7 @@ describe 'WeaverQuery Test', ->
       .equalTo("name", "Project B")
       .find().then((nodes) ->
         expect(nodes.length).to.equal(1)
-        expect(nodes[0].id()).to.equal("b")
+        checkNodeInResult(nodes, 'b')
       )
     )
 
@@ -110,30 +114,30 @@ describe 'WeaverQuery Test', ->
       .hasRelationOut("link", b)
       .find().then((nodes) ->
         expect(nodes.length).to.equal(1)
-        expect(nodes[0].id()).to.equal("a")
+        checkNodeInResult(nodes, 'a')
       )
 
       new Weaver.Query()
       .hasRelationIn("link", a)
       .find().then((nodes) ->
         expect(nodes.length).to.equal(1)
-        expect(nodes[0].id()).to.equal("b")
+        checkNodeInResult(nodes, 'b')
       )
 
       new Weaver.Query()
       .hasNoRelationOut("link", b)
       .find().then((nodes) ->
         expect(nodes.length).to.equal(3)
-        expect(nodes[0].id()).to.equal("b")
-        expect(nodes[1].id()).to.equal("c")
+        checkNodeInResult(nodes, 'b')
+        checkNodeInResult(nodes, 'c')
       )
 
       new Weaver.Query()
       .hasNoRelationIn("link", a)
       .find().then((nodes) ->
         expect(nodes.length).to.equal(3)
-        expect(nodes[0].id()).to.equal("a")
-        expect(nodes[1].id()).to.equal("c")
+        checkNodeInResult(nodes, 'a')
+        checkNodeInResult(nodes, 'c')
       )
     )
 
