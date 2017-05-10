@@ -18,7 +18,7 @@ services:
     expose:
     - "3306"
     ports:
-    - "3307:3306"
+    - "3306:3306"
     environment:
     - MYSQL_ROOT_PASSWORD=K00B88HQB1UV9MZ7YYUP
     - MYSQL_DATABASE=trackerdb
@@ -67,3 +67,5 @@ services:
     - trackerdb
     - weaver-database
     - file-system
+    volumes:
+    - "./weaver-server-config:/usr/src/app/config"
