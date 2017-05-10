@@ -1,0 +1,62 @@
+version: '2.1'
+services:
+  database:
+    image: tenforce/virtuoso:1.1.0-virtuoso7.2.4
+    expose:
+    - "1111"
+    - "8890"
+    environment:
+    - DBA_PASSWORD=myDbaPassword
+    - SPARQL_UPDATE=true
+    - DEFAULT_GRAPH=http://www.example.com/my-graph
+
+  trackerdb:
+    image: mysql:5.7
+    expose:
+    - "3306"
+    environment:
+    - MYSQL_ROOT_PASSWORD=K00B88HQB1UV9MZ7YYUP
+    - MYSQL_DATABASE=trackerdb
+    - MYSQL_USER=trackerdb
+    - MYSQL_PASSWORD=K00B88HQB1UV9MZ7YYUP
+
+  weaver-database:
+    image: sysunite/weaver-database-virtuoso:0.1.4
+    expose:
+    - "9474"
+    depends_on:
+    - database
+    links:
+    - database
+    environment:
+    - WEAVER_VIRTUOSO_SERVICE_PORT=9474
+    - VIRTUOSO_DB_USER=dba
+    - VIRTUOSO_DB_PASSWORD=myDbaPassword
+    - VIRTUOSO_DB_PATH=jdbc:virtuoso://database:1111
+    healthcheck:
+      test: ["CMD","/usr/health.sh"]
+      interval: 5s
+      timeout: 2s
+      retries: 10
+
+  file-system:
+    image: minio/minio:RELEASE.2017-04-25T01-27-49Z
+    expose:
+    - "9000"
+    environment:
+    - MINIO_ACCESS_KEY=NYLEXGR6MF2IE99LZ4UE
+    - MINIO_SECRET_KEY=CjMuTRwYPcneXnGac2aQH0J+EdYdehTW4Cw7bZGD
+    command: server /data
+
+  weaver-server:
+    image: sysunite/weaver-server:2.2.8
+    expose:
+    - "9487"
+    ports:
+    - "9487:9487"
+    links:
+    - trackerdb
+    - weaver-database
+    - file-system
+    volumes:
+    - "./weaver-server-config:/usr/src/app/config"
