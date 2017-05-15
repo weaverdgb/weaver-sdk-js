@@ -7,6 +7,9 @@
     "url": "https://github.com/weaverplatform/weaver-sdk-js",
     "email": "mohamad@sysunite.com"
   },
+  "com_weaverplatform": {
+    "requiredServerVersion": "~2.2.5 || ~2.2.9-beta"
+  },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
   "repository": {},
