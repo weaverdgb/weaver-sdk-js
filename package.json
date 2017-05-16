@@ -31,6 +31,7 @@
     "chai-as-promised": "^6.0.0",
     "coffee-coverage": "^2.0.1",
     "coffee-script": "^1.12.5",
+    "david": "^11.0.0",
     "electron": "^1.6.1",
     "electron-mocha": "^3.3.0",
     "gulp": "github:gulpjs/gulp#4.0",
@@ -51,7 +52,8 @@
     "node": ">=6.9"
   },
   "scripts": {
-    "prepublish": "coffee -o lib -c src && gulp dev",
+    "prepublish": "./node_modules/coffee-script/bin/coffee -o lib -c src && ./node_modules/gulp/bin/gulp.js dev",
+    "update-deps": "./node_modules/david/bin/david.js u -i gulp",
     "test": "./node_modules/.bin/istanbul cover _mocha --",
     "browser-test": "if which electron >/dev/null;then echo ok you already have electron installed globally;else npm install electron -g; fi;./node_modules/electron-mocha/bin/electron-mocha --renderer --debug --interactive $(ls test/*.test.coffee | grep -Ev 'WeaverFile.test.coffee')",
     "node-test": "./node_modules/mocha/bin/mocha $(ls test/*.test.coffee | grep -Ev 'WeaverFileBrowser.test.coffee') || true",
