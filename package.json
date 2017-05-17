@@ -43,7 +43,7 @@
     "gulp-uglify": "^2.1.2",
     "ioredis": "^2.5.0",
     "istanbul": "^0.4.3",
-    "mocha": "^3.2.0",
+    "mocha": "^3.4.1",
     "sinon": "^2.2.0",
     "vinyl-buffer": "^1.0.0",
     "vinyl-source-stream": "^1.1.0"
@@ -52,11 +52,11 @@
     "node": ">=6.9"
   },
   "scripts": {
-    "prepublish": "./node_modules/coffee-script/bin/coffee -o lib -c src && ./node_modules/gulp/bin/gulp.js dev",
-    "update-deps": "./node_modules/david/bin/david.js u -i gulp",
-    "test": "./node_modules/.bin/istanbul cover _mocha --",
-    "browser-test": "if which electron >/dev/null;then echo ok you already have electron installed globally;else npm install electron -g; fi;./node_modules/electron-mocha/bin/electron-mocha --renderer --debug --interactive $(ls test/*.test.coffee | grep -Ev 'WeaverFile.test.coffee')",
-    "node-test": "./node_modules/mocha/bin/mocha $(ls test/*.test.coffee | grep -Ev 'WeaverFileBrowser.test.coffee') || true",
-    "gulp": "./node_modules/gulp/bin/gulp.js"
+    "prepublish": "coffee -o lib -c src && gulp dev",
+    "update-deps": "david u -i gulp",
+    "test": "istanbul cover _mocha --",
+    "browser-test": "electron-mocha --renderer --interactive $(ls test/*.test.coffee | grep -Ev 'WeaverFile.test.coffee')",
+    "node-test": "mocha $(ls test/*.test.coffee | grep -Ev 'WeaverFileBrowser.test.coffee') || true",
+    "gulp": "gulp"
   }
 }
