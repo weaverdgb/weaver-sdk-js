@@ -51,6 +51,11 @@ class WeaverUser
   destroy: ->
     Weaver.getCoreManager().destroyUser(@)
 
+  getRoles: ->
+    Weaver.getCoreManager().getRolesForUser(@userId).then((roles) ->
+      (Weaver.Role.loadFromServerObject(r) for r in roles)
+    )
+
   @list: ->
     Weaver.getCoreManager().listUsers().then((users) ->
       (WeaverUser.loadFromServerObject(u) for u in users)

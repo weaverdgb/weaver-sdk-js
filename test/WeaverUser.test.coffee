@@ -163,6 +163,25 @@ describe 'WeaverUser Test', ->
       assert.equal(users.length, 2)
     )
 
+  it 'should get all roles for user', ->
+    r1 = new Weaver.Role('role1')
+    r2 = new Weaver.Role('role2')
+    r3 = new Weaver.Role('role3')
+
+    u = new Weaver.User('abcdef', '123456', 'ghe')
+    u.create().then(->
+
+      r1.addUser(u)
+      r2.addUser(u)
+
+      Promise.map([r1,r2,r3], (r) -> r.save())
+    ).then(->
+      u.getRoles()
+    ).then((roles) ->
+      assert.equal(roles.length, 2)
+      assert.equal(roles[0].name, 'role1')
+      assert.equal(roles[1].name, 'role2')
+    )
 
   it.skip 'should create the admin user upon initialization', (done) ->
 

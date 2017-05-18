@@ -207,6 +207,8 @@ class CoreManager
   deleteACL: (aclId) ->
     @POST("acl.delete", {id: aclId})
 
+  getRolesForUser: (userId) ->
+    @POST("user.roles", {id: userId})
 
   REQUEST: (type, path, payload, target) =>
     payload = @_resolvePayload(payload, target)
