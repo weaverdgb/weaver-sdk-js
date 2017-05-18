@@ -17,6 +17,7 @@ class WeaverQuery
     @_conditions = {}
     @_include    = []
     @_select     = []
+    @_noRelations = false
     @_count       = false
     @_hollow      = false
     @_limit       = 99999
@@ -148,6 +149,10 @@ class WeaverQuery
 
   doesNotMatchKeyInQuery: (key, queryKey, query) ->
     @_addCondition(key, '$dontSelect', {queryKey, query});
+
+  noRelations: ->
+    @_noRelations = true
+    @
 
   order: (keys, ascending) ->
     @_order     = keys

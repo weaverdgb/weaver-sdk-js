@@ -12,9 +12,7 @@ describe 'Application test', ->
     weaver.getCoreManager().updateLocalTimeOffset()
     .then(
       time = weaver.getCoreManager().serverTime()
-      console.log(time)
     )
 
   it 'should return server time again', ->
     time = weaver.getCoreManager().serverTime()
-    console.log(time)

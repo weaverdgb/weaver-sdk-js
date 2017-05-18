@@ -1,6 +1,4 @@
 fs               = require('fs')
-readFile         = require('fs-readfile-promise')
-writeFile        = require('fs-writefile-promise')
 Weaver           = require('./Weaver')
 WeaverError      = require('./WeaverError')
 Error            = require('./Error')

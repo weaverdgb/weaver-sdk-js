@@ -2,7 +2,8 @@ weaver = require("./test-suite")
 Weaver = require('../src/Weaver')
 
 path     = require('path')
-readFile = require('fs-readfile-promise')
+Promise  = require('bluebird')
+readFile = Promise.promisify(require('fs').readFile)
 fs       = require('fs')
 
 describe 'WeaverFile test', ->

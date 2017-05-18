@@ -7,7 +7,7 @@ betaProject  = null
 
 describe 'Integration Test', ->
 
-  it 'should demonstrate and assess all Weaver functionality', (done) ->
+  it 'should demonstrate and assess all Weaver functionality', ->
 
     # Map to save state between promises
     reg = {}
@@ -56,15 +56,16 @@ describe 'Integration Test', ->
 
       john.signUp()
 
-    ).then(->
-
+    ).catch(->
+      assert false # Up until this point no error should be thrown
+    )
+    .then(->
       # Now we should not be able to load the private node
       Weaver.Node.load('adminPrivateNode')
-
     ).then(->
       assert false
     ).catch((error) ->
-      assert error.code
+      assert true
     ).then(->
 
       ###
@@ -121,7 +122,7 @@ describe 'Integration Test', ->
     ).then(->
       assert false
     ).catch((error) ->
-      assert error.code
+      assert true
     ).then(->
 
       # Give john write access to the project by creating a write role and adding john to it
@@ -155,12 +156,7 @@ describe 'Integration Test', ->
     ).then((node) ->
 
       assert.equal(node.get('name'), 'Sonic')
-
-    ).then(->
-      done()
     )
     .catch((error) ->
-      done(new Error(error.message))
+      assert false
     )
-
-    return "Hasta la vista, baby"
