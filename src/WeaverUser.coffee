@@ -11,10 +11,18 @@ class WeaverUser
 
   @get: (authToken) ->
     user = new WeaverUser()
-    user.userId    = undefined
+    user.userId   = undefined
     user._stored  = true
     user.authToken = authToken
     user
+
+  @loadFromServerObject: (user) ->
+    u = new Weaver.User()
+    u._stored = true
+    u.username = user.username
+    u.email    = user.email
+    u.userId   = user.userId
+    u
 
   populateFromServer: (serverUser) ->
     @[key] = value for key, value of serverUser
@@ -24,24 +32,34 @@ class WeaverUser
 
   # Saves the user without signing up
   create: ->
-    Weaver.getCoreManager().signUpUser(@).then((user) =>
+    Weaver.getCoreManager().signUpUser(@).then((authToken) =>
       delete @password
-      user
+      @_stored   = true
+      @authToken = authToken
+      return
     )
+
+  save: ->
+    Weaver.getCoreManager().updateUser(@)
 
   # Saves the user and signs in as current user
   signUp: ->
-    @create().then((authToken) =>
-      @authToken = authToken
-      @_stored = true
+    @create().then(=>
       Weaver.getCoreManager().currentUser = @
     )
 
   destroy: ->
     Weaver.getCoreManager().destroyUser(@)
 
+  getRoles: ->
+    Weaver.getCoreManager().getRolesForUser(@userId).then((roles) ->
+      (Weaver.Role.loadFromServerObject(r) for r in roles)
+    )
+
   @list: ->
-    Promise.resolve([]) # TODO: Implement
+    Weaver.getCoreManager().listUsers().then((users) ->
+      (WeaverUser.loadFromServerObject(u) for u in users)
+    )
 
 # Export
 module.exports = WeaverUser

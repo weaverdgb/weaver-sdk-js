@@ -15,9 +15,9 @@ describe 'WeaverACL test', ->
 
 
   it 'should add more than one user to a ACL', ->
-    user1 = new Weaver.User('user1', 'pass1', 'email1')
-    user2 = new Weaver.User('user2', 'pass2', 'email2')
-    user3 = new Weaver.User('user3', 'pass3', 'email3')
+    user1 = new Weaver.User('user1', 'password1', 'email1')
+    user2 = new Weaver.User('user2', 'password2', 'email2')
+    user3 = new Weaver.User('user3', 'password3', 'email3')
 
     Promise.map([user1, user2, user3], (u) -> u.create())
     .then(->
@@ -41,7 +41,7 @@ describe 'WeaverACL test', ->
       loadedACL.save()
 
     ).then((acl) ->
-      Weaver.ACL.load(acl.id)
+      Weaver.ACL.load(acl.id())
 
     ).then((loadedACL) ->
 

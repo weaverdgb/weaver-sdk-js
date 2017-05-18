@@ -19,6 +19,18 @@ class WeaverRole
     @_usersMap = {}
     @_rolesMap = {}
 
+  @loadFromServerObject: (roleObject) ->
+    role = new WeaverRole()
+    # Copy
+    role.roleId    = roleObject.roleId
+    role.name      = roleObject.name
+    role._stored   = true
+
+    role._usersMap[u] = true for u in roleObject.users
+    role._rolesMap[u] = true for u in roleObject.roles
+
+    role
+
   save: ->
     @_users = @getUsers()
     @_roles = @getRoles()
@@ -35,13 +47,13 @@ class WeaverRole
     @roleId
 
   addUser: (user) ->
-    @_usersMap[user.id()] = null
+    @_usersMap[user.id()] = true
 
   removeUser: (user) ->
     delete @_usersMap[user.id()]
 
   addRole: (role) ->
-    @_rolesMap[role.id()] = null
+    @_rolesMap[role.id()] = true
 
   removeRole: (role) ->
     delete @_rolesMap[role.id()]

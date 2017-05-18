@@ -20,8 +20,10 @@ after ->
 
 # Runs after each test in each file
 beforeEach ->
-  weaver.signInWithUsername('admin', 'admin').then(->
-    weaver.currentProject().wipe()
+  weaver.currentProject().wipe().then(->
+    weaver.getCoreManager().wipeUsers()
+  ).then(->
+    weaver.signInWithUsername('admin', 'admin')
   )
 
 module.exports = weaver

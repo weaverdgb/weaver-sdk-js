@@ -74,7 +74,12 @@ class Weaver
     @coreManager.signInToken(authToken)
 
   wipe: ->
-    @coreManager.wipe()
+    @coreManager.wipeProjects()
+    .then(=>
+      @coreManager.destroyProjects()
+    ).then(=>
+      @coreManager.wipeUsers()
+    )
 
   # Function is needed by the weaver-sdk-angular. This sets a callback
   # on the promise library for the digestion cycle to work.
