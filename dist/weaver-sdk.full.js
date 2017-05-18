@@ -99012,7 +99012,7 @@ module.exports = yeast;
 },{}],391:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "2.3.0-rc.0",
+  "version": "2.3.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -99020,7 +99020,7 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredServerVersion": "~2.3.0 || ~2.3.0-rc.0"
+    "requiredServerVersion": "~2.3.0"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -99176,6 +99176,10 @@ module.exports={
       return this.GET("project");
     };
 
+    CoreManager.prototype.listUsers = function() {
+      return this.GET("users");
+    };
+
     CoreManager.prototype.createProject = function(id, name) {
       return this.POST("project.create", {
         id: id,
@@ -99263,6 +99267,18 @@ module.exports={
       return this.POST("user.signUp", payload, "$SYSTEM");
     };
 
+    CoreManager.prototype.updateUser = function(user) {
+      var payload;
+      payload = {
+        update: {
+          userId: user.userId,
+          username: user.username,
+          email: user.email
+        }
+      };
+      return this.POST("user.update", payload);
+    };
+
     CoreManager.prototype.destroyUser = function(user) {
       var payload;
       payload = {
@@ -99310,7 +99326,19 @@ module.exports={
     };
 
     CoreManager.prototype.wipeProject = function(target) {
-      return this.POST('wipe', {}, target);
+      return this.POST('project.wipe', {}, target);
+    };
+
+    CoreManager.prototype.wipeProjects = function(target) {
+      return this.POST('projects.wipe', {}, target);
+    };
+
+    CoreManager.prototype.destroyProjects = function(target) {
+      return this.POST('projects.destroy', {}, target);
+    };
+
+    CoreManager.prototype.wipeUsers = function(target) {
+      return this.POST('users.wipe', {}, target);
     };
 
     CoreManager.prototype.query = function(query) {
@@ -99326,10 +99354,6 @@ module.exports={
       return this.POST("query.native", {
         query: query
       }, target);
-    };
-
-    CoreManager.prototype.wipe = function() {
-      return this.POST("application.wipe");
     };
 
     CoreManager.prototype.readACL = function(aclId) {
@@ -99355,6 +99379,12 @@ module.exports={
     CoreManager.prototype.deleteACL = function(aclId) {
       return this.POST("acl.delete", {
         id: aclId
+      });
+    };
+
+    CoreManager.prototype.getRolesForUser = function(userId) {
+      return this.POST("user.roles", {
+        id: userId
       });
     };
 
@@ -99656,7 +99686,7 @@ module.exports={
         return function(resolve, reject) {
           return _this.io.emit(key, JSON.stringify(body), function(response) {
             if ((response.code != null) && (response.message != null)) {
-              return reject(response);
+              return reject(new Error(response.message, response.code));
             } else if (response === 0) {
               return resolve();
             } else {
@@ -99771,7 +99801,15 @@ module.exports={
     };
 
     Weaver.prototype.wipe = function() {
-      return this.coreManager.wipe();
+      return this.coreManager.wipeProjects().then((function(_this) {
+        return function() {
+          return _this.coreManager.destroyProjects();
+        };
+      })(this)).then((function(_this) {
+        return function() {
+          return _this.coreManager.wipeUsers();
+        };
+      })(this));
     };
 
     Weaver.prototype.setScheduler = function(fn) {
@@ -99916,7 +99954,11 @@ module.exports={
           };
         })(this));
       } else {
-        return Weaver.getCoreManager().writeACL(this);
+        return Weaver.getCoreManager().writeACL(this).then((function(_this) {
+          return function() {
+            return _this;
+          };
+        })(this));
       }
     };
 
@@ -101121,6 +101163,25 @@ module.exports={
       this._rolesMap = {};
     }
 
+    WeaverRole.loadFromServerObject = function(roleObject) {
+      var i, j, len, len1, ref, ref1, role, u;
+      role = new WeaverRole();
+      role.roleId = roleObject.roleId;
+      role.name = roleObject.name;
+      role._stored = true;
+      ref = roleObject.users;
+      for (i = 0, len = ref.length; i < len; i++) {
+        u = ref[i];
+        role._usersMap[u] = true;
+      }
+      ref1 = roleObject.roles;
+      for (j = 0, len1 = ref1.length; j < len1; j++) {
+        u = ref1[j];
+        role._rolesMap[u] = true;
+      }
+      return role;
+    };
+
     WeaverRole.prototype.save = function() {
       this._users = this.getUsers();
       this._roles = this.getRoles();
@@ -101141,7 +101202,7 @@ module.exports={
     };
 
     WeaverRole.prototype.addUser = function(user) {
-      return this._usersMap[user.id()] = null;
+      return this._usersMap[user.id()] = true;
     };
 
     WeaverRole.prototype.removeUser = function(user) {
@@ -101149,7 +101210,7 @@ module.exports={
     };
 
     WeaverRole.prototype.addRole = function(role) {
-      return this._rolesMap[role.id()] = null;
+      return this._rolesMap[role.id()] = true;
     };
 
     WeaverRole.prototype.removeRole = function(role) {
@@ -101222,6 +101283,16 @@ module.exports={
       return user;
     };
 
+    WeaverUser.loadFromServerObject = function(user) {
+      var u;
+      u = new Weaver.User();
+      u._stored = true;
+      u.username = user.username;
+      u.email = user.email;
+      u.userId = user.userId;
+      return u;
+    };
+
     WeaverUser.prototype.populateFromServer = function(serverUser) {
       var key, results, value;
       results = [];
@@ -101238,18 +101309,21 @@ module.exports={
 
     WeaverUser.prototype.create = function() {
       return Weaver.getCoreManager().signUpUser(this).then((function(_this) {
-        return function(user) {
+        return function(authToken) {
           delete _this.password;
-          return user;
+          _this._stored = true;
+          _this.authToken = authToken;
         };
       })(this));
     };
 
+    WeaverUser.prototype.save = function() {
+      return Weaver.getCoreManager().updateUser(this);
+    };
+
     WeaverUser.prototype.signUp = function() {
       return this.create().then((function(_this) {
-        return function(authToken) {
-          _this.authToken = authToken;
-          _this._stored = true;
+        return function() {
           return Weaver.getCoreManager().currentUser = _this;
         };
       })(this));
@@ -101259,8 +101333,28 @@ module.exports={
       return Weaver.getCoreManager().destroyUser(this);
     };
 
+    WeaverUser.prototype.getRoles = function() {
+      return Weaver.getCoreManager().getRolesForUser(this.userId).then(function(roles) {
+        var i, len, r, results;
+        results = [];
+        for (i = 0, len = roles.length; i < len; i++) {
+          r = roles[i];
+          results.push(Weaver.Role.loadFromServerObject(r));
+        }
+        return results;
+      });
+    };
+
     WeaverUser.list = function() {
-      return Promise.resolve([]);
+      return Weaver.getCoreManager().listUsers().then(function(users) {
+        var i, len, results, u;
+        results = [];
+        for (i = 0, len = users.length; i < len; i++) {
+          u = users[i];
+          results.push(WeaverUser.loadFromServerObject(u));
+        }
+        return results;
+      });
     };
 
     return WeaverUser;
