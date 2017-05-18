@@ -99012,7 +99012,7 @@ module.exports = yeast;
 },{}],391:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "2.2.13-beta.0",
+  "version": "2.3.0-rc.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -99020,7 +99020,7 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredServerVersion": "~2.2.5"
+    "requiredServerVersion": "~2.3.0 || ~2.3.0-rc.0"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -100710,6 +100710,7 @@ module.exports={
       this._conditions = {};
       this._include = [];
       this._select = [];
+      this._noRelations = false;
       this._count = false;
       this._hollow = false;
       this._limit = 99999;
@@ -100887,6 +100888,11 @@ module.exports={
         queryKey: queryKey,
         query: query
       });
+    };
+
+    WeaverQuery.prototype.noRelations = function() {
+      this._noRelations = true;
+      return this;
     };
 
     WeaverQuery.prototype.order = function(keys, ascending) {
@@ -101295,7 +101301,7 @@ module.exports={
 
   Action.CREATE_RELATION = define('create-relation', ['timestamp', 'from', 'key', 'to', 'id']);
 
-  Action.UPDATE_RELATION = define('update-relation', ['timestamp', 'from', 'key', 'oldTo', 'newTo']);
+  Action.UPDATE_RELATION = define('update-relation', ['timestamp', 'from', 'key', 'oldTo', 'newTo', 'id']);
 
   Action.REMOVE_RELATION = define('remove-relation', ['timestamp', 'from', 'key', 'to']);
 

@@ -73,6 +73,9 @@ class CoreManager
   listProjects: ->
     @GET("project")
 
+  listUsers: ->
+    @GET("users")
+
   createProject: (id, name) ->
     @POST("project.create", {id, name})
 
@@ -119,12 +122,22 @@ class CoreManager
 
   signUpUser: (user) ->
     payload =
-      userId: user.userId
+      userId:   user.userId
       username: user.username
       password: user.password
-      email: user.email
+      email:    user.email
 
     @POST("user.signUp", payload, "$SYSTEM")
+
+
+  updateUser: (user) ->
+    payload =
+      update:
+        userId:   user.userId
+        username: user.username
+        email:    user.email
+
+    @POST("user.update", payload)
 
 
   destroyUser: (user) ->
@@ -159,7 +172,16 @@ class CoreManager
     @GET('history', payload, target)
 
   wipeProject: (target)->
-    @POST('wipe', {}, target)
+    @POST('project.wipe', {}, target)
+
+  wipeProjects: (target)->
+    @POST('projects.wipe', {}, target)
+
+  destroyProjects: (target)->
+    @POST('projects.destroy', {}, target)
+
+  wipeUsers: (target)->
+    @POST('users.wipe', {}, target)
 
   query: (query) ->
     # Remove target
@@ -170,9 +192,6 @@ class CoreManager
 
   nativeQuery: (query, target) ->
     @POST("query.native", {query}, target)
-
-  wipe: ->
-    @POST("application.wipe")
 
   readACL: (aclId) ->
     @GET("acl.read", {id: aclId}).then((aclObject) ->
@@ -188,6 +207,8 @@ class CoreManager
   deleteACL: (aclId) ->
     @POST("acl.delete", {id: aclId})
 
+  getRolesForUser: (userId) ->
+    @POST("user.roles", {id: userId})
 
   REQUEST: (type, path, payload, target) =>
     payload = @_resolvePayload(payload, target)
