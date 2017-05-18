@@ -96,10 +96,13 @@ describe 'WeaverProject Test', ->
     p = weaver.currentProject()
     weaver.useProject(null)
     node = new Weaver.Node()
-    node.save().catch((error)->
-      assert.equal(error.code, -1)
-      done()
+    node.save().then(->
+      assert false
+    )
+    .catch((error)->
+      assert true
     ).finally(->
       weaver.useProject(p)
+      done()
     )
     return

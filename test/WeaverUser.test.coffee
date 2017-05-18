@@ -1,6 +1,7 @@
-weaver = require("./test-suite")
-cuid   = require('cuid')
-Weaver = require('../src/Weaver')
+weaver  = require("./test-suite")
+cuid    = require('cuid')
+Weaver  = require('../src/Weaver')
+Promise = require('bluebird')
 
 describe 'WeaverUser Test', ->
 
@@ -151,6 +152,16 @@ describe 'WeaverUser Test', ->
       done()
     )
     return
+
+  it 'should list all users', ->
+    Promise.map([
+      new Weaver.User('abcdef', '123456', 'ghe')
+      new Weaver.User('doddye', '123456', 'ghe')
+      ], (u) -> u.create()).then(->
+      Weaver.User.list()
+    ).then((users) ->
+      assert.equal(users.length, 2)
+    )
 
 
   it.skip 'should create the admin user upon initialization', (done) ->

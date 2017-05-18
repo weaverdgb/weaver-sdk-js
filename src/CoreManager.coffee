@@ -172,7 +172,16 @@ class CoreManager
     @GET('history', payload, target)
 
   wipeProject: (target)->
-    @POST('wipe', {}, target)
+    @POST('project.wipe', {}, target)
+
+  wipeProjects: (target)->
+    @POST('projects.wipe', {}, target)
+
+  destroyProjects: (target)->
+    @POST('projects.destroy', {}, target)
+
+  wipeUsers: (target)->
+    @POST('users.wipe', {}, target)
 
   query: (query) ->
     # Remove target
@@ -183,9 +192,6 @@ class CoreManager
 
   nativeQuery: (query, target) ->
     @POST("query.native", {query}, target)
-
-  wipe: ->
-    @POST("application.wipe")
 
   readACL: (aclId) ->
     @GET("acl.read", {id: aclId}).then((aclObject) ->
