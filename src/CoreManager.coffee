@@ -122,12 +122,22 @@ class CoreManager
 
   signUpUser: (user) ->
     payload =
-      userId: user.userId
+      userId:   user.userId
       username: user.username
       password: user.password
-      email: user.email
+      email:    user.email
 
     @POST("user.signUp", payload, "$SYSTEM")
+
+
+  updateUser: (user) ->
+    payload =
+      update:
+        userId:   user.userId
+        username: user.username
+        email:    user.email
+
+    @POST("user.update", payload)
 
 
   destroyUser: (user) ->

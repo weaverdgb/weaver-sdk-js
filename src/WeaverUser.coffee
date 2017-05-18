@@ -11,7 +11,7 @@ class WeaverUser
 
   @get: (authToken) ->
     user = new WeaverUser()
-    user.userId    = undefined
+    user.userId   = undefined
     user._stored  = true
     user.authToken = authToken
     user
@@ -39,6 +39,9 @@ class WeaverUser
       return
     )
 
+  save: ->
+    Weaver.getCoreManager().updateUser(@)
+
   # Saves the user and signs in as current user
   signUp: ->
     @create().then(=>
@@ -49,7 +52,7 @@ class WeaverUser
     Weaver.getCoreManager().destroyUser(@)
 
   @list: ->
-    @getWeaver().getCoreManager().listUsers().then((users) ->
+    Weaver.getCoreManager().listUsers().then((users) ->
       (WeaverUser.loadFromServerObject(u) for u in users)
     )
 

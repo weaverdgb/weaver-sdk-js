@@ -30,7 +30,7 @@ class SocketController
     new Promise((resolve, reject) =>
       @io.emit(key, JSON.stringify(body), (response) ->
         if response.code? and response.message?
-          reject(response)
+          reject(new Error(response.message, response.code))
         else if response is 0
           resolve()
         else
