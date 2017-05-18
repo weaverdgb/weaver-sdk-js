@@ -101,14 +101,12 @@ describe 'WeaverQuery Test', ->
       )
     )
 
-  it 'should not return relations', ->
+  it 'should return relations', ->
     a = new Weaver.Node("a")
     b = new Weaver.Node("b")
     a.relation("to").add(b, "c")
 
-
     a.save().then(->
-
       new Weaver.Query()
       .find().then((nodes) ->
         expect(nodes.length).to.equal(3)
@@ -116,7 +114,14 @@ describe 'WeaverQuery Test', ->
         checkNodeInResult(nodes, 'b')
         checkNodeInResult(nodes, 'c')
       )
-    ).then(->
+    )
+
+  it 'should not return relations', ->
+    a = new Weaver.Node("a")
+    b = new Weaver.Node("b")
+    a.relation("to").add(b, "c")
+
+    a.save().then(->
       new Weaver.Query()
       .noRelations()
       .find().then((nodes) ->
