@@ -27,7 +27,6 @@ module.exports =
 
   application:
     wipe: true
-    scroll: true
     singleDatabase: true
     sounds:
       muteAll: false
