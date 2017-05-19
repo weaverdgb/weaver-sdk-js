@@ -171,6 +171,9 @@ class CoreManager
   dumpHistory: (payload, target)->
     @GET('history', payload, target)
 
+  snapshotProject: (target)->
+    @GET('snapshot', {}, target)
+
   wipeProject: (target)->
     @POST('project.wipe', {}, target)
 
