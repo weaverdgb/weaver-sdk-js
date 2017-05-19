@@ -107,7 +107,7 @@ describe 'WeaverProject Test', ->
     )
     return
 
-  it 'should export the database content as snapshot', (done) ->
+  it 'should export the database content as snapshot', ->
     node = new Weaver.Node()
 
     node.save().then((node) ->
@@ -118,6 +118,5 @@ describe 'WeaverProject Test', ->
       p.getSnapshot()
     ).then((writeOperations)->
       expect(writeOperations.length).to.equal(2)
-      done()
     )
-    return
+
