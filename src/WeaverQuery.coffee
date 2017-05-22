@@ -130,7 +130,7 @@ class WeaverQuery
     @_addCondition(key, '$regex', value);
 
   contains: (key, value) ->
-    @_addCondition(key, '$regex', quote(value));
+    @_addCondition(key, '$contains', value);
 
   startsWith: (key, value) ->
     @_addCondition(key, '$regex', '^' + quote(value));

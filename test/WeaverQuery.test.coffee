@@ -36,6 +36,19 @@ describe 'WeaverQuery Test', ->
       )
     )
 
+  it 'should count', ->
+    a = new Weaver.Node("a")
+    b = new Weaver.Node("b")
+    c = new Weaver.Node("c")
+
+    Promise.all([a.save(), b.save(), c.save()]).then(->
+      new Weaver.Query()
+      .restrict([a,c])
+      .count().then((count) ->
+        expect(count).to.equal(2)
+      )
+    )
+
   it 'should take an array of nodeIds or nodes, or single nodeId or node into restrict', ->
     a = new Weaver.Node("a")
     b = new Weaver.Node("b")
@@ -98,6 +111,27 @@ describe 'WeaverQuery Test', ->
       .find().then((nodes) ->
         expect(nodes.length).to.equal(1)
         checkNodeInResult(nodes, 'b')
+      )
+    )
+
+  it 'should do contains of a string', ->
+    a = new Weaver.Node("a")
+    a.set("name", "Project A")
+    a.set("special", "abcdef")
+    b = new Weaver.Node("b")
+    b.set("name", "Project B")
+    b.set("special", "uvwxyz")
+    c = new Weaver.Node("c")
+    c.set("name", "project ")
+    c.set("special", "klmno")
+
+    Promise.all([a.save(), b.save(), c.save()]).then(->
+      new Weaver.Query()
+      .contains("name", "c")
+      .contains("special", "o")
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'c')
       )
     )
 
