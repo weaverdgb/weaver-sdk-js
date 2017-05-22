@@ -101,6 +101,27 @@ describe 'WeaverQuery Test', ->
       )
     )
 
+  it 'should do contains of a string', ->
+    a = new Weaver.Node("a")
+    a.set("name", "Project A")
+    a.set("special", "abcdef")
+    b = new Weaver.Node("b")
+    b.set("name", "Project B")
+    b.set("special", "uvwxyz")
+    c = new Weaver.Node("c")
+    c.set("name", "project ")
+    c.set("special", "klmno")
+
+    Promise.all([a.save(), b.save(), c.save()]).then(->
+      new Weaver.Query()
+      .contains("name", "c")
+      .contains("special", "o")
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'c')
+      )
+    )
+
   it 'should return relations', ->
     a = new Weaver.Node("a")
     b = new Weaver.Node("b")
