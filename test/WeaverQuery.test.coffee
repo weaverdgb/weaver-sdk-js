@@ -36,6 +36,19 @@ describe 'WeaverQuery Test', ->
       )
     )
 
+  it 'should count', ->
+    a = new Weaver.Node("a")
+    b = new Weaver.Node("b")
+    c = new Weaver.Node("c")
+
+    Promise.all([a.save(), b.save(), c.save()]).then(->
+      new Weaver.Query()
+      .restrict([a,c])
+      .count().then((count) ->
+        expect(count).to.equal(2)
+      )
+    )
+
   it 'should take an array of nodeIds or nodes, or single nodeId or node into restrict', ->
     a = new Weaver.Node("a")
     b = new Weaver.Node("b")
