@@ -46,6 +46,9 @@ class WeaverProject
   getAllRelations:->
     Weaver.getCoreManager().getAllRelations(@id())
 
+  getSnapshot:->
+    Weaver.getCoreManager().snapshotProject(@id())
+
   destroy: ->
     Weaver.getCoreManager().deleteProject(@id())
 

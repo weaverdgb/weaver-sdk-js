@@ -106,3 +106,17 @@ describe 'WeaverProject Test', ->
       done()
     )
     return
+
+  it 'should export the database content as snapshot', ->
+    node = new Weaver.Node()
+
+    node.save().then((node) ->
+      node.set('name', 'Foo')
+      node.save()
+    ).then(->
+      p = weaver.currentProject()
+      p.getSnapshot()
+    ).then((writeOperations)->
+      expect(writeOperations.length).to.equal(2)
+    )
+
