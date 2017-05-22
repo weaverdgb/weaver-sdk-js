@@ -88,7 +88,9 @@ describe 'Weaver relation and WeaverRelationNode test', ->
   it 'should remove a relation', ->
     foo = new Weaver.Node()
     bar = new Weaver.Node()
+    zoo = new Weaver.Node()
     foo.relation('comesBefore').add(bar)
+    foo.relation('comesBefore').add(zoo)
 
     foo.save().then(->
       Weaver.Node.load(foo.id())
@@ -99,7 +101,7 @@ describe 'Weaver relation and WeaverRelationNode test', ->
       Weaver.Node.load(foo.id())
     ).then((loadedNode) ->
       relations = (k for k of loadedNode.relations)
-      assert.lengthOf(relations, 0)
+      assert.lengthOf(relations, 1)
     )
 
 

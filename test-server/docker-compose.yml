@@ -21,7 +21,7 @@ services:
     - MYSQL_PASSWORD=K00B88HQB1UV9MZ7YYUP
 
   weaver-database:
-    image: sysunite/weaver-database-virtuoso:0.1.7
+    image: sysunite/weaver-database-virtuoso:0.1.8
     expose:
     - "9474"
     depends_on:
