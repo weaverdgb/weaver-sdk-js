@@ -99012,7 +99012,7 @@ module.exports = yeast;
 },{}],391:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "2.3.0",
+  "version": "2.3.1-beta.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -99020,7 +99020,7 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredServerVersion": "~2.3.0"
+    "requiredServerVersion": "~2.3.0 || 2.3.1-beta.0"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -99323,6 +99323,10 @@ module.exports={
 
     CoreManager.prototype.dumpHistory = function(payload, target) {
       return this.GET('history', payload, target);
+    };
+
+    CoreManager.prototype.snapshotProject = function(target) {
+      return this.GET('snapshot', {}, target);
     };
 
     CoreManager.prototype.wipeProject = function(target) {
@@ -100707,6 +100711,10 @@ module.exports={
       return Weaver.getCoreManager().getAllRelations(this.id());
     };
 
+    WeaverProject.prototype.getSnapshot = function() {
+      return Weaver.getCoreManager().snapshotProject(this.id());
+    };
+
     WeaverProject.prototype.destroy = function() {
       return Weaver.getCoreManager().deleteProject(this.id());
     };
@@ -100899,7 +100907,7 @@ module.exports={
     };
 
     WeaverQuery.prototype.contains = function(key, value) {
-      return this._addCondition(key, '$regex', quote(value));
+      return this._addCondition(key, '$contains', value);
     };
 
     WeaverQuery.prototype.startsWith = function(key, value) {
