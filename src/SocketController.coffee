@@ -11,6 +11,7 @@ class SocketController
 
     @options = @options or defaultOptions
     @options.query = "sdkVersion=#{pjson.version}&requiredServerVersion=#{pjson.com_weaverplatform.requiredServerVersion}"
+    @options.rejectUnauthorized = false
 
   connect: ->
     new Promise((resolve, reject) =>
