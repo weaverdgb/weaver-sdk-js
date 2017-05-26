@@ -99012,7 +99012,7 @@ module.exports = yeast;
 },{}],391:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "2.3.1-beta.0",
+  "version": "2.3.1-beta.3",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -99020,7 +99020,7 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredServerVersion": "~2.3.0 || 2.3.1-beta.0"
+    "requiredServerVersion": "~2.3.0 || ^2.3.1-beta.0"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -99666,6 +99666,7 @@ module.exports={
       };
       this.options = this.options || defaultOptions;
       this.options.query = "sdkVersion=" + pjson.version + "&requiredServerVersion=" + pjson.com_weaverplatform.requiredServerVersion;
+      this.options.rejectUnauthorized = false;
     }
 
     SocketController.prototype.connect = function() {
