@@ -4,7 +4,10 @@ weaver = new Weaver()
 
 # Runs before all tests (even across files)
 before ->
-  weaver.connect(WEAVER_ENDPOINT).then(->
+  options = {}
+  if !WEAVER_REJECT_UNAUTHORIZED
+    options.rejectUnauthorized = false
+  weaver.connect(WEAVER_ENDPOINT,options).then(->
     weaver.wipe()
   ).then(->
     weaver.signInWithUsername('admin', 'admin')

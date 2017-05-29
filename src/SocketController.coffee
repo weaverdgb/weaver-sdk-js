@@ -2,17 +2,16 @@
 io       = require('socket.io-client')
 Promise  = require('bluebird')
 pjson    = require('../package.json')
-config   = require('config')
 
 class SocketController
 
   constructor: (@address, @options) ->
     defaultOptions =
       reconnection: true
+      rejectUnauthorized: true
 
     @options = @options or defaultOptions
     @options.query = "sdkVersion=#{pjson.version}&requiredServerVersion=#{pjson.com_weaverplatform.requiredServerVersion}"
-    @options.rejectUnauthorized = config.get('weaver.rejectUnauthorized')
 
   connect: ->
     new Promise((resolve, reject) =>
