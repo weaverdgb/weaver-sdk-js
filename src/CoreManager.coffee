@@ -9,7 +9,6 @@ LocalController  = require('./LocalController')
 Error            = require('./Error')
 Weaver           = require('./Weaver')
 WeaverError      = require('./WeaverError')
-config           = require('config')
 
 class CoreManager
 
@@ -17,9 +16,13 @@ class CoreManager
     @currentProject = null
     @timeOffset = 0
 
-  connect: (endpoint, options) ->
+  connect: (endpoint, @options) ->
+    defaultOptions =
+      rejectUnauthorized: true
+
+    @options = @options or defaultOptions
     @endpoint = endpoint
-    @commController = new SocketController(endpoint, options)
+    @commController = new SocketController(endpoint, @options)
     @commController.connect()
 
 
@@ -233,7 +236,7 @@ class CoreManager
   uploadFile: (formData) ->
     formData = @_resolvePayload(formData)
     new Promise((resolve, reject) =>
-      request.post({url:"#{@endpoint}/upload", formData: formData, rejectUnauthorized: config.get('weaver.rejectUnauthorized')}, (err, httpResponse, body) ->
+      request.post({url:"#{@endpoint}/upload", formData: formData, rejectUnauthorized: @options.rejectUnauthorized}, (err, httpResponse, body) ->
         if err
           if err.code is 'ENOENT'
             reject(Error WeaverError.FILE_NOT_EXISTS_ERROR,"The file #{err.path} does not exits")
@@ -247,7 +250,7 @@ class CoreManager
   downloadFileByID: (payload, target) ->
     payload = @_resolvePayload(payload, target)
     payload = JSON.stringify(payload)
-    request.get({uri:"#{@endpoint}/file/downloadByID?payload=#{payload}", rejectUnauthorized: config.get('weaver.rejectUnauthorized')})
+    request.get({uri:"#{@endpoint}/file/downloadByID?payload=#{payload}", rejectUnauthorized: @options.rejectUnauthorized})
     .on('response', (res) ->
       res
     )
