@@ -153,6 +153,16 @@ describe 'WeaverUser Test', ->
     )
     return
 
+  it 'should fail to login with NoSQL injection', (done) ->
+    weaver.signOut().then(->
+      # Sign in
+      weaver.signInWithUsername({"username": {"$regex": ["a?special-user","i"]}}, 'password')
+    ).catch((err) ->
+      # TODO: Assert error code
+      done()
+    )
+    return
+
   it 'should list all users', ->
     Promise.map([
       new Weaver.User('abcdef', '123456', 'ghe')
