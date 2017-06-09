@@ -2,6 +2,19 @@ weaver = require("./test-suite")
 Weaver = require('../src/Weaver')
 
 describe 'WeaverProject Test', ->
+  actualProject = (p) ->
+    expect(p).to.have.property('_stored').to.be.a('boolean').to.equal(true)
+    expect(p).to.have.property('destroy').be.a('function')
+
+  it 'should have currentProject be not neutered', ->
+    actualProject(weaver.currentProject())
+
+  it 'should list projects that are not neutered', ->
+    Weaver.Project.list().then((list) ->
+      expect(list).to.have.length.be(1)
+      actualProject(list[0])
+    )
+
   it.skip 'should create projects with given id', (done) ->
     project = new Weaver.Project("name", "test")
     project.create().then((p) =>

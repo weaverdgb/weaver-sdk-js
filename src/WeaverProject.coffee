@@ -5,10 +5,9 @@ class WeaverProject
 
   @READY_RETRY_TIMEOUT: 200
 
-  constructor: (@name, @projectId) ->
+  constructor: (@name, @projectId, @_stored = false) ->
     @name = @name or 'unnamed'
     @projectId = @projectId or cuid()
-    @_stored = false
 
   id: ->
     @projectId
@@ -59,6 +58,8 @@ class WeaverProject
     Weaver.getCoreManager().getACL(@projectId)
 
   @list: ->
-    Weaver.getCoreManager().listProjects()
+    Weaver.getCoreManager().listProjects().then((list) ->
+      ( new Weaver.Project(p.id, p.name, true) for p in list )
+    )
 
 module.exports = WeaverProject
