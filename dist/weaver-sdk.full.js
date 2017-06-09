@@ -99012,7 +99012,7 @@ module.exports = yeast;
 },{}],391:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "2.3.1-beta.0",
+  "version": "2.3.1-beta.5",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -99020,7 +99020,7 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredServerVersion": "~2.3.0 || 2.3.1-beta.0"
+    "requiredServerVersion": "~2.3.0 || ^2.3.1-beta.0"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -99106,8 +99106,14 @@ module.exports={
     }
 
     CoreManager.prototype.connect = function(endpoint, options) {
+      var defaultOptions;
+      this.options = options;
+      defaultOptions = {
+        rejectUnauthorized: true
+      };
+      this.options = this.options || defaultOptions;
       this.endpoint = endpoint;
-      this.commController = new SocketController(endpoint, options);
+      this.commController = new SocketController(endpoint, this.options);
       return this.commController.connect();
     };
 
@@ -99416,7 +99422,8 @@ module.exports={
         return function(resolve, reject) {
           return request.post({
             url: _this.endpoint + "/upload",
-            formData: formData
+            formData: formData,
+            rejectUnauthorized: _this.options.rejectUnauthorized
           }, function(err, httpResponse, body) {
             if (err) {
               if (err.code === 'ENOENT') {
@@ -99435,7 +99442,10 @@ module.exports={
     CoreManager.prototype.downloadFileByID = function(payload, target) {
       payload = this._resolvePayload(payload, target);
       payload = JSON.stringify(payload);
-      return request.get(this.endpoint + "/file/downloadByID?payload=" + payload).on('response', function(res) {
+      return request.get({
+        uri: this.endpoint + "/file/downloadByID?payload=" + payload,
+        rejectUnauthorized: this.options.rejectUnauthorized
+      }).on('response', function(res) {
         return res;
       });
     };
@@ -99662,7 +99672,8 @@ module.exports={
       this.address = address;
       this.options = options;
       defaultOptions = {
-        reconnection: true
+        reconnection: true,
+        rejectUnauthorized: true
       };
       this.options = this.options || defaultOptions;
       this.options.query = "sdkVersion=" + pjson.version + "&requiredServerVersion=" + pjson.com_weaverplatform.requiredServerVersion;

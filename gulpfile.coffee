@@ -41,8 +41,10 @@ gulp.task('concat', ->
 )
 
 gulp.task('browserify', ->
-  browserify('./tmp/Weaver.js')
-    .bundle()
+  browserify({
+    entries: './tmp/Weaver.js',
+    ignoreMissing: true
+    }).bundle()
     .on('error', (error) ->
       console.log(error)
       @emit('end')
