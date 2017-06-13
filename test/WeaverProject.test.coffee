@@ -71,11 +71,9 @@ describe 'WeaverProject Test', ->
       Weaver.Project.list()
     ).then((list) ->
       expect(list.length).to.equal(2)
-
-      loadedA = p for p in list when p.id is 'a'
-
+      loadedA = p for p in list when p.id() is 'a'
+      expect(loadedA).to.be.defined
       expect(loadedA.name).to.equal('A')
-
     ).then(->
       a.destroy()
       done()
@@ -84,24 +82,13 @@ describe 'WeaverProject Test', ->
 
 
   it.skip 'should allow setting an active project', (done) ->
+    p = weaver.currentProject()
     test = new Weaver.Project()
     test.create().then(->
       weaver.useProject(test)
     ).then(->
       test.destroy()
-      done()
-    )
-    return
-
-  it.skip 'should support getting the active project', (done) ->
-    test = new Weaver.Project()
-    test.create().then((prj) ->
-      weaver.useProject(prj)
-      p = weaver.currentProject()
-      expect(p).to.equal(test)
-    ).then(->
-      test.destroy()
-      done()
+      weaver.useProject(p)
     )
     return
 
