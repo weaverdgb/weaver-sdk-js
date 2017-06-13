@@ -19,3 +19,4 @@ global.sinon   = sinon
 
 # Configuration
 global.WEAVER_ENDPOINT = config.get("weaver.endpoint")
+global.WEAVER_REJECT_UNAUTHORIZED = config.get("weaver.rejectUnauthorized")

@@ -99012,7 +99012,7 @@ module.exports = yeast;
 },{}],391:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -99020,7 +99020,7 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredServerVersion": "~2.3.0"
+    "requiredServerVersion": "~2.3.1"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -99106,8 +99106,14 @@ module.exports={
     }
 
     CoreManager.prototype.connect = function(endpoint, options) {
+      var defaultOptions;
+      this.options = options;
+      defaultOptions = {
+        rejectUnauthorized: true
+      };
+      this.options = this.options || defaultOptions;
       this.endpoint = endpoint;
-      this.commController = new SocketController(endpoint, options);
+      this.commController = new SocketController(endpoint, this.options);
       return this.commController.connect();
     };
 
@@ -99325,6 +99331,10 @@ module.exports={
       return this.GET('history', payload, target);
     };
 
+    CoreManager.prototype.snapshotProject = function(target) {
+      return this.GET('snapshot', {}, target);
+    };
+
     CoreManager.prototype.wipeProject = function(target) {
       return this.POST('project.wipe', {}, target);
     };
@@ -99412,7 +99422,8 @@ module.exports={
         return function(resolve, reject) {
           return request.post({
             url: _this.endpoint + "/upload",
-            formData: formData
+            formData: formData,
+            rejectUnauthorized: _this.options.rejectUnauthorized
           }, function(err, httpResponse, body) {
             if (err) {
               if (err.code === 'ENOENT') {
@@ -99431,7 +99442,10 @@ module.exports={
     CoreManager.prototype.downloadFileByID = function(payload, target) {
       payload = this._resolvePayload(payload, target);
       payload = JSON.stringify(payload);
-      return request.get(this.endpoint + "/file/downloadByID?payload=" + payload).on('response', function(res) {
+      return request.get({
+        uri: this.endpoint + "/file/downloadByID?payload=" + payload,
+        rejectUnauthorized: this.options.rejectUnauthorized
+      }).on('response', function(res) {
         return res;
       });
     };
@@ -99658,9 +99672,11 @@ module.exports={
       this.address = address;
       this.options = options;
       defaultOptions = {
-        reconnection: true
+        reconnection: true,
+        rejectUnauthorized: true
       };
       this.options = this.options || defaultOptions;
+      this.options.reconnection = true;
       this.options.query = "sdkVersion=" + pjson.version + "&requiredServerVersion=" + pjson.com_weaverplatform.requiredServerVersion;
     }
 
@@ -100652,12 +100668,12 @@ module.exports={
   WeaverProject = (function() {
     WeaverProject.READY_RETRY_TIMEOUT = 200;
 
-    function WeaverProject(name, projectId) {
+    function WeaverProject(name, projectId, _stored) {
       this.name = name;
       this.projectId = projectId;
+      this._stored = _stored != null ? _stored : false;
       this.name = this.name || 'unnamed';
       this.projectId = this.projectId || cuid();
-      this._stored = false;
     }
 
     WeaverProject.prototype.id = function() {
@@ -100707,6 +100723,10 @@ module.exports={
       return Weaver.getCoreManager().getAllRelations(this.id());
     };
 
+    WeaverProject.prototype.getSnapshot = function() {
+      return Weaver.getCoreManager().snapshotProject(this.id());
+    };
+
     WeaverProject.prototype.destroy = function() {
       return Weaver.getCoreManager().deleteProject(this.id());
     };
@@ -100720,7 +100740,15 @@ module.exports={
     };
 
     WeaverProject.list = function() {
-      return Weaver.getCoreManager().listProjects();
+      return Weaver.getCoreManager().listProjects().then(function(list) {
+        var i, len, p, results;
+        results = [];
+        for (i = 0, len = list.length; i < len; i++) {
+          p = list[i];
+          results.push(new Weaver.Project(p.name, p.id, true));
+        }
+        return results;
+      });
     };
 
     return WeaverProject;
@@ -100899,7 +100927,7 @@ module.exports={
     };
 
     WeaverQuery.prototype.contains = function(key, value) {
-      return this._addCondition(key, '$regex', quote(value));
+      return this._addCondition(key, '$contains', value);
     };
 
     WeaverQuery.prototype.startsWith = function(key, value) {

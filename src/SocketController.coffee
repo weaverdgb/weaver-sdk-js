@@ -8,8 +8,10 @@ class SocketController
   constructor: (@address, @options) ->
     defaultOptions =
       reconnection: true
+      rejectUnauthorized: true
 
     @options = @options or defaultOptions
+    @options.reconnection = true
     @options.query = "sdkVersion=#{pjson.version}&requiredServerVersion=#{pjson.com_weaverplatform.requiredServerVersion}"
 
   connect: ->

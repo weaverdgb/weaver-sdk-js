@@ -2,6 +2,19 @@ weaver = require("./test-suite")
 Weaver = require('../src/Weaver')
 
 describe 'WeaverProject Test', ->
+  actualProject = (p) ->
+    expect(p).to.have.property('_stored').to.be.a('boolean').to.equal(true)
+    expect(p).to.have.property('destroy').be.a('function')
+
+  it 'should have currentProject be not neutered', ->
+    actualProject(weaver.currentProject())
+
+  it 'should list projects that are not neutered', ->
+    Weaver.Project.list().then((list) ->
+      expect(list).to.have.length.be(1)
+      actualProject(list[0])
+    )
+
   it.skip 'should create projects with given id', (done) ->
     project = new Weaver.Project("name", "test")
     project.create().then((p) =>
@@ -58,11 +71,9 @@ describe 'WeaverProject Test', ->
       Weaver.Project.list()
     ).then((list) ->
       expect(list.length).to.equal(2)
-
-      loadedA = p for p in list when p.id is 'a'
-
+      loadedA = p for p in list when p.id() is 'a'
+      expect(loadedA).to.be.defined
       expect(loadedA.name).to.equal('A')
-
     ).then(->
       a.destroy()
       done()
@@ -71,24 +82,13 @@ describe 'WeaverProject Test', ->
 
 
   it.skip 'should allow setting an active project', (done) ->
+    p = weaver.currentProject()
     test = new Weaver.Project()
     test.create().then(->
       weaver.useProject(test)
     ).then(->
       test.destroy()
-      done()
-    )
-    return
-
-  it.skip 'should support getting the active project', (done) ->
-    test = new Weaver.Project()
-    test.create().then((prj) ->
-      weaver.useProject(prj)
-      p = weaver.currentProject()
-      expect(p).to.equal(test)
-    ).then(->
-      test.destroy()
-      done()
+      weaver.useProject(p)
     )
     return
 
@@ -106,3 +106,17 @@ describe 'WeaverProject Test', ->
       done()
     )
     return
+
+  it 'should export the database content as snapshot', ->
+    node = new Weaver.Node()
+
+    node.save().then((node) ->
+      node.set('name', 'Foo')
+      node.save()
+    ).then(->
+      p = weaver.currentProject()
+      p.getSnapshot()
+    ).then((writeOperations)->
+      expect(writeOperations.length).to.equal(2)
+    )
+
