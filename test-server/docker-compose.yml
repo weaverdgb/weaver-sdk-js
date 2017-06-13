@@ -5,9 +5,6 @@ services:
     expose:
     - "1111"
     - "8890"
-    ports:
-    - "8890:8890"
-    - "1111:1111"
     environment:
     - DBA_PASSWORD=myDbaPassword
     - SPARQL_UPDATE=true
@@ -17,8 +14,6 @@ services:
     image: mysql:5.7
     expose:
     - "3306"
-    ports:
-    - "3306:3306"
     environment:
     - MYSQL_ROOT_PASSWORD=K00B88HQB1UV9MZ7YYUP
     - MYSQL_DATABASE=trackerdb
@@ -29,8 +24,6 @@ services:
     image: sysunite/weaver-database-virtuoso:0.1.8
     expose:
     - "9474"
-    ports:
-    - "9474:9474"
     depends_on:
     - database
     links:
@@ -50,8 +43,6 @@ services:
     image: minio/minio:RELEASE.2017-04-25T01-27-49Z
     expose:
     - "9000"
-    ports:
-    - "9000:9000"
     environment:
     - MINIO_ACCESS_KEY=NYLEXGR6MF2IE99LZ4UE
     - MINIO_SECRET_KEY=CjMuTRwYPcneXnGac2aQH0J+EdYdehTW4Cw7bZGD
