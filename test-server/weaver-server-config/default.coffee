@@ -27,7 +27,6 @@ module.exports =
 
   application:
     wipe: true
-    scroll: true
     singleDatabase: true
     sounds:
       muteAll: false
@@ -49,7 +48,7 @@ module.exports =
       endpoint: 'http://localhost:9888'
 
     snmp:
-      enabled: true
+      enabled: false
       ipMonitor: 'localhost'
       trapPort: 1116
       agentPort: 1117

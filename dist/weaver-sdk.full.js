@@ -99012,7 +99012,7 @@ module.exports = yeast;
 },{}],391:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "2.3.1-beta.5",
+  "version": "2.3.1",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -99020,7 +99020,7 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredServerVersion": "~2.3.0 || ^2.3.1-beta.0"
+    "requiredServerVersion": "~2.3.1"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -99676,6 +99676,7 @@ module.exports={
         rejectUnauthorized: true
       };
       this.options = this.options || defaultOptions;
+      this.options.reconnection = true;
       this.options.query = "sdkVersion=" + pjson.version + "&requiredServerVersion=" + pjson.com_weaverplatform.requiredServerVersion;
     }
 
@@ -100667,12 +100668,12 @@ module.exports={
   WeaverProject = (function() {
     WeaverProject.READY_RETRY_TIMEOUT = 200;
 
-    function WeaverProject(name, projectId) {
+    function WeaverProject(name, projectId, _stored) {
       this.name = name;
       this.projectId = projectId;
+      this._stored = _stored != null ? _stored : false;
       this.name = this.name || 'unnamed';
       this.projectId = this.projectId || cuid();
-      this._stored = false;
     }
 
     WeaverProject.prototype.id = function() {
@@ -100739,7 +100740,15 @@ module.exports={
     };
 
     WeaverProject.list = function() {
-      return Weaver.getCoreManager().listProjects();
+      return Weaver.getCoreManager().listProjects().then(function(list) {
+        var i, len, p, results;
+        results = [];
+        for (i = 0, len = list.length; i < len; i++) {
+          p = list[i];
+          results.push(new Weaver.Project(p.name, p.id, true));
+        }
+        return results;
+      });
     };
 
     return WeaverProject;

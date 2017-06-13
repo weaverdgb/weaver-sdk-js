@@ -59,7 +59,7 @@ class WeaverProject
 
   @list: ->
     Weaver.getCoreManager().listProjects().then((list) ->
-      ( new Weaver.Project(p.id, p.name, true) for p in list )
+      ( new Weaver.Project(p.name, p.id, true) for p in list )
     )
 
 module.exports = WeaverProject
