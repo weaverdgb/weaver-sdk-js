@@ -163,6 +163,48 @@ describe 'WeaverUser Test', ->
     )
     return
 
+  it 'should sign in a user with valid alphanumeric characters and - _', ->
+    username = 'fo_0-B4r'
+    password = 'secretSauce123'
+    user = new Weaver.User(username, password, "centaurus@univer.se")
+    user.signUp()
+    .then( =>
+      weaver.signInWithUsername(username,password)
+    ).then((user) ->
+      assert.equal(username, user.username)
+    )
+
+  it 'should fail to login with empty username', ->
+    weaver.signOut().then(->
+      # Sign in
+      weaver.signInWithUsername('', 'password')
+    ).catch((err) ->
+      assert.isTrue(err.toString().startsWith("Error: Username not valid"))
+    )
+
+  it 'should fail to login with blanck string as username', ->
+    weaver.signOut().then(->
+      weaver.signInWithUsername('        ', 'password')
+    ).catch((err) ->
+      assert.isTrue(err.toString().startsWith("Error: Username not valid"))
+    )
+
+  it 'should fail to login with non alphanumeric characters for username but - _', ->
+    weaver.signOut().then(->
+      # Sign in
+      weaver.signInWithUsername('foo*bar', 'password')
+    ).catch((err) ->
+      assert.isTrue(err.toString().startsWith("Error: Username not valid"))
+    )
+
+  it 'should fail to login with NoSQL injection', ->
+    weaver.signOut().then(->
+      # Sign in
+      weaver.signInWithUsername({"username": {"$regex": ["a?special-user","i"]}}, 'password')
+    ).catch((err) ->
+      assert.isTrue(err.toString().startsWith("Error: Username not valid"))
+    )
+
   it 'should list all users', ->
     Promise.map([
       new Weaver.User('abcdef', '123456', 'ghe')
