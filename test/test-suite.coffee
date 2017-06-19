@@ -22,6 +22,8 @@ after ->
   weaver.wipe()
 
 # Runs after each test in each file
+# NOTE THAT THIS BREAKS THE ACL ASSOCIATED WITH A PROJECT TESTING ON
+
 beforeEach ->
   weaver.currentProject().wipe().then(->
     weaver.getCoreManager().wipeUsers()

@@ -30,6 +30,7 @@ class WeaverACL
 
   @loadFromServerObject: (aclObject) ->
     acl = new WeaverACL()
+
     # Copy
     acl._id       = aclObject.id
     acl._stored = true

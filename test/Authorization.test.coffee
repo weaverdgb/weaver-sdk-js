@@ -55,3 +55,34 @@ describe 'Authorization test', ->
       acl.delete()
     ).should.be.rejected
 
+  it 'should hide projects a user has no access to', ->
+    testUser = new Weaver.User('testuser', 'testpassword', 'email@dontevenvalidate.com')
+    testUser.create().then((user) ->
+      weaver.signOut()
+    ).then(->
+      weaver.signInWithUsername('testuser', 'testpassword')
+    ).then(->
+      Weaver.Project.list()
+    ).should.eventually.have.length.be(0)
+
+  it 'should be able to give access to projects', ->
+    weaver.currentProject().destroy().then(->
+      project = new Weaver.Project('another-test')
+      project.create()
+    ).then((project) ->
+      weaver.useProject(project)
+      testUser = new Weaver.User('testuser', 'testpassword', 'email@dontevenvalidate.com')
+      Promise.join(testUser.create(), weaver.currentProject().getACL(), (user, acl) ->
+        acl.setUserReadAccess(testUser, true)
+        acl.save()
+      )
+    ).then(->
+      weaver.signOut()
+    ).then(->
+      weaver.signInWithUsername('testuser', 'testpassword')
+    ).then(->
+      Weaver.Project.list()
+    ).should.eventually.have.length.be(1)
+
+
+
