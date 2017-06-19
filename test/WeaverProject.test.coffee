@@ -5,6 +5,7 @@ describe 'WeaverProject Test', ->
   actualProject = (p) ->
     expect(p).to.have.property('_stored').to.be.a('boolean').to.equal(true)
     expect(p).to.have.property('destroy').be.a('function')
+    expect(p).to.have.property('acl').to.exist
 
   it 'should have currentProject be not neutered', ->
     actualProject(weaver.currentProject())
