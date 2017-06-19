@@ -111,4 +111,5 @@ class WeaverACL
     @_roleWriteMap[role.id()] or false
 
 
+
 module.exports = WeaverACL

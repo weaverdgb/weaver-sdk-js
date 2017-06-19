@@ -12,8 +12,6 @@ describe 'WeaverACL test', ->
       assert.equal(loadedACL.id(), acl.id())
     ).catch((Err) -> console.log(Err))
 
-
-
   it 'should add more than one user to a ACL', ->
     user1 = new Weaver.User('user1', 'password1', 'email1')
     user2 = new Weaver.User('user2', 'password2', 'email2')
@@ -22,14 +20,11 @@ describe 'WeaverACL test', ->
     Promise.map([user1, user2, user3], (u) -> u.create())
     .then(->
       acl = new Weaver.ACL()
-
       acl.setUserReadAccess(user1, true)
       acl.setUserReadAccess(user2, true)
-
       acl.setUserWriteAccess(user1, true)
       acl.setUserWriteAccess(user2, true)
       acl.save()
-
     ).then((acl) ->
 
       Weaver.ACL.load(acl.id())
@@ -44,8 +39,6 @@ describe 'WeaverACL test', ->
       Weaver.ACL.load(acl.id())
 
     ).then((loadedACL) ->
-
       assert.equal((key for key of loadedACL._userReadMap).length, 3)
       assert.equal((key for key of loadedACL._userWriteMap).length, 3)
-
     )
