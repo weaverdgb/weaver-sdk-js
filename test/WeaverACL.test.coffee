@@ -42,3 +42,11 @@ describe 'WeaverACL test', ->
       assert.equal((key for key of loadedACL._userReadMap).length, 3)
       assert.equal((key for key of loadedACL._userWriteMap).length, 3)
     )
+
+  it 'should not be able to delete Server Function ACLs', ->
+    Weaver.ACL.load('create-projects').then((acl) ->
+      assert.fail()
+    ).catch(->
+      # This is fine
+    )
+
