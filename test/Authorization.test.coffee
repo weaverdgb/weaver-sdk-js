@@ -37,6 +37,24 @@ describe 'Authorization test', ->
       expect(err).to.have.property('message').match(/No more available projects/)
     )
 
+  it 'should allow a user to write to projects he created', ->
+    testUser = new Weaver.User('testuser', 'testpassword', 'email@dontevenvalidate.com')
+    Promise.join(weaver.currentProject().destroy(), testUser.create(), Weaver.ACL.load('create-projects'), (deleteResult, user, acl) ->
+      acl.setUserWriteAccess(testUser, true)
+      acl.save()
+    ).then(->
+      weaver.signOut()
+    ).then(->
+      weaver.signInWithUsername('testuser', 'testpassword')
+    ).then(->
+      p = new Weaver.Project('A created project')
+      weaver.useProject(p)
+      p.create()
+    ).then(->
+      node = new Weaver.Node()
+      node.save()
+    )
+
   it 'should prevent unauthorized permission modification', ->
     testUser = new Weaver.User('testuser', 'testpassword', 'email@dontevenvalidate.com')
     testUser.create().then((user) ->
