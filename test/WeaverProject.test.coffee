@@ -121,3 +121,14 @@ describe 'WeaverProject Test', ->
       expect(writeOperations.length).to.equal(2)
     )
 
+  it 'should not leak internal details of projects', ->
+    weaver.coreManager.listProjects().then((projects) ->
+      p = projects[0]
+      console.log(p)
+      expect(p).to.not.have.property('tracker')
+      expect(p).to.not.have.property('meta')
+      expect(p).to.not.have.property('$loki')
+      expect(p).to.not.have.property('database')
+      expect(p).to.not.have.property('fileServer')
+    )
+
