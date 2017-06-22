@@ -3,6 +3,8 @@ Weaver = require('../src/Weaver')
 Promise = require('bluebird')
 
 describe 'Authorization test', ->
+
+
   it 'should not allow project creation by default', ->
     testUser = new Weaver.User('testuser', 'testpassword', 'email@dontevenvalidate.com')
     testUser.create().then((user) ->
@@ -36,6 +38,54 @@ describe 'Authorization test', ->
       # workaround for the limited developemt projects
       expect(err).to.have.property('message').match(/No more available projects/)
     )
+
+  it 'should allow a user to destroy a project created by that user', ->
+    testUser = new Weaver.User('testuser', 'testpassword', 'email@dontevenvalidate.com')
+    Promise.join(weaver.currentProject().destroy(), testUser.create(), Weaver.ACL.load('create-projects'), (deleteResult, user, acl) ->
+      acl.setUserWriteAccess(testUser, true)
+      acl.save()
+    ).then(->
+      weaver.signOut()
+    ).then(->
+      weaver.signInWithUsername('testuser', 'testpassword')
+    ).then(->
+      p = new Weaver.Project('A created project')
+      weaver.useProject(p)
+      p.create()
+    ).then((project) ->
+      project.destroy()
+    ).then(->
+      p = new Weaver.Project("yet another project", 'test')
+      weaver.useProject(p)
+      p.create()
+    )
+
+  it 'should not allow a user to delete a project by default', ->
+    testUser = new Weaver.User('testuser', 'testpassword', 'email@dontevenvalidate.com')
+    testUser2 = new Weaver.User('another', 'testpassword', 'email@email.com')
+    Promise.join(weaver.currentProject().destroy(), testUser.create(), testUser2.create(), Weaver.ACL.load('create-projects'), (deleteResult, user, user2, acl) ->
+      acl.setUserWriteAccess(testUser, true)
+      acl.save()
+    ).then(->
+      weaver.signOut()
+    ).then(->
+      weaver.signInWithUsername('testuser', 'testpassword')
+    ).then(->
+      p = new Weaver.Project('A created project')
+      weaver.useProject(p)
+      p.create()
+    ).then(->
+      weaver.currentProject().getACL()
+    ).then((acl) ->
+      acl.setUserWriteAccess(testUser2, true)
+      acl.save()
+    ).then(->
+      weaver.signOut()
+    ).then(->
+      weaver.signInWithUsername('another', 'testpassword')
+    ).then(->
+      weaver.currentProject().destroy()
+    ).should.be.rejected
 
   it 'should allow a user to write to projects he created', ->
     testUser = new Weaver.User('testuser', 'testpassword', 'email@dontevenvalidate.com')
