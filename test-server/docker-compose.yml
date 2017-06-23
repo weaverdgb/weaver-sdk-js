@@ -49,7 +49,7 @@ services:
     command: server /data
 
   weaver-server:
-    image: sysunite/weaver-server:2.3.2-beta.3
+    image: sysunite/weaver-server:2.3.2-beta.4
     expose:
     - "9487"
     ports:
