@@ -55,3 +55,8 @@ describe 'WeaverHistory test', ->
           assert.equal(row.user,'admin')
       )
     )
+
+  it 'should reject unauthorized accounts from retrieving history', ->
+    weaver.signOut().then(->
+      new Weaver.History().dumpHistory()
+    ).should.be.rejected
