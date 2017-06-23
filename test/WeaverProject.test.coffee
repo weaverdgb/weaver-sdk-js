@@ -131,3 +131,8 @@ describe 'WeaverProject Test', ->
       expect(p).to.not.have.property('fileServer')
     )
 
+  it 'should not allow unauthorized snapshots', ->
+    new Weaver.User('testuser', 'testpass', 'test@example.com').signUp().then(->
+      weaver.currentProject().getSnapshot()
+    ).should.be.rejectedWith(/Permission denied/)
+

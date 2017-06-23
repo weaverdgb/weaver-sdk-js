@@ -25,10 +25,8 @@ after ->
 # NOTE THAT THIS BREAKS THE ACL ASSOCIATED WITH A PROJECT TESTING ON
 
 beforeEach ->
-  weaver.currentProject().wipe().then(->
-    weaver.getCoreManager().wipeUsers()
-  ).then(->
-    weaver.signInWithUsername('admin', 'admin')
-  )
+  weaver.signInWithUsername('admin', 'admin')
+  .then(->weaver.getCoreManager().wipeUsers())
+  .then(->weaver.currentProject().wipe())
 
 module.exports = weaver
