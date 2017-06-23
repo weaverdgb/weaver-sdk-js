@@ -124,7 +124,6 @@ describe 'WeaverProject Test', ->
   it 'should not leak internal details of projects', ->
     weaver.coreManager.listProjects().then((projects) ->
       p = projects[0]
-      console.log(p)
       expect(p).to.not.have.property('tracker')
       expect(p).to.not.have.property('meta')
       expect(p).to.not.have.property('$loki')
