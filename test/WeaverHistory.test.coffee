@@ -56,7 +56,17 @@ describe 'WeaverHistory test', ->
       )
     )
 
-  it 'should reject unauthorized accounts from retrieving history', ->
+  it 'should reject public access to history', ->
     weaver.signOut().then(->
       new Weaver.History().dumpHistory()
     ).should.be.rejected
+
+  it 'should reject users without project access from accessing history', ->
+    weaver.currentProject().destroy().then(->
+      new Weaver.Project('history test').create()
+    ).then((p)->
+      weaver.useProject(p)
+      new Weaver.User('testuser', 'testpassword', 'test@example.com').signUp()
+    ).then(->
+      new Weaver.History().dumpHistory()
+    ).should.be.rejectedWith(/Permission denied/)
