@@ -1,5 +1,6 @@
-weaver = require("./test-suite")
-Weaver = require('../src/Weaver')
+weaver  = require("./test-suite")
+Weaver  = require('../src/Weaver')
+Promise = require('bluebird')
 
 describe 'WeaverProject Test', ->
   actualProject = (p) ->
@@ -130,6 +131,27 @@ describe 'WeaverProject Test', ->
       expect(p).to.not.have.property('database')
       expect(p).to.not.have.property('fileServer')
     )
+
+  it 'should now allow checking project readyness without access', ->
+    weaver.signOut().then(->weaver.coreManager.readyProject(weaver.currentProject().projectId)).should.be.rejected
+
+  it 'should allow checking project readyness for admin' , ->
+    weaver.coreManager.readyProject(weaver.currentProject().projectId).should.eventually.eql({ready: true})
+
+  it 'should allow checking project readyness for regular users with access' , ->
+    testUser = new Weaver.User('testuser', 'testpassword', 'test@example.com')
+    Promise.join(
+      testUser.create(),
+      weaver.currentProject().getACL()
+      (user, acl) ->
+        acl.setUserReadAccess(testUser, true)
+        acl.save()
+    ).then(->
+      weaver.signInWithUsername('testuser', 'testpassword')
+    ).then(->
+      weaver.coreManager.readyProject(weaver.currentProject().projectId)
+    ).should.eventually.eql({ready: true})
+
 
   it 'should not allow unauthorized snapshots', ->
     new Weaver.User('testuser', 'testpass', 'test@example.com').signUp().then(->
