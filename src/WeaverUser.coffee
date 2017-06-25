@@ -5,23 +5,17 @@ Weaver      = require('./Weaver')
 
 class WeaverUser
 
-  constructor: (@username, @password, @email) ->
+  constructor: (@username, @email) ->
     @userId   = cuid()
-    @_stored = false
 
   @get: (authToken) ->
     user = new WeaverUser()
-    user.userId   = undefined
-    user._stored  = true
     user.authToken = authToken
     user
 
   @loadFromServerObject: (user) ->
     u = new Weaver.User()
-    u._stored = true
-    u.username = user.username
-    u.email    = user.email
-    u.userId   = user.userId
+    u[key] = value for key, value of user
     u
 
   populateFromServer: (serverUser) ->
@@ -34,13 +28,15 @@ class WeaverUser
   create: ->
     Weaver.getCoreManager().signUpUser(@).then((authToken) =>
       delete @password
-      @_stored   = true
       @authToken = authToken
       return
     )
 
   save: ->
     Weaver.getCoreManager().updateUser(@)
+
+  changePassword: (password) ->
+    Weaver.getCoreManager().changePassword(@userId, password)
 
   # Saves the user and signs in as current user
   signUp: ->
