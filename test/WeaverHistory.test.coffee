@@ -55,3 +55,18 @@ describe 'WeaverHistory test', ->
           assert.equal(row.user,'admin')
       )
     )
+
+  it 'should reject public access to history', ->
+    weaver.signOut().then(->
+      new Weaver.History().dumpHistory()
+    ).should.be.rejected
+
+  it 'should reject users without project access from accessing history', ->
+    weaver.currentProject().destroy().then(->
+      new Weaver.Project('history test').create()
+    ).then((p)->
+      weaver.useProject(p)
+      new Weaver.User('testuser', 'testpassword', 'test@example.com').signUp()
+    ).then(->
+      new Weaver.History().dumpHistory()
+    ).should.be.rejectedWith(/Permission denied/)
