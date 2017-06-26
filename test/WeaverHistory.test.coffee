@@ -52,7 +52,7 @@ describe 'WeaverHistory test', ->
       .then((response) ->
         assert.equal(response.length,2)
         for row in response
-          assert.equal(row.user,'admin')
+          assert.equal(row.user,'root')
       )
     )
 
