@@ -55,13 +55,22 @@ describe 'WeaverHistory test', ->
           assert.equal(row.user,'root')
       )
     )
- 
-  it 'should not allow sql injection in inserts', ->
+
+  it 'should not allow sql injection in queries', ->
+    new Weaver.Node().save().then(->
+      new Weaver.Node().save()
+    ).then(->
+      history = new Weaver.History()
+      history.forUser("' or 1=1; --")
+      history.limit(2)
+      history.getHistory()
+    ).should.eventually.have.length.be(0)
+
+  it 'should not allow sql injection queries', ->
     new Weaver.Node("'; TRUNCATE TABLE `trackerdb`; --").save().then(->
       history = new Weaver.History()
       history.dumpHistory()
     ).should.eventually.have.length.be(1)
-
 
   it 'should reject public access to history', ->
     weaver.signOut().then(->
