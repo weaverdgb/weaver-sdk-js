@@ -61,10 +61,15 @@ describe 'WeaverHistory test', ->
       new Weaver.Node().save()
     ).then(->
       history = new Weaver.History()
-      history.forUser("' or 1=1; --")
-      history.limit(2)
-      history.getHistory()
-    ).should.eventually.have.length.be(0)
+      history.limit('10; TRUNCATE TABLE `trackerdb`; --')
+      history.dumpHistory()
+    ).then(->
+      new Weaver.Node().save()
+    ).then(->
+      history = new Weaver.History()
+      history.limit(10)
+      history.dumpHistory()
+    ).should.eventually.have.length.be(3)
 
   it 'should not allow sql injection queries', ->
     new Weaver.Node("'; TRUNCATE TABLE `trackerdb`; --").save().then(->
