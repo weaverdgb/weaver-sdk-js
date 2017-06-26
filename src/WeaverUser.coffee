@@ -45,11 +45,21 @@ class WeaverUser
     )
 
   destroy: ->
-    Weaver.getCoreManager().destroyUser(@)
+    Weaver.getCoreManager().destroyUser(@id())
 
   getRoles: ->
     Weaver.getCoreManager().getRolesForUser(@userId).then((roles) ->
       (Weaver.Role.loadFromServerObject(r) for r in roles)
+    )
+
+  getProjects: ->
+    Weaver.getCoreManager().getProjectsForUser(@userId).then((projects) ->
+      (new Weaver.Project(p.name, p.id, p.acl, true) for p in projects)
+    )
+
+  getPresentInACL: ->
+    Weaver.getCoreManager().getACLForObject(@userId).then((acl) ->
+      (WeaverACL.loadFromServerObject(a) for a in acl)
     )
 
   @list: ->

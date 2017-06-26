@@ -64,9 +64,14 @@ class WeaverRole
   getRoles: ->
     (roleId for roleId, val of @_rolesMap)
 
-  delete: ->
-    Weaver.getCoreManager().deleteRole(@id()).then(=>
+  destroy: ->
+    Weaver.getCoreManager().destroyRole(@id()).then(=>
       @_deleted = true
+    )
+
+  @list: ->
+    Weaver.getCoreManager().listRoles().then((roles) ->
+      (WeaverRole.loadFromServerObject(r) for r in roles)
     )
 
 module.exports = WeaverRole

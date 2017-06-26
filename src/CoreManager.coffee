@@ -80,6 +80,12 @@ class CoreManager
   listUsers: ->
     @GET("users")
 
+  listRoles: ->
+    @GET("roles")
+
+  listACL: ->
+    @GET("acl.all")
+
   createProject: (id, name) ->
     @POST("project.create", {id, name})
 
@@ -137,15 +143,20 @@ class CoreManager
 
     @POST("user.update", {update})
 
+  updateRole: (role) ->
+    update      = {}
+    update[key] = value for key, value of role
+
+    @POST("role.update", {update})
+
   changePassword: (userId, password) ->
     @POST("user.changePassword", {userId, password})
 
-  destroyUser: (user) ->
-    payload =
-      username: user.username
+  destroyUser: (id) ->
+    @POST("user.delete", {id}, "$SYSTEM")
 
-    @POST("user.delete", payload, "$SYSTEM")
-
+  destroyRole: (id) ->
+    @POST("role.delete", {id}, "$SYSTEM")
 
   signOutCurrentUser: ->
     @POST("user.signOut", {}, "$SYSTEM").then(=>
@@ -212,6 +223,9 @@ class CoreManager
 
   getRolesForUser: (userId) ->
     @POST("user.roles", {id: userId})
+
+  getProjectsForUser: (userId) ->
+    @POST("user.projects", {id: userId})
 
   REQUEST: (type, path, payload, target) =>
     payload = @_resolvePayload(payload, target)

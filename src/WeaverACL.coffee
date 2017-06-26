@@ -33,7 +33,9 @@ class WeaverACL
 
     # Copy
     acl._id       = aclObject.id
-    acl._stored = true
+    acl._stored      = true
+    acl._functionACL = aclObject.functionACL
+
     acl._publicRead  = aclObject.publicRead
     acl._publicWrite = aclObject.publicWrite
 
@@ -111,6 +113,10 @@ class WeaverACL
   getRoleWriteAccess: (role) ->
     @_roleWriteMap[role.id()] or false
 
+  @list: ->
+    Weaver.getCoreManager().listACL().then((acl) ->
+      (WeaverACL.loadFromServerObject(a) for a in acl)
+    )
 
 
 module.exports = WeaverACL
