@@ -5,7 +5,7 @@ Weaver      = require('./Weaver')
 
 class WeaverUser
 
-  constructor: (@username, @email) ->
+  constructor: (@username, @password, @email) ->
     @userId   = cuid()
 
   @get: (authToken) ->
