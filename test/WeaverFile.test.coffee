@@ -20,6 +20,74 @@ describe 'WeaverFile test', ->
       assert.equal(res.split('-')[1],'weaverIcon.png')
     )
 
+  it 'should deny access when uploading with unauthorized user', ->
+    @timeout(15000)
+
+    weaverFile = new Weaver.File()
+    fileTemp = path.join(__dirname,'../icon.png')
+
+    user = new Weaver.User("username", "password", "some@email.com")
+    user.signUp()
+    .then(->
+      weaverFile.saveFile(fileTemp, 'weaverIcon.png')
+    ).then(->
+       assert.fail()
+    ).catch((err) ->
+      expect(err).to.have.property('message').match(/Permission denied/)
+    )
+
+  it 'should deny access when uploading with read-only user', ->
+    @timeout(15000)
+
+    weaverFile = new Weaver.File()
+    fileTemp = path.join(__dirname,'../icon.png')
+
+    user = new Weaver.User("username", "password", "some@email.com")
+    user.create()
+    .then(->
+      weaver.currentProject().getACL()
+    ).then((projectACL) ->
+      projectACL.setUserReadAccess(user, true)
+      projectACL.save()
+    ).then(->
+      weaver.signOut()
+    ).then(->
+      weaver.signInWithUsername("username", "password")
+    ).then(->
+      weaverFile.saveFile(fileTemp, 'weaverIcon.png')
+    ).then(->
+       assert.fail()
+    ).catch((err) ->
+      expect(err).to.have.property('message').match(/Permission denied/)
+    )
+
+  it 'should allow access when uploading with authorized user with write permission', ->
+    @timeout(15000)
+
+    weaverFile = new Weaver.File()
+    fileTemp = path.join(__dirname,'../icon.png')
+
+    user = new Weaver.User("username", "password", "some@email.com")
+    user.create()
+    .then(->
+      weaver.currentProject().getACL()
+    ).then((projectACL) ->
+      projectACL.setUserReadAccess(user, true)
+      projectACL.setUserWriteAccess(user, true)
+      projectACL.save()
+    ).then(->
+      weaver.signOut()
+    ).then(->
+      weaver.signInWithUsername("username", "password")
+    ).then(->
+      weaverFile.saveFile(fileTemp, 'weaverIcon.png')
+    ).then(->
+      assert.isTrue(true)
+    ).catch((err) ->
+      console.log err
+      assert.fail()
+    )
+
   it 'should fail creating a new file, because the file does not exists on local machine', ->
     weaverFile = new Weaver.File()
     fileTemp = '../foo.bar'

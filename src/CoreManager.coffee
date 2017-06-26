@@ -80,6 +80,12 @@ class CoreManager
   listUsers: ->
     @GET("users")
 
+  listRoles: ->
+    @GET("roles")
+
+  listACL: ->
+    @GET("acl.all")
+
   createProject: (id, name) ->
     @POST("project.create", {id, name})
 
@@ -125,31 +131,32 @@ class CoreManager
     )
 
   signUpUser: (user) ->
-    payload =
-      userId:   user.userId
-      username: user.username
-      password: user.password
-      email:    user.email
+    update = {}
+    update[key] = value for key, value of user
 
-    @POST("user.signUp", payload, "$SYSTEM")
+    @POST("user.signUp", update, "$SYSTEM")
 
 
   updateUser: (user) ->
-    payload =
-      update:
-        userId:   user.userId
-        username: user.username
-        email:    user.email
+    update      = {}
+    update[key] = value for key, value of user when key isnt 'authToken'
 
-    @POST("user.update", payload)
+    @POST("user.update", {update})
 
+  updateRole: (role) ->
+    update      = {}
+    update[key] = value for key, value of role
 
-  destroyUser: (user) ->
-    payload =
-      username: user.username
+    @POST("role.update", {update})
 
-    @POST("user.delete", payload, "$SYSTEM")
+  changePassword: (userId, password) ->
+    @POST("user.changePassword", {userId, password})
 
+  destroyUser: (id) ->
+    @POST("user.delete", {id}, "$SYSTEM")
+
+  destroyRole: (id) ->
+    @POST("role.delete", {id}, "$SYSTEM")
 
   signOutCurrentUser: ->
     @POST("user.signOut", {}, "$SYSTEM").then(=>
@@ -217,6 +224,9 @@ class CoreManager
   getRolesForUser: (userId) ->
     @POST("user.roles", {id: userId})
 
+  getProjectsForUser: (userId) ->
+    @POST("user.projects", {id: userId})
+
   REQUEST: (type, path, payload, target) =>
     payload = @_resolvePayload(payload, target)
 
@@ -237,6 +247,10 @@ class CoreManager
     formData = @_resolvePayload(formData)
     new Promise((resolve, reject) =>
       request.post({url:"#{@endpoint}/upload", formData: formData, rejectUnauthorized: @options.rejectUnauthorized}, (err, httpResponse, body) ->
+        if httpResponse?.statusCode is 500
+          reject(Error WeaverError.OTHER_CAUSE, httpResponse.body)
+          return
+
         if err
           if err.code is 'ENOENT'
             reject(Error WeaverError.FILE_NOT_EXISTS_ERROR,"The file #{err.path} does not exits")
