@@ -13,17 +13,17 @@ describe 'Integration Test', ->
     reg = {}
 
     # Weaver is already connected by test-suite
-    # This test assumes a fully initialized Weaver Server, meaning
-    # - no users or projects
-    # - no data in any database
-    # We therefore call the wipe function that only works in Development mode
-    weaver.wipe()
+    # There is always an admin user that we can use to sign in
+    # Default username and password are set in weaver-server config file
+    weaver.signInWithUsername('admin', 'admin')
     .then(->
 
-      # There is always an admin user that we can use to sign in
-      # Default username and password are set in weaver-server config file
-      weaver.signInWithUsername('admin', 'admin')
-
+      # This test assumes a fully initialized Weaver Server, meaning
+      # - no users or projects
+      # - no data in any database
+      # We therefore call the wipe function that only works in Development mode
+      weaver.wipe()
+    
     ).then(->
 
       # Create a project with a name
