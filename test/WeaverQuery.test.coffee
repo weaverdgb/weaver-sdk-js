@@ -215,3 +215,27 @@ describe 'WeaverQuery Test', ->
       assert.include(res.head.vars, 'p')
       assert.include(res.head.vars, 'o')
     )
+
+  it 'should deny any other user than root to execute a native query', ->
+    query = "select * where { ?s ?p ?o }"
+    q = new Weaver.Query()
+
+    user = new Weaver.User("username", "centaurus123", "centaurus@univer.se")
+    user.create()
+    .then(->
+      weaver.currentProject().getACL()
+    ).then((projectACL) ->
+      projectACL.setUserReadAccess(user, true)
+      projectACL.setUserWriteAccess(user, true)
+      projectACL.save()
+    ).then(->
+      weaver.signOut()
+    ).then(->
+      weaver.signInWithUsername("username", "centaurus123")
+    ).then(->
+      q.nativeQuery(query)
+    ).then(->
+       assert.fail()
+    ).catch((err) ->
+      expect(err).to.have.property('message').match(/Permission denied/)
+    )

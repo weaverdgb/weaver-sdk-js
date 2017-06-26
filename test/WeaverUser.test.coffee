@@ -239,7 +239,70 @@ describe 'WeaverUser Test', ->
 
   it.skip 'should create the admin role upon initialization', (done) ->
 
-  it.skip 'should allow only the admin to wipe a project', (done) ->
+  it 'should allow only the admin to wipe all', ->
+    user = new Weaver.User("username", "centaurus123", "centaurus@univer.se")
+    weaver.signOut()
+    .then(->
+      user.signUp()
+    ).then(->
+      weaver.wipe()
+    ).then(->
+      assert.fail()
+    ).catch((err) ->
+      expect(err).to.have.property('message').match(/Permission denied/)
+    )
+
+  it 'should allow only the admin to wipe a single project', ->
+    user = new Weaver.User("username", "centaurus123", "centaurus@univer.se")
+    weaver.signOut()
+    .then(->
+      user.signUp()
+    ).then(->
+      weaver.currentProject().wipe()
+    ).then(->
+      assert.fail()
+    ).catch((err) ->
+      expect(err).to.have.property('message').match(/Permission denied/)
+    )
+
+  it 'should allow only the admin to wipe all projects', ->
+    user = new Weaver.User("username", "centaurus123", "centaurus@univer.se")
+    weaver.signOut()
+    .then(->
+      user.signUp()
+    ).then(->
+      weaver.coreManager.wipeProjects()
+    ).then(->
+      assert.fail()
+    ).catch((err) ->
+      expect(err).to.have.property('message').match(/Permission denied/)
+    )
+
+  it 'should allow only the admin to destroy all projects', ->
+    user = new Weaver.User("username", "centaurus123", "centaurus@univer.se")
+    weaver.signOut()
+    .then(->
+      user.signUp()
+    ).then(->
+      weaver.coreManager.destroyProjects()
+    ).then(->
+      assert.fail()
+    ).catch((err) ->
+      expect(err).to.have.property('message').match(/Permission denied/)
+    )
+
+  it 'should allow only the admin to wipe all users', ->
+    user = new Weaver.User("username", "centaurus123", "centaurus@univer.se")
+    weaver.signOut()
+    .then(->
+      user.signUp()
+    ).then(->
+      weaver.coreManager.wipeUsers()
+    ).then(->
+      assert.fail()
+    ).catch((err) ->
+      expect(err).to.have.property('message').match(/Permission denied/)
+    )
 
   it.skip 'should create a new project by default on private ACL', (done) ->
 
