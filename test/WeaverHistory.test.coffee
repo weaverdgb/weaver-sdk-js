@@ -56,6 +56,27 @@ describe 'WeaverHistory test', ->
       )
     )
 
+  it 'should not allow sql injection in queries', ->
+    new Weaver.Node().save().then(->
+      new Weaver.Node().save()
+    ).then(->
+      history = new Weaver.History()
+      history.limit('10; TRUNCATE TABLE `trackerdb`; --')
+      history.dumpHistory()
+    ).then(->
+      new Weaver.Node().save()
+    ).then(->
+      history = new Weaver.History()
+      history.limit(10)
+      history.dumpHistory()
+    ).should.eventually.have.length.be(3)
+
+  it 'should not allow sql injection queries', ->
+    new Weaver.Node("'; TRUNCATE TABLE `trackerdb`; --").save().then(->
+      history = new Weaver.History()
+      history.dumpHistory()
+    ).should.eventually.have.length.be(1)
+
   it 'should reject public access to history', ->
     weaver.signOut().then(->
       new Weaver.History().dumpHistory()
