@@ -233,6 +233,10 @@ class CoreManager
     formData = @_resolvePayload(formData)
     new Promise((resolve, reject) =>
       request.post({url:"#{@endpoint}/upload", formData: formData, rejectUnauthorized: @options.rejectUnauthorized}, (err, httpResponse, body) ->
+        if httpResponse?.statusCode is 500
+          reject(Error WeaverError.OTHER_CAUSE, httpResponse.body)
+          return
+
         if err
           if err.code is 'ENOENT'
             reject(Error WeaverError.FILE_NOT_EXISTS_ERROR,"The file #{err.path} does not exits")
