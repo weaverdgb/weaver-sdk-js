@@ -125,24 +125,20 @@ class CoreManager
     )
 
   signUpUser: (user) ->
-    payload =
-      userId:   user.userId
-      username: user.username
-      password: user.password
-      email:    user.email
+    update = {}
+    update[key] = value for key, value of user
 
-    @POST("user.signUp", payload, "$SYSTEM")
+    @POST("user.signUp", update, "$SYSTEM")
 
 
   updateUser: (user) ->
-    payload =
-      update:
-        userId:   user.userId
-        username: user.username
-        email:    user.email
+    update      = {}
+    update[key] = value for key, value of user when key isnt 'authToken'
 
-    @POST("user.update", payload)
+    @POST("user.update", {update})
 
+  changePassword: (userId, password) ->
+    @POST("user.changePassword", {userId, password})
 
   destroyUser: (user) ->
     payload =
