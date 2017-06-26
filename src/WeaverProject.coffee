@@ -5,7 +5,7 @@ class WeaverProject
 
   @READY_RETRY_TIMEOUT: 200
 
-  constructor: (@name, @projectId, @_stored = false) ->
+  constructor: (@name, @projectId, @acl, @_stored = false) ->
     @name = @name or 'unnamed'
     @projectId = @projectId or cuid()
 
@@ -15,7 +15,8 @@ class WeaverProject
   create: ->
     coreManager = Weaver.getCoreManager()
     coreManager.createProject(@projectId, @name)
-    .then(=>  # Wait till project gets read
+    .then((acl) =>  # Wait till project gets read
+      @acl = acl
       new Promise((resolve) =>
 
         checkReady = =>
@@ -59,7 +60,7 @@ class WeaverProject
 
   @list: ->
     Weaver.getCoreManager().listProjects().then((list) ->
-      ( new Weaver.Project(p.name, p.id, true) for p in list )
+      ( new Weaver.Project(p.name, p.id, p.acl, true) for p in list )
     )
 
 module.exports = WeaverProject

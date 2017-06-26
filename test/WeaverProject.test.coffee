@@ -1,10 +1,12 @@
-weaver = require("./test-suite")
-Weaver = require('../src/Weaver')
+weaver  = require("./test-suite")
+Weaver  = require('../src/Weaver')
+Promise = require('bluebird')
 
 describe 'WeaverProject Test', ->
   actualProject = (p) ->
     expect(p).to.have.property('_stored').to.be.a('boolean').to.equal(true)
     expect(p).to.have.property('destroy').be.a('function')
+    expect(p).to.have.property('acl').to.exist
 
   it 'should have currentProject be not neutered', ->
     actualProject(weaver.currentProject())
@@ -119,4 +121,40 @@ describe 'WeaverProject Test', ->
     ).then((writeOperations)->
       expect(writeOperations.length).to.equal(2)
     )
+
+  it 'should not leak internal details of projects', ->
+    weaver.coreManager.listProjects().then((projects) ->
+      p = projects[0]
+      expect(p).to.not.have.property('tracker')
+      expect(p).to.not.have.property('meta')
+      expect(p).to.not.have.property('$loki')
+      expect(p).to.not.have.property('database')
+      expect(p).to.not.have.property('fileServer')
+    )
+
+  it 'should now allow checking project readyness without access', ->
+    weaver.signOut().then(->weaver.coreManager.readyProject(weaver.currentProject().projectId)).should.be.rejected
+
+  it 'should allow checking project readyness for admin' , ->
+    weaver.coreManager.readyProject(weaver.currentProject().projectId).should.eventually.eql({ready: true})
+
+  it 'should allow checking project readyness for regular users with access' , ->
+    testUser = new Weaver.User('testuser', 'testpassword', 'test@example.com')
+    Promise.join(
+      testUser.create(),
+      weaver.currentProject().getACL()
+      (user, acl) ->
+        acl.setUserReadAccess(testUser, true)
+        acl.save()
+    ).then(->
+      weaver.signInWithUsername('testuser', 'testpassword')
+    ).then(->
+      weaver.coreManager.readyProject(weaver.currentProject().projectId)
+    ).should.eventually.eql({ready: true})
+
+
+  it 'should not allow unauthorized snapshots', ->
+    new Weaver.User('testuser', 'testpass', 'test@example.com').signUp().then(->
+      weaver.currentProject().getSnapshot()
+    ).should.be.rejectedWith(/Permission denied/)
 

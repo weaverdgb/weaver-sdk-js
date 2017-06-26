@@ -153,6 +153,58 @@ describe 'WeaverUser Test', ->
     )
     return
 
+  it 'should fail to login with NoSQL injection', (done) ->
+    weaver.signOut().then(->
+      # Sign in
+      weaver.signInWithUsername({"username": {"$regex": ["a?special-user","i"]}}, 'password')
+    ).catch((err) ->
+      # TODO: Assert error code
+      done()
+    )
+    return
+
+  it 'should sign in a user with valid alphanumeric characters and - _', ->
+    username = 'fo_0-B4r'
+    password = 'secretSauce123'
+    user = new Weaver.User(username, password, "centaurus@univer.se")
+    user.signUp()
+    .then( =>
+      weaver.signInWithUsername(username,password)
+    ).then((user) ->
+      assert.equal(username, user.username)
+    )
+
+  it 'should fail to login with empty username', ->
+    weaver.signOut().then(->
+      # Sign in
+      weaver.signInWithUsername('', 'password')
+    ).catch((err) ->
+      assert.isTrue(err.toString().startsWith("Error: Username not valid"))
+    )
+
+  it 'should fail to login with blanck string as username', ->
+    weaver.signOut().then(->
+      weaver.signInWithUsername('        ', 'password')
+    ).catch((err) ->
+      assert.isTrue(err.toString().startsWith("Error: Username not valid"))
+    )
+
+  it 'should fail to login with non alphanumeric characters for username but - _', ->
+    weaver.signOut().then(->
+      # Sign in
+      weaver.signInWithUsername('foo*bar', 'password')
+    ).catch((err) ->
+      assert.isTrue(err.toString().startsWith("Error: Username not valid"))
+    )
+
+  it 'should fail to login with NoSQL injection', ->
+    weaver.signOut().then(->
+      # Sign in
+      weaver.signInWithUsername({"username": {"$regex": ["a?special-user","i"]}}, 'password')
+    ).catch((err) ->
+      assert.isTrue(err.toString().startsWith("Error: Username not valid"))
+    )
+
   it 'should list all users', ->
     Promise.map([
       new Weaver.User('abcdef', '123456', 'ghe')
@@ -187,7 +239,70 @@ describe 'WeaverUser Test', ->
 
   it.skip 'should create the admin role upon initialization', (done) ->
 
-  it.skip 'should allow only the admin to wipe a project', (done) ->
+  it 'should allow only the admin to wipe all', ->
+    user = new Weaver.User("username", "centaurus123", "centaurus@univer.se")
+    weaver.signOut()
+    .then(->
+      user.signUp()
+    ).then(->
+      weaver.wipe()
+    ).then(->
+      assert.fail()
+    ).catch((err) ->
+      expect(err).to.have.property('message').match(/Permission denied/)
+    )
+
+  it 'should allow only the admin to wipe a single project', ->
+    user = new Weaver.User("username", "centaurus123", "centaurus@univer.se")
+    weaver.signOut()
+    .then(->
+      user.signUp()
+    ).then(->
+      weaver.currentProject().wipe()
+    ).then(->
+      assert.fail()
+    ).catch((err) ->
+      expect(err).to.have.property('message').match(/Permission denied/)
+    )
+
+  it 'should allow only the admin to wipe all projects', ->
+    user = new Weaver.User("username", "centaurus123", "centaurus@univer.se")
+    weaver.signOut()
+    .then(->
+      user.signUp()
+    ).then(->
+      weaver.coreManager.wipeProjects()
+    ).then(->
+      assert.fail()
+    ).catch((err) ->
+      expect(err).to.have.property('message').match(/Permission denied/)
+    )
+
+  it 'should allow only the admin to destroy all projects', ->
+    user = new Weaver.User("username", "centaurus123", "centaurus@univer.se")
+    weaver.signOut()
+    .then(->
+      user.signUp()
+    ).then(->
+      weaver.coreManager.destroyProjects()
+    ).then(->
+      assert.fail()
+    ).catch((err) ->
+      expect(err).to.have.property('message').match(/Permission denied/)
+    )
+
+  it 'should allow only the admin to wipe all users', ->
+    user = new Weaver.User("username", "centaurus123", "centaurus@univer.se")
+    weaver.signOut()
+    .then(->
+      user.signUp()
+    ).then(->
+      weaver.coreManager.wipeUsers()
+    ).then(->
+      assert.fail()
+    ).catch((err) ->
+      expect(err).to.have.property('message').match(/Permission denied/)
+    )
 
   it.skip 'should create a new project by default on private ACL', (done) ->
 

@@ -52,6 +52,42 @@ describe 'WeaverHistory test', ->
       .then((response) ->
         assert.equal(response.length,2)
         for row in response
-          assert.equal(row.user,'admin')
+          assert.equal(row.user,'root')
       )
     )
+
+  it 'should not allow sql injection in queries', ->
+    new Weaver.Node().save().then(->
+      new Weaver.Node().save()
+    ).then(->
+      history = new Weaver.History()
+      history.limit('10; TRUNCATE TABLE `trackerdb`; --')
+      history.dumpHistory()
+    ).then(->
+      new Weaver.Node().save()
+    ).then(->
+      history = new Weaver.History()
+      history.limit(10)
+      history.dumpHistory()
+    ).should.eventually.have.length.be(3)
+
+  it 'should not allow sql injection queries', ->
+    new Weaver.Node("'; TRUNCATE TABLE `trackerdb`; --").save().then(->
+      history = new Weaver.History()
+      history.dumpHistory()
+    ).should.eventually.have.length.be(1)
+
+  it 'should reject public access to history', ->
+    weaver.signOut().then(->
+      new Weaver.History().dumpHistory()
+    ).should.be.rejected
+
+  it 'should reject users without project access from accessing history', ->
+    weaver.currentProject().destroy().then(->
+      new Weaver.Project('history test').create()
+    ).then((p)->
+      weaver.useProject(p)
+      new Weaver.User('testuser', 'testpassword', 'test@example.com').signUp()
+    ).then(->
+      new Weaver.History().dumpHistory()
+    ).should.be.rejectedWith(/Permission denied/)

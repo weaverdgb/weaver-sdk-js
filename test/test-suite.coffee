@@ -7,10 +7,11 @@ before ->
   options = {}
   if !WEAVER_REJECT_UNAUTHORIZED
     options.rejectUnauthorized = false
-  weaver.connect(WEAVER_ENDPOINT,options).then(->
-    weaver.wipe()
-  ).then(->
+  weaver.connect(WEAVER_ENDPOINT,options)
+  .then(->
     weaver.signInWithUsername('admin', 'admin')
+  ).then(->
+    weaver.wipe()
   ).then(->
     project = new Weaver.Project()
     project.create()
@@ -19,14 +20,17 @@ before ->
   )
 
 after ->
-  weaver.wipe()
+  weaver.signInWithUsername('admin', 'admin')
+  .then(->
+    weaver.wipe()
+  )
 
 # Runs after each test in each file
+# NOTE THAT THIS BREAKS THE ACL ASSOCIATED WITH A PROJECT TESTING ON
+
 beforeEach ->
-  weaver.currentProject().wipe().then(->
-    weaver.getCoreManager().wipeUsers()
-  ).then(->
-    weaver.signInWithUsername('admin', 'admin')
-  )
+  weaver.signInWithUsername('admin', 'admin')
+  .then(->weaver.getCoreManager().wipeUsers())
+  .then(->weaver.currentProject().wipe())
 
 module.exports = weaver
