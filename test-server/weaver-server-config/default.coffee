@@ -27,6 +27,7 @@ module.exports =
   ]
 
   application:
+    openUserCreation: true
     wipe: true
     singleDatabase: true
     sounds:
