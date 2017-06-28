@@ -102,7 +102,7 @@ class WeaverNode
   clone: (keyMap) ->
     keyMap = keyMap or {}
     clone = new WeaverNode()
-    clone.set(field, value) for field, value of @attributes
+    clone.set(field, value) for field, value of @attributes when field isnt 'createdOn'
     self = @
     for key, rel of @relations
       for id, node of rel.nodes
@@ -111,12 +111,14 @@ class WeaverNode
           Constructor.load(id).then((node)->
             node.clone({}, self).then((node)->
               clone.relation(key).add(node)
-              Promise.resolve(clone)
+              return Promise.resolve(clone)
             )
           )
         else
           clone.relation(key).add(node)
-          Promise.resolve(clone)
+
+    return Promise.resolve(clone)
+
 
 
   # Go through each relation and recursively add all pendingWrites per relation AND that of the objects
