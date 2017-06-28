@@ -99,7 +99,8 @@ class WeaverNode
     @relations[key]
 
 
-  clone: (keyMap, caller) ->
+  clone: (keyMap) ->
+    keyMap = keyMap or {}
     clone = new WeaverNode()
     clone.set(field, value) for field, value of @attributes
     self = @
