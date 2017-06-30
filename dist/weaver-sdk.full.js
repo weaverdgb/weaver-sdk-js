@@ -99020,7 +99020,7 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredServerVersion": "~2.3.1 || ^2.3.2-beta.0"
+    "requiredServerVersion": "~2.3.2 || ^2.3.3-beta.0"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -100331,8 +100331,48 @@ module.exports={
       });
     };
 
-    WeaverHistory.prototype.getHistory = function(nodeField, keyField, toField) {
-      var ids, keys, node, tos, typeIsArray;
+    WeaverHistory.prototype.getHistory = function(nodeField, keyField, fromField, toField) {
+      var froms, i, ids, keys, len, node, tos, typeIsArray, typeIsObject;
+      typeIsArray = Array.isArray || function(value) {
+        return {}.toString.call(value) === '[object Array]';
+      };
+      typeIsObject = function(value) {
+        return typeof value === 'object';
+      };
+      ids = [];
+      if (typeIsArray(nodeField)) {
+        for (i = 0, len = nodeField.length; i < len; i++) {
+          node = nodeField[i];
+          if (typeIsObject(node)) {
+            ids.push(node.id());
+          } else {
+            ids.push(node);
+          }
+        }
+      } else {
+        if (typeIsObject(nodeField)) {
+          ids.push(nodeField.id());
+        } else {
+          ids.push(nodeField);
+        }
+      }
+      keys = typeIsArray(keyField) ? keyField : keyField != null ? [keyField] : void 0;
+      tos = typeIsArray(toField) ? toField : toField != null ? [toField] : void 0;
+      froms = typeIsArray(fromField) ? fromField : fromField != null ? [fromField] : void 0;
+      return Weaver.getCoreManager().getHistory({
+        ids: ids,
+        keys: keys,
+        froms: froms,
+        tos: tos,
+        fromDateTime: this.fromDateTime,
+        beforeDateTime: this.beforeDateTime,
+        users: this.users,
+        limit: this.limit
+      });
+    };
+
+    WeaverHistory.prototype.retrieveHistory = function(nodeField, keyField, fromField, toField) {
+      var froms, ids, keys, node, tos, typeIsArray;
       typeIsArray = Array.isArray || function(value) {
         return {}.toString.call(value) === '[object Array]';
       };
@@ -100341,15 +100381,17 @@ module.exports={
         results = [];
         for (i = 0, len = nodeField.length; i < len; i++) {
           node = nodeField[i];
-          results.push(node.id());
+          results.push(node);
         }
         return results;
-      })() : [nodeField.id()];
+      })() : nodeField != null ? [nodeField] : void 0;
       keys = typeIsArray(keyField) ? keyField : keyField != null ? [keyField] : void 0;
       tos = typeIsArray(toField) ? toField : toField != null ? [toField] : void 0;
+      froms = typeIsArray(fromField) ? fromField : fromField != null ? [fromField] : void 0;
       return Weaver.getCoreManager().getHistory({
         ids: ids,
         keys: keys,
+        froms: froms,
         tos: tos,
         fromDateTime: this.fromDateTime,
         beforeDateTime: this.beforeDateTime,
@@ -100476,42 +100518,38 @@ module.exports={
       return this.relations[key];
     };
 
-    WeaverNode.prototype.clone = function(keyMap, caller) {
-      var Constructor, clone, field, id, key, node, ref, ref1, rel, results, self, value;
+    WeaverNode.prototype.clone = function(keyMap) {
+      var Constructor, clone, field, id, key, node, ref, ref1, ref2, rel, self, value;
+      keyMap = keyMap || {};
       clone = new WeaverNode();
       ref = this.attributes;
       for (field in ref) {
         value = ref[field];
-        clone.set(field, value);
+        if (field !== 'createdOn') {
+          clone.set(field, value);
+        }
       }
       self = this;
       ref1 = this.relations;
-      results = [];
       for (key in ref1) {
         rel = ref1[key];
-        results.push((function() {
-          var ref2, results1;
-          ref2 = rel.nodes;
-          results1 = [];
-          for (id in ref2) {
-            node = ref2[id];
-            if (keyMap[key] != null) {
-              Constructor = keyMap[key];
-              results1.push(Constructor.load(id).then(function(node) {
-                return node.clone({}, self).then(function(node) {
-                  clone.relation(key).add(node);
-                  return Promise.resolve(clone);
-                });
-              }));
-            } else {
-              clone.relation(key).add(node);
-              results1.push(Promise.resolve(clone));
-            }
+        ref2 = rel.nodes;
+        for (id in ref2) {
+          node = ref2[id];
+          if (keyMap[key] != null) {
+            Constructor = keyMap[key];
+            Constructor.load(id).then(function(node) {
+              return node.clone({}, self).then(function(node) {
+                clone.relation(key).add(node);
+                return Promise.resolve(clone);
+              });
+            });
+          } else {
+            clone.relation(key).add(node);
           }
-          return results1;
-        })());
+        }
       }
-      return results;
+      return Promise.resolve(clone);
     };
 
     WeaverNode.prototype._collectPendingWrites = function(collected) {
