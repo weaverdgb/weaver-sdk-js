@@ -43,15 +43,6 @@ class WeaverHistory
     froms = if typeIsArray fromField then fromField else [fromField] if fromField?
     Weaver.getCoreManager().getHistory({ids, keys, froms, tos, @fromDateTime, @beforeDateTime, @users, @limit})
 
-  retrieveHistory: (nodeField, keyField, fromField, toField)->
-    typeIsArray = Array.isArray || ( value ) -> return {}.toString.call( value ) is '[object Array]'
-    ids = if typeIsArray nodeField then (node for node in nodeField) else [nodeField] if nodeField?
-    keys = if typeIsArray keyField then keyField else [keyField] if keyField?
-    tos = if typeIsArray toField then toField else [toField] if toField?
-    froms = if typeIsArray fromField then fromField else [fromField] if fromField?
-    Weaver.getCoreManager().getHistory({ids, keys, froms, tos, @fromDateTime, @beforeDateTime, @users, @limit})
-
-
 
 # Export
 module.exports = WeaverHistory
