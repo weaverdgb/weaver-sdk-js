@@ -100340,51 +100340,29 @@ module.exports={
         return typeof value === 'object';
       };
       ids = [];
-      if (typeIsArray(nodeField)) {
-        for (i = 0, len = nodeField.length; i < len; i++) {
-          node = nodeField[i];
-          if (typeIsObject(node)) {
-            ids.push(node.id());
+      if (nodeField != null) {
+        if (typeIsArray(nodeField)) {
+          for (i = 0, len = nodeField.length; i < len; i++) {
+            node = nodeField[i];
+            if (typeIsObject(node)) {
+              ids.push(node.id());
+            } else {
+              ids.push(node);
+            }
+          }
+        } else {
+          if (typeIsObject(nodeField)) {
+            ids.push(nodeField.id());
           } else {
-            ids.push(node);
+            ids.push(nodeField);
           }
         }
       } else {
-        if (typeIsObject(nodeField)) {
-          ids.push(nodeField.id());
-        } else {
-          ids.push(nodeField);
-        }
+        ids = null;
       }
-      keys = typeIsArray(keyField) ? keyField : keyField != null ? [keyField] : void 0;
-      tos = typeIsArray(toField) ? toField : toField != null ? [toField] : void 0;
-      froms = typeIsArray(fromField) ? fromField : fromField != null ? [fromField] : void 0;
-      return Weaver.getCoreManager().getHistory({
-        ids: ids,
-        keys: keys,
-        froms: froms,
-        tos: tos,
-        fromDateTime: this.fromDateTime,
-        beforeDateTime: this.beforeDateTime,
-        users: this.users,
-        limit: this.limit
-      });
-    };
-
-    WeaverHistory.prototype.retrieveHistory = function(nodeField, keyField, fromField, toField) {
-      var froms, ids, keys, node, tos, typeIsArray;
-      typeIsArray = Array.isArray || function(value) {
-        return {}.toString.call(value) === '[object Array]';
-      };
-      ids = typeIsArray(nodeField) ? (function() {
-        var i, len, results;
-        results = [];
-        for (i = 0, len = nodeField.length; i < len; i++) {
-          node = nodeField[i];
-          results.push(node);
-        }
-        return results;
-      })() : nodeField != null ? [nodeField] : void 0;
+      console.log('=^^=|_________________________|=^^=');
+      console.log(ids);
+      console.log('=^^=|_________________________|=^^=');
       keys = typeIsArray(keyField) ? keyField : keyField != null ? [keyField] : void 0;
       tos = typeIsArray(toField) ? toField : toField != null ? [toField] : void 0;
       froms = typeIsArray(fromField) ? fromField : fromField != null ? [fromField] : void 0;

@@ -1,5 +1,6 @@
-weaver = require("./test-suite")
-Weaver = require('../src/Weaver')
+weaver  = require("./test-suite")
+Weaver  = require('../src/Weaver')
+Promise = require('bluebird')
 
 describe 'WeaverHistory test', ->
   it 'should set a new string attribute', ->
@@ -32,6 +33,98 @@ describe 'WeaverHistory test', ->
       history.beforeDateTime('2018-03-23 12:39')
       history.getHistory(node, 'name')
     )
+
+  it 'should get history for a Weaver Node or for the id', ->
+    node = new Weaver.Node()
+    history = new Weaver.History()
+    node.save()
+    .then((node) ->
+      history.getHistory(node)
+    ).then((response) ->
+      expect(response).to.have.length.be(1)
+      history.getHistory(node.id())
+    ).then((response) ->
+      expect(response).to.have.length.be(1)
+    )
+
+  it 'should get history for an Array of Weaver Nodes or for those ids', ->
+    nodeA = new Weaver.Node()
+    nodeB = new Weaver.Node()
+    nodeC = new Weaver.Node()
+    history = new Weaver.History()
+
+    promises = []
+    promises.push(nodeA.save())
+    promises.push(nodeB.save())
+    promises.push(nodeC.save())
+
+    Promise.all(promises)
+    .then((nodes) ->
+      history.getHistory(nodes)
+    ).then((response) ->
+      expect(response).to.have.length.be(3)
+      nodes = [nodeA.id(),nodeB.id(),nodeC.id()]
+      history.getHistory(nodes)
+    ).then((res) ->
+      expect(res).to.have.length.be(3)
+    )
+
+  it 'should retrieve history for a key-value', ->
+
+    history = new Weaver.History()
+    node = new Weaver.Node()
+
+    node.save()
+    .then((node) ->
+      node.set('name', 'Chikuku')
+      node.set('surname', 'Kulubaluka')
+      node.save()
+    ).then((node) ->
+      node.set('name','Chikuku king of Tormerkia')
+      node.save()
+    ).then((node) ->
+      history.getHistory(node,'name')
+    ).then((res) ->
+      expect(res).to.have.length.be(2)
+      assert.equal(res[0].key,'name')
+      assert.equal(res[0].value,'Chikuku')
+      assert.equal(res[0].action,'create-attribute')
+      assert.equal(res[1].key,'name')
+      assert.equal(res[1].value,'Chikuku king of Tormerkia')
+      assert.equal(res[1].action,'update-attribute')
+    )
+
+
+  it 'should retrieve history for a relation', ->
+    history = new Weaver.History()
+
+    a = new Weaver.Node()
+    b = new Weaver.Node()
+    c = new Weaver.Node()
+
+    a.set('name', 'Foo')
+    b.set('name', 'Bar')
+    c.set('name', 'Pub')
+
+    a.relation('is').add(b)
+
+    Weaver.Node.batchSave([a,b,c])
+    .then(->
+      a.relation('is').update(b,c)
+      a.save()
+    ).then((node) ->
+      history.getHistory(null, null, node.id(),null)
+    ).then((res) ->
+      expect(res).to.have.length.be(2)
+      assert.equal(res[0].action,'create-relation')
+      assert.equal(res[0].key,'is')
+      assert.equal(res[0].from,a.id())
+      assert.equal(res[0].to,b.id())
+      assert.equal(res[1].action,'update-relation')
+      assert.equal(res[1].key,'is')
+      assert.equal(res[1].to,c.id())
+    )
+
 
   it 'should limit history', ->
     Promise.all((new Weaver.Node()).save() for i in [0..30]).then( ->
