@@ -99012,7 +99012,7 @@ module.exports = yeast;
 },{}],391:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "2.3.2",
+  "version": "2.3.3-beta.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -100360,9 +100360,6 @@ module.exports={
       } else {
         ids = null;
       }
-      console.log('=^^=|_________________________|=^^=');
-      console.log(ids);
-      console.log('=^^=|_________________________|=^^=');
       keys = typeIsArray(keyField) ? keyField : keyField != null ? [keyField] : void 0;
       tos = typeIsArray(toField) ? toField : toField != null ? [toField] : void 0;
       froms = typeIsArray(fromField) ? fromField : fromField != null ? [fromField] : void 0;
