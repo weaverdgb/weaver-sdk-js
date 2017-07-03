@@ -99006,7 +99006,7 @@ module.exports = yeast;
 },{}],392:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "2.3.2",
+  "version": "2.3.3-beta.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -100325,25 +100325,42 @@ module.exports={
       });
     };
 
-    WeaverHistory.prototype.getHistory = function(nodeField, keyField, toField) {
-      var ids, keys, node, tos, typeIsArray;
+    WeaverHistory.prototype.getHistory = function(nodeField, keyField, fromField, toField) {
+      var froms, i, ids, keys, len, node, tos, typeIsArray, typeIsObject;
       typeIsArray = Array.isArray || function(value) {
         return {}.toString.call(value) === '[object Array]';
       };
-      ids = typeIsArray(nodeField) ? (function() {
-        var i, len, results;
-        results = [];
-        for (i = 0, len = nodeField.length; i < len; i++) {
-          node = nodeField[i];
-          results.push(node.id());
+      typeIsObject = function(value) {
+        return typeof value === 'object';
+      };
+      ids = [];
+      if (nodeField != null) {
+        if (typeIsArray(nodeField)) {
+          for (i = 0, len = nodeField.length; i < len; i++) {
+            node = nodeField[i];
+            if (typeIsObject(node)) {
+              ids.push(node.id());
+            } else {
+              ids.push(node);
+            }
+          }
+        } else {
+          if (typeIsObject(nodeField)) {
+            ids.push(nodeField.id());
+          } else {
+            ids.push(nodeField);
+          }
         }
-        return results;
-      })() : [nodeField.id()];
+      } else {
+        ids = null;
+      }
       keys = typeIsArray(keyField) ? keyField : keyField != null ? [keyField] : void 0;
       tos = typeIsArray(toField) ? toField : toField != null ? [toField] : void 0;
+      froms = typeIsArray(fromField) ? fromField : fromField != null ? [fromField] : void 0;
       return Weaver.getCoreManager().getHistory({
         ids: ids,
         keys: keys,
+        froms: froms,
         tos: tos,
         fromDateTime: this.fromDateTime,
         beforeDateTime: this.beforeDateTime,
