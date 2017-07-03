@@ -28,7 +28,7 @@ class WeaverFile
           resolve(fileStream.path)
         )
       catch error
-        reject(Error WeaverError.OTHER_CAUSE,"Something went wrong")
+        reject(Error WeaverError.OTHER_CAUSE,error)
     )
 
   deleteFileByID: (id) ->
