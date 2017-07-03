@@ -218,6 +218,22 @@ describe 'WeaverNode test', ->
       assert.isDefined(node.relation('to').nodes[cloned.id()])
     )
 
+
+  it 'should load an incomplete node', ->
+    incompleteNode = null
+
+    node = new Weaver.Node()
+    node.set('name', 'Foo')
+
+    node.save()
+    .then(->
+      incompleteNode = new Weaver.Node(node.id())
+      incompleteNode.load()
+    ).then(->
+      assert.equal(incompleteNode.get('name'), 'Foo')
+    )
+
+
   it.skip 'should recursively clone a node', ->
 
     a = new Weaver.Node()

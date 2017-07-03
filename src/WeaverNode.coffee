@@ -36,6 +36,11 @@ class WeaverNode
     @._clearPendingWrites()
     @
 
+  # Loads current node
+  load: ->
+    Weaver.Node.load(@nodeId).then((loadedNode) =>
+      @[key] = value for key, value of loadedNode
+    )
 
   # Node creating for in queries
   @get: (nodeId, Constructor) ->
