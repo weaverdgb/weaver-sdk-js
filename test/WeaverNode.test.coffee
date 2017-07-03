@@ -152,6 +152,18 @@ describe 'WeaverNode test', ->
       assert.equal(error.code, Weaver.Error.NODE_NOT_FOUND)
     )
 
+  it 'should create a relation', ->
+    a = new Weaver.Node()
+    b = new Weaver.Node()
+    
+    a.relation('rel').add(b)
+
+    a.save().then(->
+      Weaver.Node.load(a.id())
+    ).should.eventually.have.property('relations')
+        .with.property('rel')
+        .with.property('nodes')
+
   it 'should not blow up when saving in circular chain', ->
     a = new Weaver.Node()
     b = new Weaver.Node()
