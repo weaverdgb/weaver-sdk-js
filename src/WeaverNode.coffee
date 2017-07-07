@@ -40,6 +40,7 @@ class WeaverNode
   load: ->
     Weaver.Node.load(@nodeId).then((loadedNode) =>
       @[key] = value for key, value of loadedNode
+      @
     )
 
   # Node creating for in queries
