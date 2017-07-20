@@ -104,4 +104,18 @@ describe 'Weaver relation and WeaverRelationNode test', ->
       assert.lengthOf(relations, 1)
     )
 
+  it 'should load all nodes in the relation', ->
+    foo = new Weaver.Node()
+    bar = new Weaver.Node()
+    ono = new Weaver.Node()
+    foo.relation('comesBefore').add(bar)
+    foo.relation('comesBefore').add(ono)
 
+    foo.save().then(->
+      Weaver.Node.load(foo.id())
+    ).then((loadedNode) ->
+      assert.isFalse(node._loaded) for node in loadedNode.relation('comesBefore').all()
+      loadedNode.relation('comesBefore').load()
+    ).then((nodes) ->
+      assert.isTrue(node._loaded) for node in nodes
+    )
