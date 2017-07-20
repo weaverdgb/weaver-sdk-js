@@ -99012,7 +99012,7 @@ module.exports = yeast;
 },{}],391:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "2.3.3-beta.1",
+  "version": "2.3.3-beta.3",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -101141,7 +101141,17 @@ module.exports={
     }
 
     WeaverRelation.prototype.load = function() {
-      return Promise.resolve([]);
+      var key, node;
+      return Promise.all((function() {
+        var ref, results;
+        ref = this.nodes;
+        results = [];
+        for (key in ref) {
+          node = ref[key];
+          results.push(node.load());
+        }
+        return results;
+      }).call(this));
     };
 
     WeaverRelation.prototype.query = function() {

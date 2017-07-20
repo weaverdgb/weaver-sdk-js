@@ -10,7 +10,7 @@ class WeaverRelation
     @relationNodes = {}   # Map node id to RelationNode
 
   load: ->
-    Promise.resolve([])
+    Promise.all((node.load() for key, node of @nodes))
 
   query: ->
     Promise.resolve([])
