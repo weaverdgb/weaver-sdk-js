@@ -99012,7 +99012,7 @@ module.exports = yeast;
 },{}],391:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "2.3.3-beta.3",
+  "version": "2.3.3-beta.4",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -101174,6 +101174,10 @@ module.exports={
         results.push(node);
       }
       return results;
+    };
+
+    WeaverRelation.prototype.first = function() {
+      return this.all()[0];
     };
 
     WeaverRelation.prototype.add = function(node, relId) {
