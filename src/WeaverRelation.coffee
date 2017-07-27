@@ -23,6 +23,9 @@ class WeaverRelation
   all: ->
     (node for key, node of @nodes)
 
+  first: ->
+    @.all()[0]
+
   add: (node, relId) ->
     relId = cuid() if not relId?
     @nodes[node.id()] = node
