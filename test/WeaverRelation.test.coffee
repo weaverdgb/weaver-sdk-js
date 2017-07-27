@@ -119,3 +119,15 @@ describe 'Weaver relation and WeaverRelationNode test', ->
     ).then((nodes) ->
       assert.isTrue(node._loaded) for node in nodes
     )
+
+  it 'should return the first node in a relation', ->
+    foo = new Weaver.Node()
+    bar = new Weaver.Node()
+    ono = new Weaver.Node()
+
+    assert.isUndefined(foo.relation('comesBefore').first())
+
+    foo.relation('comesBefore').add(bar)
+    foo.relation('comesBefore').add(ono)
+
+    assert.equal(foo.relation('comesBefore').first(), bar)
