@@ -14,7 +14,7 @@ class WeaverNode
     @relations  = {}
 
     # All operations that need to get saved
-    @pendingWrites = [Operation.Node(@).create()]
+    @pendingWrites = [Operation.Node(@).createNode()]
 
 
   # Node loading from server
@@ -69,7 +69,7 @@ class WeaverNode
 
     else
       @attributes[field] = value
-      @pendingWrites.push(Operation.Node(@).setAttribute(field, value))
+      @pendingWrites.push(Operation.Node(@).createAttribute(field, value))
 
     @
 
@@ -95,7 +95,7 @@ class WeaverNode
     delete @attributes[field]
 
     # Save change as pending
-    @pendingWrites.push(Operation.Node(@).unsetAttribute(field))
+    @pendingWrites.push(Operation.Node(@).removeAttribute(field))
     @
 
 
@@ -195,7 +195,7 @@ class WeaverNode
 
   # Removes node
   destroy: (project) ->
-    Weaver.getCoreManager().executeOperations([Operation.Node(@).destroy()], project).then(=>
+    Weaver.getCoreManager().executeOperations([Operation.Node(@).removeNode()], project).then(=>
       delete @[key] for key of @
       undefined
     )

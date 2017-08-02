@@ -1,111 +1,68 @@
-Action = require('./WriteOperation').Action
 Weaver = require('./Weaver')
+cuid   = require('cuid')
 
 NodeOperation = (node) ->
-
   timestamp   = Weaver.getCoreManager().serverTime()
 
-  # Silent operations (can be bundled)
-
-  create: ->
+  createNode: ->
     {
       timestamp
-      action: Action.CREATE_NODE
+      action: "create-node"
       id: node.id()
     }
 
-  destroy: ->
+  removeNode: ->
     {
       timestamp
-      action: Action.REMOVE_NODE
+      action: "remove-node"
       id: node.id()
+      removeId: cuid()
     }
 
-  setAttribute: (key, value, datatype) ->
+  createAttribute: (key, value, datatype, replaces) ->
+    replaceId = null
+    replaceId = cuid() if replaces?
+
     {
       timestamp
-      action: Action.CREATE_ATTRIBUTE
-      id: node.id()
+      action: "create-attribute"
+      id: cuid()
+      sourceId: node.id()
       key
       value
       datatype
+      replacesId: replaces
+      replaceId
     }
 
-  updateAttribute: (key, value, datatype) ->
+  removeAttribute: (id) ->
     {
       timestamp
-      action: Action.UPDATE_ATTRIBUTE
-      id: node.id()
+      action: "remove-attribute"
+      id: id
+      removeId: cuid()
+    }
+
+  createRelation: (key, to, id, replaces) ->
+    replaceId = null
+    replaceId = cuid() if replaces?
+    {
+      timestamp
+      action: "create-relation"
+      id: cuid()
+      sourceId: node.id()
       key
-      value
-      datatype
+      target: to
+      replacesId: replaces
+      replaceId
     }
 
-  unsetAttribute: (key) ->
+  removeRelation: (id) ->
     {
       timestamp
-      action: Action.REMOVE_ATTRIBUTE
-      id: node.id()
-      key
-    }
-
-  createRelation: (key, to, id) ->
-    {
-      timestamp
-      action: Action.CREATE_RELATION
+      action: "remove-relation"
       id
-      from: node.id()
-      key
-      to
-    }
-
-  updateRelation: (key, oldTo, newTo, id) ->
-    {
-      timestamp
-      action: Action.UPDATE_RELATION
-      id
-      from: node.id()
-      key
-      oldTo
-      newTo
-    }
-
-  removeRelation: (key, to) ->
-    {
-      timestamp
-      action: Action.REMOVE_RELATION
-      from: node.id()
-      key
-      to
-    }
-
-  mergeNodes: (idInto, idMerge) ->
-    {
-      timestamp
-      action: Action.MERGE_NODES
-      idInto
-      idMerge
-    }
-
-  # Operations that return an answer
-
-  incrementAttribute: (key, value) ->
-    {
-      timestamp
-      action: Action.INCREMENT_ATTRIBUTE
-      id: node.id()
-      key
-      value
-    }
-
-  objectifyRelation: (key, to, id) ->
-    {
-      timestamp
-      action: Action.OBJECTIFY_RELATION
-      from: node.id()
-      key
-      to
-      id
+      removeId: cuid()
     }
 
 module.exports=

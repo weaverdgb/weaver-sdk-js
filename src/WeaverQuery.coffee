@@ -28,9 +28,9 @@ class WeaverQuery
   find: (Constructor) ->
 
     Constructor = Constructor or Weaver.Node
-    Weaver.getCoreManager().query(@).then((nodes) ->
+    Weaver.getCoreManager().query(@).then((result) ->
       list = []
-      for node in nodes
+      for node in result.nodes
         instance = new Constructor(node.nodeId)
         instance._loadFromQuery(node)
         instance._setStored()
