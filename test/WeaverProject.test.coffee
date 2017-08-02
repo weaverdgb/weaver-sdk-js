@@ -17,25 +17,21 @@ describe 'WeaverProject Test', ->
       actualProject(list[0])
     )
 
-  it.skip 'should create projects with given id', (done) ->
+  it 'should create projects with given id', ->
     project = new Weaver.Project("name", "test")
     project.create().then((p) =>
       expect(p.id()).to.equal("test")
       p.destroy()
-      done()
     )
-    return
 
-  it.skip 'should create projects with no given id', (done) ->
+  it 'should create projects with no given id', ->
     project = new Weaver.Project()
     project.create().then((p) =>
       expect(p.id()).to.equal(project.id())
       p.destroy()
-      done()
     )
-    return
 
-  it.skip 'should create projects with attributes', (done) ->
+  it 'should create projects with attributes', ->
     project = new Weaver.Project()
     project.set("name", "test")
     project.create().then((p) ->
@@ -44,29 +40,23 @@ describe 'WeaverProject Test', ->
     ).then((loadedProject) ->
       expect(loadedProject.get("name")).to.equal("test")
       p.destroy()
-      done()
     )
-    return
 
-  it.skip 'should delete projects', (done) ->
+  it 'should delete projects', ->
     test = new Weaver.Project()
     id = 'deleteid'
     test.create(id).then((project) ->
-      project.destroy().catch((e) ->
-        assert(false)
-      )
+      project.destroy()
     ).then(->
       Weaver.Project.list()
     ).then((list)->
       filtered = (i for i in list when i.id is id)
       expect(filtered).to.have.length.be(0)
-      done()
     )
-    return
 
   # Note that this assumes the projectPool has at least room for two projects
   # TODO: Allow for custom test deployment with two projects
-  it.skip 'should list projects', (done) ->
+  it 'should list projects', ->
     a = new Weaver.Project("A", "a")
 
     a.create().then(->
@@ -78,21 +68,19 @@ describe 'WeaverProject Test', ->
       expect(loadedA.name).to.equal('A')
     ).then(->
       a.destroy()
-      done()
     )
-    return
 
 
-  it.skip 'should allow setting an active project', (done) ->
+  it 'should allow setting an active project', ->
     p = weaver.currentProject()
     test = new Weaver.Project()
     test.create().then(->
       weaver.useProject(test)
     ).then(->
+      expect(weaver.currentProject()).to.eql(test)
       test.destroy()
       weaver.useProject(p)
     )
-    return
 
   it 'should raise an error while saving without currentProject', (done) ->
     p = weaver.currentProject()
