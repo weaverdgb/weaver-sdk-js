@@ -4,6 +4,8 @@ Promise = require('bluebird')
 
 describe 'WeaverProject Test', ->
   actualProject = (p) ->
+    console.log p
+    expect(p).to.be.defined
     expect(p).to.have.property('_stored').to.be.a('boolean').to.equal(true)
     expect(p).to.have.property('destroy').be.a('function')
     expect(p).to.have.property('acl').to.exist
@@ -31,17 +33,6 @@ describe 'WeaverProject Test', ->
       p.destroy()
     )
 
-  it 'should create projects with attributes', ->
-    project = new Weaver.Project()
-    project.set("name", "test")
-    project.create().then((p) ->
-      expect(p.get("name")).to.equal("test")
-      Weaver.Project.load(project.id())
-    ).then((loadedProject) ->
-      expect(loadedProject.get("name")).to.equal("test")
-      p.destroy()
-    )
-
   it 'should delete projects', ->
     test = new Weaver.Project()
     id = 'deleteid'
@@ -54,11 +45,8 @@ describe 'WeaverProject Test', ->
       expect(filtered).to.have.length.be(0)
     )
 
-  # Note that this assumes the projectPool has at least room for two projects
-  # TODO: Allow for custom test deployment with two projects
   it 'should list projects', ->
     a = new Weaver.Project("A", "a")
-
     a.create().then(->
       Weaver.Project.list()
     ).then((list) ->
