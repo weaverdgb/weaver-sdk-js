@@ -4,8 +4,6 @@ Promise = require('bluebird')
 
 describe 'WeaverProject Test', ->
   actualProject = (p) ->
-    console.log p
-    expect(p).to.be.defined
     expect(p).to.have.property('_stored').to.be.a('boolean').to.equal(true)
     expect(p).to.have.property('destroy').be.a('function')
     expect(p).to.have.property('acl').to.exist
