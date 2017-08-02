@@ -24,15 +24,5 @@ class WeaverRelationNode extends WeaverNode
   from: ->
     @fromNode
 
-  # override
-  destroy: (project) ->
-    Weaver.getCoreManager().executeOperations([Operation.Node(@).destroy()], project).then(=>
-      delete @[key] for key of @
-      undefined
-    )
-
-
-
-
 # Export
 module.exports = WeaverRelationNode

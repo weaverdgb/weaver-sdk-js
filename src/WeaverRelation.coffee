@@ -29,20 +29,35 @@ class WeaverRelation
   add: (node, relId) ->
     relId = cuid() if not relId?
     @nodes[node.id()] = node
+
+    # Currently this assumes having one relation to the same node
+    # it should change, but its here now for backwards compatibility
     @relationNodes[node.id()] = Weaver.RelationNode.get(relId, Weaver.RelationNode)
+
     @pendingWrites.push(Operation.Node(@parent).createRelation(@key, node.id(), relId))
 
   update: (oldNode, newNode) ->
-    relId = @relationNodes[oldNode.id()].id()
+    newRelId = cuid()
+    oldRelId = @relationNodes[oldNode.id()].id()
+
     delete @nodes[oldNode.id()]
     @nodes[newNode.id()] = newNode
-    @pendingWrites.push(Operation.Node(@parent).updateRelation(@key, oldNode.id(), newNode.id(), relId))
+
+    delete @relationNodes[oldNode.id()]
+    @relationNodes[newNode.id()] = Weaver.RelationNode.get(newRelId, Weaver.RelationNode)
+
+    @pendingWrites.push(Operation.Node(@parent).createRelation(@key, newNode.id(), newRelId, oldRelId))
 
 
   remove: (node) ->
+    @relationNodes[node.id()].destroy()
+
+    # Deprecate this write operation
+    #relId = @relationNodes[node.id()].id()
+    #@pendingWrites.push(Operation.Node(@parent).removeRelation(relId))
+
     delete @nodes[node.id()]
     delete @relationNodes[node.id()]
-    @pendingWrites.push(Operation.Node(@parent).removeRelation(@key, node.id()))
 
 
 # Export

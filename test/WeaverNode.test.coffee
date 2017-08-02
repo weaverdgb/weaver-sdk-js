@@ -41,6 +41,8 @@ describe 'WeaverNode test', ->
 
     node.save().then((node) ->
       node.set('name', 'Foo')
+      assert.equal(node.get('name'), 'Foo')
+
       node.save()
     ).then(->
       Weaver.Node.load(node.id())
@@ -118,6 +120,11 @@ describe 'WeaverNode test', ->
       node.save()
     ).then((loadedNode) ->
       assert.equal(loadedNode.get('name'), undefined)
+
+      # Reload
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.get('name'), undefined)
     )
 
   it 'should set an existing attribute with new value', ->
@@ -155,7 +162,7 @@ describe 'WeaverNode test', ->
   it 'should create a relation', ->
     a = new Weaver.Node()
     b = new Weaver.Node()
-    
+
     a.relation('rel').add(b)
 
     a.save().then(->

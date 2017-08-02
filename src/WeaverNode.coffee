@@ -1,6 +1,7 @@
 cuid        = require('cuid')
 Operation   = require('./Operation')
 Weaver      = require('./Weaver')
+util        = require('./util')
 
 class WeaverNode
 
@@ -26,12 +27,11 @@ class WeaverNode
     Constructor = Constructor or WeaverNode
     @attributes = object.attributes
 
-    for key, targetNodes of object.relations
-      for node in targetNodes
-        instance = new Constructor(node.nodeId)
-        instance._loadFromQuery(node, Constructor)
-        relId = object.relationNodeIds[key][node.nodeId]
-        @relation(key).add(instance, relId)
+    for key, relations of object.relations
+      for relation in relations
+        instance = new Constructor(relation.target.nodeId)
+        instance._loadFromQuery(relation.target, Constructor)
+        @relation(key).add(instance, relation.nodeId)
 
     @._clearPendingWrites()
     @
@@ -58,44 +58,85 @@ class WeaverNode
 
   # Gets attributes
   get: (field) ->
-    @attributes[field]
+    fieldArray = @attributes[field]
+
+    if not fieldArray? or fieldArray.length is 0
+      return undefined
+    else if fieldArray.length is 1
+      return fieldArray[0].value    # Returning value and not full object to be backwards compatible
+    else
+      return fieldArray
+
 
 
   # Update attribute
   set: (field, value) ->
+    # Get attribute datatype, TODO: Support date
+    dataType = null
+    if util.isString(value)
+      dataType = 'string'
+    else if util.isNumber(value)
+      dataType = 'double'
+    else if util.isBoolean(value)
+      dataType = 'boolean'
+    else
+      throw Error("Unsupported datatype for value " + value)
+
     if @attributes[field]?
-      @attributes[field] = value
-      @pendingWrites.push(Operation.Node(@).updateAttribute(field, value))
+      if @attributes[field].length > 1
+        throw new Error("Specifiy which attribute to set, more than 1 found for " + field) # TODO: Support later
+
+      oldAttribute = @attributes[field][0]
+      newAttributeOperation = Operation.Node(@).createAttribute(field, value, dataType, oldAttribute.nodeId)
 
     else
-      @attributes[field] = value
-      @pendingWrites.push(Operation.Node(@).createAttribute(field, value))
+      newAttributeOperation = Operation.Node(@).createAttribute(field, value, dataType)
 
-    @
+    newAttribute = {
+      nodeId: newAttributeOperation.id
+      dataType
+      value
+      key: field
+      creator: Weaver.instance.currentUser().userId,
+      created: newAttributeOperation.timestamp
+      attributes: {}
+      relations: {}
+    }
+
+    @attributes[field] = [newAttribute]
+    @pendingWrites.push(newAttributeOperation)
+
+    return @
 
 
   # Update attribute by incrementing the value, the result depends on concurrent requests, so check the result
   increment: (field, value, project) ->
 
     if not @attributes[field]?
-      throw new Error
+      throw new Error("There is no field " + field + " to increment")
     if typeof value isnt 'number'
-      throw new Error
+      throw new Error("Field " + field + " is not a number")
 
-    operation = Operation.Node(@).incrementAttribute(field, value)
-    Weaver.getCoreManager().executeOperations([operation], project).then((res)=>
-      if res? and res.incrementedTo?
-        @attributes[field] = res.incrementedTo
-        res.incrementedTo
-    )
+    currentValue = @get(field)
+    @set(field, currentValue + value)
+    @save()   # To be backwards compatible, but its better not to save here
 
 
   # Remove attribute
   unset: (field) ->
-    delete @attributes[field]
+    if not @attributes[field]?
+      throw new Error("There is no field " + field + " to unset")
+
+    if @attributes[field].length > 1
+      throw new Error("Currently not possible to unset is multiple attributes are present")
+
+    currentAttribute = @attributes[field][0]
 
     # Save change as pending
-    @pendingWrites.push(Operation.Node(@).removeAttribute(field))
+    @pendingWrites.push(Operation.Node(@).removeAttribute(currentAttribute.nodeId))
+
+    # Unset locally
+    delete @attributes[field]
     @
 
 

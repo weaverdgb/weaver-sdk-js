@@ -49,10 +49,10 @@ NodeOperation = (node) ->
     {
       timestamp
       action: "create-relation"
-      id: cuid()
+      id
       sourceId: node.id()
       key
-      target: to
+      targetId: to
       replacesId: replaces
       replaceId
     }
