@@ -24,6 +24,7 @@ module.exports =
   isArray: (val) ->
     typeShouldBe('[object Array]')(val)
 
+  isDate: (val) ->
+    typeShouldBe('[object Date]')(val)
+
   flatten: flatten
-
-

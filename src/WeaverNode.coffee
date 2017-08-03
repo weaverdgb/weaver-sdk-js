@@ -79,6 +79,9 @@ class WeaverNode
       dataType = 'double'
     else if util.isBoolean(value)
       dataType = 'boolean'
+    else if util.isDate(value)
+      dataType = 'date'
+      value = value.getTime()
     else
       throw Error("Unsupported datatype for value " + value)
 
@@ -119,7 +122,7 @@ class WeaverNode
 
     currentValue = @get(field)
     @set(field, currentValue + value)
-    
+
     # To be backwards compatible, but its better not to save here
     @save().then(->
       # Return the incremented value

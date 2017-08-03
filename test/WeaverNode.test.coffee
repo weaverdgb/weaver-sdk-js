@@ -83,6 +83,16 @@ describe 'WeaverNode test', ->
       assert.equal(loadedNode.get('length'), 3)
     )
 
+  it 'should set a date attribute', ->
+    node = new Weaver.Node()
+    node.set('time', new Date())
+
+    node.save().then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.get('length'), 3)
+    )
+
   it 'should increment an exiting number attribute', ->
     node = new Weaver.Node()
     node.set('length', 3)
