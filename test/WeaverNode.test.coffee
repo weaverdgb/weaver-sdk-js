@@ -85,12 +85,13 @@ describe 'WeaverNode test', ->
 
   it 'should set a date attribute', ->
     node = new Weaver.Node()
-    node.set('time', new Date())
+    date = new Date()
+    node.set('time', date)
 
     node.save().then(->
       Weaver.Node.load(node.id())
     ).then((loadedNode) ->
-      assert.equal(loadedNode.get('length'), 3)
+      assert.equal(loadedNode.get('time').toJSON(), date.toJSON())
     )
 
   it 'should increment an exiting number attribute', ->

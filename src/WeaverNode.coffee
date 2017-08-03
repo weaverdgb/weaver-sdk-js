@@ -63,7 +63,12 @@ class WeaverNode
     if not fieldArray? or fieldArray.length is 0
       return undefined
     else if fieldArray.length is 1
-      return fieldArray[0].value    # Returning value and not full object to be backwards compatible
+      attribute = fieldArray[0]
+
+      if attribute.dataType is 'date'
+        return new Date(attribute.value)
+      else
+        return attribute.value    # Returning value and not full object to be backwards compatible
     else
       return fieldArray
 
