@@ -119,7 +119,12 @@ class WeaverNode
 
     currentValue = @get(field)
     @set(field, currentValue + value)
-    @save()   # To be backwards compatible, but its better not to save here
+    
+    # To be backwards compatible, but its better not to save here
+    @save().then(->
+      # Return the incremented value
+      currentValue + value
+    )
 
 
   # Remove attribute
