@@ -42,7 +42,9 @@ class WeaverQuery
 
   count: ->
     @_count = true
-    Weaver.getCoreManager().query(@)
+    Weaver.getCoreManager().query(@).then((result) ->
+      result.count
+    )
 
   first: (Constructor) ->
     @_limit = 1
