@@ -114,6 +114,36 @@ describe 'WeaverQuery Test', ->
       )
     )
 
+  it 'should do equalTo a double', ->
+    a = new Weaver.Node("a")
+    a.set("name", "Project A")
+    a.set("age", 44)
+    b = new Weaver.Node("b")
+    b.set("name", "Project B")
+    b.set("age", 20.4)
+    c = new Weaver.Node("c")
+    c.set("age", 44.4)
+    d = new Weaver.Node("d")
+    d.set("notAge", 44)
+
+
+    Promise.all([a.save(), b.save(), c.save(), d.save()]).then(->
+      new Weaver.Query()
+      .equalTo("age", 44)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+      )
+
+      new Weaver.Query()
+      .equalTo("age", 20.4)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'b')
+      )
+    )
+
+
   it 'should do contains of a string', ->
     a = new Weaver.Node("a")
     a.set("name", "Project A")
@@ -165,12 +195,11 @@ describe 'WeaverQuery Test', ->
       )
     )
 
-  it 'should do relation check a relation', ->
+  it 'should do relation hasRelationOut', ->
     a = new Weaver.Node("a")
     b = new Weaver.Node("b")
     c = new Weaver.Node("c")
     a.relation("link").add(b)
-
 
     Promise.all([a.save(), c.save()]).then(->
 
@@ -180,6 +209,16 @@ describe 'WeaverQuery Test', ->
         expect(nodes.length).to.equal(1)
         checkNodeInResult(nodes, 'a')
       )
+    )
+
+
+  it 'should do relation hasRelationIn', ->
+    a = new Weaver.Node("a")
+    b = new Weaver.Node("b")
+    c = new Weaver.Node("c")
+    a.relation("link").add(b)
+
+    Promise.all([a.save(), c.save()]).then(->
 
       new Weaver.Query()
       .hasRelationIn("link", a)
@@ -187,6 +226,16 @@ describe 'WeaverQuery Test', ->
         expect(nodes.length).to.equal(1)
         checkNodeInResult(nodes, 'b')
       )
+    )
+
+
+  it 'should do relation hasNoRelationOut', ->
+    a = new Weaver.Node("a")
+    b = new Weaver.Node("b")
+    c = new Weaver.Node("c")
+    a.relation("link").add(b)
+
+    Promise.all([a.save(), c.save()]).then(->
 
       new Weaver.Query()
       .hasNoRelationOut("link", b)
@@ -195,7 +244,16 @@ describe 'WeaverQuery Test', ->
         checkNodeInResult(nodes, 'b')
         checkNodeInResult(nodes, 'c')
       )
+    )
 
+
+  it 'should do relation hasNoRelationIn', ->
+    a = new Weaver.Node("a")
+    b = new Weaver.Node("b")
+    c = new Weaver.Node("c")
+    a.relation("link").add(b)
+
+    Promise.all([a.save(), c.save()]).then(->
       new Weaver.Query()
       .hasNoRelationIn("link", a)
       .find().then((nodes) ->
@@ -205,16 +263,7 @@ describe 'WeaverQuery Test', ->
       )
     )
 
-  it 'should run a native query', ->
 
-    query = "select * where { ?s ?p ?o }"
-
-    q = new Weaver.Query()
-    q.nativeQuery(query).then((res)->
-      assert.include(res.head.vars, 's')
-      assert.include(res.head.vars, 'p')
-      assert.include(res.head.vars, 'o')
-    )
 
   it 'should deny any other user than root to execute a native query', ->
     query = "select * where { ?s ?p ?o }"
