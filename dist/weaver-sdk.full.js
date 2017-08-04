@@ -99012,7 +99012,7 @@ module.exports = yeast;
 },{}],391:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "2.3.3-beta.4",
+  "version": "3.0.0-rc.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -99020,7 +99020,7 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredServerVersion": "~2.3.2 || ^2.3.3-beta.0"
+    "requiredServerVersion": "~3.0.0 || ^3.0.0-rc.0"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -99580,113 +99580,80 @@ module.exports={
 
 },{"bluebird":74}],395:[function(require,module,exports){
 (function() {
-  var Action, NodeOperation, Weaver;
-
-  Action = require('./WriteOperation').Action;
+  var NodeOperation, Weaver, cuid;
 
   Weaver = require('./Weaver');
+
+  cuid = require('cuid');
 
   NodeOperation = function(node) {
     var timestamp;
     timestamp = Weaver.getCoreManager().serverTime();
     return {
-      create: function() {
+      createNode: function() {
         return {
           timestamp: timestamp,
-          action: Action.CREATE_NODE,
+          action: "create-node",
           id: node.id()
         };
       },
-      destroy: function() {
+      removeNode: function() {
         return {
           timestamp: timestamp,
-          action: Action.REMOVE_NODE,
-          id: node.id()
+          action: "remove-node",
+          id: node.id(),
+          removeId: cuid()
         };
       },
-      setAttribute: function(key, value, datatype) {
+      createAttribute: function(key, value, datatype, replaces) {
+        var replaceId;
+        replaceId = null;
+        if (replaces != null) {
+          replaceId = cuid();
+        }
         return {
           timestamp: timestamp,
-          action: Action.CREATE_ATTRIBUTE,
-          id: node.id(),
+          action: "create-attribute",
+          id: cuid(),
+          sourceId: node.id(),
           key: key,
           value: value,
-          datatype: datatype
+          datatype: datatype,
+          replacesId: replaces,
+          replaceId: replaceId
         };
       },
-      updateAttribute: function(key, value, datatype) {
+      removeAttribute: function(id) {
         return {
           timestamp: timestamp,
-          action: Action.UPDATE_ATTRIBUTE,
-          id: node.id(),
-          key: key,
-          value: value,
-          datatype: datatype
-        };
-      },
-      unsetAttribute: function(key) {
-        return {
-          timestamp: timestamp,
-          action: Action.REMOVE_ATTRIBUTE,
-          id: node.id(),
-          key: key
-        };
-      },
-      createRelation: function(key, to, id) {
-        return {
-          timestamp: timestamp,
-          action: Action.CREATE_RELATION,
+          action: "remove-attribute",
           id: id,
-          from: node.id(),
-          key: key,
-          to: to
+          removeId: cuid()
         };
       },
-      updateRelation: function(key, oldTo, newTo, id) {
+      createRelation: function(key, to, id, replaces) {
+        var replaceId;
+        replaceId = null;
+        if (replaces != null) {
+          replaceId = cuid();
+        }
         return {
           timestamp: timestamp,
-          action: Action.UPDATE_RELATION,
+          action: "create-relation",
           id: id,
-          from: node.id(),
+          sourceId: node.id(),
           key: key,
-          oldTo: oldTo,
-          newTo: newTo
+          targetId: to,
+          replacesId: replaces,
+          replaceId: replaceId
         };
       },
-      removeRelation: function(key, to) {
+      removeRelation: function(id) {
         return {
           timestamp: timestamp,
-          action: Action.REMOVE_RELATION,
-          from: node.id(),
-          key: key,
-          to: to
-        };
-      },
-      mergeNodes: function(idInto, idMerge) {
-        return {
-          timestamp: timestamp,
-          action: Action.MERGE_NODES,
-          idInto: idInto,
-          idMerge: idMerge
-        };
-      },
-      incrementAttribute: function(key, value) {
-        return {
-          timestamp: timestamp,
-          action: Action.INCREMENT_ATTRIBUTE,
-          id: node.id(),
-          key: key,
-          value: value
-        };
-      },
-      objectifyRelation: function(key, to, id) {
-        return {
-          timestamp: timestamp,
-          action: Action.OBJECTIFY_RELATION,
-          from: node.id(),
-          key: key,
-          to: to,
-          id: id
+          action: "remove-relation",
+          id: id,
+          removeId: cuid()
         };
       }
     };
@@ -99698,7 +99665,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Weaver":397,"./WriteOperation":410}],396:[function(require,module,exports){
+},{"./Weaver":397,"cuid":125}],396:[function(require,module,exports){
 (function() {
   var Promise, SocketController, io, pjson;
 
@@ -100385,13 +100352,15 @@ module.exports={
 
 },{"./Weaver":397}],402:[function(require,module,exports){
 (function() {
-  var Operation, Weaver, WeaverNode, cuid;
+  var Operation, Weaver, WeaverNode, cuid, util;
 
   cuid = require('cuid');
 
   Operation = require('./Operation');
 
   Weaver = require('./Weaver');
+
+  util = require('./util');
 
   WeaverNode = (function() {
     function WeaverNode(nodeId1) {
@@ -100403,7 +100372,7 @@ module.exports={
       this._loaded = false;
       this.attributes = {};
       this.relations = {};
-      this.pendingWrites = [Operation.Node(this).create()];
+      this.pendingWrites = [Operation.Node(this).createNode()];
     }
 
     WeaverNode.load = function(nodeId, target, Constructor) {
@@ -100414,18 +100383,17 @@ module.exports={
     };
 
     WeaverNode.prototype._loadFromQuery = function(object, Constructor) {
-      var i, instance, key, len, node, ref, relId, targetNodes;
+      var i, instance, key, len, ref, relation, relations;
       Constructor = Constructor || WeaverNode;
       this.attributes = object.attributes;
       ref = object.relations;
       for (key in ref) {
-        targetNodes = ref[key];
-        for (i = 0, len = targetNodes.length; i < len; i++) {
-          node = targetNodes[i];
-          instance = new Constructor(node.nodeId);
-          instance._loadFromQuery(node, Constructor);
-          relId = object.relationNodeIds[key][node.nodeId];
-          this.relation(key).add(instance, relId);
+        relations = ref[key];
+        for (i = 0, len = relations.length; i < len; i++) {
+          relation = relations[i];
+          instance = new Constructor(relation.target.nodeId);
+          instance._loadFromQuery(relation.target, Constructor);
+          this.relation(key).add(instance, relation.nodeId);
         }
       }
       this._clearPendingWrites();
@@ -100460,42 +100428,87 @@ module.exports={
     };
 
     WeaverNode.prototype.get = function(field) {
-      return this.attributes[field];
+      var attribute, fieldArray;
+      fieldArray = this.attributes[field];
+      if ((fieldArray == null) || fieldArray.length === 0) {
+        return void 0;
+      } else if (fieldArray.length === 1) {
+        attribute = fieldArray[0];
+        if (attribute.dataType === 'date') {
+          return new Date(attribute.value);
+        } else {
+          return attribute.value;
+        }
+      } else {
+        return fieldArray;
+      }
     };
 
     WeaverNode.prototype.set = function(field, value) {
-      if (this.attributes[field] != null) {
-        this.attributes[field] = value;
-        this.pendingWrites.push(Operation.Node(this).updateAttribute(field, value));
+      var dataType, newAttribute, newAttributeOperation, oldAttribute;
+      dataType = null;
+      if (util.isString(value)) {
+        dataType = 'string';
+      } else if (util.isNumber(value)) {
+        dataType = 'double';
+      } else if (util.isBoolean(value)) {
+        dataType = 'boolean';
+      } else if (util.isDate(value)) {
+        dataType = 'date';
+        value = value.getTime();
       } else {
-        this.attributes[field] = value;
-        this.pendingWrites.push(Operation.Node(this).setAttribute(field, value));
+        throw Error("Unsupported datatype for value " + value);
       }
+      if (this.attributes[field] != null) {
+        if (this.attributes[field].length > 1) {
+          throw new Error("Specifiy which attribute to set, more than 1 found for " + field);
+        }
+        oldAttribute = this.attributes[field][0];
+        newAttributeOperation = Operation.Node(this).createAttribute(field, value, dataType, oldAttribute.nodeId);
+      } else {
+        newAttributeOperation = Operation.Node(this).createAttribute(field, value, dataType);
+      }
+      newAttribute = {
+        nodeId: newAttributeOperation.id,
+        dataType: dataType,
+        value: value,
+        key: field,
+        creator: Weaver.instance.currentUser().userId,
+        created: newAttributeOperation.timestamp,
+        attributes: {},
+        relations: {}
+      };
+      this.attributes[field] = [newAttribute];
+      this.pendingWrites.push(newAttributeOperation);
       return this;
     };
 
     WeaverNode.prototype.increment = function(field, value, project) {
-      var operation;
+      var currentValue;
       if (this.attributes[field] == null) {
-        throw new Error;
+        throw new Error("There is no field " + field + " to increment");
       }
       if (typeof value !== 'number') {
-        throw new Error;
+        throw new Error("Field " + field + " is not a number");
       }
-      operation = Operation.Node(this).incrementAttribute(field, value);
-      return Weaver.getCoreManager().executeOperations([operation], project).then((function(_this) {
-        return function(res) {
-          if ((res != null) && (res.incrementedTo != null)) {
-            _this.attributes[field] = res.incrementedTo;
-            return res.incrementedTo;
-          }
-        };
-      })(this));
+      currentValue = this.get(field);
+      this.set(field, currentValue + value);
+      return this.save().then(function() {
+        return currentValue + value;
+      });
     };
 
     WeaverNode.prototype.unset = function(field) {
+      var currentAttribute;
+      if (this.attributes[field] == null) {
+        throw new Error("There is no field " + field + " to unset");
+      }
+      if (this.attributes[field].length > 1) {
+        throw new Error("Currently not possible to unset is multiple attributes are present");
+      }
+      currentAttribute = this.attributes[field][0];
+      this.pendingWrites.push(Operation.Node(this).removeAttribute(currentAttribute.nodeId));
       delete this.attributes[field];
-      this.pendingWrites.push(Operation.Node(this).unsetAttribute(field));
       return this;
     };
 
@@ -100632,7 +100645,7 @@ module.exports={
     };
 
     WeaverNode.prototype.destroy = function(project) {
-      return Weaver.getCoreManager().executeOperations([Operation.Node(this).destroy()], project).then((function(_this) {
+      return Weaver.getCoreManager().executeOperations([Operation.Node(this).removeNode()], project).then((function(_this) {
         return function() {
           var key;
           for (key in _this) {
@@ -100653,7 +100666,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Operation":395,"./Weaver":397,"cuid":125}],403:[function(require,module,exports){
+},{"./Operation":395,"./Weaver":397,"./util":410,"cuid":125}],403:[function(require,module,exports){
 (function() {
   var Weaver, WeaverPlugin,
     slice = [].slice;
@@ -100874,11 +100887,12 @@ module.exports={
 
     WeaverQuery.prototype.find = function(Constructor) {
       Constructor = Constructor || Weaver.Node;
-      return Weaver.getCoreManager().query(this).then(function(nodes) {
-        var i, instance, len, list, node;
+      return Weaver.getCoreManager().query(this).then(function(result) {
+        var i, instance, len, list, node, ref;
         list = [];
-        for (i = 0, len = nodes.length; i < len; i++) {
-          node = nodes[i];
+        ref = result.nodes;
+        for (i = 0, len = ref.length; i < len; i++) {
+          node = ref[i];
           instance = new Constructor(node.nodeId);
           instance._loadFromQuery(node);
           instance._setStored();
@@ -100891,7 +100905,9 @@ module.exports={
 
     WeaverQuery.prototype.count = function() {
       this._count = true;
-      return Weaver.getCoreManager().query(this);
+      return Weaver.getCoreManager().query(this).then(function(result) {
+        return result.count;
+      });
     };
 
     WeaverQuery.prototype.first = function(Constructor) {
@@ -101121,7 +101137,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Weaver":397,"./util":411}],406:[function(require,module,exports){
+},{"./Weaver":397,"./util":410}],406:[function(require,module,exports){
 (function() {
   var Operation, Weaver, WeaverRelation, cuid;
 
@@ -101190,17 +101206,20 @@ module.exports={
     };
 
     WeaverRelation.prototype.update = function(oldNode, newNode) {
-      var relId;
-      relId = this.relationNodes[oldNode.id()].id();
+      var newRelId, oldRelId;
+      newRelId = cuid();
+      oldRelId = this.relationNodes[oldNode.id()].id();
       delete this.nodes[oldNode.id()];
       this.nodes[newNode.id()] = newNode;
-      return this.pendingWrites.push(Operation.Node(this.parent).updateRelation(this.key, oldNode.id(), newNode.id(), relId));
+      delete this.relationNodes[oldNode.id()];
+      this.relationNodes[newNode.id()] = Weaver.RelationNode.get(newRelId, Weaver.RelationNode);
+      return this.pendingWrites.push(Operation.Node(this.parent).createRelation(this.key, newNode.id(), newRelId, oldRelId));
     };
 
     WeaverRelation.prototype.remove = function(node) {
+      this.relationNodes[node.id()].destroy();
       delete this.nodes[node.id()];
-      delete this.relationNodes[node.id()];
-      return this.pendingWrites.push(Operation.Node(this.parent).removeRelation(this.key, node.id()));
+      return delete this.relationNodes[node.id()];
     };
 
     return WeaverRelation;
@@ -101247,18 +101266,6 @@ module.exports={
 
     WeaverRelationNode.prototype.from = function() {
       return this.fromNode;
-    };
-
-    WeaverRelationNode.prototype.destroy = function(project) {
-      return Weaver.getCoreManager().executeOperations([Operation.Node(this).destroy()], project).then((function(_this) {
-        return function() {
-          var key;
-          for (key in _this) {
-            delete _this[key];
-          }
-          return void 0;
-        };
-      })(this));
     };
 
     return WeaverRelationNode;
@@ -101528,53 +101535,6 @@ module.exports={
 
 },{"./Weaver":397,"bluebird":74,"cuid":125}],410:[function(require,module,exports){
 (function() {
-  var Action, Signature, define;
-
-  Action = {};
-
-  Signature = {};
-
-  define = function(action, attributes) {
-    var attribute, i, len;
-    Signature[action] = {};
-    for (i = 0, len = attributes.length; i < len; i++) {
-      attribute = attributes[i];
-      Signature[action][attribute] = null;
-    }
-    return action;
-  };
-
-  Action.CREATE_NODE = define('create-node', ['timestamp', 'id']);
-
-  Action.REMOVE_NODE = define('remove-node', ['timestamp', 'id']);
-
-  Action.CREATE_ATTRIBUTE = define('create-attribute', ['timestamp', 'id', 'key', 'value', 'datatype']);
-
-  Action.UPDATE_ATTRIBUTE = define('update-attribute', ['timestamp', 'id', 'key', 'value', 'datatype']);
-
-  Action.REMOVE_ATTRIBUTE = define('remove-attribute', ['timestamp', 'id', 'key']);
-
-  Action.CREATE_RELATION = define('create-relation', ['timestamp', 'from', 'key', 'to', 'id']);
-
-  Action.UPDATE_RELATION = define('update-relation', ['timestamp', 'from', 'key', 'oldTo', 'newTo', 'id']);
-
-  Action.REMOVE_RELATION = define('remove-relation', ['timestamp', 'from', 'key', 'to']);
-
-  Action.MERGE_NODES = define('merge-nodes', ['timestamp', 'idInto', 'idMerge']);
-
-  Action.INCREMENT_ATTRIBUTE = define('increment-attribute', ['timestamp', 'id', 'key', 'value']);
-
-  Action.OBJECTIFY_RELATION = define('objectify-relation', ['timestamp', 'from', 'key', 'to', 'id']);
-
-  module.exports = {
-    Action: Action,
-    Signature: Signature
-  };
-
-}).call(this);
-
-},{}],411:[function(require,module,exports){
-(function() {
   var flatten, typeShouldBe;
 
   typeShouldBe = function(type) {
@@ -101607,6 +101567,9 @@ module.exports={
     },
     isArray: function(val) {
       return typeShouldBe('[object Array]')(val);
+    },
+    isDate: function(val) {
+      return typeShouldBe('[object Date]')(val);
     },
     flatten: flatten
   };
