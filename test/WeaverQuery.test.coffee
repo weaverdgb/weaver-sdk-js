@@ -264,7 +264,7 @@ describe 'WeaverQuery Test', ->
       )
     )
 
-  it 'should do relation hasNoRelationIn', ->
+  it 'should do specific relation hasNoRelationIn', ->
     a = new Weaver.Node("a")
     b = new Weaver.Node("b")
     c = new Weaver.Node("c")
