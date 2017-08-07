@@ -9,27 +9,10 @@ module.exports =
     expire: '7d'
     salt: 10
 
-  projectPool: [
-    {
-      database: 'http://weaver-database:9474'
-      fileServer:
-        endpoint: 'http://file-system:9000'
-        accessKey: 'NYLEXGR6MF2IE99LZ4UE'
-        secretKey: 'CjMuTRwYPcneXnGac2aQH0J+EdYdehTW4Cw7bZGD'
-      tracker:
-        enabled: true
-        host: 'trackerdb'
-        port: 3306
-        user: 'root'
-        password: 'K00B88HQB1UV9MZ7YYUP'
-        database: 'trackerdb'
-    }
-  ]
-
   application:
     openUserCreation: true
     wipe: true
-    singleDatabase: true
+    projectpool: 'PostgreSQLProjectPool'
     sounds:
       muteAll: false
       loaded:  true
@@ -46,8 +29,13 @@ module.exports =
       enable: true
 
   services:
-    projectController:
-      endpoint: 'http://localhost:9888'
+    database:
+      url: 'http://localhost:4567'
+
+    fileServer:
+      endpoint: 'http://localhost:9000'
+      accessKey: 'NYLEXGR6MF2IE99LZ4UE'
+      secretKey: 'CjMuTRwYPcneXnGac2aQH0J+EdYdehTW4Cw7bZGD'
 
     snmp:
       enabled: false
@@ -58,7 +46,7 @@ module.exports =
       agentAddress: 'localhost'
 
   logging:
-    console: 'error'
+    console: 'debug'
     file:    'warn'
     logFilePath:
       config: './logs/weaver.config'
