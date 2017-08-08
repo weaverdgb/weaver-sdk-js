@@ -2,6 +2,7 @@ cuid        = require('cuid')
 Operation   = require('./Operation')
 Weaver      = require('./Weaver')
 util        = require('./util')
+_           = require('lodash')
 
 class WeaverNode
 
@@ -199,6 +200,7 @@ class WeaverNode
 
       i.__pendingOpNode = relation for i in relation.pendingWrites
       operations = operations.concat(relation.pendingWrites)
+      relation.pendingWrites = []
     operations
 
 
@@ -211,7 +213,6 @@ class WeaverNode
         node._clearPendingWrites() if node.isDirty()
 
       relation.pendingWrites = []
-
 
   _setStored: ->
     @_stored = true
@@ -234,7 +235,7 @@ class WeaverNode
     sp = cm.operationsQueue.then(=>
       writes = @_collectPendingWrites()
 
-      cm.executeOperations(writes, project).then(=>
+      cm.executeOperations((_.omit(i, "__pendingOpNode") for i in writes), project).then(=>
         @_setStored()
         @
       ).catch((e) =>
