@@ -2,6 +2,7 @@ cuid        = require('cuid')
 Operation   = require('./Operation')
 Weaver      = require('./Weaver')
 util        = require('./util')
+_           = require('lodash')
 
 class WeaverNode
 
@@ -187,6 +188,9 @@ class WeaverNode
     collected  = {} if not collected?
     collected[@id()] = true
     operations = @pendingWrites
+    @pendingWrites = []
+
+    i.__pendingOpNode = @ for i in operations
 
     for key, relation of @relations
       for id, node of relation.nodes
@@ -194,7 +198,9 @@ class WeaverNode
           collected[node.id()] = true
           operations = operations.concat(node._collectPendingWrites(collected))
 
+      i.__pendingOpNode = relation for i in relation.pendingWrites
       operations = operations.concat(relation.pendingWrites)
+      relation.pendingWrites = []
     operations
 
 
@@ -207,8 +213,6 @@ class WeaverNode
         node._clearPendingWrites() if node.isDirty()
 
       relation.pendingWrites = []
-    @
-
 
   _setStored: ->
     @_stored = true
@@ -226,26 +230,40 @@ class WeaverNode
 
   # Save node and all values / relations and relation objects to server
   save: (project) ->
-    Weaver.getCoreManager().executeOperations(@_collectPendingWrites(), project).then(=>
-      @_clearPendingWrites()
-      @_setStored()
-      @
+    cm = Weaver.getCoreManager()
+
+    sp = cm.operationsQueue.then(=>
+      writes = @_collectPendingWrites()
+
+      cm.executeOperations((_.omit(i, "__pendingOpNode") for i in writes), project).then(=>
+        @_setStored()
+        @
+      ).catch((e) =>
+
+        # Restore the pending writes to their originating nodes
+        # (in reverse order so create-node is done before adding attributes)
+        for i in writes by -1
+          i.__pendingOpNode.pendingWrites.unshift(i)
+
+        Promise.reject(e)
+      )
     )
 
-  # Save everything related to all the nodes in the array in one database call
-  # No checking for overlapping elements in linked network per element
+    new Promise((resultResolve, resultReject) =>
+      cm.operationsQueue = new Promise((resolve) =>
+        sp.then((r)->
+          resolve()
+          resultResolve(r)
+        ).catch((e) ->
+          resolve()
+          resultReject(e)
+        )
+      )
+    )
+
+
   @batchSave: (array, project) ->
-    operations = []
-    for node in array
-      operations = operations.concat(node._collectPendingWrites())
-      node._clearPendingWrites()
-
-    Weaver.getCoreManager().executeOperations(operations, project).then(
-      for node in array
-        node._setStored()
-      array
-    )
-
+    Promise.all(i.save(project) for i in array)
 
   # Removes node
   destroy: (project) ->
