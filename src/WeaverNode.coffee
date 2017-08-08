@@ -226,11 +226,31 @@ class WeaverNode
 
   # Save node and all values / relations and relation objects to server
   save: (project) ->
-    Weaver.getCoreManager().executeOperations(@_collectPendingWrites(), project).then(=>
-      @_clearPendingWrites()
-      @_setStored()
-      @
+    cm = Weaver.getCoreManager()
+
+    sp = cm.operationsQueue.then(=>
+      writes = @_collectPendingWrites()
+
+      cm.executeOperations(writes, project).then(=>
+        @_clearPendingWrites()
+        @_setStored()
+        @
+      )
     )
+
+    new Promise((resultResolve, resultReject) =>
+      cm.operationsQueue = new Promise((resolve) =>
+        sp.then((r)->
+          resolve()
+          resultResolve(r)
+        ).catch((e) ->
+          resolve()
+          resultReject(e)
+        )
+      )
+    )
+
+
 
   # Save everything related to all the nodes in the array in one database call
   # No checking for overlapping elements in linked network per element
