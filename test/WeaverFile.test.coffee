@@ -161,3 +161,37 @@ describe 'WeaverFile test', ->
         assert(true)
       )
     )
+
+  describe 'with an uploaded file', ->
+    beforeEach ->
+      @timeout(15000)
+
+      weaverFile = new Weaver.File()
+      fileTemp = path.join(__dirname,'../icon.png')
+
+      readOnly = new Weaver.User("readonly", "password", "some@email.com")
+      noAccess = new Weaver.User("noAccess", "password", "some2@email.com")
+      Promise.all([
+        readOnly.create()
+        noAccess.create()
+      ]).then(->
+        weaver.currentProject().getACL()
+      ).then((projectACL) ->
+        projectACL.setUserReadAccess(readOnly, true)
+        projectACL.save()
+      ).then(->
+        weaverFile.saveFile(fileTemp, 'weaverIcon.png')
+      ).then((r) ->
+        @fileId = r
+      )
+
+    it 'should allow users with read permission access to attachments', ->
+      weaver.signOut().then(-> weaver.signInWithUsername('readonly', 'password'))
+      .then(-> new Weaver.File().getFileByID('./tmp/test-file', @fileId))
+    
+    it 'should not allow users without read permission access to attachments', ->
+      weaver.signOut().then(-> weaver.signInWithUsername('noAccess', 'password'))
+      .then(->
+        expect( -> new Weaver.File().getFileByID('./tmp/test-file', @fileId)
+        ).to.throw
+      )
