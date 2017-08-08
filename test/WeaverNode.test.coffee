@@ -3,6 +3,39 @@ Weaver = require('../src/Weaver')
 
 describe 'WeaverNode test', ->
 
+  it 'should propagate delete to relations (part 1)', ->
+    a = new Weaver.Node()
+    b = new Weaver.Node()
+
+    a.relation('link').add(b)
+    a.save().then(->
+      b.destroy()
+    ).then(->
+      Weaver.Node.load(a)
+    ).then((res)->
+      assert.isUndefined(res.relations.link)
+    )
+
+
+  it 'should propagate delete to relations (part 2)', ->
+    a = new Weaver.Node()
+    b = new Weaver.Node()
+    c = new Weaver.Node()
+
+    a.relation('link').add(b)
+    c.relation('link').add(c)
+    Promise.all([a.save(), c.save()]).then(->
+      b.destroy()
+    ).then(->
+      q = new Weaver.Query()
+      q.hasNoRelationIn('link')
+      .hasNoRelationOut('link')
+      .find()
+    ).then((res)->
+      assert.equal(res.length, 2)
+    )
+
+
   it 'should create a new node', ->
     node = new Weaver.Node()
     assert(!node._loaded)
