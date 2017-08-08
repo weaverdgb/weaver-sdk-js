@@ -99012,7 +99012,7 @@ module.exports = yeast;
 },{}],391:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "3.0.2",
+  "version": "3.0.3",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -100690,13 +100690,34 @@ module.exports={
     };
 
     WeaverNode.prototype.destroy = function(project) {
-      return Weaver.getCoreManager().executeOperations([Operation.Node(this).removeNode()], project).then((function(_this) {
+      var cm, rm;
+      cm = Weaver.getCoreManager();
+      rm = cm.operationsQueue.then((function(_this) {
         return function() {
-          var key;
-          for (key in _this) {
-            delete _this[key];
+          if (_this.nodeId != null) {
+            return cm.executeOperations([Operation.Node(_this).removeNode()], project).then(function() {
+              var key;
+              for (key in _this) {
+                delete _this[key];
+              }
+              return void 0;
+            });
+          } else {
+            return void 0;
           }
-          return void 0;
+        };
+      })(this));
+      return new Promise((function(_this) {
+        return function(resultResolve, resultReject) {
+          return cm.operationsQueue = new Promise(function(resolve) {
+            return rm.then(function(r) {
+              resolve();
+              return resultResolve(r);
+            })["catch"](function(e) {
+              resolve();
+              return resultReject(e);
+            });
+          });
         };
       })(this));
     };
