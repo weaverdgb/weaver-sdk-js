@@ -14,6 +14,7 @@ class CoreManager
 
   constructor: ->
     @currentProject = null
+    @operationsQueue = Promise.resolve()
     @timeOffset = 0
 
   connect: (endpoint, @options) ->
