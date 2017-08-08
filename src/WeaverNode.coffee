@@ -262,21 +262,8 @@ class WeaverNode
     )
 
 
-
-  # Save everything related to all the nodes in the array in one database call
-  # No checking for overlapping elements in linked network per element
   @batchSave: (array, project) ->
-    operations = []
-    for node in array
-      operations = operations.concat(node._collectPendingWrites())
-      node._clearPendingWrites()
-
-    Weaver.getCoreManager().executeOperations(operations, project).then(
-      for node in array
-        node._setStored()
-      array
-    )
-
+    Promise.all(i.save(project) for i in array)
 
   # Removes node
   destroy: (project) ->
