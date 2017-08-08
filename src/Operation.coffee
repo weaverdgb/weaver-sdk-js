@@ -14,6 +14,7 @@ NodeOperation = (node) ->
   removeNode: ->
     {
       timestamp
+      cascade: true
       action: "remove-node"
       id: node.id()
       removeId: cuid()
@@ -38,6 +39,7 @@ NodeOperation = (node) ->
   removeAttribute: (id) ->
     {
       timestamp
+      cascade: true
       action: "remove-attribute"
       id: id
       removeId: cuid()
@@ -60,6 +62,7 @@ NodeOperation = (node) ->
   removeRelation: (id) ->
     {
       timestamp
+      cascade: true
       action: "remove-relation"
       id
       removeId: cuid()
