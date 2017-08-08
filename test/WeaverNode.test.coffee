@@ -3,6 +3,14 @@ Weaver = require('../src/Weaver')
 
 describe 'WeaverNode test', ->
 
+  it 'should handle concurrent remove node operations', ->
+    a = new Weaver.Node()
+
+    a.save().then(->
+      Promise.all([a.destroy(), a.destroy()])
+    )
+
+
   it 'should propagate delete to relations (part 1)', ->
     a = new Weaver.Node()
     b = new Weaver.Node()
