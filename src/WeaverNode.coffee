@@ -187,6 +187,9 @@ class WeaverNode
     collected  = {} if not collected?
     collected[@id()] = true
     operations = @pendingWrites
+    @pendingWrites = []
+
+    i.__pendingOpNode = @ for i in operations
 
     for key, relation of @relations
       for id, node of relation.nodes
@@ -194,6 +197,7 @@ class WeaverNode
           collected[node.id()] = true
           operations = operations.concat(node._collectPendingWrites(collected))
 
+      i.__pendingOpNode = relation for i in relation.pendingWrites
       operations = operations.concat(relation.pendingWrites)
     operations
 
@@ -207,7 +211,6 @@ class WeaverNode
         node._clearPendingWrites() if node.isDirty()
 
       relation.pendingWrites = []
-    @
 
 
   _setStored: ->
@@ -232,9 +235,16 @@ class WeaverNode
       writes = @_collectPendingWrites()
 
       cm.executeOperations(writes, project).then(=>
-        @_clearPendingWrites()
         @_setStored()
         @
+      ).catch((e) =>
+
+        # Restore the pending writes to their originating nodes
+        # (in reverse order so create-node is done before adding attributes)
+        for i in writes by -1
+          i.__pendingOpNode.pendingWrites.unshift(i)
+
+        Promise.reject(e)
       )
     )
 
