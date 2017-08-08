@@ -2,7 +2,7 @@ version: '2.1'
 services:
   postgres:
     image: postgres:9.6
-    volumes: 
+    volumes:
     - ./postgresql:/var/lib/postgresql/data
     expose:
     - "5432"
@@ -10,18 +10,18 @@ services:
     - "5432:5432"
 
   postgresql-connector:
-    image: sysunite/weaver-database-postgresql:0.0.4
+    image: sysunite/weaver-database-postgresql:0.0.6
     links:
     - postgres
     expose:
     - "4567"
     ports:
     - "4567:4567"
-    environment: 
+    environment:
     - POSTGRES_HOST=postgres
     - POSTGRES_USER=postgres
     - POSTGRES_PASS=root
-    
+
   file-system:
     image: minio/minio:RELEASE.2017-04-25T01-27-49Z
     expose:
