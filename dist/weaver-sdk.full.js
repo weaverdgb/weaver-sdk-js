@@ -99058,7 +99058,8 @@ module.exports={
     "mocha": "^3.4.1",
     "sinon": "^2.2.0",
     "vinyl-buffer": "^1.0.0",
-    "vinyl-source-stream": "^1.1.0"
+    "vinyl-source-stream": "^1.1.0",
+    "supertest": "^3.0.0"
   },
   "engines": {
     "node": ">=6.9"
