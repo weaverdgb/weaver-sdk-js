@@ -149,7 +149,7 @@ describe 'WeaverHistory test', ->
       )
     )
 
-  it 'should not allow sql injection in queries', ->
+  it.skip 'should not allow sql injection in queries', ->
     new Weaver.Node().save().then(->
       new Weaver.Node().save()
     ).then(->

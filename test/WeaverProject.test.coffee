@@ -68,7 +68,7 @@ describe 'WeaverProject Test', ->
       weaver.useProject(p)
     )
 
-  it 'should raise an error while saving without currentProject', (done) ->
+  it.skip 'should raise an error while saving without currentProject', (done) ->
     p = weaver.currentProject()
     weaver.useProject(null)
     node = new Weaver.Node()
@@ -83,7 +83,7 @@ describe 'WeaverProject Test', ->
     )
     return
 
-  it 'should export the database content as snapshot', ->
+  it.skip 'should export the database content as snapshot', ->
     node = new Weaver.Node()
 
     node.save().then((node) ->
@@ -131,4 +131,3 @@ describe 'WeaverProject Test', ->
     new Weaver.User('testuser', 'testpass', 'test@example.com').signUp().then(->
       weaver.currentProject().getSnapshot()
     ).should.be.rejectedWith(/Permission denied/)
-
