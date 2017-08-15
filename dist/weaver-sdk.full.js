@@ -99340,6 +99340,12 @@ module.exports={
       }, "$SYSTEM");
     };
 
+    CoreManager.prototype.cloneProject = function(id) {
+      return this.POST("project.clone", {
+        id: id
+      }, id);
+    };
+
     CoreManager.prototype.deleteProject = function(id) {
       return this.POST("project.delete", {
         id: id
@@ -100887,6 +100893,10 @@ module.exports={
 
     WeaverProject.prototype.getSnapshot = function() {
       return Weaver.getCoreManager().snapshotProject(this.id());
+    };
+
+    WeaverProject.prototype.clone = function() {
+      return Weaver.getCoreManager().cloneProject(this.id());
     };
 
     WeaverProject.prototype.destroy = function() {

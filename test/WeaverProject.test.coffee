@@ -131,3 +131,11 @@ describe 'WeaverProject Test', ->
     new Weaver.User('testuser', 'testpass', 'test@example.com').signUp().then(->
       weaver.currentProject().getSnapshot()
     ).should.be.rejectedWith(/Permission denied/)
+
+  it 'should clone the current loaded project', ->
+    project = new Weaver.Project("helloworld", "test")
+    project.clone('123456', 'cloned_db').then((p) =>
+        expect(p.id().to.equal("123456"))
+        p.destroy()
+        project.destroy();
+    )

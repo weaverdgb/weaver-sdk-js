@@ -49,6 +49,9 @@ class WeaverProject
   getSnapshot:->
     Weaver.getCoreManager().snapshotProject(@id())
 
+  clone: (id, name) ->
+    Weaver.getCoreManager().cloneProject(id, name)
+
   destroy: ->
     Weaver.getCoreManager().deleteProject(@id())
 
