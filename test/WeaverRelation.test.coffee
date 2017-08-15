@@ -72,7 +72,7 @@ describe 'Weaver relation and WeaverRelationNode test', ->
       assert.isDefined(loadedNode)
     )
 
-  it 'should update a relation', ->
+  it.skip 'should update a relation', ->
     foo = new Weaver.Node()
     bar = new Weaver.Node()
     ono = new Weaver.Node()
