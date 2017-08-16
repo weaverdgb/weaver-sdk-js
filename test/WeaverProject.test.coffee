@@ -132,10 +132,11 @@ describe 'WeaverProject Test', ->
       weaver.currentProject().getSnapshot()
     ).should.be.rejectedWith(/Permission denied/)
 
-  it 'should clone the current loaded project', ->
-    project = new Weaver.Project("helloworld", "test")
-    project.clone('helloworld_dupe', 'helloworld_cloned_db_human_readable_name').then((p) =>
-        expect(p.id().to.equal('helloworld_dupe'))
-        p.destroy()
-        project.destroy();
+  it 'should clone a newly created project helloworld', ->
+    project = new Weaver.Project("helloworld", "helloworld")
+    project.create().then(->
+      project.clone('helloworld_dupe', 'helloworld_cloned_db_human_readable_name')
+    ).then((p) ->
+      expect(p.id()).to.equal('helloworld_dupe')
+      p.destroy()
     )

@@ -99340,9 +99340,10 @@ module.exports={
       }, "$SYSTEM");
     };
 
-    CoreManager.prototype.cloneProject = function(id) {
+    CoreManager.prototype.cloneProject = function(id, name) {
       return this.POST("project.clone", {
-        id: id
+        id: id,
+        name: name
       }, id);
     };
 
@@ -100834,8 +100835,8 @@ module.exports={
   WeaverProject = (function() {
     WeaverProject.READY_RETRY_TIMEOUT = 200;
 
-    function WeaverProject(name, projectId, acl1, _stored) {
-      this.name = name;
+    function WeaverProject(name1, projectId, acl1, _stored) {
+      this.name = name1;
       this.projectId = projectId;
       this.acl = acl1;
       this._stored = _stored != null ? _stored : false;
@@ -100895,8 +100896,8 @@ module.exports={
       return Weaver.getCoreManager().snapshotProject(this.id());
     };
 
-    WeaverProject.prototype.clone = function() {
-      return Weaver.getCoreManager().cloneProject(this.id());
+    WeaverProject.prototype.clone = function(id, name) {
+      return Weaver.getCoreManager().cloneProject(id, name);
     };
 
     WeaverProject.prototype.destroy = function() {
