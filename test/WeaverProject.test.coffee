@@ -134,8 +134,8 @@ describe 'WeaverProject Test', ->
 
   it 'should clone the current loaded project', ->
     project = new Weaver.Project("helloworld", "test")
-    project.clone('123456', 'cloned_db').then((p) =>
-        expect(p.id().to.equal("123456"))
+    project.clone('helloworld_dupe', 'helloworld_cloned_db_human_readable_name').then((p) =>
+        expect(p.id().to.equal('helloworld_dupe'))
         p.destroy()
         project.destroy();
     )
