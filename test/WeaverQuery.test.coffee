@@ -306,3 +306,24 @@ describe 'WeaverQuery Test', ->
     ).catch((err) ->
       expect(err).to.have.property('message').match(/Permission denied/)
     )
+
+  it 'should allow for sorting', ->
+    a = new Weaver.Node("a")
+    a.set("name", "a")
+    a.set("special", "abcdef")
+    c = new Weaver.Node("c")
+    c.set("name", "c")
+    c.set("special", "klmno")
+    b = new Weaver.Node("b")
+    b.set("name", "b")
+    b.set("special", "uvwxyz")
+
+    Promise.all([a.save(), c.save(), b.save()]).then(->
+      new Weaver.Query()
+      .noRelations()
+      .ascending(['name'])
+      .find().then((nodes) ->
+        (i.attributes.name[0].value for i in nodes).should.eql(['a', 'b', 'c'])
+
+      )
+    )
