@@ -186,7 +186,7 @@ describe 'WeaverHistory test', ->
     ).should.be.rejectedWith(/Permission denied/)
 
 
-  it 'should retrieve 20 rows of history in ascendent mode', ->
+  it 'should retrieve 20 rows of history in ascendent mode, default order', ->
     Promise.all((new Weaver.Node()).save() for i in [0..30]).then( ->
       history = new Weaver.History()
       history.limit(20)
@@ -208,5 +208,59 @@ describe 'WeaverHistory test', ->
         expect(response).to.have.length.be(20)
         assert.equal(response[0].seqnr,31)
         assert.equal(response[19].seqnr,12)
+      )
+    )
+
+  it 'should retrieve 1st page with 10 results in default order', ->
+    Promise.all((new Weaver.Node()).save() for i in [0..30]).then( ->
+      history = new Weaver.History()
+      history.limit(10)
+      history.offset(0)
+      history.getHistory()
+      .then((response) ->
+        expect(response).to.have.length.be(10)
+        assert.equal(response[0].seqnr,1)
+        assert.equal(response[9].seqnr,10)
+      )
+    )
+
+  it 'should retrieve 1st page with 10 results in descending order', ->
+    Promise.all((new Weaver.Node()).save() for i in [0..30]).then( ->
+      history = new Weaver.History()
+      history.sorted('descending')
+      history.limit(10)
+      history.offset(0)
+      history.getHistory()
+      .then((response) ->
+        expect(response).to.have.length.be(10)
+        assert.equal(response[0].seqnr,31)
+        assert.equal(response[9].seqnr,22)
+      )
+    )
+
+  it 'should retrieve 2nd page with 10 results in default order', ->
+    Promise.all((new Weaver.Node()).save() for i in [0..30]).then( ->
+      history = new Weaver.History()
+      history.limit(10)
+      history.offset(10)
+      history.getHistory()
+      .then((response) ->
+        expect(response).to.have.length.be(10)
+        assert.equal(response[0].seqnr,11)
+        assert.equal(response[9].seqnr,20)
+      )
+    )
+
+  it 'should retrieve 2nd page with 10 results in descending order', ->
+    Promise.all((new Weaver.Node()).save() for i in [0..30]).then( ->
+      history = new Weaver.History()
+      history.sorted('descending')
+      history.limit(10)
+      history.offset(10)
+      history.getHistory()
+      .then((response) ->
+        expect(response).to.have.length.be(10)
+        assert.equal(response[0].seqnr,21)
+        assert.equal(response[9].seqnr,12)
       )
     )

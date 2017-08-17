@@ -23,6 +23,9 @@ class WeaverHistory
   sorted: (order) ->
     @sorted =  order
 
+  offset: (value) ->
+    @offset =  value
+
   dumpHistory: () ->
     Weaver.getCoreManager().dumpHistory({@limit})
 
@@ -47,7 +50,7 @@ class WeaverHistory
     keys = if typeIsArray keyField then keyField else [keyField] if keyField?
     tos = if typeIsArray toField then toField else [toField] if toField?
     froms = if typeIsArray fromField then fromField else [fromField] if fromField?
-    Weaver.getCoreManager().getHistory({ids, keys, froms, tos, @fromDateTime, @beforeDateTime, @users, @limit, @sorted})
+    Weaver.getCoreManager().getHistory({ids, keys, froms, tos, @fromDateTime, @beforeDateTime, @users, @limit, @sorted, @offset})
 
 
 # Export
