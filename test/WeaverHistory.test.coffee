@@ -184,3 +184,29 @@ describe 'WeaverHistory test', ->
     ).then(->
       new Weaver.History().dumpHistory()
     ).should.be.rejectedWith(/Permission denied/)
+
+
+  it 'should retrieve 20 rows of history in ascendent mode', ->
+    Promise.all((new Weaver.Node()).save() for i in [0..30]).then( ->
+      history = new Weaver.History()
+      history.limit(20)
+      history.getHistory()
+      .then((response) ->
+        expect(response).to.have.length.be(20)
+        assert.equal(response[0].seqnr,1)
+        assert.equal(response[19].seqnr,20)
+      )
+    )
+
+  it 'should retrieve 20 rows of history in descent mode', ->
+    Promise.all((new Weaver.Node()).save() for i in [0..30]).then( ->
+      history = new Weaver.History()
+      history.limit(20)
+      history.sorted('descending')
+      history.getHistory()
+      .then((response) ->
+        expect(response).to.have.length.be(20)
+        assert.equal(response[0].seqnr,31)
+        assert.equal(response[19].seqnr,12)
+      )
+    )
