@@ -246,6 +246,24 @@ describe 'WeaverQuery Test', ->
       )
     )
 
+  it 'should do specific hasNoRelationOut', ->
+    a = new Weaver.Node("a")
+    b = new Weaver.Node("b")
+    c = new Weaver.Node("c")
+    a.relation("link").add(b)
+    c.relation("link").add(a)
+
+    Promise.all([a.save(), c.save()]).then(->
+
+      new Weaver.Query()
+      .hasNoRelationOut("link", b)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(3)
+        checkNodeInResult(nodes, 'b')
+        checkNodeInResult(nodes, 'c')
+      )
+    )
+
 
   it 'should do relation hasNoRelationIn', ->
     a = new Weaver.Node("a")
