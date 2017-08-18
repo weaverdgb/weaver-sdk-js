@@ -181,7 +181,21 @@ describe 'WeaverQuery Test', ->
       )
     )
 
-  it 'should not return relations', ->
+  it 'should default to not returning relations', ->
+    a = new Weaver.Node("a")
+    b = new Weaver.Node("b")
+    a.relation("to").add(b, "c")
+
+    a.save().then(->
+      new Weaver.Query()
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(2)
+        checkNodeInResult(nodes, 'a')
+        checkNodeInResult(nodes, 'b')
+      )
+    )
+
+  it 'should not return relations when noRelationNodes is set', ->
     a = new Weaver.Node("a")
     b = new Weaver.Node("b")
     a.relation("to").add(b, "c")
