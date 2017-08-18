@@ -172,6 +172,7 @@ describe 'WeaverQuery Test', ->
 
     a.save().then(->
       new Weaver.Query()
+      .withRelationNodes()
       .find().then((nodes) ->
         expect(nodes.length).to.equal(3)
         checkNodeInResult(nodes, 'a')
@@ -187,7 +188,7 @@ describe 'WeaverQuery Test', ->
 
     a.save().then(->
       new Weaver.Query()
-      .noRelations()
+      .noRelationNodes()
       .find().then((nodes) ->
         expect(nodes.length).to.equal(2)
         checkNodeInResult(nodes, 'a')

@@ -11,19 +11,20 @@ quote = (s) ->
 class WeaverQuery
 
   constructor: (@target) ->
-    @_restrict   = []
-    @_equals     = {}
-    @_orQueries  = []
-    @_conditions = {}
-    @_include    = []
-    @_select     = []
-    @_noRelations = false
-    @_count       = false
-    @_hollow      = false
-    @_limit       = 99999
-    @_skip        = 0
-    @_order       = []
-    @_ascending   = true
+    @_restrict     = []
+    @_equals       = {}
+    @_orQueries    = []
+    @_conditions   = {}
+    @_include      = []
+    @_select       = []
+    @_noRelations  = true
+    @_noAttributes = true
+    @_count        = false
+    @_hollow       = false
+    @_limit        = 99999
+    @_skip         = 0
+    @_order        = []
+    @_ascending    = true
 
   find: (Constructor) ->
 
@@ -151,6 +152,17 @@ class WeaverQuery
 
   doesNotMatchKeyInQuery: (key, queryKey, query) ->
     @_addCondition(key, '$dontSelect', {queryKey, query});
+
+  withAttributeNodes: ->
+    @_noAttributes = false
+    @
+
+  withRelationNodes: ->
+    @_noRelations = false
+    @
+
+  noRelationNodes: ->
+    @noRelations()
 
   noRelations: ->
     @_noRelations = true
