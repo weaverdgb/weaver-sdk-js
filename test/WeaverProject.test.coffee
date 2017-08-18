@@ -131,3 +131,9 @@ describe 'WeaverProject Test', ->
     new Weaver.User('testuser', 'testpass', 'test@example.com').signUp().then(->
       weaver.currentProject().getSnapshot()
     ).should.be.rejectedWith(/Permission denied/)
+
+  it 'should dump a project and download it as a zip', ->
+    p = weaver.currentProject()
+    p.dump().then((dump) ->
+      console.log dump
+    )
