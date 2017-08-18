@@ -26,7 +26,7 @@ describe 'Weaver Tests dealing with REST API', ->
       )
     )
 
-  it 'should retrieve the list of users providing the authtoken on Headers', ->
+  it.skip 'should retrieve the list of users providing the authtoken on Headers', ->
     Promise.map([
       new Weaver.User('abcdef', '123456', 'ghe')
       new Weaver.User('doddye', '123456', 'ghe')
