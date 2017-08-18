@@ -240,6 +240,7 @@ describe 'WeaverQuery Test', ->
 
       new Weaver.Query()
       .hasNoRelationOut("link", b)
+      .withRelationNodes()
       .find().then((nodes) ->
         expect(nodes.length).to.equal(3)
         checkNodeInResult(nodes, 'b')
