@@ -36,6 +36,7 @@ describe 'WeaverNode test', ->
       b.destroy()
     ).then(->
       q = new Weaver.Query()
+      .withRelationNodes()
       q.hasNoRelationIn('link')
       .hasNoRelationOut('link')
       .find()
