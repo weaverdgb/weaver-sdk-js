@@ -19,6 +19,7 @@ class WeaverQuery
     @_select       = []
     @_noRelations  = true
     @_noAttributes = true
+    @_liveIndividualsOnly = true
     @_count        = false
     @_hollow       = false
     @_limit        = 99999
@@ -220,6 +221,11 @@ class WeaverQuery
 
   nativeQuery: (query)->
     Weaver.getCoreManager().nativeQuery(query, Weaver.getInstance().currentProject().id())
+
+  includeAttributesAndRelations: ->
+    @_liveIndividualsOnly = false
+    @
+
 
 # Export
 module.exports = WeaverQuery

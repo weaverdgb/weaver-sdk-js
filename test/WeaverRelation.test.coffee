@@ -16,16 +16,13 @@ describe 'Weaver relation and WeaverRelationNode test', ->
 
     foo.relation('comesBefore').add(bar)
     foo.save().then(->
-
       assert(!foo._loaded)
       assert(foo._stored)
       assert(!bar._loaded)
       assert(bar._stored)
 
       foo.relation('comesBefore').to(bar)
-
     ).then((relation)->
-
       rel = relation
       assert.isTrue(rel instanceof Weaver.RelationNode)
       assert.isDefined(rel)
@@ -33,7 +30,6 @@ describe 'Weaver relation and WeaverRelationNode test', ->
 
       Weaver.Node.load(foo.id())
     ).then((loadedNode) ->
-
       assert.isDefined(loadedNode.relation('comesBefore').nodes[bar.id()])
 
       assert(loadedNode._loaded)
@@ -66,7 +62,7 @@ describe 'Weaver relation and WeaverRelationNode test', ->
 
     foo.save().then(->
 
-      Weaver.Node.load('abc')
+      Weaver.Node.load('abc', undefined, undefined, true)
     ).then((loadedNode) ->
 
       assert.isDefined(loadedNode)
