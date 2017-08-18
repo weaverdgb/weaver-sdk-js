@@ -231,22 +231,18 @@ describe 'WeaverQuery Test', ->
   it 'should be able to combine hasNoRelationOut with hasRelationOut', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
-    c = new Weaver.Node('c')
-    c.relation('inResult').add(a)
     a.relation('inResult').add(b)
     b.relation('inResult').add(a)
     b.relation('notInResult').add(c)
 
-    Promise.all([a.save(),c.save()]).then(->
+    a.save().then(->
       new Weaver.Query()
-      .hasRelationIn('inResult')
       .hasRelationOut('inResult')
       .hasNoRelationOut("notInResult")
       .find().then((nodes) ->
         expect(nodes.length).to.equal(1)
         checkNodeInResult(nodes, 'a')
       )
-
     )
 
   it 'should do relation hasNoRelationOut', ->
