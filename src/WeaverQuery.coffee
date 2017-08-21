@@ -154,19 +154,20 @@ class WeaverQuery
   doesNotMatchKeyInQuery: (key, queryKey, query) ->
     @_addCondition(key, '$dontSelect', {queryKey, query});
 
-  withAttributeNodes: ->
+  withAttributes: ->
     @_noAttributes = false
     @
 
-  withRelationNodes: ->
+  withRelations: ->
     @_noRelations = false
     @
 
-  noRelationNodes: ->
-    @noRelations()
-
   noRelations: ->
     @_noRelations = true
+    @
+
+  noAttributes: ->
+    @_noAttributes = true
     @
 
   order: (keys, ascending) ->
@@ -221,11 +222,6 @@ class WeaverQuery
 
   nativeQuery: (query)->
     Weaver.getCoreManager().nativeQuery(query, Weaver.getInstance().currentProject().id())
-
-  includeAttributesAndRelations: ->
-    @_liveIndividualsOnly = false
-    @
-
 
 # Export
 module.exports = WeaverQuery

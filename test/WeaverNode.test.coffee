@@ -35,9 +35,9 @@ describe 'WeaverNode test', ->
     Promise.all([a.save(), c.save()]).then(->
       b.destroy()
     ).then(->
-      q = new Weaver.Query()
-      .withRelationNodes()
-      q.hasNoRelationIn('link')
+      new Weaver.Query()
+      .withRelations()
+      .hasNoRelationIn('link')
       .hasNoRelationOut('link')
       .find()
     ).then((res)->
