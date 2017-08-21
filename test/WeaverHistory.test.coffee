@@ -198,7 +198,7 @@ describe 'WeaverHistory test', ->
       )
     )
 
-  it 'should retrieve 20 rows of history in descent mode', ->
+  it.skip 'should retrieve 20 rows of history in descent mode', ->
     Promise.all((new Weaver.Node()).save() for i in [0..30]).then( ->
       history = new Weaver.History()
       history.limit(20)
@@ -211,7 +211,7 @@ describe 'WeaverHistory test', ->
       )
     )
 
-  it 'should retrieve 1st page with 10 results in default order', ->
+  it.skip 'should retrieve 1st page with 10 results in default order', ->
     Promise.all((new Weaver.Node()).save() for i in [0..30]).then( ->
       history = new Weaver.History()
       history.limit(10)
@@ -224,7 +224,7 @@ describe 'WeaverHistory test', ->
       )
     )
 
-  it 'should retrieve 1st page with 10 results in descending order', ->
+  it.skip 'should retrieve 1st page with 10 results in descending order', ->
     Promise.all((new Weaver.Node()).save() for i in [0..30]).then( ->
       history = new Weaver.History()
       history.sorted('descending')
@@ -238,7 +238,7 @@ describe 'WeaverHistory test', ->
       )
     )
 
-  it 'should retrieve 2nd page with 10 results in default order', ->
+  it.skip 'should retrieve 2nd page with 10 results in default order', ->
     Promise.all((new Weaver.Node()).save() for i in [0..30]).then( ->
       history = new Weaver.History()
       history.limit(10)
@@ -251,7 +251,7 @@ describe 'WeaverHistory test', ->
       )
     )
 
-  it 'should retrieve 2nd page with 10 results in descending order', ->
+  it.skip 'should retrieve 2nd page with 10 results in descending order', ->
     Promise.all((new Weaver.Node()).save() for i in [0..30]).then( ->
       history = new Weaver.History()
       history.sorted('descending')

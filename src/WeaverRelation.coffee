@@ -18,7 +18,7 @@ class WeaverRelation
 
   to: (node)->
     throw new Error("No relation to a node with this id: #{node.id()}") if not @relationNodes[node.id()]
-    Weaver.RelationNode.load(@relationNodes[node.id()].id(), null, Weaver.RelationNode)
+    Weaver.RelationNode.load(@relationNodes[node.id()].id(), null, Weaver.RelationNode, true)
 
   all: ->
     (node for key, node of @nodes)
