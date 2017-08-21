@@ -19,7 +19,6 @@ class WeaverQuery
     @_select       = []
     @_noRelations  = true
     @_noAttributes = true
-    @_liveIndividualsOnly = true
     @_count        = false
     @_hollow       = false
     @_limit        = 99999
