@@ -382,8 +382,21 @@ describe 'WeaverQuery Test', ->
       )
     )
 
+  it 'skips relation out value if an array is provided', ->
+    a = new Weaver.Node('a')
+    b = new Weaver.Node('b')
+    a.relation('linkA').add(b)
 
-  it.skip 'should allow "or" in predicates for hasRelationOut', ->
+    a.save().then(->
+      new Weaver.Query()
+      .hasRelationOut(['linkA'], 'c')
+      .find().then((nodes)->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+      )
+    )
+
+  it 'should allow "or" in predicates for hasRelationOut', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
     c = new Weaver.Node('c')

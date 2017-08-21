@@ -1,5 +1,6 @@
 util        = require('./util')
 Weaver      = require('./Weaver')
+_           = require('lodash')
 
 # Converts a string into a regex that matches it.
 # Surrounding with \Q .. \E does this, we just need to escape any \E's in
@@ -15,6 +16,7 @@ class WeaverQuery
     @_equals       = {}
     @_orQueries    = []
     @_conditions   = {}
+    @_relationsOut = []
     @_include      = []
     @_select       = []
     @_noRelations  = true
@@ -106,7 +108,11 @@ class WeaverQuery
     @_addCondition(key, '$relIn', if node then node.id() else '*');
 
   hasRelationOut: (key, node) ->
-    @_addCondition(key, '$relOut', if node then node.id() else '*');
+    if _.isArray(key)
+      @_relationsOut = key # values are ignored
+    else
+      @_addCondition(key, '$relOut', if node then node.id() else '*');
+    @
 
   hasNoRelationIn: (key, node) ->
     @_addCondition(key, '$noRelIn', if node then node.id() else '*');
