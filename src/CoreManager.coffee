@@ -168,6 +168,9 @@ class CoreManager
   readyProject: (id) ->
     @GET("project.ready", {id}, "$SYSTEM")
 
+  cloneProject: (id, clone_id, name) ->
+    @POST("project.clone", {id: clone_id, name}, id)
+    
   deleteProject: (id) ->
     @POST("project.delete", {id}, id)
 
