@@ -328,6 +328,43 @@ describe 'WeaverQuery Test', ->
       )
     )
 
+  it 'should return all relations even on attribute selects', ->
+    a = new Weaver.Node('a')
+    b = new Weaver.Node('b')
+    a.set("name", "a name")
+    a.set("description", "a desc")
+    a.set("skip", "a skip")
+    a.relation('link').add(b)
+
+    a.save().then(->
+      new Weaver.Query()
+      .select('name', 'description')
+      .restrict(['a'])
+      .find().then((nodes)->
+        expect(nodes).to.have.length.be(1)
+        checkNodeInResult(nodes, 'a')
+        expect(nodes[0]).to.have.property('relations').to.have.property('link').to.have.length.be(1)
+    )
+
+  it 'should allow attribute selects', ->
+    a = new Weaver.Node('a')
+    a.set("name", "a name")
+    a.set("description", "a desc")
+    a.set("skip", "a skip")
+
+    a.save().then(->
+      new Weaver.Query()
+      .select('name', 'description')
+      .find().then((nodes)->
+        expect(nodes).to.have.length.be(1)
+        checkNodeInResult(nodes, 'a')
+        attrs = nodes[0].attributes
+        expect(attrs).to.have.property('name')
+        expect(attrs).to.have.property('description')
+        expect(attrs).to.not.have.property('skip')
+    )
+
+
   it 'should allow "or" in predicates for hasRelationOut', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')

@@ -185,7 +185,7 @@ class WeaverQuery
     @_include = keys
     @
 
-  select: (keys) ->
+  select: (keys...) ->
     @_select = keys
     @
 
