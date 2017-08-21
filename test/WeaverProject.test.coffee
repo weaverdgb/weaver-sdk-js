@@ -134,6 +134,15 @@ describe 'WeaverProject Test', ->
 
   it 'should dump a project and download it as a zip', ->
     p = weaver.currentProject()
-    p.dump().then((dump) ->
+    
+    a = new Weaver.Node()
+    b = new Weaver.Node()
+    c = new Weaver.Node()
+
+    a.relation('link').add(b)
+    c.relation('link').add(c)
+    Promise.all([a.save(), c.save()]).then(->
+      p.dump()
+    ).then((dump)->
       console.log dump
     )
