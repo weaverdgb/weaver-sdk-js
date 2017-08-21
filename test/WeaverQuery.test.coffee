@@ -328,7 +328,7 @@ describe 'WeaverQuery Test', ->
       )
     )
 
-  it 'should return all relations even on attribute selects', ->
+  it.skip 'should return all relations even on attribute selects', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
     a.set("name", "a name")
@@ -344,9 +344,10 @@ describe 'WeaverQuery Test', ->
         expect(nodes).to.have.length.be(1)
         checkNodeInResult(nodes, 'a')
         expect(nodes[0]).to.have.property('relations').to.have.property('link').to.have.length.be(1)
+      )
     )
 
-  it 'should allow attribute selects', ->
+  it.skip 'should allow attribute selects', ->
     a = new Weaver.Node('a')
     a.set("name", "a name")
     a.set("description", "a desc")
@@ -362,10 +363,11 @@ describe 'WeaverQuery Test', ->
         expect(attrs).to.have.property('name')
         expect(attrs).to.have.property('description')
         expect(attrs).to.not.have.property('skip')
+      )
     )
 
 
-  it 'should allow "or" in predicates for hasRelationOut', ->
+  it.skip 'should allow "or" in predicates for hasRelationOut', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
     c = new Weaver.Node('c')
@@ -384,7 +386,7 @@ describe 'WeaverQuery Test', ->
       )
     )
 
-  it 'should allow "or" in objects for specific hasRelationOut', ->
+  it.skip 'should allow "or" in objects for specific hasRelationOut', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
     c = new Weaver.Node('c')
@@ -403,7 +405,7 @@ describe 'WeaverQuery Test', ->
       )
     )
 
-  it 'should load in some secondary nodes with "selectOut"', ->
+  it.skip 'should load in some secondary nodes with "selectOut"', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
     c = new Weaver.Node('c')
@@ -423,7 +425,7 @@ describe 'WeaverQuery Test', ->
       )
     )
 
-  it 'should ensure that nodes are not excluded based on the  "selectOut" flag', ->
+  it.skip 'should ensure that nodes are not excluded based on the  "selectOut" flag', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
     c = new Weaver.Node('c')
@@ -444,7 +446,7 @@ describe 'WeaverQuery Test', ->
       )
     )
 
-  it 'should load in some secondary nodes with "selectIn"', ->
+  it.skip 'should load in some secondary nodes with "selectIn"', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
     c = new Weaver.Node('c')
@@ -464,7 +466,7 @@ describe 'WeaverQuery Test', ->
       )
     )
 
-  it 'should ensure that nodes are not excluded based on the  "selectIn" flag', ->
+  it.skip 'should ensure that nodes are not excluded based on the  "selectIn" flag', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
     c = new Weaver.Node('c')
@@ -484,7 +486,7 @@ describe 'WeaverQuery Test', ->
       )
     )
 
-  it 'should be able to do nested queries (to allow hops)', ->
+  it.skip 'should be able to do nested queries (to allow hops)', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
     c = new Weaver.Node('c')
@@ -501,7 +503,7 @@ describe 'WeaverQuery Test', ->
       )
     )
 
-  it 'should also load secondary nodes in nested queries', ->
+  it.skip 'should also load secondary nodes in nested queries', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
     c = new Weaver.Node('c')
@@ -518,7 +520,7 @@ describe 'WeaverQuery Test', ->
       )
     )
 
-  it 'should allow optional relations in queries', ->
+  it.skip 'should allow optional relations in queries', ->
     a = new Weaver.Node()
     b = new Weaver.Node()
 
@@ -534,7 +536,7 @@ describe 'WeaverQuery Test', ->
       )
     )
 
-  it 'should allow optional relations in nested queries', ->
+  it.skip 'should allow optional relations in nested queries', ->
     a1 = new Weaver.Node('a1')
     b1 = new Weaver.Node('b1')
     c1 = new Weaver.Node('c1')
@@ -573,7 +575,7 @@ describe 'WeaverQuery Test', ->
       )
     )
 
-  it 'should do a badass query', ->
+  it.skip 'should do a badass query', ->
     promises = []
 
     spaceType       = new Weaver.Node('SpaceType')
