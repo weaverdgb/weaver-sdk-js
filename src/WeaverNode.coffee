@@ -20,9 +20,12 @@ class WeaverNode
 
 
   # Node loading from server
-  @load: (nodeId, target, Constructor) ->
+  @load: (nodeId, target, Constructor, includeRelations = false, includeAttributes = false) ->
     Constructor = WeaverNode if not Constructor?
-    new Weaver.Query(target).get(nodeId, Constructor)
+    query = new Weaver.Query(target)
+    query.withRelations() if includeRelations
+    query.withAttributes() if includeAttributes
+    query.get(nodeId, Constructor)
 
   _loadFromQuery: (object, Constructor) ->
     Constructor = Constructor or WeaverNode

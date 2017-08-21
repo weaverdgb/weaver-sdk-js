@@ -172,6 +172,7 @@ describe 'WeaverQuery Test', ->
 
     a.save().then(->
       new Weaver.Query()
+      .withRelations()
       .find().then((nodes) ->
         expect(nodes.length).to.equal(3)
         checkNodeInResult(nodes, 'a')
@@ -180,7 +181,21 @@ describe 'WeaverQuery Test', ->
       )
     )
 
-  it 'should not return relations', ->
+  it 'should default to not returning relations', ->
+    a = new Weaver.Node("a")
+    b = new Weaver.Node("b")
+    a.relation("to").add(b, "c")
+
+    a.save().then(->
+      new Weaver.Query()
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(2)
+        checkNodeInResult(nodes, 'a')
+        checkNodeInResult(nodes, 'b')
+      )
+    )
+
+  it 'should not return relations when noRelations is set', ->
     a = new Weaver.Node("a")
     b = new Weaver.Node("b")
     a.relation("to").add(b, "c")
@@ -239,6 +254,7 @@ describe 'WeaverQuery Test', ->
 
       new Weaver.Query()
       .hasNoRelationOut("link", b)
+      .withRelations()
       .find().then((nodes) ->
         expect(nodes.length).to.equal(3)
         checkNodeInResult(nodes, 'b')
