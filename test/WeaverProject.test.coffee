@@ -148,12 +148,7 @@ describe 'WeaverProject Test', ->
       weaverFile.getFileByID(__dirname + '/../' + dump, dump)
     ).then((file)->
       #clean up a bit too, remove this downloaded file afterwards
-      require('fs').unlink(file, (err) ->
-          if err
-            logger.code.error('An error occurred trying to delete the file: '.concat(err))
-          else
-            logger.code.debug('Successfully deleted source file')
-        )
+      require('fs').unlink(file)
       assert(true)
     ).catch((err)->
       assert(false)
