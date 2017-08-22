@@ -415,7 +415,7 @@ describe 'WeaverQuery Test', ->
       )
     )
 
-  it.skip 'should allow "or" in objects for specific hasRelationOut', ->
+  it 'should allow "or" in objects for specific hasRelationOut', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
     c = new Weaver.Node('c')

@@ -107,11 +107,11 @@ class WeaverQuery
   hasRelationIn: (key, node) ->
     @_addCondition(key, '$relIn', if node then node.id() else '*');
 
-  hasRelationOut: (key, node) ->
+  hasRelationOut: (key, node...) ->
     if _.isArray(key)
       @_relationsOut = key # values are ignored
     else
-      @_addCondition(key, '$relOut', if node then node.id() else '*');
+      @_addCondition(key, '$relOut', if node.length > 0 then (i.id() for i in node) else ['*']);
     @
 
   hasNoRelationIn: (key, node) ->
