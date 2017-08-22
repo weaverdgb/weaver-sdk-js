@@ -171,6 +171,9 @@ class CoreManager
   dumpProject: (id) ->
     @GET("project.dump", {id}, id)
 
+  cloneProject: (id, clone_id, name) ->
+    @POST("project.clone", {id: clone_id, name}, id)
+    
   deleteProject: (id) ->
     @POST("project.delete", {id}, id)
 

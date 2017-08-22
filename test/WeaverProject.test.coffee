@@ -132,6 +132,15 @@ describe 'WeaverProject Test', ->
       weaver.currentProject().getSnapshot()
     ).should.be.rejectedWith(/Permission denied/)
 
+  it.skip 'should clone a newly created project helloworld', ->
+    project = new Weaver.Project("helloworld", "helloworld")
+    project.create().then(->
+      project.clone('helloworld_dupe', 'helloworld_cloned_db_human_readable_name')
+    ).then((p) ->
+      expect(p.id()).to.equal('helloworld_dupe')
+      p.destroy()
+    )
+
   it 'should dump a project and download it as a zip', ->
     p = weaver.currentProject()
     

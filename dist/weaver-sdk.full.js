@@ -99012,7 +99012,7 @@ module.exports = yeast;
 },{}],391:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "3.0.3",
+  "version": "3.0.5-beta.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -99020,7 +99020,7 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredServerVersion": "~3.0.0 || ^3.0.0-rc.0"
+    "requiredServerVersion": "~3.0.3 || ^3.0.4-beta.0"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -99339,12 +99339,6 @@ module.exports={
       return this.GET("project.ready", {
         id: id
       }, "$SYSTEM");
-    };
-
-    CoreManager.prototype.dumpProject = function(id) {
-      return this.GET("project.dump", {
-        id: id
-      }, id);
     };
 
     CoreManager.prototype.deleteProject = function(id) {
@@ -100398,11 +100392,25 @@ module.exports={
       this.pendingWrites = [Operation.Node(this).createNode()];
     }
 
-    WeaverNode.load = function(nodeId, target, Constructor) {
+    WeaverNode.load = function(nodeId, target, Constructor, includeRelations, includeAttributes) {
+      var query;
+      if (includeRelations == null) {
+        includeRelations = false;
+      }
+      if (includeAttributes == null) {
+        includeAttributes = false;
+      }
       if (Constructor == null) {
         Constructor = WeaverNode;
       }
-      return new Weaver.Query(target).get(nodeId, Constructor);
+      query = new Weaver.Query(target);
+      if (includeRelations) {
+        query.withRelations();
+      }
+      if (includeAttributes) {
+        query.withAttributes();
+      }
+      return query.get(nodeId, Constructor);
     };
 
     WeaverNode.prototype._loadFromQuery = function(object, Constructor) {
@@ -100845,8 +100853,8 @@ module.exports={
   WeaverProject = (function() {
     WeaverProject.READY_RETRY_TIMEOUT = 200;
 
-    function WeaverProject(name, projectId, acl1, _stored) {
-      this.name = name;
+    function WeaverProject(name1, projectId, acl1, _stored) {
+      this.name = name1;
       this.projectId = projectId;
       this.acl = acl1;
       this._stored = _stored != null ? _stored : false;
@@ -100906,10 +100914,6 @@ module.exports={
       return Weaver.getCoreManager().snapshotProject(this.id());
     };
 
-    WeaverProject.prototype.dump = function() {
-      return Weaver.getCoreManager().dumpProject(this.id());
-    };
-
     WeaverProject.prototype.destroy = function() {
       return Weaver.getCoreManager().deleteProject(this.id());
     };
@@ -100963,7 +100967,8 @@ module.exports={
       this._conditions = {};
       this._include = [];
       this._select = [];
-      this._noRelations = false;
+      this._noRelations = true;
+      this._noAttributes = true;
       this._count = false;
       this._hollow = false;
       this._limit = 99999;
@@ -101146,8 +101151,23 @@ module.exports={
       });
     };
 
+    WeaverQuery.prototype.withAttributes = function() {
+      this._noAttributes = false;
+      return this;
+    };
+
+    WeaverQuery.prototype.withRelations = function() {
+      this._noRelations = false;
+      return this;
+    };
+
     WeaverQuery.prototype.noRelations = function() {
       this._noRelations = true;
+      return this;
+    };
+
+    WeaverQuery.prototype.noAttributes = function() {
+      this._noAttributes = true;
       return this;
     };
 
@@ -101244,17 +101264,7 @@ module.exports={
     }
 
     WeaverRelation.prototype.load = function() {
-      var key, node;
-      return Promise.all((function() {
-        var ref, results;
-        ref = this.nodes;
-        results = [];
-        for (key in ref) {
-          node = ref[key];
-          results.push(node.load());
-        }
-        return results;
-      }).call(this));
+      return new Weaver.Query().hasRelationIn(this.key, this.parent).find();
     };
 
     WeaverRelation.prototype.query = function() {
@@ -101265,7 +101275,7 @@ module.exports={
       if (!this.relationNodes[node.id()]) {
         throw new Error("No relation to a node with this id: " + (node.id()));
       }
-      return Weaver.RelationNode.load(this.relationNodes[node.id()].id(), null, Weaver.RelationNode);
+      return Weaver.RelationNode.load(this.relationNodes[node.id()].id(), null, Weaver.RelationNode, true);
     };
 
     WeaverRelation.prototype.all = function() {
@@ -101664,3 +101674,26 @@ module.exports={
 }).call(this);
 
 },{}]},{},[397]);
+
+    CoreManager.prototype.cloneProject = function(id, clone_id, name) {
+      return this.POST("project.clone", {
+        id: clone_id,
+        name: name
+      }, id);
+    };
+
+    CoreManager.prototype.dumpProject = function(id) {
+      return this.GET("project.dump", {
+        id: id
+      }, id);
+    };
+
+    WeaverProject.prototype.clone = function(id, name) {
+      return Weaver.getCoreManager().cloneProject(this.id(), id, name).then(function(acl) {
+        return new Weaver.Project(name, id, acl, true);
+      });
+    };
+
+    WeaverProject.prototype.dump = function() {
+      return Weaver.getCoreManager().dumpProject(this.id());
+    };
