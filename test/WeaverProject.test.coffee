@@ -144,5 +144,17 @@ describe 'WeaverProject Test', ->
     Promise.all([a.save(), c.save()]).then(->
       p.dump()
     ).then((dump)->
-      console.log dump
+      weaverFile = new Weaver.File()
+      weaverFile.getFileByID(__dirname + '/../' + dump, dump)
+    ).then((file)->
+      #clean up a bit too, remove this downloaded file afterwards
+      require('fs').unlink(file, (err) ->
+          if err
+            logger.code.error('An error occurred trying to delete the file: '.concat(err))
+          else
+            logger.code.debug('Successfully deleted source file')
+        )
+      assert(true)
+    ).catch((err)->
+      assert(false)
     )

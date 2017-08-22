@@ -99341,6 +99341,12 @@ module.exports={
       }, "$SYSTEM");
     };
 
+    CoreManager.prototype.dumpProject = function(id) {
+      return this.GET("project.dump", {
+        id: id
+      }, id);
+    };
+
     CoreManager.prototype.deleteProject = function(id) {
       return this.POST("project.delete", {
         id: id
@@ -100297,6 +100303,14 @@ module.exports={
       return this.limit = value;
     };
 
+    WeaverHistory.prototype.sorted = function(order) {
+      return this.sorted = order;
+    };
+
+    WeaverHistory.prototype.offset = function(value) {
+      return this.offset = value;
+    };
+
     WeaverHistory.prototype.dumpHistory = function() {
       return Weaver.getCoreManager().dumpHistory({
         limit: this.limit
@@ -100343,7 +100357,9 @@ module.exports={
         fromDateTime: this.fromDateTime,
         beforeDateTime: this.beforeDateTime,
         users: this.users,
-        limit: this.limit
+        limit: this.limit,
+        sorted: this.sorted,
+        offset: this.offset
       });
     };
 
@@ -100888,6 +100904,10 @@ module.exports={
 
     WeaverProject.prototype.getSnapshot = function() {
       return Weaver.getCoreManager().snapshotProject(this.id());
+    };
+
+    WeaverProject.prototype.dump = function() {
+      return Weaver.getCoreManager().dumpProject(this.id());
     };
 
     WeaverProject.prototype.destroy = function() {
