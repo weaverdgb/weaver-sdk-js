@@ -4,6 +4,26 @@ Weaver  = require('../src/Weaver')
 Promise = require('bluebird')
 
 describe 'WeaverUser Test', ->
+  it 'should allow a user to list other users in a project', ->
+    testUser = new Weaver.User('in-project', 'testpassword', 'email@dontevenvalidate.com')
+    testUser2 = new Weaver.User('in-project2', 'testpassword', 'email@dontevenvalidate.com')
+    testUser3 = new Weaver.User('not-in-project', 'testpassword', 'email@dontevenvalidate.com')
+    Promise.all([testUser.create(), testUser2.create(), testUser3.create()]).then( ->
+      Weaver.ACL.load(weaver.currentProject().acl.id)
+    ).then((acl) ->
+      acl.setUserWriteAccess(testUser, true)
+      acl.setUserWriteAccess(testUser2, true)
+      acl.save()
+    ).then(->
+      weaver.signOut()
+    ).then(->
+      weaver.signInWithUsername('in-project', 'testpassword')
+    ).then(->
+      Weaver.User.listProjectUsers()
+    ).then((users) ->
+      (i.username for i in users)
+    ).should.eventually.eql(['in-project', 'in-project2'])
+
 
   it 'should sign up a user', (done) ->
     username = cuid()
