@@ -109,11 +109,12 @@ describe 'Weaver relation and WeaverRelationNode test', ->
 
     foo.save().then(->
       Weaver.Node.load(foo.id())
-    ).then((loadedNode) ->
-      assert.isFalse(node._loaded) for node in loadedNode.relation('comesBefore').all()
-      loadedNode.relation('comesBefore').load()
+    ).then(->
+      assert.isFalse(node._loaded) for node in foo.relation('comesBefore').all()
+      foo.relation('comesBefore').load()
     ).then((nodes) ->
       assert.isTrue(node._loaded) for node in nodes
+      assert.isTrue(node._loaded) for node in foo.relation('comesBefore').all()
     )
 
   it 'should return the first node in a relation', ->
