@@ -54,6 +54,13 @@ class WeaverNode
     node._clearPendingWrites()
     node
 
+  @firstOrCreate: (nodeId, Constructor) ->
+    new Weaver.Query()
+      .get(nodeId, Constructor)
+      .catch(->
+        Constructor = WeaverNode if not Constructor?
+        new Constructor(nodeId).save()
+      )
 
   # Return id
   id: ->
