@@ -68,6 +68,38 @@ describe 'WeaverProject Test', ->
       weaver.useProject(p)
     )
 
+  it 'should freeze a project making writing impossible', ->
+    p = weaver.currentProject()
+    p.freeze().then(->
+      a = new Weaver.Node()
+      a.save().then(->
+        # Writing a node after freeze should not be possible
+        assert(false)
+      ).catch((err)->
+        # Writing this node should be impossible
+        assert(true)
+      )
+    ).catch((err)->
+      # Default case is to fail this test
+      assert(false)
+    )
+
+  it 'should unfreeze a project making writing possible', ->
+    p = weaver.currentProject()
+    p.unfreeze().then(->
+      a = new Weaver.Node()
+      a.save().then(->
+        # Writing a node after unfreeze should be possible
+        assert(true)
+      ).catch((err)->
+        # Fail is node fails to write
+        assert(false)
+      )
+    ).catch((err)->
+      # Default case is to fail this test
+      assert(false)
+    )
+
   it.skip 'should raise an error while saving without currentProject', (done) ->
     p = weaver.currentProject()
     weaver.useProject(null)
