@@ -140,3 +140,12 @@ describe 'WeaverProject Test', ->
       expect(p.id()).to.equal('helloworld_dupe')
       p.destroy()
     )
+
+  it 'should rename a project on the server', ->
+    p = weaver.currentProject()
+    p.rename('rename_test')
+    .then(->
+      expect(p.name).to.equal('rename_test')
+    ).catch((err)->
+      assert(false)
+    )

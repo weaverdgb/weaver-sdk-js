@@ -48,6 +48,11 @@ class WeaverProject
 
   getSnapshot:->
     Weaver.getCoreManager().snapshotProject(@id())
+    
+  rename: (name) ->
+    renamed = Weaver.getCoreManager().nameProject(@id(), name)
+    @name = name
+    renamed
 
   clone: (id, name) ->
     Weaver.getCoreManager().cloneProject(@id(), id, name).then((acl) ->
