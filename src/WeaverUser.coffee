@@ -66,6 +66,11 @@ class WeaverUser
     Weaver.getCoreManager().listUsers().then((users) ->
       (WeaverUser.loadFromServerObject(u) for u in users)
     )
+  
+  @listProjectUsers: ->
+    Weaver.getCoreManager().listProjectUsers(Weaver.getCoreManager().currentProject).then((users) ->
+      (WeaverUser.loadFromServerObject(u) for u in users)
+    )
 
 # Export
 module.exports = WeaverUser
