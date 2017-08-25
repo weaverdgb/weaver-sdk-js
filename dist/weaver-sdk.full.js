@@ -98064,7 +98064,7 @@ module.exports = yeast;
 },{}],415:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "3.0.4",
+  "version": "3.0.5",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -98072,7 +98072,7 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredServerVersion": "~3.0.3 || ^3.0.4-beta.0"
+    "requiredServerVersion": "~3.0.5"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -98238,6 +98238,12 @@ module.exports={
 
     CoreManager.prototype.listUsers = function() {
       return this.GET("users");
+    };
+
+    CoreManager.prototype.listProjectUsers = function(project) {
+      return this.GET("projectUsers", {
+        id: project.id
+      });
     };
 
     CoreManager.prototype.listRoles = function() {
@@ -99513,6 +99519,15 @@ module.exports={
       return node;
     };
 
+    WeaverNode.firstOrCreate = function(nodeId, Constructor) {
+      return new Weaver.Query().get(nodeId, Constructor)["catch"](function() {
+        if (Constructor == null) {
+          Constructor = WeaverNode;
+        }
+        return new Constructor(nodeId).save();
+      });
+    };
+
     WeaverNode.prototype.id = function() {
       return this.nodeId;
     };
@@ -100329,17 +100344,16 @@ module.exports={
     }
 
     WeaverRelation.prototype.load = function() {
-      var key, node;
-      return Promise.all((function() {
-        var ref, results;
-        ref = this.nodes;
-        results = [];
-        for (key in ref) {
-          node = ref[key];
-          results.push(node.load());
-        }
-        return results;
-      }).call(this));
+      return new Weaver.Query().hasRelationIn(this.key, this.parent).find().then((function(_this) {
+        return function(nodes) {
+          var i, len, node;
+          for (i = 0, len = nodes.length; i < len; i++) {
+            node = nodes[i];
+            _this.nodes[node.id()] = node;
+          }
+          return _this.nodes;
+        };
+      })(this));
     };
 
     WeaverRelation.prototype.query = function() {
@@ -100687,6 +100701,18 @@ module.exports={
 
     WeaverUser.list = function() {
       return Weaver.getCoreManager().listUsers().then(function(users) {
+        var i, len, results, u;
+        results = [];
+        for (i = 0, len = users.length; i < len; i++) {
+          u = users[i];
+          results.push(WeaverUser.loadFromServerObject(u));
+        }
+        return results;
+      });
+    };
+
+    WeaverUser.listProjectUsers = function() {
+      return Weaver.getCoreManager().listProjectUsers(Weaver.getCoreManager().currentProject).then(function(users) {
         var i, len, results, u;
         results = [];
         for (i = 0, len = users.length; i < len; i++) {

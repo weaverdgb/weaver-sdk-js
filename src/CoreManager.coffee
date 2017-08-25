@@ -81,6 +81,9 @@ class CoreManager
   listUsers: ->
     @GET("users")
 
+  listProjectUsers: (project) ->
+    @GET("projectUsers", { id: project.id })
+
   listRoles: ->
     @GET("roles")
 

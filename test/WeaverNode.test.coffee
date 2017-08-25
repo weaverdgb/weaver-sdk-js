@@ -305,6 +305,23 @@ describe 'WeaverNode test', ->
       assert.equal(incompleteNode.get('name'), 'Foo')
     )
 
+  it 'should create and return a node if it doesn\'t exist', ->
+    Weaver.Node.firstOrCreate('test')
+      .then((node) ->
+        assert.isTrue(node._stored)
+        assert.equal(node.id(), 'test')
+      )
+
+  it 'should not create a node return the existing node if it already exist', ->
+    new Weaver.Node('test').save()
+      .then((node) ->
+        assert.isTrue(node._stored)
+        Weaver.Node.firstOrCreate('test')
+      ).then((node) ->
+        assert.isTrue(node._stored)
+        assert.isTrue(node._loaded)
+        assert.equal(node.id(), 'test')
+      )
 
   it.skip 'should recursively clone a node', ->
 
