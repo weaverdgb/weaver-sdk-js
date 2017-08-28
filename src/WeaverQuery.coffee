@@ -104,8 +104,8 @@ class WeaverQuery
   greaterThanOrEqualTo: (key, value) ->
     @_addCondition(key, '$gte', value);
 
-  hasRelationIn: (key, node) ->
-    @_addCondition(key, '$relIn', if node then node.id() else '*');
+  hasRelationIn: (key, node...) ->
+    @_addCondition(key, '$relIn', if node.length > 0 then (i.id() for i in node) else ['*']);
 
   hasRelationOut: (key, node...) ->
     if _.isArray(key)
@@ -114,11 +114,11 @@ class WeaverQuery
       @_addCondition(key, '$relOut', if node.length > 0 then (i.id() for i in node) else ['*']);
     @
 
-  hasNoRelationIn: (key, node) ->
-    @_addCondition(key, '$noRelIn', if node then node.id() else '*');
+  hasNoRelationIn: (key, node...) ->
+    @_addCondition(key, '$noRelIn', if node.length > 0 then (i.id() for i in node) else ['*']);
 
-  hasNoRelationOut: (key, node) ->
-    @_addCondition(key, '$noRelOut', if node then node.id() else '*');
+  hasNoRelationOut: (key, node...) ->
+    @_addCondition(key, '$noRelOut', if node.length > 0 then (i.id() for i in node) else ['*']);
 
   containedIn: (key, values) ->
     @_addCondition(key, '$in', values);

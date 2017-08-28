@@ -243,6 +243,21 @@ describe 'WeaverQuery Test', ->
       )
     )
 
+  it 'should do relation hasNoRelationOut without relations', ->
+    a = new Weaver.Node("a")
+    b = new Weaver.Node("b")
+    c = new Weaver.Node("c")
+    a.relation("link").add(b)
+
+    Promise.all([a.save(), c.save()]).then(->
+      new Weaver.Query()
+      .hasNoRelationOut("link", b)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(2)
+        checkNodeInResult(nodes, 'b')
+        checkNodeInResult(nodes, 'c')
+      )
+    )
 
   it 'should do relation hasNoRelationOut', ->
     a = new Weaver.Node("a")
@@ -251,7 +266,6 @@ describe 'WeaverQuery Test', ->
     a.relation("link").add(b)
 
     Promise.all([a.save(), c.save()]).then(->
-
       new Weaver.Query()
       .hasNoRelationOut("link", b)
       .withRelations()
@@ -261,7 +275,6 @@ describe 'WeaverQuery Test', ->
         checkNodeInResult(nodes, 'c')
       )
     )
-
 
   it 'should do relation hasNoRelationIn', ->
     a = new Weaver.Node("a")
@@ -426,7 +439,7 @@ describe 'WeaverQuery Test', ->
 
     a.save().then(->
       new Weaver.Query()
-      .hasRelationOut('link',[ Weaver.Node.get('b'), Weaver.Node.get('c')])
+      .hasRelationOut('link', Weaver.Node.get('b'), Weaver.Node.get('c'))
       .find().then((nodes)->
         expect(nodes.length).to.equal(2)
         checkNodeInResult(nodes, 'a')
