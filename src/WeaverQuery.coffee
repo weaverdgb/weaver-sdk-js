@@ -105,20 +105,31 @@ class WeaverQuery
     @_addCondition(key, '$gte', value)
 
   hasRelationIn: (key, node...) ->
-    @_addCondition(key, '$relIn', if node.length > 0 then (i.id() for i in node) else ['*']);
+    if node.length is 1 and node[0] instanceof WeaverQuery
+      @_addCondition(key, '$relIn', node)
+    else
+      @_addCondition(key, '$relIn', if node.length > 0 then (i.id() or i for i in node) else ['*'])
 
   hasRelationOut: (key, node...) ->
     if _.isArray(key)
       @_relationsOut = key # values are ignored
+    else if node.length is 1 and node[0] instanceof WeaverQuery
+      @_addCondition(key, '$relOut', node)
     else
-      @_addCondition(key, '$relOut', if node.length > 0 then (i.id() for i in node) else ['*']);
+      @_addCondition(key, '$relOut', if node.length > 0 then (i.id() or i for i in node) else ['*'])
     @
 
   hasNoRelationIn: (key, node...) ->
-    @_addCondition(key, '$noRelIn', if node.length > 0 then (i.id() for i in node) else ['*']);
+    if node.length is 1 and node[0] instanceof WeaverQuery
+      @_addCondition(key, '$noRelIn', node)
+    else
+      @_addCondition(key, '$noRelIn', if node.length > 0 then (i.id() or i for i in node) else ['*'])
 
   hasNoRelationOut: (key, node...) ->
-    @_addCondition(key, '$noRelOut', if node.length > 0 then (i.id() for i in node) else ['*']);
+    if node.length is 1 and node[0] instanceof WeaverQuery
+      @_addCondition(key, '$noRelOut', node)
+    else
+      @_addCondition(key, '$noRelOut', if node.length > 0 then (i.id() or i for i in node) else ['*'])
 
   containedIn: (key, values) ->
     @_addCondition(key, '$in', values)

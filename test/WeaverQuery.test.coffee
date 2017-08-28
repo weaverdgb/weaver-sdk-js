@@ -528,7 +528,7 @@ describe 'WeaverQuery Test', ->
       )
     )
 
-  it.skip 'should be able to do nested queries (to allow hops)', ->
+  it 'should be able to do nested queries (to allow hops)', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
     c = new Weaver.Node('c')
