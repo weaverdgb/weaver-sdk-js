@@ -6,7 +6,7 @@ _           = require('lodash')
 # Surrounding with \Q .. \E does this, we just need to escape any \E's in
 # the text separately.
 quote = (s) ->
-  '\\Q' + s.replace('\\E', '\\E\\\\E\\Q') + '\\E';
+  '\\Q' + s.replace('\\E', '\\E\\\\E\\Q') + '\\E'
 
 
 class WeaverQuery
@@ -90,19 +90,19 @@ class WeaverQuery
     @
 
   notEqualTo: (key, value) ->
-    @_addCondition(key, '$ne', value);
+    @_addCondition(key, '$ne', value)
 
   lessThan: (key, value) ->
-    @_addCondition(key, '$lt', value);
+    @_addCondition(key, '$lt', value)
 
   greaterThan: (key, value) ->
-    @_addCondition(key, '$gt', value);
+    @_addCondition(key, '$gt', value)
 
   lessThanOrEqualTo: (key, value) ->
-    @_addCondition(key, '$lte', value);
+    @_addCondition(key, '$lte', value)
 
   greaterThanOrEqualTo: (key, value) ->
-    @_addCondition(key, '$gte', value);
+    @_addCondition(key, '$gte', value)
 
   hasRelationIn: (key, node...) ->
     @_addCondition(key, '$relIn', if node.length > 0 then (i.id() for i in node) else ['*']);
@@ -121,43 +121,43 @@ class WeaverQuery
     @_addCondition(key, '$noRelOut', if node.length > 0 then (i.id() for i in node) else ['*']);
 
   containedIn: (key, values) ->
-    @_addCondition(key, '$in', values);
+    @_addCondition(key, '$in', values)
 
   notContainedIn: (key, values) ->
-    @_addCondition(key, '$nin', values);
+    @_addCondition(key, '$nin', values)
 
   containsAll: (key, values) ->
-    @_addCondition(key, '$all', values);
+    @_addCondition(key, '$all', values)
 
   exists: (key) ->
-    @_addCondition(key, '$exists', true);
+    @_addCondition(key, '$exists', true)
 
   doesNotExist: (key) ->
-    @_addCondition(key, '$exists', false);
+    @_addCondition(key, '$exists', false)
 
   matches: (key, value) ->
-    @_addCondition(key, '$regex', value);
+    @_addCondition(key, '$regex', value)
 
   contains: (key, value) ->
-    @_addCondition(key, '$contains', value);
+    @_addCondition(key, '$contains', value)
 
   startsWith: (key, value) ->
-    @_addCondition(key, '$regex', '^' + quote(value));
+    @_addCondition(key, '$regex', '^' + quote(value))
 
   endsWith: (key, value) ->
-    @_addCondition(key, '$regex', quote(value) + '$');
+    @_addCondition(key, '$regex', quote(value) + '$')
 
   matchesQuery: (key, weaverQuery) ->
-    @_addCondition(key, '$inQuery', weaverQuery);
+    @_addCondition(key, '$inQuery', weaverQuery)
 
   doesNotMatchQuery: (key, query) ->
-    @_addCondition(key, '$notInQuery', query);
+    @_addCondition(key, '$notInQuery', query)
 
   matchesKeyQuery: (key, queryKey, query) ->
-    @_addCondition(key, '$select', {queryKey, query});
+    @_addCondition(key, '$select', {queryKey, query})
 
   doesNotMatchKeyInQuery: (key, queryKey, query) ->
-    @_addCondition(key, '$dontSelect', {queryKey, query});
+    @_addCondition(key, '$dontSelect', {queryKey, query})
 
   withAttributes: ->
     @_noAttributes = false
