@@ -168,9 +168,6 @@ class CoreManager
   readyProject: (id) ->
     @GET("project.ready", {id}, "$SYSTEM")
     
-  dumpProject: (id) ->
-    @GET("project.dump", {id}, id)
-
   cloneProject: (id, clone_id, name) ->
     @POST("project.clone", {id: clone_id, name}, id)
     
@@ -189,8 +186,8 @@ class CoreManager
   dumpHistory: (payload, target)->
     @GET('history', payload, target)
 
-  snapshotProject: (target)->
-    @GET('snapshot', {}, target)
+  snapshotProject: (target, zipped)->
+    @GET('snapshot', {zipped}, target)
 
   wipeProject: (target)->
     @POST('project.wipe', {}, target)

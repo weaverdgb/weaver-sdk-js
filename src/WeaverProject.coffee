@@ -46,11 +46,8 @@ class WeaverProject
   getAllRelations:->
     Weaver.getCoreManager().getAllRelations(@id())
 
-  getSnapshot:->
-    Weaver.getCoreManager().snapshotProject(@id())
-    
-  dump:->
-    Weaver.getCoreManager().dumpProject(@id())
+  getSnapshot: (zipped = false) ->
+    Weaver.getCoreManager().snapshotProject(@id(), zipped)
 
   clone: (id, name) ->
     Weaver.getCoreManager().cloneProject(@id(), id, name).then((acl) ->
