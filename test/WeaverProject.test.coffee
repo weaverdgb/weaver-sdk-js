@@ -73,15 +73,12 @@ describe 'WeaverProject Test', ->
     p.freeze().then(->
       a = new Weaver.Node()
       a.save().then(->
-        # Writing a node after freeze should not be possible
-        assert(false)
+        assert(false, "Writing a node after freeze should not be possible")
       ).catch((err)->
-        # Writing this node should be impossible
-        assert(true)
+        assert.include(err.message, "Project is frozen")
       )
     ).catch((err)->
-      # Default case is to fail this test
-      assert(false)
+      assert(false, "Default case is to fail this test, project wasn't frozen? " + err.message)
     )
 
   it 'should unfreeze a project making writing possible', ->
@@ -89,15 +86,12 @@ describe 'WeaverProject Test', ->
     p.unfreeze().then(->
       a = new Weaver.Node()
       a.save().then(->
-        # Writing a node after unfreeze should be possible
         assert(true)
       ).catch((err)->
-        # Fail is node fails to write
-        assert(false)
+        assert(false, "Node fails to write, project is frozen? " + err.message)
       )
     ).catch((err)->
-      # Default case is to fail this test
-      assert(false)
+      assert(false, "Default case is to fail this test, project is frozen? " + err.message)
     )
 
   it.skip 'should raise an error while saving without currentProject', (done) ->
