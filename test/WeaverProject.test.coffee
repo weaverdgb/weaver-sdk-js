@@ -141,7 +141,7 @@ describe 'WeaverProject Test', ->
       p.destroy()
     )
 
-  it 'should dump a project and download it as a zip', ->
+  it 'should snapshot a project and get a minio filename gz', ->
     p = weaver.currentProject()
     
     a = new Weaver.Node()
@@ -153,15 +153,9 @@ describe 'WeaverProject Test', ->
     Promise.all([a.save(), c.save()]).then(->
       p.getSnapshot(true)
     ).then((dump)->
-      #weaverFile = new Weaver.File()
-      #weaverFile.getFileByID(__dirname + '/../' + dump, dump)
-      console.log dump
+      assert.include(dump, ".gz")
     )
-    
-    # .then((file)->
-    #   #clean up a bit too, remove this downloaded file afterwards
-    #   require('fs').unlink(file)
-    #   assert(true)
-    # ).catch((err)->
-    #   assert(false)
-    # )
+    .catch((err)->
+      console.log err
+      assert(false, "The returned value from the server is not a gz filename: " + err)
+    )
