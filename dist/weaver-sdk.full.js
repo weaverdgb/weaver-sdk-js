@@ -98064,7 +98064,7 @@ module.exports = yeast;
 },{}],415:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "3.0.5",
+  "version": "3.0.6",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -98072,7 +98072,7 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredServerVersion": "~3.0.5"
+    "requiredServerVersion": "~3.0.6"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -98430,8 +98430,10 @@ module.exports={
       return this.GET('history', payload, target);
     };
 
-    CoreManager.prototype.snapshotProject = function(target) {
-      return this.GET('snapshot', {}, target);
+    CoreManager.prototype.snapshotProject = function(target, zipped) {
+      return this.GET('snapshot', {
+        zipped: zipped
+      }, target);
     };
 
     CoreManager.prototype.wipeProject = function(target) {
@@ -99984,8 +99986,11 @@ module.exports={
       return Weaver.getCoreManager().getAllRelations(this.id());
     };
 
-    WeaverProject.prototype.getSnapshot = function() {
-      return Weaver.getCoreManager().snapshotProject(this.id());
+    WeaverProject.prototype.getSnapshot = function(zipped) {
+      if (zipped == null) {
+        zipped = false;
+      }
+      return Weaver.getCoreManager().snapshotProject(this.id(), zipped);
     };
 
     WeaverProject.prototype.clone = function(id, name) {
@@ -100028,11 +100033,14 @@ module.exports={
 
 },{"./Weaver":421,"cuid":136}],429:[function(require,module,exports){
 (function() {
-  var Weaver, WeaverQuery, quote, util;
+  var Weaver, WeaverQuery, _, quote, util,
+    slice = [].slice;
 
   util = require('./util');
 
   Weaver = require('./Weaver');
+
+  _ = require('lodash');
 
   quote = function(s) {
     return '\\Q' + s.replace('\\E', '\\E\\\\E\\Q') + '\\E';
@@ -100055,16 +100063,17 @@ module.exports={
       this._skip = 0;
       this._order = [];
       this._ascending = true;
+      this._arrayCount = 0;
     }
 
     WeaverQuery.prototype.find = function(Constructor) {
       Constructor = Constructor || Weaver.Node;
       return Weaver.getCoreManager().query(this).then(function(result) {
-        var i, instance, len, list, node, ref;
+        var instance, j, len, list, node, ref;
         list = [];
         ref = result.nodes;
-        for (i = 0, len = ref.length; i < len; i++) {
-          node = ref[i];
+        for (j = 0, len = ref.length; j < len; j++) {
+          node = ref[j];
           instance = new Constructor(node.nodeId);
           instance._loadFromQuery(node);
           instance._setStored();
@@ -100102,7 +100111,7 @@ module.exports={
     };
 
     WeaverQuery.prototype.restrict = function(nodes) {
-      var addRestrict, i, len, node;
+      var addRestrict, j, len, node;
       addRestrict = (function(_this) {
         return function(node) {
           if (util.isString(node)) {
@@ -100114,8 +100123,8 @@ module.exports={
       })(this);
       if (util.isArray(nodes)) {
         this._restrict = [];
-        for (i = 0, len = nodes.length; i < len; i++) {
-          node = nodes[i];
+        for (j = 0, len = nodes.length; j < len; j++) {
+          node = nodes[j];
           addRestrict(node);
         }
       } else {
@@ -100157,20 +100166,85 @@ module.exports={
       return this._addCondition(key, '$gte', value);
     };
 
-    WeaverQuery.prototype.hasRelationIn = function(key, node) {
-      return this._addCondition(key, '$relIn', node ? node.id() : '*');
+    WeaverQuery.prototype.hasRelationIn = function() {
+      var i, key, node;
+      key = arguments[0], node = 2 <= arguments.length ? slice.call(arguments, 1) : [];
+      if (_.isArray(key)) {
+        return this._addCondition("$relationArray${@arrayCount++}", '$relIn', key);
+      } else if (node.length === 1 && node[0] instanceof WeaverQuery) {
+        return this._addCondition(key, '$relIn', node);
+      } else {
+        return this._addCondition(key, '$relIn', node.length > 0 ? (function() {
+          var j, len, results;
+          results = [];
+          for (j = 0, len = node.length; j < len; j++) {
+            i = node[j];
+            results.push(i.id() || i);
+          }
+          return results;
+        })() : ['*']);
+      }
     };
 
-    WeaverQuery.prototype.hasRelationOut = function(key, node) {
-      return this._addCondition(key, '$relOut', node ? node.id() : '*');
+    WeaverQuery.prototype.hasRelationOut = function() {
+      var i, key, node;
+      key = arguments[0], node = 2 <= arguments.length ? slice.call(arguments, 1) : [];
+      if (_.isArray(key)) {
+        this._addCondition("$relationArray${@arrayCount++}", '$relOut', key);
+      } else if (node.length === 1 && node[0] instanceof WeaverQuery) {
+        this._addCondition(key, '$relOut', node);
+      } else {
+        this._addCondition(key, '$relOut', node.length > 0 ? (function() {
+          var j, len, results;
+          results = [];
+          for (j = 0, len = node.length; j < len; j++) {
+            i = node[j];
+            results.push(i.id() || i);
+          }
+          return results;
+        })() : ['*']);
+      }
+      return this;
     };
 
-    WeaverQuery.prototype.hasNoRelationIn = function(key, node) {
-      return this._addCondition(key, '$noRelIn', node ? node.id() : '*');
+    WeaverQuery.prototype.hasNoRelationIn = function() {
+      var i, key, node;
+      key = arguments[0], node = 2 <= arguments.length ? slice.call(arguments, 1) : [];
+      if (_.isArray(key)) {
+        return this._addCondition("$relationArray${@arrayCount++}", '$noRelIn', key);
+      } else if (node.length === 1 && node[0] instanceof WeaverQuery) {
+        return this._addCondition(key, '$noRelIn', node);
+      } else {
+        return this._addCondition(key, '$noRelIn', node.length > 0 ? (function() {
+          var j, len, results;
+          results = [];
+          for (j = 0, len = node.length; j < len; j++) {
+            i = node[j];
+            results.push(i.id() || i);
+          }
+          return results;
+        })() : ['*']);
+      }
     };
 
-    WeaverQuery.prototype.hasNoRelationOut = function(key, node) {
-      return this._addCondition(key, '$noRelOut', node ? node.id() : '*');
+    WeaverQuery.prototype.hasNoRelationOut = function() {
+      var i, key, node;
+      key = arguments[0], node = 2 <= arguments.length ? slice.call(arguments, 1) : [];
+      if (_.isArray(key)) {
+        return this._addCondition("$relationArray${@arrayCount++}", '$noRelOut', key);
+      } else if (node.length === 1 && node[0] instanceof WeaverQuery) {
+        return this._addCondition(key, '$noRelOut', node);
+      } else {
+        return this._addCondition(key, '$noRelOut', node.length > 0 ? (function() {
+          var j, len, results;
+          results = [];
+          for (j = 0, len = node.length; j < len; j++) {
+            i = node[j];
+            results.push(i.id() || i);
+          }
+          return results;
+        })() : ['*']);
+      }
     };
 
     WeaverQuery.prototype.containedIn = function(key, values) {
@@ -100286,7 +100360,9 @@ module.exports={
       return this;
     };
 
-    WeaverQuery.prototype.select = function(keys) {
+    WeaverQuery.prototype.select = function() {
+      var keys;
+      keys = 1 <= arguments.length ? slice.call(arguments, 0) : [];
       this._select = keys;
       return this;
     };
@@ -100324,7 +100400,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Weaver":421,"./util":434}],430:[function(require,module,exports){
+},{"./Weaver":421,"./util":434,"lodash":248}],430:[function(require,module,exports){
 (function() {
   var Operation, Weaver, WeaverRelation, cuid;
 
