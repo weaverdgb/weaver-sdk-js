@@ -69,25 +69,13 @@ describe 'WeaverProject Test', ->
     )
 
   it 'should freeze a project making writing impossible', ->
-    p = weaver.currentProject()
-    p.freeze().then(->
-      a = new Weaver.Node()
-      a.save().then(->
-        assert(false, "Writing a node after freeze should not be possible")
-      ).catch((err)->
-        assert.include(err.message, "Project is frozen")
-      )
+    weaver.currentProject().freeze().then(->
+      (new Weaver.Node()).save().should.be.rejected
     )
 
   it 'should unfreeze a project making writing possible', ->
-    p = weaver.currentProject()
-    p.unfreeze().then(->
-      a = new Weaver.Node()
-      a.save().then(->
-        assert(true)
-      ).catch((err)->
-        assert(false, "Node fails to write, project is frozen? " + err.message)
-      )
+    weaver.currentProject().unfreeze().then(->
+      (new Weaver.Node()).save().should.not.be.rejected
     )
 
   it 'should be unable to freeze project due to acls', ->
