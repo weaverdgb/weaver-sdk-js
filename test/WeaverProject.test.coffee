@@ -149,3 +149,8 @@ describe 'WeaverProject Test', ->
         expect(p.name).to.equal('rename_test')
       )
     )
+
+  it 'should not be able to rename a project with insufficient permissions', ->
+    new Weaver.User('testuser', 'testpass', 'test@example.com').signUp().then(->
+      weaver.currentProject().rename('rename_test')
+    ).should.be.rejectedWith(/Permission denied/)
