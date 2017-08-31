@@ -68,6 +68,28 @@ describe 'WeaverProject Test', ->
       weaver.useProject(p)
     )
 
+  it 'should freeze a project making writing impossible', ->
+    weaver.currentProject().freeze().then(->
+      (new Weaver.Node()).save().should.be.rejected
+    )
+
+  it 'should unfreeze a project making writing possible', ->
+    weaver.currentProject().unfreeze().then(->
+      (new Weaver.Node()).save().should.not.be.rejected
+    )
+
+  it 'should be unable to freeze project due to acls', ->
+    new Weaver.User('testuser', 'testpass', 'test@example.com').signUp().then(->
+      weaver.currentProject().freeze()
+    ).should.be.rejectedWith(/Permission denied/)
+
+  it 'should be unable to unfreeze a project due to acls', ->
+    weaver.currentProject().freeze().then(->
+      new Weaver.User('testuser', 'testpass', 'test@example.com').signUp().then(->
+        weaver.currentProject().unfreeze()
+      ).should.be.rejectedWith(/Permission denied/)
+    )
+
   it.skip 'should raise an error while saving without currentProject', (done) ->
     p = weaver.currentProject()
     weaver.useProject(null)
@@ -154,3 +176,18 @@ describe 'WeaverProject Test', ->
     new Weaver.User('testuser', 'testpass', 'test@example.com').signUp().then(->
       weaver.currentProject().rename('rename_test')
     ).should.be.rejectedWith(/Permission denied/)
+
+  it 'should snapshot a project and get a minio filename gz', ->
+    p = weaver.currentProject()
+    
+    a = new Weaver.Node()
+    b = new Weaver.Node()
+    c = new Weaver.Node()
+
+    a.relation('link').add(b)
+    c.relation('link').add(c)
+    Promise.all([a.save(), c.save()]).then(->
+      p.getSnapshot(true)
+    ).then((dump)->
+      assert.include(dump, ".gz")
+    )

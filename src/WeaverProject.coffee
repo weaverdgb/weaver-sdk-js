@@ -40,19 +40,24 @@ class WeaverProject
       Weaver.getCoreManager().deleteProject(@id())
     )
 
+  freeze: ->
+    Weaver.getCoreManager().freezeProject(@id())
+    
+  unfreeze: ->
+    Weaver.getCoreManager().unfreezeProject(@id())
+
   getAllNodes: (attributes)->
     Weaver.getCoreManager().getAllNodes(attributes, @id())
 
   getAllRelations:->
     Weaver.getCoreManager().getAllRelations(@id())
-
-  getSnapshot:->
-    Weaver.getCoreManager().snapshotProject(@id())
     
   rename: (name) ->
     renamed = Weaver.getCoreManager().nameProject(@id(), name)
     @name = name
     renamed
+  getSnapshot: (zipped = false) ->
+    Weaver.getCoreManager().snapshotProject(@id(), zipped)
 
   clone: (id, name) ->
     Weaver.getCoreManager().cloneProject(@id(), id, name).then((acl) ->
