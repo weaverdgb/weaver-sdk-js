@@ -36,6 +36,7 @@ module.exports =
       endpoint: 'http://localhost:9000'
       accessKey: 'NYLEXGR6MF2IE99LZ4UE'
       secretKey: 'CjMuTRwYPcneXnGac2aQH0J+EdYdehTW4Cw7bZGD'
+      uploads: 'uploads/'
 
     snmp:
       enabled: false
