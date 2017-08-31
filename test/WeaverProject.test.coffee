@@ -141,11 +141,11 @@ describe 'WeaverProject Test', ->
       p.destroy()
     )
 
-  it 'should rename a project on the server', ->
+  it 'should rename a project on the server and local', ->
     p = weaver.currentProject()
-    p.rename('rename_test')
-    .then(->
-      expect(p.name).to.equal('rename_test')
-    ).catch((err)->
-      assert(false)
+    p.rename('rename_test').then(->
+      Weaver.Project.list().then((list)->
+        expect(list[0].name).to.equal('rename_test')
+        expect(p.name).to.equal('rename_test')
+      )
     )
