@@ -77,8 +77,6 @@ describe 'WeaverProject Test', ->
       ).catch((err)->
         assert.include(err.message, "Project is frozen")
       )
-    ).catch((err)->
-      assert(false, "Default case is to fail this test, project wasn't frozen? " + err.message)
     )
 
   it 'should unfreeze a project making writing possible', ->
@@ -90,8 +88,18 @@ describe 'WeaverProject Test', ->
       ).catch((err)->
         assert(false, "Node fails to write, project is frozen? " + err.message)
       )
-    ).catch((err)->
-      assert(false, "Default case is to fail this test, project is frozen? " + err.message)
+    )
+
+  it 'should be unable to freeze project due to acls', ->
+    new Weaver.User('testuser', 'testpass', 'test@example.com').signUp().then(->
+      weaver.currentProject().freeze()
+    ).should.be.rejectedWith(/Permission denied/)
+
+  it 'should be unable to unfreeze a project due to acls', ->
+    weaver.currentProject().freeze().then(->
+      new Weaver.User('testuser', 'testpass', 'test@example.com').signUp().then(->
+        weaver.currentProject().unfreeze()
+      ).should.be.rejectedWith(/Permission denied/)
     )
 
   it.skip 'should raise an error while saving without currentProject', (done) ->
