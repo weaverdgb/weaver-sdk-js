@@ -1,11 +1,12 @@
 util        = require('./util')
 Weaver      = require('./Weaver')
+_           = require('lodash')
 
 # Converts a string into a regex that matches it.
 # Surrounding with \Q .. \E does this, we just need to escape any \E's in
 # the text separately.
 quote = (s) ->
-  '\\Q' + s.replace('\\E', '\\E\\\\E\\Q') + '\\E';
+  '\\Q' + s.replace('\\E', '\\E\\\\E\\Q') + '\\E'
 
 
 class WeaverQuery
@@ -25,6 +26,7 @@ class WeaverQuery
     @_skip         = 0
     @_order        = []
     @_ascending    = true
+    @_arrayCount   = 0
 
   find: (Constructor) ->
 
@@ -88,70 +90,91 @@ class WeaverQuery
     @
 
   notEqualTo: (key, value) ->
-    @_addCondition(key, '$ne', value);
+    @_addCondition(key, '$ne', value)
 
   lessThan: (key, value) ->
-    @_addCondition(key, '$lt', value);
+    @_addCondition(key, '$lt', value)
 
   greaterThan: (key, value) ->
-    @_addCondition(key, '$gt', value);
+    @_addCondition(key, '$gt', value)
 
   lessThanOrEqualTo: (key, value) ->
-    @_addCondition(key, '$lte', value);
+    @_addCondition(key, '$lte', value)
 
   greaterThanOrEqualTo: (key, value) ->
-    @_addCondition(key, '$gte', value);
+    @_addCondition(key, '$gte', value)
 
-  hasRelationIn: (key, node) ->
-    @_addCondition(key, '$relIn', if node then node.id() else '*');
+  hasRelationIn: (key, node...) ->
+    if _.isArray(key)
+      @_addCondition("$relationArray${@arrayCount++}", '$relIn', key)
+    else if node.length is 1 and node[0] instanceof WeaverQuery
+      @_addCondition(key, '$relIn', node)
+    else
+      @_addCondition(key, '$relIn', if node.length > 0 then (i.id() or i for i in node) else ['*'])
 
-  hasRelationOut: (key, node) ->
-    @_addCondition(key, '$relOut', if node then node.id() else '*');
+  hasRelationOut: (key, node...) ->
+    if _.isArray(key)
+      @_addCondition("$relationArray${@arrayCount++}", '$relOut', key)
+    else if node.length is 1 and node[0] instanceof WeaverQuery
+      @_addCondition(key, '$relOut', node)
+    else
+      @_addCondition(key, '$relOut', if node.length > 0 then (i.id() or i for i in node) else ['*'])
+    @
 
-  hasNoRelationIn: (key, node) ->
-    @_addCondition(key, '$noRelIn', if node then node.id() else '*');
+  hasNoRelationIn: (key, node...) ->
+    if _.isArray(key)
+      @_addCondition("$relationArray${@arrayCount++}", '$noRelIn', key)
+    else if node.length is 1 and node[0] instanceof WeaverQuery
+      @_addCondition(key, '$noRelIn', node)
+    else
+      @_addCondition(key, '$noRelIn', if node.length > 0 then (i.id() or i for i in node) else ['*'])
 
-  hasNoRelationOut: (key, node) ->
-    @_addCondition(key, '$noRelOut', if node then node.id() else '*');
+  hasNoRelationOut: (key, node...) ->
+    if _.isArray(key)
+      @_addCondition("$relationArray${@arrayCount++}", '$noRelOut', key)
+    else if node.length is 1 and node[0] instanceof WeaverQuery
+      @_addCondition(key, '$noRelOut', node)
+    else
+      @_addCondition(key, '$noRelOut', if node.length > 0 then (i.id() or i for i in node) else ['*'])
 
   containedIn: (key, values) ->
-    @_addCondition(key, '$in', values);
+    @_addCondition(key, '$in', values)
 
   notContainedIn: (key, values) ->
-    @_addCondition(key, '$nin', values);
+    @_addCondition(key, '$nin', values)
 
   containsAll: (key, values) ->
-    @_addCondition(key, '$all', values);
+    @_addCondition(key, '$all', values)
 
   exists: (key) ->
-    @_addCondition(key, '$exists', true);
+    @_addCondition(key, '$exists', true)
 
   doesNotExist: (key) ->
-    @_addCondition(key, '$exists', false);
+    @_addCondition(key, '$exists', false)
 
   matches: (key, value) ->
-    @_addCondition(key, '$regex', value);
+    @_addCondition(key, '$regex', value)
 
   contains: (key, value) ->
-    @_addCondition(key, '$contains', value);
+    @_addCondition(key, '$contains', value)
 
   startsWith: (key, value) ->
-    @_addCondition(key, '$regex', '^' + quote(value));
+    @_addCondition(key, '$regex', '^' + quote(value))
 
   endsWith: (key, value) ->
-    @_addCondition(key, '$regex', quote(value) + '$');
+    @_addCondition(key, '$regex', quote(value) + '$')
 
   matchesQuery: (key, weaverQuery) ->
-    @_addCondition(key, '$inQuery', weaverQuery);
+    @_addCondition(key, '$inQuery', weaverQuery)
 
   doesNotMatchQuery: (key, query) ->
-    @_addCondition(key, '$notInQuery', query);
+    @_addCondition(key, '$notInQuery', query)
 
   matchesKeyQuery: (key, queryKey, query) ->
-    @_addCondition(key, '$select', {queryKey, query});
+    @_addCondition(key, '$select', {queryKey, query})
 
   doesNotMatchKeyInQuery: (key, queryKey, query) ->
-    @_addCondition(key, '$dontSelect', {queryKey, query});
+    @_addCondition(key, '$dontSelect', {queryKey, query})
 
   withAttributes: ->
     @_noAttributes = false
@@ -198,7 +221,7 @@ class WeaverQuery
     @_include = keys
     @
 
-  select: (keys) ->
+  select: (keys...) ->
     @_select = keys
     @
 

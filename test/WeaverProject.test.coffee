@@ -162,3 +162,22 @@ describe 'WeaverProject Test', ->
       expect(p.id()).to.equal('helloworld_dupe')
       p.destroy()
     )
+
+  it 'should snapshot a project and get a minio filename gz', ->
+    p = weaver.currentProject()
+    
+    a = new Weaver.Node()
+    b = new Weaver.Node()
+    c = new Weaver.Node()
+
+    a.relation('link').add(b)
+    c.relation('link').add(c)
+    Promise.all([a.save(), c.save()]).then(->
+      p.getSnapshot(true)
+    ).then((dump)->
+      assert.include(dump, ".gz")
+    )
+    .catch((err)->
+      console.log err
+      assert(false, "The returned value from the server is not a gz filename: " + err)
+    )

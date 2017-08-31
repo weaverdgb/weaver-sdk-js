@@ -81,6 +81,9 @@ class CoreManager
   listUsers: ->
     @GET("users")
 
+  listProjectUsers: (project) ->
+    @GET("projectUsers", { id: project.id })
+
   listRoles: ->
     @GET("roles")
 
@@ -192,8 +195,8 @@ class CoreManager
   dumpHistory: (payload, target)->
     @GET('history', payload, target)
 
-  snapshotProject: (target)->
-    @GET('snapshot', {}, target)
+  snapshotProject: (target, zipped)->
+    @GET('snapshot', {zipped}, target)
 
   wipeProject: (target)->
     @POST('project.wipe', {}, target)
