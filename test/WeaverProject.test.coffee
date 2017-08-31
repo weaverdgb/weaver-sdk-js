@@ -177,7 +177,3 @@ describe 'WeaverProject Test', ->
     ).then((dump)->
       assert.include(dump, ".gz")
     )
-    .catch((err)->
-      console.log err
-      assert(false, "The returned value from the server is not a gz filename: " + err)
-    )
