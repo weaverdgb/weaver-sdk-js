@@ -16,7 +16,6 @@ class WeaverQuery
     @_equals       = {}
     @_orQueries    = []
     @_conditions   = {}
-    @_relationsOut = []
     @_include      = []
     @_select       = []
     @_noRelations  = true
@@ -27,6 +26,7 @@ class WeaverQuery
     @_skip         = 0
     @_order        = []
     @_ascending    = true
+    @_arrayCount   = 0
 
   find: (Constructor) ->
 
@@ -105,14 +105,16 @@ class WeaverQuery
     @_addCondition(key, '$gte', value)
 
   hasRelationIn: (key, node...) ->
-    if node.length is 1 and node[0] instanceof WeaverQuery
+    if _.isArray(key)
+      @_addCondition("$relationArray${@arrayCount++}", '$relIn', key)
+    else if node.length is 1 and node[0] instanceof WeaverQuery
       @_addCondition(key, '$relIn', node)
     else
       @_addCondition(key, '$relIn', if node.length > 0 then (i.id() or i for i in node) else ['*'])
 
   hasRelationOut: (key, node...) ->
     if _.isArray(key)
-      @_relationsOut = key # values are ignored
+      @_addCondition("$relationArray${@arrayCount++}", '$relOut', key)
     else if node.length is 1 and node[0] instanceof WeaverQuery
       @_addCondition(key, '$relOut', node)
     else
@@ -120,13 +122,17 @@ class WeaverQuery
     @
 
   hasNoRelationIn: (key, node...) ->
-    if node.length is 1 and node[0] instanceof WeaverQuery
+    if _.isArray(key)
+      @_addCondition("$relationArray${@arrayCount++}", '$noRelIn', key)
+    else if node.length is 1 and node[0] instanceof WeaverQuery
       @_addCondition(key, '$noRelIn', node)
     else
       @_addCondition(key, '$noRelIn', if node.length > 0 then (i.id() or i for i in node) else ['*'])
 
   hasNoRelationOut: (key, node...) ->
-    if node.length is 1 and node[0] instanceof WeaverQuery
+    if _.isArray(key)
+      @_addCondition("$relationArray${@arrayCount++}", '$noRelOut', key)
+    else if node.length is 1 and node[0] instanceof WeaverQuery
       @_addCondition(key, '$noRelOut', node)
     else
       @_addCondition(key, '$noRelOut', if node.length > 0 then (i.id() or i for i in node) else ['*'])

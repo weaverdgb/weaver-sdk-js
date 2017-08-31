@@ -409,6 +409,61 @@ describe 'WeaverQuery Test', ->
       )
     )
 
+  it 'should allow "or" in predicates for hasNoRelationIn', ->
+    a = new Weaver.Node('a')
+    b = new Weaver.Node('b')
+    c = new Weaver.Node('c')
+
+    a.relation('linkA').add(b)
+    b.relation('linkB').add(c)
+    c.relation('linkC').add(a)
+
+    a.save().then(->
+      new Weaver.Query()
+      .hasNoRelationIn(['linkA','linkB'])
+      .find().then((nodes)->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+      )
+    )
+
+  it 'should allow "or" in predicates for hasNoRelationOut', ->
+    a = new Weaver.Node('a')
+    b = new Weaver.Node('b')
+    c = new Weaver.Node('c')
+
+    a.relation('linkA').add(b)
+    b.relation('linkB').add(c)
+    c.relation('linkC').add(a)
+
+    a.save().then(->
+      new Weaver.Query()
+      .hasNoRelationOut(['linkA','linkB'])
+      .find().then((nodes)->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'c')
+      )
+    )
+
+  it 'should allow "or" in predicates for hasRelationIn', ->
+    a = new Weaver.Node('a')
+    b = new Weaver.Node('b')
+    c = new Weaver.Node('c')
+
+    a.relation('linkA').add(b)
+    b.relation('linkB').add(c)
+    c.relation('linkC').add(a)
+
+    a.save().then(->
+      new Weaver.Query()
+      .hasRelationIn(['linkA','linkB'])
+      .find().then((nodes)->
+        expect(nodes.length).to.equal(2)
+        checkNodeInResult(nodes, 'b')
+        checkNodeInResult(nodes, 'c')
+      )
+    )
+
   it 'should allow "or" in predicates for hasRelationOut', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
