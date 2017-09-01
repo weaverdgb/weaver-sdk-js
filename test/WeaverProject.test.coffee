@@ -204,3 +204,21 @@ describe 'WeaverProject Test', ->
     ).then((list) ->
       expect(list).to.be.empty
     )
+
+  it 'should unarchive a project making actions possible', ->
+    p = weaver.currentProject()
+    p.archive().then(->
+      p.unarchive()
+    ).then(->
+      p.getSnapshot()
+    )
+
+  it 'should unarchive a project making it listable', ->
+    p = weaver.currentProject()
+    p.archive().then(->
+      p.unarchive()
+    ).then(->
+      Weaver.Project.list()
+    ).then((list)->
+      expect(list).to.not.be.empty
+    )
