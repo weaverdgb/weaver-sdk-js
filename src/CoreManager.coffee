@@ -174,7 +174,7 @@ class CoreManager
   archiveProject: (id) ->
     @GET("project.archive", {id}, id)
   
-  unarchivePorject: (id) ->
+  unarchiveProject: (id) ->
     @GET("project.unarchive", {id}, id)
     
   nameProject: (id, name) ->

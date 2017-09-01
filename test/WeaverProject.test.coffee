@@ -195,7 +195,8 @@ describe 'WeaverProject Test', ->
   it 'should archive a project making actions impossible', ->
     p = weaver.currentProject()
     p.archive().then(->
-      p.getSnapshot()
+      n = new Weaver.Node()
+      n.save()
     ).should.eventually.be.rejected
 
   it 'should archive a project making it unlistable', ->
@@ -210,7 +211,8 @@ describe 'WeaverProject Test', ->
     p.archive().then(->
       p.unarchive()
     ).then(->
-      p.getSnapshot()
+      n = new Weaver.Node()
+      n.save()
     )
 
   it 'should unarchive a project making it listable', ->
