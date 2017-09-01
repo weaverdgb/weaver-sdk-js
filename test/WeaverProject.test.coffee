@@ -163,6 +163,20 @@ describe 'WeaverProject Test', ->
       p.destroy()
     )
 
+  it 'should rename a project on the server and local', ->
+    p = weaver.currentProject()
+    p.rename('rename_test').then(->
+      Weaver.Project.list().then((list)->
+        expect(list[0].name).to.equal('rename_test')
+        expect(p.name).to.equal('rename_test')
+      )
+    )
+
+  it 'should not be able to rename a project with insufficient permissions', ->
+    new Weaver.User('testuser', 'testpass', 'test@example.com').signUp().then(->
+      weaver.currentProject().rename('rename_test')
+    ).should.be.rejectedWith(/Permission denied/)
+
   it 'should snapshot a project and get a minio filename gz', ->
     p = weaver.currentProject()
     

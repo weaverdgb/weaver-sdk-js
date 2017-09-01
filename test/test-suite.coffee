@@ -32,5 +32,6 @@ beforeEach ->
   weaver.signInWithUsername('admin', 'admin')
   .then(->weaver.getCoreManager().wipeUsers())
   .then(->weaver.currentProject().wipe())
+  .then(->weaver.currentProject().unfreeze())
 
 module.exports = weaver
