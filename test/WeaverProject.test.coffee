@@ -191,3 +191,16 @@ describe 'WeaverProject Test', ->
     ).then((dump)->
       assert.include(dump, ".gz")
     )
+
+  it 'should archive a project making actions impossible', ->
+    p = weaver.currentProject()
+    p.archive().then(->
+      p.getSnapshot()
+    ).should.eventually.be.rejected
+
+  it 'should archive a project making it unlistable', ->
+    weaver.currentProject().archive().then(->
+      Weaver.Project.list()
+    ).then((list) ->
+      expect(list).to.be.empty
+    )
