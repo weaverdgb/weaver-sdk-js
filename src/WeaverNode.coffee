@@ -239,7 +239,7 @@ class WeaverNode
 
 
   # Save node and all values / relations and relation objects to server
-  save: (project) ->
+  save: (project, opts) ->
     cm = Weaver.getCoreManager()
 
     sp = cm.operationsQueue.then(=>
@@ -269,6 +269,26 @@ class WeaverNode
           resultReject(e)
         )
       )
+    ).catch((err)=>
+      # out-of-date attribute workaround
+      ids = []
+      if opts.ignoresOutOfDate and err.message.indexOf('ERROR: duplicate key value violates unique constraint "replaced_attributes_replaced_key"') isnt -1
+        stringTerminatedIds = err.toString().match(/'(.)+'\)/g) # get the id's we need from the error message
+        ids = stringTerminatedIds.map((id)-> id.slice(1,-2))
+
+        for write in @pendingWrites # get the 'key' for the offending attribute
+          key = write.key if write.id = ids[2]
+
+        Weaver.Node.load(@id()).then((res)=>
+          updatedAttrId = res.attributes[key][0].nodeId
+          for write in @pendingWrites
+            if write.id is ids[2] and write.replacesId is ids[1] and write.replaceId is ids[0]
+              write.replacesId = updatedAttrId # replace the out-of-date id with the server-loaded id
+
+          @save(project,{ignoresOutOfDate: true})
+        )
+      else
+        throw err
     )
 
 
