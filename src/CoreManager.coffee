@@ -170,6 +170,12 @@ class CoreManager
 
   readyProject: (id) ->
     @GET("project.ready", {id}, "$SYSTEM")
+
+  archiveProject: (id) ->
+    @GET("project.archive", {id}, id)
+  
+  unarchivePorject: (id) ->
+    @GET("project.unarchive", {id}, id)
     
   nameProject: (id, name) ->
     @POST("project.name", {id, name}, id)

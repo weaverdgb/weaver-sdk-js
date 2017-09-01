@@ -40,6 +40,12 @@ class WeaverProject
       Weaver.getCoreManager().deleteProject(@id())
     )
 
+  archive: ->
+    Weaver.getCoreManager().archiveProject(@id())
+
+  unarchive: ->
+    Weaver.getCoreManager().unarchiveProject(@id())
+
   freeze: ->
     Weaver.getCoreManager().freezeProject(@id())
     
@@ -56,6 +62,7 @@ class WeaverProject
     renamed = Weaver.getCoreManager().nameProject(@id(), name)
     @name = name
     renamed
+  
   getSnapshot: (zipped = false) ->
     Weaver.getCoreManager().snapshotProject(@id(), zipped)
 
