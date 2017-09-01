@@ -68,6 +68,28 @@ describe 'WeaverProject Test', ->
       weaver.useProject(p)
     )
 
+  it 'should freeze a project making writing impossible', ->
+    weaver.currentProject().freeze().then(->
+      (new Weaver.Node()).save().should.be.rejected
+    )
+
+  it 'should unfreeze a project making writing possible', ->
+    weaver.currentProject().unfreeze().then(->
+      (new Weaver.Node()).save().should.not.be.rejected
+    )
+
+  it 'should be unable to freeze project due to acls', ->
+    new Weaver.User('testuser', 'testpass', 'test@example.com').signUp().then(->
+      weaver.currentProject().freeze()
+    ).should.be.rejectedWith(/Permission denied/)
+
+  it 'should be unable to unfreeze a project due to acls', ->
+    weaver.currentProject().freeze().then(->
+      new Weaver.User('testuser', 'testpass', 'test@example.com').signUp().then(->
+        weaver.currentProject().unfreeze()
+      ).should.be.rejectedWith(/Permission denied/)
+    )
+
   it.skip 'should raise an error while saving without currentProject', (done) ->
     p = weaver.currentProject()
     weaver.useProject(null)
@@ -154,8 +176,4 @@ describe 'WeaverProject Test', ->
       p.getSnapshot(true)
     ).then((dump)->
       assert.include(dump, ".gz")
-    )
-    .catch((err)->
-      console.log err
-      assert(false, "The returned value from the server is not a gz filename: " + err)
     )

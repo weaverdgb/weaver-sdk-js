@@ -40,6 +40,12 @@ class WeaverProject
       Weaver.getCoreManager().deleteProject(@id())
     )
 
+  freeze: ->
+    Weaver.getCoreManager().freezeProject(@id())
+    
+  unfreeze: ->
+    Weaver.getCoreManager().unfreezeProject(@id())
+
   getAllNodes: (attributes)->
     Weaver.getCoreManager().getAllNodes(attributes, @id())
 
