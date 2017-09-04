@@ -191,3 +191,6 @@ describe 'WeaverProject Test', ->
     ).then((dump)->
       assert.include(dump, ".gz")
     )
+
+  it 'should upload and execute a zip with writeoperations', ->
+    console.log "nothing yet"
