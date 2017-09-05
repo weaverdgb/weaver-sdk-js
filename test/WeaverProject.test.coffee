@@ -1,6 +1,7 @@
 weaver  = require("./test-suite")
 Weaver  = require('../src/Weaver')
 Promise = require('bluebird')
+path    = require('path')
 
 describe 'WeaverProject Test', ->
   actualProject = (p) ->
@@ -193,4 +194,9 @@ describe 'WeaverProject Test', ->
     )
 
   it 'should upload and execute a zip with writeoperations', ->
-    console.log "nothing yet"
+    weaverFile = new Weaver.File()
+    fileTemp = path.join(__dirname,'../test-write-operations.gz')
+    weaverFile.saveFile(fileTemp, 'test-write-operations.gz').then((filename)->
+      p = weaver.currentProject()
+      p.executeZip(filename)
+    )
