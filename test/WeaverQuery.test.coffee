@@ -727,3 +727,27 @@ describe 'WeaverQuery Test', ->
       )
     )
 
+
+  it 'should profile Weaver.Query', ->
+    Weaver.Query.profile((queryResult) ->
+      expect(queryResult.nodes[0].nodeId).to.equal('someNode')
+    )
+
+    node = new Weaver.Node('someNode')
+    node.save().then(->
+      Weaver.Node.load('someNode')
+    )
+
+  it 'should clear profilers', ->
+    Weaver.Query.profile((queryResult) ->
+      expect(queryResult.nodes[0].nodeId).to.equal('someNode')
+
+      Weaver.Query.clearProfilers()
+    )
+
+    node = new Weaver.Node('someNode')
+    node.save().then(->
+      Weaver.Node.load('someNode')
+    ).then(->
+      Weaver.Node.load('someNode')
+    )
