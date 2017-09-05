@@ -40,7 +40,7 @@ class WeaverRelation
 
     @pendingWrites.push(Operation.Node(@parent).createRelation(@key, node.id(), relId))
 
-  update: (oldNode, newNode) ->
+  update: (oldNode, newNode, ignoreConcurrentReplace = false) ->
     newRelId = cuid()
     oldRelId = @relationNodes[oldNode.id()].id()
 
@@ -50,7 +50,7 @@ class WeaverRelation
     delete @relationNodes[oldNode.id()]
     @relationNodes[newNode.id()] = Weaver.RelationNode.get(newRelId, Weaver.RelationNode)
 
-    @pendingWrites.push(Operation.Node(@parent).createRelation(@key, newNode.id(), newRelId, oldRelId))
+    @pendingWrites.push(Operation.Node(@parent).createRelation(@key, newNode.id(), newRelId, oldRelId, ignoreConcurrentReplace))
 
 
   remove: (node) ->

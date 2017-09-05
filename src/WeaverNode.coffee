@@ -86,7 +86,7 @@ class WeaverNode
 
 
   # Update attribute
-  set: (field, value) ->
+  set: (field, value, ignoreConcurrentReplace = false) ->
     # Get attribute datatype, TODO: Support date
     dataType = null
     if util.isString(value)
@@ -106,7 +106,7 @@ class WeaverNode
         throw new Error("Specifiy which attribute to set, more than 1 found for " + field) # TODO: Support later
 
       oldAttribute = @attributes[field][0]
-      newAttributeOperation = Operation.Node(@).createAttribute(field, value, dataType, oldAttribute.nodeId)
+      newAttributeOperation = Operation.Node(@).createAttribute(field, value, dataType, oldAttribute.nodeId, ignoreConcurrentReplace)
 
     else
       newAttributeOperation = Operation.Node(@).createAttribute(field, value, dataType)

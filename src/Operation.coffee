@@ -20,7 +20,7 @@ NodeOperation = (node) ->
       removeId: cuid()
     }
 
-  createAttribute: (key, value, datatype, replaces) ->
+  createAttribute: (key, value, datatype, replaces, ignoreConcurrentReplace) ->
     replaceId = null
     replaceId = cuid() if replaces?
 
@@ -32,7 +32,7 @@ NodeOperation = (node) ->
       key
       value
       datatype
-      replacesId: replaces
+      replacesId: replaces if not ignoreConcurrentReplace
       replaceId
     }
 
@@ -45,7 +45,7 @@ NodeOperation = (node) ->
       removeId: cuid()
     }
 
-  createRelation: (key, to, id, replaces) ->
+  createRelation: (key, to, id, replaces, ignoreConcurrentReplace) ->
     replaceId = null
     replaceId = cuid() if replaces?
     {
@@ -55,7 +55,7 @@ NodeOperation = (node) ->
       sourceId: node.id()
       key
       targetId: to
-      replacesId: replaces
+      replacesId: replaces if not ignoreConcurrentReplace
       replaceId
     }
 
