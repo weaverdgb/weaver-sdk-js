@@ -600,7 +600,7 @@ describe 'WeaverQuery Test', ->
       )
     )
 
-  it.skip 'should also load secondary nodes in nested queries', ->
+  it 'should also load secondary nodes in nested queries', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
     c = new Weaver.Node('c')
