@@ -245,6 +245,9 @@ class WeaverQuery
   @profile: (callback) ->
     Weaver.Query.profilers.push(callback)
 
+  @clearProfilers: ->
+    Weaver.Query.profilers = []
+
   @notify: (result) ->
     for callback in Weaver.Query.profilers
       callback(result)
