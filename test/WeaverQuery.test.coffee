@@ -502,7 +502,7 @@ describe 'WeaverQuery Test', ->
       )
     )
 
-  it.skip 'should load in some secondary nodes with "selectOut"', ->
+  it 'should load in some secondary nodes with "selectOut"', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
     c = new Weaver.Node('c')
@@ -522,7 +522,7 @@ describe 'WeaverQuery Test', ->
       )
     )
 
-  it.skip 'should ensure that nodes are not excluded based on the  "selectOut" flag', ->
+  it 'should ensure that nodes are not excluded based on the  "selectOut" flag', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
     c = new Weaver.Node('c')
