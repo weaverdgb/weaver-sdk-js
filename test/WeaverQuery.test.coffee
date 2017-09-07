@@ -357,6 +357,17 @@ describe 'WeaverQuery Test', ->
       )
     )
 
+  it 'should not break on loops', ->
+    a = new Weaver.Node('a')
+    b = new Weaver.Node('b')
+
+    a.relation('x').add(b)
+    b.relation('y').add(a)
+
+    Promise.all([a.save(), b.save()]).then(->
+      new Weaver.Query().find()
+    )
+
   it.skip 'should return all relations even on attribute selects', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
