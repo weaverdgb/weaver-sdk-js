@@ -357,6 +357,17 @@ describe 'WeaverQuery Test', ->
       )
     )
 
+  it 'should not break on loops', ->
+    a = new Weaver.Node('a')
+    b = new Weaver.Node('b')
+
+    a.relation('x').add(b)
+    b.relation('y').add(a)
+
+    Promise.all([a.save(), b.save()]).then(->
+      new Weaver.Query().find()
+    )
+
   it.skip 'should return all relations even on attribute selects', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
@@ -600,7 +611,7 @@ describe 'WeaverQuery Test', ->
       )
     )
 
-  it 'should also load secondary nodes in nested queries', ->
+  it 'should not load secondary nodes in nested queries', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
     c = new Weaver.Node('c')
@@ -613,7 +624,7 @@ describe 'WeaverQuery Test', ->
       .hasRelationOut('link',
         new Weaver.Query().hasRelationOut('link')
       ).find().then((nodes)->
-        expect(nodes[0].relation('link').nodes['b'].get('name')).to.equal('bravo')
+        expect(nodes[0].relation('link').nodes['b'].get('name')).to.be.undefined
       )
     )
 
