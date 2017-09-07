@@ -20,6 +20,7 @@ class WeaverQuery
     @_conditions   = {}
     @_include      = []
     @_select       = []
+    @_selectOut    = []
     @_noRelations  = true
     @_noAttributes = true
     @_count        = false
@@ -227,6 +228,10 @@ class WeaverQuery
 
   select: (keys...) ->
     @_select = keys
+    @
+
+  selectOut: (relationKeys...) ->
+    @_selectOut = relationKeys
     @
 
   hollow: (value) ->
