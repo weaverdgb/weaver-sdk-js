@@ -611,7 +611,7 @@ describe 'WeaverQuery Test', ->
       )
     )
 
-  it 'should also load secondary nodes in nested queries', ->
+  it 'should not load secondary nodes in nested queries', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
     c = new Weaver.Node('c')
@@ -624,7 +624,7 @@ describe 'WeaverQuery Test', ->
       .hasRelationOut('link',
         new Weaver.Query().hasRelationOut('link')
       ).find().then((nodes)->
-        expect(nodes[0].relation('link').nodes['b'].get('name')).to.equal('bravo')
+        expect(nodes[0].relation('link').nodes['b'].get('name')).to.be.undefined
       )
     )
 
