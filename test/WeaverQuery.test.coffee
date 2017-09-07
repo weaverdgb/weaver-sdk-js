@@ -600,7 +600,7 @@ describe 'WeaverQuery Test', ->
       )
     )
 
-  it.skip 'should also load secondary nodes in nested queries', ->
+  it 'should also load secondary nodes in nested queries', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
     c = new Weaver.Node('c')
@@ -727,3 +727,27 @@ describe 'WeaverQuery Test', ->
       )
     )
 
+
+  it 'should profile Weaver.Query', ->
+    Weaver.Query.profile((queryResult) ->
+      expect(queryResult.nodes[0].nodeId).to.equal('someNode')
+    )
+
+    node = new Weaver.Node('someNode')
+    node.save().then(->
+      Weaver.Node.load('someNode')
+    )
+
+  it 'should clear profilers', ->
+    Weaver.Query.profile((queryResult) ->
+      expect(queryResult.nodes[0].nodeId).to.equal('someNode')
+
+      Weaver.Query.clearProfilers()
+    )
+
+    node = new Weaver.Node('someNode')
+    node.save().then(->
+      Weaver.Node.load('someNode')
+    ).then(->
+      Weaver.Node.load('someNode')
+    )
