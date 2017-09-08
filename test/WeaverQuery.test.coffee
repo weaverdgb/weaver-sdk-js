@@ -581,6 +581,28 @@ describe 'WeaverQuery Test', ->
       )
     )
 
+  it 'should allow wildcard selectOut', ->
+    a = new Weaver.Node('a')
+    b = new Weaver.Node('b')
+    c = new Weaver.Node('c')
+    a.relation('link').add(b)
+    a.relation('test').add(c)
+    c.set('name', 'foxtrot')
+    b.set('name', 'tango')
+
+    a.save().then(->
+      new Weaver.Query()
+      .hasRelationOut('link')
+      .selectOut('*')
+      .find().then((nodes)->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+        expect(nodes[0].relation('test').nodes['c'].get('name')).to.equal('foxtrot')
+        expect(nodes[0].relation('link').nodes['b'].get('name')).to.equal('tango')
+      )
+    )
+
+
   it.skip 'should load in some secondary nodes with "selectIn"', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
@@ -633,6 +655,64 @@ describe 'WeaverQuery Test', ->
       .hasRelationOut('link',
         new Weaver.Query().hasRelationOut('link')
       ).find().then((nodes)->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+      )
+    )
+
+  it 'should be able to do nested hasRelationIn queries', ->
+    a = new Weaver.Node('a')
+    b = new Weaver.Node('b')
+    c = new Weaver.Node('c')
+    a.relation('link').add(b)
+    b.relation('link').add(c)
+
+    a.save().then(->
+      new Weaver.Query()
+      .hasRelationIn('link',
+        new Weaver.Query().hasRelationIn('link')
+      ).find().then((nodes)->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'c')
+      )
+    )
+
+  it 'should be able to combine hasRelationIn queries with hasRelationOut', ->
+    c = new Weaver.Node('c')
+    d = new Weaver.Node('d')
+    e = new Weaver.Node('e')
+
+    c.relation('link').add(d)
+    d.relation('test').add(e)
+
+    Promise.all([c.save()]).then(->
+      new Weaver.Query()
+        .hasRelationIn('link')
+        .hasRelationOut('test')
+      .find()
+    ).then((nodes)->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'd')
+    )
+
+  it 'should be able to combine nested hasRelationIn queries with hasRelationOut', ->
+    a = new Weaver.Node('a')
+    c = new Weaver.Node('c')
+    d = new Weaver.Node('d')
+    e = new Weaver.Node('e')
+
+    c.relation('link').add(d)
+    d.relation('link').add(a)
+    d.relation('test').add(e)
+
+    Promise.all([a.save(), d.save(), c.save()]).then(->
+      q = new Weaver.Query()
+      .hasRelationIn('link',
+        new Weaver.Query()
+        .hasRelationIn('link')
+        .hasRelationOut('test')
+      )
+      q.find().then((nodes)->
         expect(nodes.length).to.equal(1)
         checkNodeInResult(nodes, 'a')
       )
