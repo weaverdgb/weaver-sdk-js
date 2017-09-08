@@ -533,6 +533,27 @@ describe 'WeaverQuery Test', ->
       )
     )
 
+  it 'should support multiple hops for selectOut', ->
+    a = new Weaver.Node('a')
+    b = new Weaver.Node('b')
+    c = new Weaver.Node('c')
+    a.relation('link').add(b)
+    b.relation('test').add(c)
+    c.set('name', 'grazitutti')
+
+    a.save().then(->
+      new Weaver.Query()
+      .hasRelationOut('link')
+      .selectOut('link', 'test')
+      .find().then((nodes)->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+        loadedB = nodes[0].relation('link').nodes['b']
+        expect(loadedB).to.exist
+        expect(loadedB.relation('test').nodes['c'].get('name')).to.equal('grazitutti')
+      )
+    )
+
   it 'should not allow multiple selectOut clauses (yet)', ->
     new Weaver.Query()
     .selectOut('test')
