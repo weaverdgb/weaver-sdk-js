@@ -529,7 +529,7 @@ describe 'WeaverQuery Test', ->
       .find().then((nodes)->
         expect(nodes.length).to.equal(1)
         checkNodeInResult(nodes, 'a')
-        expect(nodes[0].relation('test').nodes[c].get('name')).to.equal('bravo')
+        expect(nodes[0].relation('test').nodes['c'].get('name')).to.equal('bravo')
       )
     )
 
