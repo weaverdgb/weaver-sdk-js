@@ -533,6 +533,12 @@ describe 'WeaverQuery Test', ->
       )
     )
 
+  it 'should not allow multiple selectOut clauses (yet)', ->
+    new Weaver.Query()
+    .selectOut('test')
+    .selectOut('another')
+    .find().should.be.rejected
+
   it 'should ensure that nodes are not excluded based on the  "selectOut" flag', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')

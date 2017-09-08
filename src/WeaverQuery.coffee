@@ -231,7 +231,7 @@ class WeaverQuery
     @
 
   selectOut: (relationKeys...) ->
-    @_selectOut = relationKeys
+    @_selectOut.push(relationKeys)
     @
 
   hollow: (value) ->
