@@ -35,7 +35,7 @@ class WeaverNode
       for relation in relations
         instance = new Constructor(relation.target.nodeId)
         instance._loadFromQuery(relation.target, Constructor)
-        @relation(key).add(instance, relation.nodeId)
+        @relation(key).add(instance, relation.nodeId, false)
 
     @._clearPendingWrites()
     @

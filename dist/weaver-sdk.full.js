@@ -98064,7 +98064,7 @@ module.exports = yeast;
 },{}],415:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "3.0.6",
+  "version": "3.0.8",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -98072,7 +98072,7 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredServerVersion": "~3.0.6"
+    "requiredServerVersion": "~3.0.7"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -98397,6 +98397,25 @@ module.exports={
       return this.GET("project.ready", {
         id: id
       }, "$SYSTEM");
+    };
+
+    CoreManager.prototype.nameProject = function(id, name) {
+      return this.POST("project.name", {
+        id: id,
+        name: name
+      }, id);
+    };
+
+    CoreManager.prototype.freezeProject = function(id) {
+      return this.GET("project.freeze", {
+        id: id
+      }, id);
+    };
+
+    CoreManager.prototype.unfreezeProject = function(id) {
+      return this.GET("project.unfreeze", {
+        id: id
+      }, id);
     };
 
     CoreManager.prototype.cloneProject = function(id, clone_id, name) {
@@ -99491,7 +99510,7 @@ module.exports={
           relation = relations[j];
           instance = new Constructor(relation.target.nodeId);
           instance._loadFromQuery(relation.target, Constructor);
-          this.relation(key).add(instance, relation.nodeId);
+          this.relation(key).add(instance, relation.nodeId, false);
         }
       }
       this._clearPendingWrites();
@@ -99978,12 +99997,27 @@ module.exports={
       })(this));
     };
 
+    WeaverProject.prototype.freeze = function() {
+      return Weaver.getCoreManager().freezeProject(this.id());
+    };
+
+    WeaverProject.prototype.unfreeze = function() {
+      return Weaver.getCoreManager().unfreezeProject(this.id());
+    };
+
     WeaverProject.prototype.getAllNodes = function(attributes) {
       return Weaver.getCoreManager().getAllNodes(attributes, this.id());
     };
 
     WeaverProject.prototype.getAllRelations = function() {
       return Weaver.getCoreManager().getAllRelations(this.id());
+    };
+
+    WeaverProject.prototype.rename = function(name) {
+      var renamed;
+      renamed = Weaver.getCoreManager().nameProject(this.id(), name);
+      this.name = name;
+      return renamed;
     };
 
     WeaverProject.prototype.getSnapshot = function(zipped) {
@@ -100047,6 +100081,8 @@ module.exports={
   };
 
   WeaverQuery = (function() {
+    WeaverQuery.profilers = [];
+
     function WeaverQuery(target) {
       this.target = target;
       this._restrict = [];
@@ -100055,6 +100091,7 @@ module.exports={
       this._conditions = {};
       this._include = [];
       this._select = [];
+      this._selectOut = [];
       this._noRelations = true;
       this._noAttributes = true;
       this._count = false;
@@ -100070,6 +100107,7 @@ module.exports={
       Constructor = Constructor || Weaver.Node;
       return Weaver.getCoreManager().query(this).then(function(result) {
         var instance, j, len, list, node, ref;
+        Weaver.Query.notify(result);
         list = [];
         ref = result.nodes;
         for (j = 0, len = ref.length; j < len; j++) {
@@ -100087,6 +100125,7 @@ module.exports={
     WeaverQuery.prototype.count = function() {
       this._count = true;
       return Weaver.getCoreManager().query(this).then(function(result) {
+        Weaver.Query.notify(result);
         return result.count;
       });
     };
@@ -100367,6 +100406,13 @@ module.exports={
       return this;
     };
 
+    WeaverQuery.prototype.selectOut = function() {
+      var relationKeys;
+      relationKeys = 1 <= arguments.length ? slice.call(arguments, 0) : [];
+      this._selectOut.push(relationKeys);
+      return this;
+    };
+
     WeaverQuery.prototype.hollow = function(value) {
       this._hollow = value;
       return this;
@@ -100382,6 +100428,25 @@ module.exports={
       query = new Weaver.Query();
       query.or(queries);
       return query;
+    };
+
+    WeaverQuery.profile = function(callback) {
+      return Weaver.Query.profilers.push(callback);
+    };
+
+    WeaverQuery.clearProfilers = function() {
+      return Weaver.Query.profilers = [];
+    };
+
+    WeaverQuery.notify = function(result) {
+      var callback, j, len, ref, results;
+      ref = Weaver.Query.profilers;
+      results = [];
+      for (j = 0, len = ref.length; j < len; j++) {
+        callback = ref[j];
+        results.push(callback(result));
+      }
+      return results;
     };
 
     WeaverQuery.prototype.subscribe = function() {
@@ -100458,7 +100523,10 @@ module.exports={
       return this.all()[0];
     };
 
-    WeaverRelation.prototype.add = function(node, relId) {
+    WeaverRelation.prototype.add = function(node, relId, addToPendingWrites) {
+      if (addToPendingWrites == null) {
+        addToPendingWrites = true;
+      }
       if (relId == null) {
         relId = cuid();
       }

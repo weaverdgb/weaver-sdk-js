@@ -357,6 +357,17 @@ describe 'WeaverQuery Test', ->
       )
     )
 
+  it 'should not break on loops', ->
+    a = new Weaver.Node('a')
+    b = new Weaver.Node('b')
+
+    a.relation('x').add(b)
+    b.relation('y').add(a)
+
+    Promise.all([a.save(), b.save()]).then(->
+      new Weaver.Query().find()
+    )
+
   it.skip 'should return all relations even on attribute selects', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
@@ -502,7 +513,7 @@ describe 'WeaverQuery Test', ->
       )
     )
 
-  it.skip 'should load in some secondary nodes with "selectOut"', ->
+  it 'should load in some secondary nodes with "selectOut"', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
     c = new Weaver.Node('c')
@@ -518,11 +529,38 @@ describe 'WeaverQuery Test', ->
       .find().then((nodes)->
         expect(nodes.length).to.equal(1)
         checkNodeInResult(nodes, 'a')
-        expect(nodes[0].relation('test').nodes[c].get('name')).to.equal('bravo')
+        expect(nodes[0].relation('test').nodes['c'].get('name')).to.equal('bravo')
       )
     )
 
-  it.skip 'should ensure that nodes are not excluded based on the  "selectOut" flag', ->
+  it 'should support multiple hops for selectOut', ->
+    a = new Weaver.Node('a')
+    b = new Weaver.Node('b')
+    c = new Weaver.Node('c')
+    a.relation('link').add(b)
+    b.relation('test').add(c)
+    c.set('name', 'grazitutti')
+
+    a.save().then(->
+      new Weaver.Query()
+      .hasRelationOut('link')
+      .selectOut('link', 'test')
+      .find().then((nodes)->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+        loadedB = nodes[0].relation('link').nodes['b']
+        expect(loadedB).to.exist
+        expect(loadedB.relation('test').nodes['c'].get('name')).to.equal('grazitutti')
+      )
+    )
+
+  it 'should not allow multiple selectOut clauses (yet)', ->
+    new Weaver.Query()
+    .selectOut('test')
+    .selectOut('another')
+    .find().should.be.rejected
+
+  it 'should ensure that nodes are not excluded based on the  "selectOut" flag', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
     c = new Weaver.Node('c')
@@ -542,6 +580,28 @@ describe 'WeaverQuery Test', ->
         checkNodeInResult(nodes, 'b')
       )
     )
+
+  it 'should allow wildcard selectOut', ->
+    a = new Weaver.Node('a')
+    b = new Weaver.Node('b')
+    c = new Weaver.Node('c')
+    a.relation('link').add(b)
+    a.relation('test').add(c)
+    c.set('name', 'foxtrot')
+    b.set('name', 'tango')
+
+    a.save().then(->
+      new Weaver.Query()
+      .hasRelationOut('link')
+      .selectOut('*')
+      .find().then((nodes)->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+        expect(nodes[0].relation('test').nodes['c'].get('name')).to.equal('foxtrot')
+        expect(nodes[0].relation('link').nodes['b'].get('name')).to.equal('tango')
+      )
+    )
+
 
   it.skip 'should load in some secondary nodes with "selectIn"', ->
     a = new Weaver.Node('a')
@@ -600,7 +660,65 @@ describe 'WeaverQuery Test', ->
       )
     )
 
-  it.skip 'should also load secondary nodes in nested queries', ->
+  it 'should be able to do nested hasRelationIn queries', ->
+    a = new Weaver.Node('a')
+    b = new Weaver.Node('b')
+    c = new Weaver.Node('c')
+    a.relation('link').add(b)
+    b.relation('link').add(c)
+
+    a.save().then(->
+      new Weaver.Query()
+      .hasRelationIn('link',
+        new Weaver.Query().hasRelationIn('link')
+      ).find().then((nodes)->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'c')
+      )
+    )
+
+  it 'should be able to combine hasRelationIn queries with hasRelationOut', ->
+    c = new Weaver.Node('c')
+    d = new Weaver.Node('d')
+    e = new Weaver.Node('e')
+
+    c.relation('link').add(d)
+    d.relation('test').add(e)
+
+    Promise.all([c.save()]).then(->
+      new Weaver.Query()
+        .hasRelationIn('link')
+        .hasRelationOut('test')
+      .find()
+    ).then((nodes)->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'd')
+    )
+
+  it 'should be able to combine nested hasRelationIn queries with hasRelationOut', ->
+    a = new Weaver.Node('a')
+    c = new Weaver.Node('c')
+    d = new Weaver.Node('d')
+    e = new Weaver.Node('e')
+
+    c.relation('link').add(d)
+    d.relation('link').add(a)
+    d.relation('test').add(e)
+
+    Promise.all([a.save(), d.save(), c.save()]).then(->
+      q = new Weaver.Query()
+      .hasRelationIn('link',
+        new Weaver.Query()
+        .hasRelationIn('link')
+        .hasRelationOut('test')
+      )
+      q.find().then((nodes)->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+      )
+    )
+
+  it 'should not load secondary nodes in nested queries', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
     c = new Weaver.Node('c')
@@ -613,7 +731,7 @@ describe 'WeaverQuery Test', ->
       .hasRelationOut('link',
         new Weaver.Query().hasRelationOut('link')
       ).find().then((nodes)->
-        expect(nodes[0].relation('link').nodes['b'].get('name')).to.equal('bravo')
+        expect(nodes[0].relation('link').nodes['b'].get('name')).to.be.undefined
       )
     )
 
@@ -727,3 +845,27 @@ describe 'WeaverQuery Test', ->
       )
     )
 
+
+  it 'should profile Weaver.Query', ->
+    Weaver.Query.profile((queryResult) ->
+      expect(queryResult.nodes[0].nodeId).to.equal('someNode')
+    )
+
+    node = new Weaver.Node('someNode')
+    node.save().then(->
+      Weaver.Node.load('someNode')
+    )
+
+  it 'should clear profilers', ->
+    Weaver.Query.profile((queryResult) ->
+      expect(queryResult.nodes[0].nodeId).to.equal('someNode')
+
+      Weaver.Query.clearProfilers()
+    )
+
+    node = new Weaver.Node('someNode')
+    node.save().then(->
+      Weaver.Node.load('someNode')
+    ).then(->
+      Weaver.Node.load('someNode')
+    )

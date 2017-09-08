@@ -11,6 +11,8 @@ quote = (s) ->
 
 class WeaverQuery
 
+  @profilers = []
+
   constructor: (@target) ->
     @_restrict     = []
     @_equals       = {}
@@ -18,6 +20,7 @@ class WeaverQuery
     @_conditions   = {}
     @_include      = []
     @_select       = []
+    @_selectOut    = []
     @_noRelations  = true
     @_noAttributes = true
     @_count        = false
@@ -32,6 +35,7 @@ class WeaverQuery
 
     Constructor = Constructor or Weaver.Node
     Weaver.getCoreManager().query(@).then((result) ->
+      Weaver.Query.notify(result)
       list = []
       for node in result.nodes
         instance = new Constructor(node.nodeId)
@@ -46,6 +50,7 @@ class WeaverQuery
   count: ->
     @_count = true
     Weaver.getCoreManager().query(@).then((result) ->
+      Weaver.Query.notify(result)
       result.count
     )
 
@@ -225,6 +230,10 @@ class WeaverQuery
     @_select = keys
     @
 
+  selectOut: (relationKeys...) ->
+    @_selectOut.push(relationKeys)
+    @
+
   hollow: (value) ->
     @_hollow = value
     @
@@ -237,6 +246,16 @@ class WeaverQuery
     query = new Weaver.Query()
     query.or(queries)
     query
+
+  @profile: (callback) ->
+    Weaver.Query.profilers.push(callback)
+
+  @clearProfilers: ->
+    Weaver.Query.profilers = []
+
+  @notify: (result) ->
+    for callback in Weaver.Query.profilers
+      callback(result)
 
   # Create, Update, Enter, Leave, Delete
   subscribe: ->

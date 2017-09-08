@@ -171,6 +171,15 @@ class CoreManager
   readyProject: (id) ->
     @GET("project.ready", {id}, "$SYSTEM")
     
+  nameProject: (id, name) ->
+    @POST("project.name", {id, name}, id)
+    
+  freezeProject: (id) ->
+    @GET("project.freeze", {id}, id)
+  
+  unfreezeProject: (id) ->
+    @GET("project.unfreeze", {id}, id)
+
   cloneProject: (id, clone_id, name) ->
     @POST("project.clone", {id: clone_id, name}, id)
     
