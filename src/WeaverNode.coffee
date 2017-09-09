@@ -27,14 +27,33 @@ class WeaverNode
     query.withAttributes() if includeAttributes
     query.get(nodeId, Constructor)
 
-  _loadFromQuery: (object, Constructor) ->
-    Constructor = Constructor or WeaverNode
+
+  @loadFromQuery: (node, constructorFunction) ->
+    if constructorFunction?
+      Constructor = constructorFunction(Weaver.Node.loadFromQuery(node)) or Weaver.Node
+    else
+      Constructor = Weaver.Node
+
+    instance = new Constructor(node.nodeId)
+    instance._loadFromQuery(node, constructorFunction)
+    instance._setStored()
+    instance._loaded = true
+    instance
+
+
+  _loadFromQuery: (object, constructorFunction) ->
     @attributes = object.attributes
 
     for key, relations of object.relations
       for relation in relations
+
+        if constructorFunction?
+          Constructor = constructorFunction(Weaver.Node.loadFromQuery(relation.target)) or Weaver.Node
+        else
+          Constructor = Weaver.Node
+
         instance = new Constructor(relation.target.nodeId)
-        instance._loadFromQuery(relation.target, Constructor)
+        instance._loadFromQuery(relation.target, constructorFunction)
         @relation(key).add(instance, relation.nodeId, false)
 
     @._clearPendingWrites()
