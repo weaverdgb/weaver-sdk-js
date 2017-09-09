@@ -513,6 +513,25 @@ describe 'WeaverQuery Test', ->
       )
     )
 
+  it 'should load in some secondary nodes with "selectOut" while relation does not exist', ->
+    a = new Weaver.Node('a')
+    b = new Weaver.Node('b')
+    c = new Weaver.Node('c')
+    a.relation('link').add(b)
+    c.set('name', 'bravo')
+
+    Promise.all([a.save(), c.save()]).then(->
+      new Weaver.Query()
+      .selectOut('test') # selectOut is optional, it loads the attrs/rels for node c if node a has a 'test' relation to node c,
+                         # but does not exclude node a from the result set if node a does not have this relation
+      .find().then((nodes)->
+        expect(nodes.length).to.equal(3)
+        checkNodeInResult(nodes, 'a')
+      )
+    )
+
+
+
   it 'should load in some secondary nodes with "selectOut"', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
