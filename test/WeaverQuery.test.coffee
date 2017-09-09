@@ -554,11 +554,28 @@ describe 'WeaverQuery Test', ->
       )
     )
 
-  it 'should not allow multiple selectOut clauses (yet)', ->
-    new Weaver.Query()
-    .selectOut('test')
-    .selectOut('another')
-    .find().should.be.rejected
+  it 'should allow multiple selectOut clauses', ->
+    a = new Weaver.Node('a')
+    b = new Weaver.Node('b')
+    c = new Weaver.Node('c')
+    b.set('name', 'Seb')
+    c.set('name', 'Lewis')
+
+    a.relation('beats').add(b)
+    a.relation('beatenBy').add(c)
+
+    a.save().then( ->
+      new Weaver.Query()
+      .hasRelationOut('beats')
+      .selectOut('beats')
+      .selectOut('beatenBy')
+      .find()
+    ).then((nodes) ->
+      expect(nodes).to.have.length.be(1)
+      checkNodeInResult(nodes, 'a')
+      expect(nodes[0].relation('beats').nodes['b'].get('name')).to.equal('Seb')
+      expect(nodes[0].relation('beatenBy').nodes['c'].get('name')).to.equal('Lewis')
+    )
 
   it 'should ensure that nodes are not excluded based on the  "selectOut" flag', ->
     a = new Weaver.Node('a')
