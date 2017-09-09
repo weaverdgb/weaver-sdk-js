@@ -573,6 +573,48 @@ describe 'WeaverQuery Test', ->
       )
     )
 
+
+  it 'should support constructors with multiple hops for selectOut', ->
+
+    class SpecialNodeA extends Weaver.Node
+
+    class SpecialNodeB extends Weaver.Node
+
+    class SpecialNodeC extends Weaver.Node
+
+    a = new SpecialNodeA('a')
+    a.set('type', 'typeA')
+    b = new SpecialNodeB('b')
+    b.set('type', 'typeB')
+    c = new SpecialNodeC('c')
+    c.set('type', 'typeC')
+    a.relation('link').add(b)
+    b.relation('test').add(c)
+
+    a.save().then(->
+      new Weaver.Query()
+      .hasRelationOut('link')
+      .selectOut('link', 'test')
+      .useConstructor((node)->
+        if node.get('type') is 'typeA'
+          SpecialNodeA
+        else if node.get('type') is 'typeC'
+          SpecialNodeC
+      )
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+
+        loadedA = nodes[0]
+        loadedB = nodes[0].relation('link').nodes['b']
+        loadedC = loadedB.relation('test').nodes['c']
+
+        assert.isTrue(loadedA instanceof SpecialNodeA)
+        assert.isTrue(loadedB instanceof Weaver.Node)
+        assert.isTrue(loadedC instanceof SpecialNodeC)
+      )
+    )
+
+
   it 'should allow multiple selectOut clauses', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
