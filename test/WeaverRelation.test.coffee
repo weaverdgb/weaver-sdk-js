@@ -42,17 +42,6 @@ describe 'Weaver relation and WeaverRelationNode test', ->
       loadedRel = relation
       assert.isTrue(loadedRel instanceof Weaver.RelationNode)
       assert.equal(loadedRel.id(), rel.id())
-
-# todo: see ticket WEAV-132
-#      loadedRel.to()
-#    ).then((to) ->
-#      assert.isTrue(to instanceof Weaver.Node)
-#      assert.equal(to.id(), bar.id())
-#
-#      loadedRel.from()
-#    ).then((from) ->
-#      assert.isTrue(from instanceof Weaver.Node)
-#      assert.equal(from.id(), foo.id())
     )
 
   it 'should add a new relation with id', ->

@@ -170,19 +170,19 @@ class CoreManager
 
   readyProject: (id) ->
     @GET("project.ready", {id}, "$SYSTEM")
-    
+
   nameProject: (id, name) ->
     @POST("project.name", {id, name}, id)
-    
+
   freezeProject: (id) ->
     @GET("project.freeze", {id}, id)
-  
+
   unfreezeProject: (id) ->
     @GET("project.unfreeze", {id}, id)
 
   cloneProject: (id, clone_id, name) ->
     @POST("project.clone", {id: clone_id, name}, id)
-    
+
   deleteProject: (id) ->
     @POST("project.delete", {id}, id)
 
@@ -216,7 +216,7 @@ class CoreManager
   query: (query) ->
     # Remove target
     target = query.target
-    query  = _.omit(query, 'target')
+    query  = _.omit(query, ['target', 'useConstructorFunction'])
 
     @POST("query", {query}, target)
 

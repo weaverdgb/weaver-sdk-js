@@ -513,6 +513,25 @@ describe 'WeaverQuery Test', ->
       )
     )
 
+  it 'should load in some secondary nodes with "selectOut" while relation does not exist', ->
+    a = new Weaver.Node('a')
+    b = new Weaver.Node('b')
+    c = new Weaver.Node('c')
+    a.relation('link').add(b)
+    c.set('name', 'bravo')
+
+    Promise.all([a.save(), c.save()]).then(->
+      new Weaver.Query()
+      .selectOut('test') # selectOut is optional, it loads the attrs/rels for node c if node a has a 'test' relation to node c,
+                         # but does not exclude node a from the result set if node a does not have this relation
+      .find().then((nodes)->
+        expect(nodes.length).to.equal(3)
+        checkNodeInResult(nodes, 'a')
+      )
+    )
+
+
+
   it 'should load in some secondary nodes with "selectOut"', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
@@ -554,11 +573,70 @@ describe 'WeaverQuery Test', ->
       )
     )
 
-  it 'should not allow multiple selectOut clauses (yet)', ->
-    new Weaver.Query()
-    .selectOut('test')
-    .selectOut('another')
-    .find().should.be.rejected
+
+  it 'should support constructors with multiple hops for selectOut', ->
+
+    class SpecialNodeA extends Weaver.Node
+
+    class SpecialNodeB extends Weaver.Node
+
+    class SpecialNodeC extends Weaver.Node
+
+    a = new SpecialNodeA('a')
+    a.set('type', 'typeA')
+    b = new SpecialNodeB('b')
+    b.set('type', 'typeB')
+    c = new SpecialNodeC('c')
+    c.set('type', 'typeC')
+    a.relation('link').add(b)
+    b.relation('test').add(c)
+
+    a.save().then(->
+      new Weaver.Query()
+      .hasRelationOut('link')
+      .selectOut('link', 'test')
+      .useConstructor((node)->
+        if node.get('type') is 'typeA'
+          SpecialNodeA
+        else if node.get('type') is 'typeC'
+          SpecialNodeC
+      )
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+
+        loadedA = nodes[0]
+        loadedB = nodes[0].relation('link').nodes['b']
+        loadedC = loadedB.relation('test').nodes['c']
+
+        assert.isTrue(loadedA instanceof SpecialNodeA)
+        assert.isTrue(loadedB instanceof Weaver.Node)
+        assert.isTrue(loadedC instanceof SpecialNodeC)
+      )
+    )
+
+
+  it 'should allow multiple selectOut clauses', ->
+    a = new Weaver.Node('a')
+    b = new Weaver.Node('b')
+    c = new Weaver.Node('c')
+    b.set('name', 'Seb')
+    c.set('name', 'Lewis')
+
+    a.relation('beats').add(b)
+    a.relation('beatenBy').add(c)
+
+    a.save().then( ->
+      new Weaver.Query()
+      .hasRelationOut('beats')
+      .selectOut('beats')
+      .selectOut('beatenBy')
+      .find()
+    ).then((nodes) ->
+      expect(nodes).to.have.length.be(1)
+      checkNodeInResult(nodes, 'a')
+      expect(nodes[0].relation('beats').nodes['b'].get('name')).to.equal('Seb')
+      expect(nodes[0].relation('beatenBy').nodes['c'].get('name')).to.equal('Lewis')
+    )
 
   it 'should ensure that nodes are not excluded based on the  "selectOut" flag', ->
     a = new Weaver.Node('a')
