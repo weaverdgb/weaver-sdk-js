@@ -106,7 +106,7 @@ describe 'WeaverProject Test', ->
     )
     return
 
-  it.skip 'should export the database content as snapshot', ->
+  it 'should export the database content as snapshot', ->
     node = new Weaver.Node()
 
     node.save().then((node) ->

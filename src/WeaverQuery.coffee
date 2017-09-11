@@ -20,6 +20,7 @@ class WeaverQuery
     @_conditions   = {}
     @_include      = []
     @_select       = []
+    @_selectOut    = []
     @_noRelations  = true
     @_noAttributes = true
     @_count        = false
@@ -32,17 +33,16 @@ class WeaverQuery
 
   find: (Constructor) ->
 
-    Constructor = Constructor or Weaver.Node
-    Weaver.getCoreManager().query(@).then((result) ->
+    if Constructor?
+      @useConstructorFunction = -> Constructor
+
+    Weaver.getCoreManager().query(@).then((result) =>
       Weaver.Query.notify(result)
       list = []
       for node in result.nodes
-        instance = new Constructor(node.nodeId)
-        instance._loadFromQuery(node)
-        instance._setStored()
-        instance._loaded = true
+        castedNode = Weaver.Node.loadFromQuery(node, @useConstructorFunction)
 
-        list.push(instance)
+        list.push(castedNode)
       list
     )
 
@@ -229,6 +229,10 @@ class WeaverQuery
     @_select = keys
     @
 
+  selectOut: (relationKeys...) ->
+    @_selectOut.push(relationKeys)
+    @
+
   hollow: (value) ->
     @_hollow = value
     @
@@ -251,6 +255,10 @@ class WeaverQuery
   @notify: (result) ->
     for callback in Weaver.Query.profilers
       callback(result)
+
+  useConstructor: (useConstructorFunction) ->
+    @useConstructorFunction = useConstructorFunction
+    @
 
   # Create, Update, Enter, Leave, Delete
   subscribe: ->
