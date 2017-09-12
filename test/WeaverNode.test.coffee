@@ -323,6 +323,25 @@ describe 'WeaverNode test', ->
         assert.equal(node.id(), 'test')
       )
 
+  it 'should be possible to get write operations from a node when weaver is not instantiated', ->
+    instance = Weaver.instance
+    Weaver.instance = undefined
+    try
+
+      node = new Weaver.Node('test')
+      node.set('has', 'beans')
+
+      operations = node.peekPendingWrites()
+      console.log(operations)
+
+      expect(operations).to.have.length(2)
+
+    finally
+      Weaver.instance = instance
+    
+
+   
+
   it.skip 'should recursively clone a node', ->
 
     a = new Weaver.Node()
