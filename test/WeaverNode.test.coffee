@@ -332,15 +332,11 @@ describe 'WeaverNode test', ->
       node.set('has', 'beans')
 
       operations = node.peekPendingWrites()
-      console.log(operations)
-
       expect(operations).to.have.length(2)
 
     finally
       Weaver.instance = instance
     
-
-   
 
   it.skip 'should recursively clone a node', ->
 
