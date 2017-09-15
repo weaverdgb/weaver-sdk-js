@@ -638,6 +638,13 @@ describe 'WeaverQuery Test', ->
       expect(nodes[0].relation('beatenBy').nodes['c'].get('name')).to.equal('Lewis')
     )
 
+  it 'should not 503 on selectOut for no nodes', ->
+    new Weaver.Query()
+    .selectOut('test')
+    .find().then((nodes)->
+      expect(nodes.length).to.equal(0)
+    )
+
   it 'should ensure that nodes are not excluded based on the  "selectOut" flag', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
