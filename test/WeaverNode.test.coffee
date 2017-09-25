@@ -257,11 +257,10 @@ describe 'WeaverNode test', ->
       assert.equal(loadedNode.id(), c.id())
     )
 
-  it.skip 'should clone a node', ->
-
-    a = new Weaver.Node()
-    b = new Weaver.Node()
-    c = new Weaver.Node()
+  it 'should clone a node', ->
+    a = new Weaver.Node('a')
+    b = new Weaver.Node('b')
+    c = new Weaver.Node('c')
     cloned = null
 
     a.set('name', 'Foo')
@@ -274,20 +273,17 @@ describe 'WeaverNode test', ->
 
     Weaver.Node.batchSave([a,b,c])
     .then(->
-      Weaver.Node.load(a.id())
-    ).then((node) ->
-      node.clone()
-    ).then((node) ->
-      cloned = node
-
+      a.clone('new-a')
+    ).then( ->
+      Weaver.Node.load('new-a')
+    ).then((cloned) ->
       assert.notEqual(cloned.id(), a.id())
       assert.equal(cloned.get('name'), 'Foo')
       to = value for key, value of cloned.relation('to').nodes
       assert.equal(to.id(), b.id())
-
       Weaver.Node.load(c.id())
     ).then((node) ->
-      assert.isDefined(node.relation('to').nodes[cloned.id()])
+      assert.isDefined(node.relation('to').nodes['new-a'])
     )
 
 

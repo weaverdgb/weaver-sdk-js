@@ -72,6 +72,9 @@ class CoreManager
 #  serverVersion: ->
 #    @POST('application.version')
 
+  cloneNode: (sourceId, targetId, relationsToTraverse) ->
+    @POST('node.clone', { sourceId, targetId, relationsToTraverse})
+
   serverVersion: ->
     @GET("application.version")
 
