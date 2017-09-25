@@ -10,6 +10,11 @@ describe 'WeaverNode test', ->
       Promise.all([a.destroy(), a.destroy()])
     )
 
+  it 'should reject loading undefined nodes', ->
+    Weaver.Node.load(undefined).should.eventually.be.rejected
+
+  it 'should reject loading unexistant nodes', ->
+    Weaver.Node.load('doesnt-exist').should.eventually.be.rejected
 
   it 'should propagate delete to relations (part 1)', ->
     a = new Weaver.Node()
