@@ -291,6 +291,53 @@ describe 'WeaverNode test', ->
       assert.isDefined(node.relation('to').nodes['new-a'])
     )
 
+  it 'should recursively clone a node', ->
+    foo = new Weaver.Node('foo')
+    bar = new Weaver.Node('bar')
+
+    foo.relation('baz').add(bar)
+
+    foo.save().then(->
+      foo.clone('new-foo', 'baz')
+    ).then(->
+      Weaver.Node.load('new-foo')
+    ).then((newFoo) ->
+      expect(newFoo.relation('baz').nodes).to.not.have.property('bar')
+    )
+
+  it 'should clone loops', ->
+    paper = new Weaver.Node('paper')
+    sissors = new Weaver.Node('sissors')
+    rock = new Weaver.Node('rock')
+
+    paper.relation('beats').add(rock)
+    rock.relation('beats').add(sissors)
+    sissors.relation('beats').add(paper)
+
+    paper.save().then(->
+      paper.clone('new-paper', 'beats')
+    )
+
+  it 'should clone links to loops', ->
+    paper = new Weaver.Node('paper')
+    sissors = new Weaver.Node('sissors')
+    rock = new Weaver.Node('rock')
+    
+    player = new Weaver.Node('player')
+
+    paper.relation('beats').add(rock)
+    rock.relation('beats').add(sissors)
+    sissors.relation('beats').add(paper)
+    player.relation('chooses').add(sissors)
+
+    player.save().then(->
+      paper.clone('new-paper', 'beats')
+    ).then(->
+      Weaver.Node.load('player')
+    ).then((pl) ->
+      expect(pl.relation('chooses').all()).to.have.length.be(2)
+      expect(pl.relation('chooses').nodes).to.have.property('sissors')
+    )
 
   it 'should load an incomplete node', ->
     incompleteNode = null
@@ -323,36 +370,3 @@ describe 'WeaverNode test', ->
         assert.isTrue(node._loaded)
         assert.equal(node.id(), 'test')
       )
-
-  it.skip 'should recursively clone a node', ->
-
-    a = new Weaver.Node()
-    b = new Weaver.Node()
-    c = new Weaver.Node()
-    cloned = null
-
-    a.set('name', 'Foo')
-    b.set('name', 'Bar')
-    c.set('name', 'Dear')
-
-    a.relation('to').add(b)
-    b.relation('to').add(c)
-    c.relation('to').add(a)
-
-    Weaver.Node.batchSave([a,b,c])
-    .then(->
-      Weaver.Node.load(a.id())
-    ).then((node) ->
-      node.clone({'to':Weaver.Node})
-    ).then((node) ->
-      cloned = node
-
-      assert.notEqual(cloned.id(), a.id())
-      assert.equal(cloned.get('name'), 'Foo')
-      to = value for key, value of cloned.relation('to').nodes
-      assert.notEqual(to.id(), b.id())
-
-      Weaver.Node.load(c.id())
-    ).then((node) ->
-      assert.isDefined(node.relation('to').nodes[cloned.id()])
-    )
