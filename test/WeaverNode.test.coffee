@@ -11,7 +11,9 @@ describe 'WeaverNode test', ->
     )
 
   it 'should reject loading undefined nodes', ->
-    Weaver.Node.load(undefined).should.eventually.be.rejected
+    new Weaver.Node().save().then( ->
+      Weaver.Node.load(undefined).should.eventually.be.rejected
+    )
 
   it 'should reject loading unexistant nodes', ->
     Weaver.Node.load('doesnt-exist').should.eventually.be.rejected
