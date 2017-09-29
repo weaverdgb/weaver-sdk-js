@@ -1,6 +1,6 @@
 {
   "name": "weaver-sdk",
-  "version": "3.0.11-rc.0",
+  "version": "3.0.11",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -8,7 +8,7 @@
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredServerVersion": "~3.0.9 || ^3.0.9-rc.0"
+    "requiredServerVersion": "~3.0.9"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
