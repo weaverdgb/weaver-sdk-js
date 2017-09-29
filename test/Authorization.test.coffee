@@ -3,6 +3,8 @@ Weaver = require('../src/Weaver')
 Promise = require('bluebird')
 
 describe 'Authorization test', ->
+  beforeEach ->
+    wipeCurrentProject()
 
 
   it 'should not allow project creation by default', ->

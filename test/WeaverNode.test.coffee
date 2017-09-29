@@ -2,6 +2,8 @@ weaver = require("./test-suite")
 Weaver = require('../src/Weaver')
 
 describe 'WeaverNode test', ->
+  beforeEach ->
+    wipeCurrentProject()
 
   it 'should handle concurrent remove node operations', ->
     a = new Weaver.Node()
@@ -322,7 +324,7 @@ describe 'WeaverNode test', ->
     paper = new Weaver.Node('paper')
     sissors = new Weaver.Node('sissors')
     rock = new Weaver.Node('rock')
-    
+
     player = new Weaver.Node('player')
 
     paper.relation('beats').add(rock)

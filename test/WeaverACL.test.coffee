@@ -3,6 +3,8 @@ Weaver = require('../src/Weaver')
 Promise = require('bluebird')
 
 describe 'WeaverACL test', ->
+  beforeEach ->
+    wipeCurrentProject()
 
   it 'should create a new ACL', ->
     acl = new Weaver.ACL()

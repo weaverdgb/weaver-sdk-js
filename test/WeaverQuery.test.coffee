@@ -2,6 +2,9 @@ weaver = require("./test-suite")
 Weaver = require('../src/Weaver')
 
 checkNodeInResult = (nodes, nodeId) ->
+  beforeEach ->
+    wipeCurrentProject()
+
   ids = (i.id() for i in nodes)
   expect(ids).to.contain(nodeId)
 
@@ -708,7 +711,7 @@ describe 'WeaverQuery Test', ->
       expect(nodes.length).to.equal(1)
       expect(nodes[0].relation('rec').nodes['b'].relation('rec').nodes['c'].relation('rec').nodes['d'].relation('rec').nodes['e'].get('name')).to.equal("toprec")
     )
-  
+
   it 'shoud support multiple recursive selectOut relations', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')

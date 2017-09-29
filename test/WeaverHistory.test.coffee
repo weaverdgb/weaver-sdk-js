@@ -3,6 +3,9 @@ Weaver  = require('../src/Weaver')
 Promise = require('bluebird')
 
 describe 'WeaverHistory test', ->
+  beforeEach ->
+    wipeCurrentProject()
+
   it 'should set a new string attribute', ->
     node = new Weaver.Node()
     nodeB = new Weaver.Node()

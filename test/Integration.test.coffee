@@ -6,6 +6,8 @@ alphaProject = null
 betaProject  = null
 
 describe 'Integration Test', ->
+  beforeEach ->
+    wipeCurrentProject()
 
   it 'should demonstrate and assess all Weaver functionality', ->
 
@@ -23,7 +25,7 @@ describe 'Integration Test', ->
       # - no data in any database
       # We therefore call the wipe function that only works in Development mode
       weaver.wipe()
-    
+
     ).then(->
 
       # Create a project with a name
