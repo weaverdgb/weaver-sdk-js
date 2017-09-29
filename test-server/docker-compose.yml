@@ -26,7 +26,7 @@ services:
     command: server /data
 
   weaver-server:
-    image: sysunite/weaver-server:3.0.9-beta.1-clone
+    image: sysunite/weaver-server:3.0.9-beta.1-clone-and-rec-sel
     expose:
     - "9487"
     ports:
