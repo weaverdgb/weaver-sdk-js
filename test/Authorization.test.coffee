@@ -1,11 +1,11 @@
-weaver = require("./test-suite")
+weaver = require("./test-suite").weaver
+wipeCurrentProject = require("./test-suite").wipeCurrentProject
 Weaver = require('../src/Weaver')
 Promise = require('bluebird')
 
 describe 'Authorization test', ->
   beforeEach ->
     wipeCurrentProject()
-
 
   it 'should not allow project creation by default', ->
     testUser = new Weaver.User('testuser', 'testpassword', 'email@dontevenvalidate.com')

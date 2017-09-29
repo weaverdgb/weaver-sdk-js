@@ -1,10 +1,7 @@
-weaver = require("./test-suite")
+weaver = require("./test-suite").weaver
 Weaver = require('../src/Weaver')
 
 describe 'Weaver relation and WeaverRelationNode test', ->
-  beforeEach ->
-    wipeCurrentProject()
-
   it 'should add a new relation without id', ->
     foo = new Weaver.Node()
     bar = new Weaver.Node()

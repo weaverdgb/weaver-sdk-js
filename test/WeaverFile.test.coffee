@@ -1,4 +1,5 @@
-weaver = require("./test-suite")
+weaver = require("./test-suite").weaver
+wipeCurrentProject = require("./test-suite").wipeCurrentProject
 Weaver = require('../src/Weaver')
 
 path     = require('path')

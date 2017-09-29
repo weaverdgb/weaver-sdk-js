@@ -1,4 +1,5 @@
-weaver  = require("./test-suite")
+weaver  = require("./test-suite").weaver
+wipeCurrentProject = require("./test-suite").wipeCurrentProject
 cuid    = require('cuid')
 Weaver  = require('../src/Weaver')
 Promise = require('bluebird')

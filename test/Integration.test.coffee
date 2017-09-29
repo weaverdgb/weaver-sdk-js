@@ -1,14 +1,11 @@
 Promise = require('bluebird')
-weaver = require("./test-suite")
+weaver = require("./test-suite").weaver
 Weaver = require('../src/Weaver')
 
 alphaProject = null
 betaProject  = null
 
 describe 'Integration Test', ->
-  beforeEach ->
-    wipeCurrentProject()
-
   it 'should demonstrate and assess all Weaver functionality', ->
 
     # Map to save state between promises

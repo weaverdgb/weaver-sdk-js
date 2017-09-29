@@ -34,4 +34,4 @@ wipeCurrentProject = ->
   .then(->weaver.currentProject().wipe())
   .then(->weaver.currentProject().unfreeze())
 
-module.exports = weaver
+module.exports = { weaver, wipeCurrentProject }
