@@ -135,7 +135,6 @@ class WeaverNode
       dataType
       value
       key: field
-      creator: Weaver.instance.currentUser().userId,
       created: newAttributeOperation.timestamp
       attributes: {}
       relations: {}
@@ -192,6 +191,27 @@ class WeaverNode
   clone: (newId, relationTraversal...) ->
     cm = Weaver.getCoreManager()
     cm.cloneNode(@nodeId, newId, relationTraversal)
+
+  peekPendingWrites: (collected) ->
+
+    # Register to keep track which nodes have been collected to prevent recursive blowup
+    collected  = {} if not collected?
+    collected[@id()] = true
+    operations = @pendingWrites
+
+    for key, relation of @relations
+      for id, node of relation.nodes
+        if not collected[node.id()]
+          collected[node.id()] = true
+          operations = operations.concat(node.peekPendingWrites(collected))
+
+      operations = operations.concat(relation.pendingWrites)
+
+    for operation in operations
+      delete operation[field] for field, value of operation when not value?
+
+    operations
+    
 
 
   # Go through each relation and recursively add all pendingWrites per relation AND that of the objects

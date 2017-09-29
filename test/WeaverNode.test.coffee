@@ -370,3 +370,17 @@ describe 'WeaverNode test', ->
         assert.isTrue(node._loaded)
         assert.equal(node.id(), 'test')
       )
+
+  it 'should be possible to get write operations from a node when weaver is not instantiated', ->
+    instance = Weaver.instance
+    Weaver.instance = undefined
+    try
+
+      node = new Weaver.Node('test')
+      node.set('has', 'beans')
+
+      operations = node.peekPendingWrites()
+      expect(operations).to.have.length(2)
+
+    finally
+      Weaver.instance = instance

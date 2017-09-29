@@ -99012,7 +99012,7 @@ module.exports = yeast;
 },{}],391:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "3.0.9",
+  "version": "3.0.10",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -99624,7 +99624,11 @@ module.exports={
 
   NodeOperation = function(node) {
     var timestamp;
-    timestamp = Weaver.getCoreManager().serverTime();
+    if (Weaver.instance != null) {
+      timestamp = Weaver.getCoreManager().serverTime();
+    } else {
+      timestamp = new Date().getTime();
+    }
     return {
       createNode: function() {
         return {
@@ -100565,7 +100569,6 @@ module.exports={
         dataType: dataType,
         value: value,
         key: field,
-        creator: Weaver.instance.currentUser().userId,
         created: newAttributeOperation.timestamp,
         attributes: {},
         relations: {}
@@ -100643,6 +100646,38 @@ module.exports={
         }
       }
       return Promise.resolve(clone);
+    };
+
+    WeaverNode.prototype.peekPendingWrites = function(collected) {
+      var field, id, j, key, len, node, operation, operations, ref, ref1, relation, value;
+      if (collected == null) {
+        collected = {};
+      }
+      collected[this.id()] = true;
+      operations = this.pendingWrites;
+      ref = this.relations;
+      for (key in ref) {
+        relation = ref[key];
+        ref1 = relation.nodes;
+        for (id in ref1) {
+          node = ref1[id];
+          if (!collected[node.id()]) {
+            collected[node.id()] = true;
+            operations = operations.concat(node.peekPendingWrites(collected));
+          }
+        }
+        operations = operations.concat(relation.pendingWrites);
+      }
+      for (j = 0, len = operations.length; j < len; j++) {
+        operation = operations[j];
+        for (field in operation) {
+          value = operation[field];
+          if (value == null) {
+            delete operation[field];
+          }
+        }
+      }
+      return operations;
     };
 
     WeaverNode.prototype._collectPendingWrites = function(collected) {
