@@ -10,6 +10,11 @@ describe 'WeaverNode test', ->
       Promise.all([a.destroy(), a.destroy()])
     )
 
+  it 'should reject loading undefined nodes', ->
+    Weaver.Node.load(undefined).should.eventually.be.rejected
+
+  it 'should reject loading unexistant nodes', ->
+    Weaver.Node.load('doesnt-exist').should.eventually.be.rejected
 
   it 'should propagate delete to relations (part 1)', ->
     a = new Weaver.Node()
@@ -257,11 +262,10 @@ describe 'WeaverNode test', ->
       assert.equal(loadedNode.id(), c.id())
     )
 
-  it.skip 'should clone a node', ->
-
-    a = new Weaver.Node()
-    b = new Weaver.Node()
-    c = new Weaver.Node()
+  it 'should clone a node', ->
+    a = new Weaver.Node('a')
+    b = new Weaver.Node('b')
+    c = new Weaver.Node('c')
     cloned = null
 
     a.set('name', 'Foo')
@@ -274,22 +278,66 @@ describe 'WeaverNode test', ->
 
     Weaver.Node.batchSave([a,b,c])
     .then(->
-      Weaver.Node.load(a.id())
-    ).then((node) ->
-      node.clone()
-    ).then((node) ->
-      cloned = node
-
+      a.clone('new-a')
+    ).then( ->
+      Weaver.Node.load('new-a')
+    ).then((cloned) ->
       assert.notEqual(cloned.id(), a.id())
       assert.equal(cloned.get('name'), 'Foo')
       to = value for key, value of cloned.relation('to').nodes
       assert.equal(to.id(), b.id())
-
       Weaver.Node.load(c.id())
     ).then((node) ->
-      assert.isDefined(node.relation('to').nodes[cloned.id()])
+      assert.isDefined(node.relation('to').nodes['new-a'])
     )
 
+  it 'should recursively clone a node', ->
+    foo = new Weaver.Node('foo')
+    bar = new Weaver.Node('bar')
+
+    foo.relation('baz').add(bar)
+
+    foo.save().then(->
+      foo.clone('new-foo', 'baz')
+    ).then(->
+      Weaver.Node.load('new-foo')
+    ).then((newFoo) ->
+      expect(newFoo.relation('baz').nodes).to.not.have.property('bar')
+    )
+
+  it 'should clone loops', ->
+    paper = new Weaver.Node('paper')
+    sissors = new Weaver.Node('sissors')
+    rock = new Weaver.Node('rock')
+
+    paper.relation('beats').add(rock)
+    rock.relation('beats').add(sissors)
+    sissors.relation('beats').add(paper)
+
+    paper.save().then(->
+      paper.clone('new-paper', 'beats')
+    )
+
+  it 'should clone links to loops', ->
+    paper = new Weaver.Node('paper')
+    sissors = new Weaver.Node('sissors')
+    rock = new Weaver.Node('rock')
+    
+    player = new Weaver.Node('player')
+
+    paper.relation('beats').add(rock)
+    rock.relation('beats').add(sissors)
+    sissors.relation('beats').add(paper)
+    player.relation('chooses').add(sissors)
+
+    player.save().then(->
+      paper.clone('new-paper', 'beats')
+    ).then(->
+      Weaver.Node.load('player')
+    ).then((pl) ->
+      expect(pl.relation('chooses').all()).to.have.length.be(2)
+      expect(pl.relation('chooses').nodes).to.have.property('sissors')
+    )
 
   it 'should load an incomplete node', ->
     incompleteNode = null
@@ -336,37 +384,3 @@ describe 'WeaverNode test', ->
 
     finally
       Weaver.instance = instance
-    
-
-  it.skip 'should recursively clone a node', ->
-
-    a = new Weaver.Node()
-    b = new Weaver.Node()
-    c = new Weaver.Node()
-    cloned = null
-
-    a.set('name', 'Foo')
-    b.set('name', 'Bar')
-    c.set('name', 'Dear')
-
-    a.relation('to').add(b)
-    b.relation('to').add(c)
-    c.relation('to').add(a)
-
-    Weaver.Node.batchSave([a,b,c])
-    .then(->
-      Weaver.Node.load(a.id())
-    ).then((node) ->
-      node.clone({'to':Weaver.Node})
-    ).then((node) ->
-      cloned = node
-
-      assert.notEqual(cloned.id(), a.id())
-      assert.equal(cloned.get('name'), 'Foo')
-      to = value for key, value of cloned.relation('to').nodes
-      assert.notEqual(to.id(), b.id())
-
-      Weaver.Node.load(c.id())
-    ).then((node) ->
-      assert.isDefined(node.relation('to').nodes[cloned.id()])
-    )

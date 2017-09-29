@@ -14,22 +14,23 @@ class WeaverQuery
   @profilers = []
 
   constructor: (@target) ->
-    @_restrict     = []
-    @_equals       = {}
-    @_orQueries    = []
-    @_conditions   = {}
-    @_include      = []
-    @_select       = []
-    @_selectOut    = []
-    @_noRelations  = true
-    @_noAttributes = true
-    @_count        = false
-    @_hollow       = false
-    @_limit        = 99999
-    @_skip         = 0
-    @_order        = []
-    @_ascending    = true
-    @_arrayCount   = 0
+    @_restrict           = []
+    @_equals             = {}
+    @_orQueries          = []
+    @_conditions         = {}
+    @_include            = []
+    @_select             = []
+    @_selectOut          = []
+    @_selectRecursiveOut = []
+    @_noRelations        = true
+    @_noAttributes       = true
+    @_count              = false
+    @_hollow             = false
+    @_limit              = 99999
+    @_skip               = 0
+    @_order              = []
+    @_ascending          = true
+    @_arrayCount         = 0
 
   find: (Constructor) ->
 
@@ -231,6 +232,10 @@ class WeaverQuery
 
   selectOut: (relationKeys...) ->
     @_selectOut.push(relationKeys)
+    @
+
+  selectRecursiveOut: (relationKeys...) ->
+    @_selectRecursiveOut = relationKeys
     @
 
   hollow: (value) ->

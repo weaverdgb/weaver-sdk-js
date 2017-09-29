@@ -638,6 +638,13 @@ describe 'WeaverQuery Test', ->
       expect(nodes[0].relation('beatenBy').nodes['c'].get('name')).to.equal('Lewis')
     )
 
+  it 'should not 503 on selectOut for no nodes', ->
+    new Weaver.Query()
+    .selectOut('test')
+    .find().then((nodes)->
+      expect(nodes.length).to.equal(0)
+    )
+
   it 'should ensure that nodes are not excluded based on the  "selectOut" flag', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
@@ -678,6 +685,61 @@ describe 'WeaverQuery Test', ->
         expect(nodes[0].relation('test').nodes['c'].get('name')).to.equal('foxtrot')
         expect(nodes[0].relation('link').nodes['b'].get('name')).to.equal('tango')
       )
+    )
+
+  it 'shoud support recursive selectOut', ->
+    a = new Weaver.Node('a')
+    b = new Weaver.Node('b')
+    c = new Weaver.Node('c')
+    d = new Weaver.Node('d')
+    e = new Weaver.Node('e')
+    a.relation('selector').add(b)
+    a.relation('rec').add(b)
+    b.relation('rec').add(c)
+    c.relation('rec').add(d)
+    d.relation('rec').add(e)
+    e.set('name', 'toprec')
+    a.save().then( ->
+      new Weaver.Query()
+      .hasRelationOut('selector')
+      .selectRecursiveOut('rec')
+      .find()
+    ).then((nodes) ->
+      expect(nodes.length).to.equal(1)
+      expect(nodes[0].relation('rec').nodes['b'].relation('rec').nodes['c'].relation('rec').nodes['d'].relation('rec').nodes['e'].get('name')).to.equal("toprec")
+    )
+  
+  it 'shoud support multiple recursive selectOut relations', ->
+    a = new Weaver.Node('a')
+    b = new Weaver.Node('b')
+    c = new Weaver.Node('c')
+    a.relation('selector').add(b)
+    a.relation('rec').add(b)
+    b.relation('test').add(c)
+    a.save().then( ->
+      new Weaver.Query()
+      .hasRelationOut('selector')
+      .selectRecursiveOut('rec', 'test')
+      .find()
+    ).then((nodes) ->
+      expect(nodes.length).to.equal(1)
+      expect(nodes[0].relation('rec').nodes['b'].relation('test').nodes['c']).to.exist
+    )
+
+  it 'shoud not break on loops with recursive selectOut', ->
+    a = new Weaver.Node('a')
+    b = new Weaver.Node('b')
+    a.relation('selector').add(b)
+    a.relation('rec').add(b)
+    b.relation('rec').add(a)
+    a.save().then( ->
+      new Weaver.Query()
+      .hasRelationOut('selector')
+      .selectRecursiveOut('rec')
+      .find()
+    ).then((nodes) ->
+      expect(nodes.length).to.equal(1)
+      expect(nodes[0].relation('rec').nodes['b'].relation('rec').nodes['a']).to.exist
     )
 
 
