@@ -6,7 +6,7 @@ services:
     - "5432"
 
   postgresql-connector:
-    image: sysunite/weaver-database-postgresql:0.0.20-SNAPSHOT-clone-and-rec-sel
+    image: sysunite/weaver-database-postgresql:0.0.20
     links:
     - postgres
     expose:
@@ -26,7 +26,7 @@ services:
     command: server /data
 
   weaver-server:
-    image: sysunite/weaver-server:3.0.9-beta.1-clone
+    image: sysunite/weaver-server:3.0.9
     expose:
     - "9487"
     ports:
