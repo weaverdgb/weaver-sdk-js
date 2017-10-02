@@ -76,11 +76,12 @@ describe 'WeaverNode test', ->
 
   it 'should remove a node', ->
     node = new Weaver.Node()
+    id = node.id()
 
     node.save().then((node) ->
       node.destroy()
     ).then(->
-      Weaver.Node.load(node.id())
+      Weaver.Node.load(id)
     ).catch((error) ->
       assert.equal(error.code, Weaver.Error.NODE_NOT_FOUND)
     )
