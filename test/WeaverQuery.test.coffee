@@ -3,13 +3,12 @@ wipeCurrentProject = require("./test-suite").wipeCurrentProject
 Weaver = require('../src/Weaver')
 
 checkNodeInResult = (nodes, nodeId) ->
-  beforeEach ->
-    wipeCurrentProject()
-
   ids = (i.id() for i in nodes)
   expect(ids).to.contain(nodeId)
 
 describe 'WeaverQuery Test', ->
+  beforeEach ->
+    wipeCurrentProject()
 
   it 'should restrict to a single node', ->
     a = new Weaver.Node("a")
