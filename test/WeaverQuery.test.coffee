@@ -151,13 +151,65 @@ describe 'WeaverQuery Test', ->
     Promise.all([a.save(), b.save()]).then(->
 
       new Weaver.Query()
-      .hasAttribute("name", '*')
+      .equalTo("name", '*')
       .find().then((nodes) ->
         expect(nodes.length).to.equal(1)
         checkNodeInResult(nodes, 'a')
       )
     )
 
+  it 'should do greaterThan', ->
+    a = new Weaver.Node("a")
+    b = new Weaver.Node("b")
+    a.set('age', 11)
+    b.set('age', 10)
+
+    Promise.all([a.save(), b.save()]).then(->
+
+      new Weaver.Query()
+      .greaterThan("age", 10)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+      )
+    )
+
+  it 'should do lessThan', ->
+    a = new Weaver.Node("a")
+    b = new Weaver.Node("b")
+    a.set('age', 10)
+    b.set('age', 11)
+
+    Promise.all([a.save(), b.save()]).then(->
+
+      new Weaver.Query()
+      .lessThan("age", 11)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+      )
+    )
+
+  it 'should be able to combine greaterThan and lessThan', ->
+
+    a = new Weaver.Node("a")
+    b = new Weaver.Node("b")
+    c = new Weaver.Node("c")
+
+    a.set('age', 4)
+    b.set('age', 8)
+    c.set('age', 12)
+
+    Promise.all([a.save(), b.save(), c.save()]).then(->
+
+      new Weaver.Query()
+      .lessThan("age", 10)
+      .greaterThan("age", 5)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'b')
+      )
+    )
 
   it 'should do contains of a string', ->
     a = new Weaver.Node("a")
