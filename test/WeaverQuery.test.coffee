@@ -226,6 +226,20 @@ describe 'WeaverQuery Test', ->
       )
     )
 
+  it 'should do relation hasRelationOut with id argument', ->
+    a = new Weaver.Node("a")
+    b = new Weaver.Node("b")
+    a.relation("link").add(b)
+
+    Promise.all([a.save()]).then(->
+      new Weaver.Query()
+      .hasRelationOut("link", "b")
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+      )
+    )
+
 
   it 'should do relation hasRelationIn', ->
     a = new Weaver.Node("a")

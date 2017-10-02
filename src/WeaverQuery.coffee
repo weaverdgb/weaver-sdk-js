@@ -122,8 +122,12 @@ class WeaverQuery
       @_addCondition("$relationArray${@arrayCount++}", '$relOut', key)
     else if node.length is 1 and node[0] instanceof WeaverQuery
       @_addCondition(key, '$relOut', node)
-    else
-      @_addCondition(key, '$relOut', if node.length > 0 then (i.id() or i for i in node) else ['*'])
+    else if node.length > 0
+      nodeIds = []
+      nodeIds.push i for i in node when typeof i is 'string'
+      nodeIds.push i.id() || i for i in node when typeof i isnt 'string'
+      @_addCondition(key, '$relOut', nodeIds)
+    else ['*']
     @
 
   hasNoRelationIn: (key, node...) ->
