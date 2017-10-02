@@ -143,6 +143,21 @@ describe 'WeaverQuery Test', ->
       )
     )
 
+  it 'should do equalTo a wildcard', ->
+    a = new Weaver.Node("a")
+    b = new Weaver.Node("b")
+    a.set('name','Aaay')
+
+    Promise.all([a.save(), b.save()]).then(->
+
+      new Weaver.Query()
+      .hasAttribute("name", '*')
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+      )
+    )
+
 
   it 'should do contains of a string', ->
     a = new Weaver.Node("a")
@@ -207,37 +222,6 @@ describe 'WeaverQuery Test', ->
         expect(nodes.length).to.equal(2)
         checkNodeInResult(nodes, 'a')
         checkNodeInResult(nodes, 'b')
-      )
-    )
-
-  it 'should do hasAttribute', ->
-    a = new Weaver.Node("a")
-    b = new Weaver.Node("b")
-    a.set('name','Aaay')
-
-    Promise.all([a.save(), b.save()]).then(->
-
-      new Weaver.Query()
-      .hasAttribute("name")
-      .find().then((nodes) ->
-        expect(nodes.length).to.equal(1)
-        checkNodeInResult(nodes, 'a')
-      )
-    )
-
-  it 'should do specific hasAttribute', ->
-    a = new Weaver.Node("a")
-    b = new Weaver.Node("b")
-    a.set("name","Aaay")
-    b.set("name","Beee")
-
-    Promise.all([a.save(), b.save()]).then(->
-
-      new Weaver.Query()
-      .hasAttribute("name", "Aaay")
-      .find().then((nodes) ->
-        expect(nodes.length).to.equal(1)
-        checkNodeInResult(nodes, 'a')
       )
     )
 
