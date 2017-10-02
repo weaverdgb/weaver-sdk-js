@@ -279,9 +279,8 @@ describe 'WeaverNode test', ->
     b.relation('to').add(c)
     c.relation('to').add(a)
 
-    wipeCurrentProject().then(->
-      Weaver.Node.batchSave([a,b,c])
-    ).then(->
+    Weaver.Node.batchSave([a,b,c])
+    .then(->
       a.clone('cloned-a')
     ).then( ->
       Weaver.Node.load('cloned-a')
