@@ -1,4 +1,5 @@
-weaver  = require("./test-suite")
+weaver  = require("./test-suite").weaver
+wipeCurrentProject = require("./test-suite").wipeCurrentProject
 cuid    = require('cuid')
 Weaver  = require('../src/Weaver')
 Promise = require('bluebird')
@@ -8,6 +9,8 @@ supertest = require('supertest')
 weaverServer = supertest.agent(WEAVER_ENDPOINT)
 
 describe 'Weaver Tests dealing with REST API', ->
+  beforeEach ->
+    wipeCurrentProject()
 
   it 'should retrieve the list of users providing the authtoken on query param', ->
     Promise.map([

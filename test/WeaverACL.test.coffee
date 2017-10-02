@@ -1,9 +1,8 @@
-weaver = require("./test-suite")
+weaver = require("./test-suite").weaver
 Weaver = require('../src/Weaver')
 Promise = require('bluebird')
 
 describe 'WeaverACL test', ->
-
   it 'should create a new ACL', ->
     acl = new Weaver.ACL()
     acl.save().then((acl) ->

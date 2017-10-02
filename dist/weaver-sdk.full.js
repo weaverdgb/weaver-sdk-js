@@ -99012,7 +99012,7 @@ module.exports = yeast;
 },{}],391:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "3.0.10",
+  "version": "3.0.11",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -99020,7 +99020,7 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredServerVersion": "~3.0.8"
+    "requiredServerVersion": "~3.0.9"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -99174,6 +99174,14 @@ module.exports={
       return this.POST('write', {
         operations: operations
       }, target);
+    };
+
+    CoreManager.prototype.cloneNode = function(sourceId, targetId, relationsToTraverse) {
+      return this.POST('node.clone', {
+        sourceId: sourceId,
+        targetId: targetId,
+        relationsToTraverse: relationsToTraverse
+      });
     };
 
     CoreManager.prototype.serverVersion = function() {
@@ -100405,7 +100413,8 @@ module.exports={
 
 },{"./Weaver":397}],402:[function(require,module,exports){
 (function() {
-  var Operation, Weaver, WeaverNode, _, cuid, util;
+  var Operation, Weaver, WeaverNode, _, cuid, util,
+    slice = [].slice;
 
   cuid = require('cuid');
 
@@ -100614,38 +100623,11 @@ module.exports={
       return this.relations[key];
     };
 
-    WeaverNode.prototype.clone = function(keyMap) {
-      var Constructor, clone, field, id, key, node, ref, ref1, ref2, rel, self, value;
-      keyMap = keyMap || {};
-      clone = new WeaverNode();
-      ref = this.attributes;
-      for (field in ref) {
-        value = ref[field];
-        if (field !== 'createdOn') {
-          clone.set(field, value);
-        }
-      }
-      self = this;
-      ref1 = this.relations;
-      for (key in ref1) {
-        rel = ref1[key];
-        ref2 = rel.nodes;
-        for (id in ref2) {
-          node = ref2[id];
-          if (keyMap[key] != null) {
-            Constructor = keyMap[key];
-            Constructor.load(id).then(function(node) {
-              return node.clone({}, self).then(function(node) {
-                clone.relation(key).add(node);
-                return Promise.resolve(clone);
-              });
-            });
-          } else {
-            clone.relation(key).add(node);
-          }
-        }
-      }
-      return Promise.resolve(clone);
+    WeaverNode.prototype.clone = function() {
+      var cm, newId, relationTraversal;
+      newId = arguments[0], relationTraversal = 2 <= arguments.length ? slice.call(arguments, 1) : [];
+      cm = Weaver.getCoreManager();
+      return cm.cloneNode(this.nodeId, newId, relationTraversal);
     };
 
     WeaverNode.prototype.peekPendingWrites = function(collected) {
@@ -101093,6 +101075,7 @@ module.exports={
       this._include = [];
       this._select = [];
       this._selectOut = [];
+      this._selectRecursiveOut = [];
       this._noRelations = true;
       this._noAttributes = true;
       this._count = false;
@@ -101414,6 +101397,13 @@ module.exports={
       var relationKeys;
       relationKeys = 1 <= arguments.length ? slice.call(arguments, 0) : [];
       this._selectOut.push(relationKeys);
+      return this;
+    };
+
+    WeaverQuery.prototype.selectRecursiveOut = function() {
+      var relationKeys;
+      relationKeys = 1 <= arguments.length ? slice.call(arguments, 0) : [];
+      this._selectRecursiveOut = relationKeys;
       return this;
     };
 

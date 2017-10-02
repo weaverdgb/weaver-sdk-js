@@ -1,8 +1,12 @@
-weaver  = require("./test-suite")
+weaver  = require("./test-suite").weaver
+wipeCurrentProject = require("./test-suite").wipeCurrentProject
 Weaver  = require('../src/Weaver')
 Promise = require('bluebird')
 
 describe 'WeaverProject Test', ->
+  beforeEach ->
+    wipeCurrentProject()
+
   actualProject = (p) ->
     expect(p).to.have.property('_stored').to.be.a('boolean').to.equal(true)
     expect(p).to.have.property('destroy').be.a('function')
@@ -179,7 +183,7 @@ describe 'WeaverProject Test', ->
 
   it 'should snapshot a project and get a minio filename gz', ->
     p = weaver.currentProject()
-    
+
     a = new Weaver.Node()
     b = new Weaver.Node()
     c = new Weaver.Node()
