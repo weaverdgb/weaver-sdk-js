@@ -109,6 +109,14 @@ class WeaverQuery
   greaterThanOrEqualTo: (key, value) ->
     @_addCondition(key, '$gte', value)
 
+  getId = (node) ->
+    if _.isString(node)
+      node
+    else if node instanceof Weaver.Node
+      node.id()
+    else
+      throw new Error("Unsupported type")
+
   hasRelationIn: (key, node...) ->
     if _.isArray(key)
       @_addCondition("$relationArray${@arrayCount++}", '$relIn', key)
@@ -122,12 +130,8 @@ class WeaverQuery
       @_addCondition("$relationArray${@arrayCount++}", '$relOut', key)
     else if node.length is 1 and node[0] instanceof WeaverQuery
       @_addCondition(key, '$relOut', node)
-    else if node.length > 0
-      nodeIds = []
-      nodeIds.push i for i in node when typeof i is 'string'
-      nodeIds.push i.id() || i for i in node when typeof i isnt 'string'
-      @_addCondition(key, '$relOut', nodeIds)
-    else ['*']
+    else
+      @_addCondition(key, '$relOut', if node.length > 0 then (getId(i) for i in node) else ['*'])
     @
 
   hasNoRelationIn: (key, node...) ->
