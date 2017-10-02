@@ -1,9 +1,13 @@
-weaver  = require("./test-suite")
+weaver  = require("./test-suite").weaver
+wipeCurrentProject = require("./test-suite").wipeCurrentProject
 cuid    = require('cuid')
 Weaver  = require('../src/Weaver')
 Promise = require('bluebird')
 
 describe 'WeaverUser Test', ->
+  beforeEach ->
+    wipeCurrentProject()
+
   it 'should allow a user to list other users in a project', ->
     testUser = new Weaver.User('in-project', 'testpassword', 'email@dontevenvalidate.com')
     testUser2 = new Weaver.User('in-project2', 'testpassword', 'email@dontevenvalidate.com')

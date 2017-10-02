@@ -21,11 +21,14 @@ class WeaverNode
 
   # Node loading from server
   @load: (nodeId, target, Constructor, includeRelations = false, includeAttributes = false) ->
-    Constructor = WeaverNode if not Constructor?
-    query = new Weaver.Query(target)
-    query.withRelations() if includeRelations
-    query.withAttributes() if includeAttributes
-    query.get(nodeId, Constructor)
+    if !nodeId?
+      Promise.reject("Cannot load nodes with an undefined id")
+    else
+      Constructor = WeaverNode if not Constructor?
+      query = new Weaver.Query(target)
+      query.withRelations() if includeRelations
+      query.withAttributes() if includeAttributes
+      query.get(nodeId, Constructor)
 
 
   @loadFromQuery: (node, constructorFunction) ->

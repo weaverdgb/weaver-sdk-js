@@ -1,4 +1,5 @@
-weaver = require("./test-suite")
+weaver = require("./test-suite").weaver
+wipeCurrentProject = require("./test-suite").wipeCurrentProject
 Weaver = require('../src/Weaver')
 
 path     = require('path')
@@ -6,6 +7,9 @@ Promise  = require('bluebird')
 readFile = Promise.promisify(require('fs').readFile)
 
 describe 'WeaverFile test', ->
+  beforeEach ->
+    wipeCurrentProject()
+
   file = ''
   tmpDir = path.join(__dirname,"../tmp")
 
@@ -188,7 +192,7 @@ describe 'WeaverFile test', ->
     it 'should allow users with read permission access to attachments', ->
       weaver.signOut().then(-> weaver.signInWithUsername('readonly', 'password'))
       .then(-> new Weaver.File().getFileByID('./tmp/test-file', @fileId))
-    
+
     it 'should not allow users without read permission access to attachments', ->
       weaver.signOut().then(-> weaver.signInWithUsername('noAccess', 'password'))
       .then(->
