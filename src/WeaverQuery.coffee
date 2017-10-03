@@ -19,7 +19,7 @@ class WeaverQuery
     @_orQueries          = []
     @_conditions         = {}
     @_include            = []
-    @_select             = []
+    @_select             = undefined
     @_selectOut          = []
     @_selectRecursiveOut = []
     @_noRelations        = true
