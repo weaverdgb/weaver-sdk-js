@@ -371,7 +371,7 @@ describe 'WeaverQuery Test', ->
       new Weaver.Query().find()
     )
 
-  it.skip 'should return all relations even on attribute selects', ->
+  it 'should return all relations even on attribute selects', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
     a.set("name", "a name")
@@ -386,11 +386,12 @@ describe 'WeaverQuery Test', ->
       .find().then((nodes)->
         expect(nodes).to.have.length.be(1)
         checkNodeInResult(nodes, 'a')
-        expect(nodes[0]).to.have.property('relations').to.have.property('link').to.have.length.be(1)
+        expect(nodes[0]).to.have.property('relations').to.have.property('link')
+        expect(nodes[0].relations.link.all()).to.have.length.be(1)
       )
     )
 
-  it.skip 'should allow attribute selects', ->
+  it 'should allow attribute selects', ->
     a = new Weaver.Node('a')
     a.set("name", "a name")
     a.set("description", "a desc")
