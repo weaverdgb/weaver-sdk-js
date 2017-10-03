@@ -52,6 +52,8 @@ class WeaverQuery
     Weaver.getCoreManager().query(@).then((result) ->
       Weaver.Query.notify(result)
       result.count
+    ).finally(=>
+      @_count = false
     )
 
   first: (Constructor) ->
