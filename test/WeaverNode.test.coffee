@@ -357,13 +357,13 @@ describe 'WeaverNode test', ->
     )
 
   it 'should handle concurrent saves from multiple references, when the flag is passed', ->
-
+    weaver.setOptions({ignoresOutOfDate: true})
     a = new Weaver.Node('a') # a node is created and saved at some point
     a.set('name','a')
     ay = {}
     aay = {}
 
-    a.save(null,{ignoresOutOfDate:true}).then(->  # :: USE CASE ::
+    a.save().then(->  # :: USE CASE ::
       Weaver.Node.load('a')                       # node is loaded and assigned to some view variable at some point
     ).then((res)->
       ay = res
@@ -371,28 +371,23 @@ describe 'WeaverNode test', ->
     ).then((res)->
       aay = res
       ay.set('name','Ay')                         # user changed the name to 'Ay'
-      ay.save(null,{ignoresOutOfDate : true})
+      ay.save()
       aay.set('name','A')                         # at some point in the future, a user saw the result, recognized the typo, and decided to change the name back to 'A'
-      aay.save(null,{ignoresOutOfDate: true})     # (it's weird that he would do this in a separate component, but hey, monkey-testing)
+      aay.save()     # (it's weird that he would do this in a separate component, but hey, monkey-testing)
     ).then((res)->
       res.set('name','_A')
-      res.save(null,{ignoresOutOfDate: true})
+      res.save()
     ).then(()->
       Weaver.Node.load('a')
     ).then((res)->
       assert.equal(res.get('name'),'_A')
       res.set('name','A_')
-      res.save(null,{ignoresOutOfDate: true})
+      res.save()
     ).then((res)->
       assert.equal(res.get('name'),'A_')
     ).then(->
       ay.set('name', 'Ay')
-      ay.save(null,{ignoresOutOfDate: true})
+      ay.save()
       aay.set('name','Aay')
-      aay.save(null,{ignoresOutOfDate: true})
-    ).catch((err)->
-      console.log(err)
-      assert.equal('money','happiness')
+      aay.save()
     )
-
-
