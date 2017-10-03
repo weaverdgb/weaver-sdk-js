@@ -6,7 +6,7 @@ checkNodeInResult = (nodes, nodeId) ->
   ids = (i.id() for i in nodes)
   expect(ids).to.contain(nodeId)
 
-describe 'WeaverQuery Test with a single Network', ->
+describe 'WeaverQuery with Wildcard relations', ->
   tree   = new Weaver.Node()
   garden = new Weaver.Node()
   garden.relation('requires').add(tree)
@@ -16,7 +16,7 @@ describe 'WeaverQuery Test with a single Network', ->
       Promise.all([tree.save(), garden.save()])
     )
 
-  it 'should support wildcard relations for hasRelationOut', ->
+  it 'should support hasRelationOut', ->
     new Weaver.Query()
     .hasRelationOut("*", tree)
     .find().then((nodes) ->
@@ -24,7 +24,7 @@ describe 'WeaverQuery Test with a single Network', ->
       checkNodeInResult(nodes, garden.id())
     )
 
-  it 'should support wildcard relations for hasRelationIn', ->
+  it 'should support hasRelationIn', ->
     new Weaver.Query()
     .hasRelationIn("*", garden)
     .find().then((nodes) ->
@@ -32,7 +32,7 @@ describe 'WeaverQuery Test with a single Network', ->
       checkNodeInResult(nodes, tree.id())
     )
 
-  it 'should support wildcard relations for hasNoRelationOut', ->
+  it 'should support hasNoRelationOut', ->
     new Weaver.Query()
     .hasNoRelationOut("*", tree)
     .find().then((nodes) ->
@@ -40,7 +40,7 @@ describe 'WeaverQuery Test with a single Network', ->
       checkNodeInResult(nodes, tree.id())
     )
 
-  it 'should support wildcard relations for hasNoRelationIn', ->
+  it 'should support hasNoRelationIn', ->
     new Weaver.Query()
     .hasNoRelationIn("*", garden)
     .find().then((nodes) ->
