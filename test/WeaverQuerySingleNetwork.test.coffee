@@ -96,9 +96,11 @@ describe 'WeaverQuery with single Network', ->
     .select('description')
     .selectOut('is-a').find().then((result)->
       expect(result).to.have.length.be(1)
+      expect(result[0]).to.have.property('_loaded').equal(false)
       expect(result[0]).to.have.property('relations').to.have.property('is-a')
       types = result[0].relations['is-a'].all()
       expect(types).to.have.length.be(1)
+      expect(types[0]).to.have.property('_loaded').equal(false)
       expect(types[0]).to.have.property('attributes').to.have.property('description')
       expect(types[0]).to.have.property('attributes').to.not.have.property('objectiveValue')
     )
@@ -109,16 +111,44 @@ describe 'WeaverQuery with single Network', ->
     .select('description')
     .selectRecursiveOut('is-a').find().then((result)->
       expect(result).to.have.length.be(1)
+      expect(result[0]).to.have.property('_loaded').equal(false)
       expect(result[0]).to.have.property('relations').to.have.property('is-a')
       types = result[0].relations['is-a'].all()
       expect(types).to.have.length.be(1)
+      expect(types[0]).to.have.property('_loaded').equal(false)
       expect(types[0]).to.have.property('attributes').to.have.property('description')
       expect(types[0]).to.have.property('attributes').to.not.have.property('objectiveValue')
       expect(types[0]).to.have.property('relations').to.have.property('is-a')
       parentTypes = result[0].relations['is-a'].all()
       expect(parentTypes).to.have.length.be(1)
+      expect(parentTypes[0]).to.have.property('_loaded').equal(false)
       expect(parentTypes[0]).to.have.property('attributes').to.have.property('description')
       expect(parentTypes[0]).to.have.property('attributes').to.not.have.property('could-be-electric')
+    )
+
+  it 'should mark nodes loaded with a select as non-loaded', ->
+    new Weaver.Query().restrict(ferrari.id()).select('description').find().then((res) ->
+      expect(res[0]).to.have.property('_loaded').equal(false)
+    )
+
+  it 'should mark nodes loaded without a select as loaded', ->
+    new Weaver.Query().restrict(ferrari.id()).find().then((res) ->
+      expect(res[0]).to.have.property('_loaded').equal(true)
+    )
+
+  it 'should mark selectOut nodes loaded without a select as loaded', ->
+    new Weaver.Query().restrict(ferrari.id()).selectOut('is-a').find().then((res) ->
+      loadedCar = res[0].relations['is-a'].all()[0]
+      expect(loadedCar).to.have.property('_loaded').to.equal(true)
+    )
+
+  it 'should mark selectRecursiveOut nodes loaded without a select as loaded', ->
+    new Weaver.Query().restrict(ferrari.id()).selectRecursiveOut('is-a').find().then((res) ->
+      loadedCar = res[0].relations['is-a'].all()[0]
+      expect(loadedCar).to.have.property('_loaded').to.equal(true)
+      loadedMotorizedVehicle = loadedCar.relations['is-a'].all()[0]
+      expect(loadedMotorizedVehicle).to.have.property('_loaded').to.equal(true)
+
     )
 
     

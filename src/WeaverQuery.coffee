@@ -41,7 +41,7 @@ class WeaverQuery
       Weaver.Query.notify(result)
       list = []
       for node in result.nodes
-        castedNode = Weaver.Node.loadFromQuery(node, @useConstructorFunction)
+        castedNode = Weaver.Node.loadFromQuery(node, @useConstructorFunction, !@_select?)
 
         list.push(castedNode)
       list
