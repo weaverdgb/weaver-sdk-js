@@ -99012,7 +99012,7 @@ module.exports = yeast;
 },{}],391:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "3.0.11",
+  "version": "3.0.12",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -100447,17 +100447,21 @@ module.exports={
       if (includeAttributes == null) {
         includeAttributes = false;
       }
-      if (Constructor == null) {
-        Constructor = WeaverNode;
+      if (nodeId == null) {
+        return Promise.reject("Cannot load nodes with an undefined id");
+      } else {
+        if (Constructor == null) {
+          Constructor = WeaverNode;
+        }
+        query = new Weaver.Query(target);
+        if (includeRelations) {
+          query.withRelations();
+        }
+        if (includeAttributes) {
+          query.withAttributes();
+        }
+        return query.get(nodeId, Constructor);
       }
-      query = new Weaver.Query(target);
-      if (includeRelations) {
-        query.withRelations();
-      }
-      if (includeAttributes) {
-        query.withAttributes();
-      }
-      return query.get(nodeId, Constructor);
     };
 
     WeaverNode.loadFromQuery = function(node, constructorFunction) {
@@ -101114,7 +101118,11 @@ module.exports={
       return Weaver.getCoreManager().query(this).then(function(result) {
         Weaver.Query.notify(result);
         return result.count;
-      });
+      })["finally"]((function(_this) {
+        return function() {
+          return _this._count = false;
+        };
+      })(this));
     };
 
     WeaverQuery.prototype.first = function(Constructor) {
