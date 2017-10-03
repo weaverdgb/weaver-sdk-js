@@ -44,7 +44,7 @@ class WeaverNode
 
   _loadFromQuery: (object, constructorFunction, fullyLoaded = true) ->
     @attributes = object.attributes
-    @_loaded    = fullyLoaded
+    @_loaded    = object.creator? && fullyLoaded
 
     for key, relations of object.relations
       for relation in relations

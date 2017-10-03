@@ -12,9 +12,9 @@ describe 'WeaverQuery with single Network', ->
   ferrari          = new Weaver.Node()
   car              = new Weaver.Node()
   motorizedVehicle = new Weaver.Node()
-  
+
   tree.set('testset', '1')
-  
+
   garden.relation('requires').add(tree)
   garden.set('name', 'backyard')
   garden.set('theme', 'forest')
@@ -136,6 +136,11 @@ describe 'WeaverQuery with single Network', ->
       expect(res[0]).to.have.property('_loaded').equal(true)
     )
 
+  it 'should mark nodes not loaded nodes as non-loaded', ->
+    new Weaver.Query().restrict(ferrari.id()).find().then((res) ->
+      expect(res[0].relations['is-a'].all()[0]).to.have.property('_loaded').equal(false)
+    )
+
   it 'should mark selectOut nodes loaded without a select as loaded', ->
     new Weaver.Query().restrict(ferrari.id()).selectOut('is-a').find().then((res) ->
       loadedCar = res[0].relations['is-a'].all()[0]
@@ -148,7 +153,6 @@ describe 'WeaverQuery with single Network', ->
       expect(loadedCar).to.have.property('_loaded').to.equal(true)
       loadedMotorizedVehicle = loadedCar.relations['is-a'].all()[0]
       expect(loadedMotorizedVehicle).to.have.property('_loaded').to.equal(true)
-
     )
 
-    
+
