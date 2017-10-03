@@ -42,7 +42,7 @@ describe 'WeaverQuery Test with a single Network', ->
 
   it 'should support wildcard relations for hasNoRelationIn', ->
     new Weaver.Query()
-    .hasRelationOut("*", garden)
+    .hasNoRelationIn("*", garden)
     .find().then((nodes) ->
       expect(nodes).to.have.length.be(1)
       checkNodeInResult(nodes, garden.id())
