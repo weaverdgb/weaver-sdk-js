@@ -1,4 +1,5 @@
-weaver = require("./test-suite")
+weaver = require("./test-suite").weaver
+wipeCurrentProject = require("./test-suite").wipeCurrentProject
 Weaver = require('../src/Weaver')
 
 checkNodeInResult = (nodes, nodeId) ->
@@ -6,6 +7,8 @@ checkNodeInResult = (nodes, nodeId) ->
   expect(ids).to.contain(nodeId)
 
 describe 'WeaverQuery Test', ->
+  beforeEach ->
+    wipeCurrentProject()
 
   it 'should restrict to a single node', ->
     a = new Weaver.Node("a")
@@ -708,7 +711,7 @@ describe 'WeaverQuery Test', ->
       expect(nodes.length).to.equal(1)
       expect(nodes[0].relation('rec').nodes['b'].relation('rec').nodes['c'].relation('rec').nodes['d'].relation('rec').nodes['e'].get('name')).to.equal("toprec")
     )
-  
+
   it 'shoud support multiple recursive selectOut relations', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
