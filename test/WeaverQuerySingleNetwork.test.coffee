@@ -7,11 +7,11 @@ checkNodeInResult = (nodes, nodeId) ->
   expect(ids).to.contain(nodeId)
 
 describe 'WeaverQuery with single Network', ->
-  tree      = new Weaver.Node()
-  garden    = new Weaver.Node()
-  statue    = new Weaver.Node()
-  ornament  = new Weaver.Node()
-  inanimate = new Weaver.Node()
+  tree             = new Weaver.Node()
+  garden           = new Weaver.Node()
+  ferrari          = new Weaver.Node()
+  car              = new Weaver.Node()
+  motorizedVehicle = new Weaver.Node()
   
   tree.set('testset', '1')
   
@@ -20,24 +20,24 @@ describe 'WeaverQuery with single Network', ->
   garden.set('theme', 'forest')
   garden.set('testset', '1')
 
-  statue.set('description', 'something of something')
-  statue.set('testset', '2')
+  ferrari.set('description', 'Fast, red')
+  ferrari.set('could-be-electric', 'maybe-hybrid')
+  ferrari.set('testset', '2')
 
-  ornament.set('description', 'ornamental')
-  ornament.set('objectiveValue', '12')
-  ornament.set('testset', '2')
+  car.set('description', 'Thing with wheels')
+  car.set('objectiveValue', '12')
+  car.set('testset', '2')
 
-  inanimate.set('description', 'does not move')
-  inanimate.set('category', 'cruft')
-  inanimate.set('testset', '2')
+  motorizedVehicle.set('description', 'Poweeeerrrrr')
+  motorizedVehicle.set('could-be-electric', 'sure')
+  motorizedVehicle.set('testset', '2')
 
-  statue.relation('isish').add(ornament)
-  ornament.relation('isish').add(inanimate)
-
+  ferrari.relation('is-a').add(car)
+  car.relation('is-a').add(motorizedVehicle)
 
   before ->
     wipeCurrentProject().then( ->
-      Promise.all([statue.save(), garden.save()])
+      Promise.all([ferrari.save(), garden.save()])
     )
 
   it 'should support wildcard relation hasRelationOut', ->
@@ -92,34 +92,33 @@ describe 'WeaverQuery with single Network', ->
 
   it 'should extend selects to selectOut nodes', ->
     new Weaver.Query()
-    .restrict(statue.id())
+    .restrict(ferrari.id())
     .select('description')
-    .selectOut('isish').find().then((result)->
+    .selectOut('is-a').find().then((result)->
       expect(result).to.have.length.be(1)
-      expect(result[0]).to.have.property('relations').to.have.property('isish')
-      allIsh = result[0].relations.isish.all()
-      expect(allIsh).to.have.length.be(1)
-      expect(allIsh[0]).to.have.property('attributes').to.have.property('description')
-      expect(allIsh[0]).to.have.property('attributes').to.not.have.property('objectiveValue')
+      expect(result[0]).to.have.property('relations').to.have.property('is-a')
+      types = result[0].relations['is-a'].all()
+      expect(types).to.have.length.be(1)
+      expect(types[0]).to.have.property('attributes').to.have.property('description')
+      expect(types[0]).to.have.property('attributes').to.not.have.property('objectiveValue')
     )
 
   it 'should extend selects to recursive select out nodes', ->
     new Weaver.Query()
-    .restrict(statue.id())
+    .restrict(ferrari.id())
     .select('description')
-    .selectRecursiveOut('isish').find().then((result)->
+    .selectRecursiveOut('is-a').find().then((result)->
       expect(result).to.have.length.be(1)
-      expect(result[0]).to.have.property('relations').to.have.property('isish')
-      allIsh = result[0].relations.isish.all()
-      expect(allIsh).to.have.length.be(1)
-      expect(allIsh[0]).to.have.property('attributes').to.have.property('description')
-      expect(allIsh[0]).to.have.property('attributes').to.not.have.property('objectiveValue')
-      expect(allIsh[0]).to.have.property('relations').to.have.property('isish')
-      topAllIsh = result[0].relations.isish.all()
-      expect(topAllIsh).to.have.length.be(1)
-      expect(topAllIsh[0]).to.have.property('attributes').to.have.property('description')
-      expect(topAllIsh[0]).to.have.property('attributes').to.not.have.property('category')
-
+      expect(result[0]).to.have.property('relations').to.have.property('is-a')
+      types = result[0].relations['is-a'].all()
+      expect(types).to.have.length.be(1)
+      expect(types[0]).to.have.property('attributes').to.have.property('description')
+      expect(types[0]).to.have.property('attributes').to.not.have.property('objectiveValue')
+      expect(types[0]).to.have.property('relations').to.have.property('is-a')
+      parentTypes = result[0].relations['is-a'].all()
+      expect(parentTypes).to.have.length.be(1)
+      expect(parentTypes[0]).to.have.property('attributes').to.have.property('description')
+      expect(parentTypes[0]).to.have.property('attributes').to.not.have.property('could-be-electric')
     )
 
     
