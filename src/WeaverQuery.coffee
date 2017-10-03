@@ -8,6 +8,14 @@ _           = require('lodash')
 quote = (s) ->
   '\\Q' + s.replace('\\E', '\\E\\\\E\\Q') + '\\E'
 
+nodeId = (node) ->
+  if _.isString(node)
+    node
+  else if node instanceof Weaver.Node
+    node.id()
+  else
+    throw new Error("Unsupported type")
+
 
 class WeaverQuery
 
@@ -109,21 +117,13 @@ class WeaverQuery
   greaterThanOrEqualTo: (key, value) ->
     @_addCondition(key, '$gte', value)
 
-  getId = (node) ->
-    if _.isString(node)
-      node
-    else if node instanceof Weaver.Node
-      node.id()
-    else
-      throw new Error("Unsupported type")
-
   hasRelationIn: (key, node...) ->
     if _.isArray(key)
       @_addCondition("$relationArray${@arrayCount++}", '$relIn', key)
     else if node.length is 1 and node[0] instanceof WeaverQuery
       @_addCondition(key, '$relIn', node)
     else
-      @_addCondition(key, '$relIn', if node.length > 0 then (getId(i) or i for i in node) else ['*'])
+      @_addCondition(key, '$relIn', if node.length > 0 then (nodeId(i) or i for i in node) else ['*'])
 
   hasRelationOut: (key, node...) ->
     if _.isArray(key)
@@ -131,7 +131,7 @@ class WeaverQuery
     else if node.length is 1 and node[0] instanceof WeaverQuery
       @_addCondition(key, '$relOut', node)
     else
-      @_addCondition(key, '$relOut', if node.length > 0 then (getId(i) or i for i in node) else ['*'])
+      @_addCondition(key, '$relOut', if node.length > 0 then (nodeId(i) or i for i in node) else ['*'])
     @
 
   hasNoRelationIn: (key, node...) ->
@@ -140,7 +140,7 @@ class WeaverQuery
     else if node.length is 1 and node[0] instanceof WeaverQuery
       @_addCondition(key, '$noRelIn', node)
     else
-      @_addCondition(key, '$noRelIn', if node.length > 0 then (getId(i) or i for i in node) else ['*'])
+      @_addCondition(key, '$noRelIn', if node.length > 0 then (nodeId(i) or i for i in node) else ['*'])
 
   hasNoRelationOut: (key, node...) ->
     if _.isArray(key)
@@ -148,7 +148,7 @@ class WeaverQuery
     else if node.length is 1 and node[0] instanceof WeaverQuery
       @_addCondition(key, '$noRelOut', node)
     else
-      @_addCondition(key, '$noRelOut', if node.length > 0 then (getId(i) or i for i in node) else ['*'])
+      @_addCondition(key, '$noRelOut', if node.length > 0 then (nodeId(i) or i for i in node) else ['*'])
 
   containedIn: (key, values) ->
     @_addCondition(key, '$in', values)
