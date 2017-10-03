@@ -6,7 +6,7 @@ services:
     - "5432"
 
   postgresql-connector:
-    image: sysunite/weaver-database-postgresql:0.0.21-SNAPSHOT-wildcard-relations
+    image: sysunite/weaver-database-postgresql:0.0.21
     links:
     - postgres
     expose:
