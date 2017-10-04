@@ -136,7 +136,7 @@ describe 'WeaverNode test', ->
       assert.equal(loadedNode.get('time').toJSON(), date.toJSON())
     )
 
-  it 'should increment an exiting number attribute', ->
+  it 'should increment an existing number attribute', ->
     node = new Weaver.Node()
     node.set('length', 3)
 
@@ -205,7 +205,7 @@ describe 'WeaverNode test', ->
       assert.equal(error.code, Weaver.Error.NODE_ALREADY_EXISTS)
     )
 
-  it 'should give an error if node does not exists', ->
+  it 'should give an error if node does not exist', ->
     Weaver.Node.load('lol').then((res) ->
       assert(false)
     ).catch((error) ->
@@ -377,24 +377,38 @@ describe 'WeaverNode test', ->
       ])
     ).should.eventually.be.rejected
 
-  it 'should not reject interaction with out-of-date nodes if ignore is set', ->
+  it 'should handle concurrent saves from multiple references, when the flag is passed', ->
+    weaver.setOptions({ignoresOutOfDate: true})
     a = new Weaver.Node('a') # a node is created and saved at some point
     a.set('name','a')
     ay = {}
     aay = {}
 
-    a.save().then(->
-      Weaver.Node.load('a') # node is loaded and assigned to some view variable at some point
+    a.save().then(->  # :: USE CASE ::
+      Weaver.Node.load('a')                       # node is loaded and assigned to some view variable at some point
     ).then((res)->
       ay = res
-      Weaver.Node.load('a') # node is loaded and assigned to some other view variable at some point (inside a separate component, most likely)
+      Weaver.Node.load('a')                       # node is loaded and assigned to some other view variable at some point (inside a separate component, most likely)
     ).then((res)->
       aay = res
-      ay.set('name','Aq') # user changed the name to 'Aq'
-      aay.set('name','A') # at some point in the future, a user saw the result, recognized the typo, and decided to change the name back to 'A'
-      Promise.all([
-        ay.save(),
-        aay.save()
-      ])
+      ay.set('name','Ay')                         # user changed the name to 'Ay'
+      ay.save()
+      aay.set('name','A')                         # at some point in the future, a user saw the result, recognized the typo, and decided to change the name back to 'A'
+      aay.save()     # (it's weird that he would do this in a separate component, but hey, monkey-testing)
+    ).then((res)->
+      res.set('name','_A')
+      res.save()
+    ).then(()->
+      Weaver.Node.load('a')
+    ).then((res)->
+      assert.equal(res.get('name'),'_A')
+      res.set('name','A_')
+      res.save()
+    ).then((res)->
+      assert.equal(res.get('name'),'A_')
+    ).then(->
+      ay.set('name', 'Ay')
+      ay.save()
+      aay.set('name','Aay')
+      aay.save()
     )
-
