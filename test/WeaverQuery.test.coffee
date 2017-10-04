@@ -338,6 +338,23 @@ describe 'WeaverQuery Test', ->
         )
       )
 
+    it 'should do equalTo a boolean', ->
+      a = new Weaver.Node("a")
+      a.set("isRed", true)
+      b = new Weaver.Node("b")
+      b.set("isRed", false)
+      c = new Weaver.Node("c")
+      c.set("isBlue", true)
+
+      Promise.all([a.save(), b.save(), c.save()]).then(->
+        new Weaver.Query()
+        .equalTo("isRed", true)
+        .find().then((nodes) ->
+          expect(nodes.length).to.equal(1)
+          checkNodeInResult(nodes, 'a')
+        )
+      )
+
     it 'should do equalTo a string', ->
       a = new Weaver.Node("a")
       a.set("name", "Project A")
