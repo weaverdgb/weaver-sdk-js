@@ -8,7 +8,7 @@ checkNodeInResult = (nodes, nodeId) ->
 
 describe 'WeaverQuery Test', ->
 
-  describe 'Single before', ->
+  describe 'clean nodes, without links', ->
     a = new Weaver.Node("a")
     b = new Weaver.Node("b")
     c = new Weaver.Node("c")
@@ -57,7 +57,35 @@ describe 'WeaverQuery Test', ->
         checkNodeInResult(nodes, 'c')
       )
 
-  describe 'Single before with a-b link', ->
+    it 'should take an array of nodeIds or nodes, or single nodeId or node into restrict', ->
+      new Weaver.Query()
+      .restrict(a)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+      )
+      .then(->
+        new Weaver.Query()
+        .restrict("a")
+        .find().then((nodes) ->
+          expect(nodes.length).to.equal(1)
+          checkNodeInResult(nodes, 'a')
+        )
+      ).then(->
+        new Weaver.Query()
+        .restrict([a,b])
+        .find().then((nodes) ->
+          expect(nodes.length).to.equal(2)
+        )
+      ).then(->
+        new Weaver.Query()
+        .restrict(["a", "b"])
+        .find().then((nodes) ->
+          expect(nodes.length).to.equal(2)
+        )
+      )
+
+  describe 'clean nodes, with a-b link-relation', ->
     a = new Weaver.Node("a")
     b = new Weaver.Node("b")
     c = new Weaver.Node("c")
@@ -178,42 +206,135 @@ describe 'WeaverQuery Test', ->
         checkNodeInResult(nodes, 'a')
         checkNodeInResult(nodes, 'c')
       )
-    
 
-  describe 'Test after wipes', ->
+  describe 'clean nodes, with a-b,"c" to-relation', ->
+    a = new Weaver.Node("a")
+    b = new Weaver.Node("b")
+    c = new Weaver.Node("c")
+
+    before ->
+      wipeCurrentProject().then( ->
+        a.relation("to").add(b, "c")
+        a.save()
+      )
+
+    it 'should default to not returning relations', ->
+      new Weaver.Query()
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(2)
+        checkNodeInResult(nodes, 'a')
+        checkNodeInResult(nodes, 'b')
+      )
+
+    it 'should not return relations when noRelations is set', ->
+      new Weaver.Query()
+      .noRelations()
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(2)
+        checkNodeInResult(nodes, 'a')
+        checkNodeInResult(nodes, 'b')
+      )
+
+  describe 'clean nodes, with a-b-c named link-relations', ->
+    a = new Weaver.Node('a')
+    b = new Weaver.Node('b')
+    c = new Weaver.Node('c')
+
+    before ->
+      wipeCurrentProject().then( ->
+        a.relation('linkA').add(b)
+        b.relation('linkB').add(c)
+        c.relation('linkC').add(a)
+        a.save()
+      )
+
+    it 'should allow "or" in predicates for hasNoRelationIn', ->
+      new Weaver.Query()
+      .hasNoRelationIn(['linkA','linkB'])
+      .find().then((nodes)->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+      )
+
+    it 'should allow "or" in predicates for hasNoRelationOut', ->
+      new Weaver.Query()
+      .hasNoRelationOut(['linkA','linkB'])
+      .find().then((nodes)->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'c')
+      )
+
+    it 'should allow "or" in predicates for hasRelationIn', ->
+      new Weaver.Query()
+      .hasRelationIn(['linkA','linkB'])
+      .find().then((nodes)->
+        expect(nodes.length).to.equal(2)
+        checkNodeInResult(nodes, 'b')
+        checkNodeInResult(nodes, 'c')
+      )
+
+    it 'should allow "or" in predicates for hasRelationOut', ->
+      new Weaver.Query()
+      .hasRelationOut(['linkA','linkB'])
+      .find().then((nodes)->
+        expect(nodes.length).to.equal(2)
+        checkNodeInResult(nodes, 'a')
+        checkNodeInResult(nodes, 'b')
+      )
+
+
+  describe 'clean nodes, with a-b b-c link-relations', ->
+    a = new Weaver.Node('a')
+    b = new Weaver.Node('b')
+    c = new Weaver.Node('c')
+
+    before ->
+      wipeCurrentProject().then( ->
+        a.relation('link').add(b)
+        b.relation('link').add(c)
+        a.save()
+      )
+
+    it 'should be able to do nested queries (to allow hops)', ->
+      new Weaver.Query()
+      .hasRelationOut('link',
+        new Weaver.Query().hasRelationOut('link')
+      ).find().then((nodes)->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+      )
+
+    it 'should be able to do nested hasRelationIn queries', ->
+      new Weaver.Query()
+      .hasRelationIn('link',
+        new Weaver.Query().hasRelationIn('link')
+      ).find().then((nodes)->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'c')
+      )
+
+
+  describe 'other nodes, requiring wipe before each test', ->
 
     beforeEach ->
       wipeCurrentProject()
+      
+    it 'should allow "or" in objects for specific hasRelationOut', ->
+      a = new Weaver.Node('a')
+      b = new Weaver.Node('b')
+      c = new Weaver.Node('c')
 
-    it 'should take an array of nodeIds or nodes, or single nodeId or node into restrict', ->
-      a = new Weaver.Node("a")
-      b = new Weaver.Node("b")
+      a.relation('link').add(b)
+      b.relation('link').add(c)
+      c.relation('link').add(a)
 
-      Promise.all([a.save(), b.save()]).then(->
+      a.save().then(->
         new Weaver.Query()
-        .restrict(a)
-        .find().then((nodes) ->
-          expect(nodes.length).to.equal(1)
-          checkNodeInResult(nodes, 'a')
-        )
-      ).then(->
-        new Weaver.Query()
-        .restrict("a")
-        .find().then((nodes) ->
-          expect(nodes.length).to.equal(1)
-          checkNodeInResult(nodes, 'a')
-        )
-      ).then(->
-        new Weaver.Query()
-        .restrict([a,b])
-        .find().then((nodes) ->
+        .hasRelationOut('link', Weaver.Node.get('b'), Weaver.Node.get('c'))
+        .find().then((nodes)->
           expect(nodes.length).to.equal(2)
-        )
-      ).then(->
-        new Weaver.Query()
-        .restrict(["a", "b"])
-        .find().then((nodes) ->
-          expect(nodes.length).to.equal(2)
+          checkNodeInResult(nodes, 'a')
+          checkNodeInResult(nodes, 'b')
         )
       )
 
@@ -261,7 +382,6 @@ describe 'WeaverQuery Test', ->
         )
       )
 
-
     it 'should do contains of a string', ->
       a = new Weaver.Node("a")
       a.set("name", "Project A")
@@ -280,37 +400,6 @@ describe 'WeaverQuery Test', ->
         .find().then((nodes) ->
           expect(nodes.length).to.equal(1)
           checkNodeInResult(nodes, 'c')
-        )
-      )
-
-    it 'should default to not returning relations', ->
-      a = new Weaver.Node("a")
-      b = new Weaver.Node("b")
-      c = new Weaver.Node("c")
-      a.relation("to").add(b, "c")
-
-      a.save().then(->
-        new Weaver.Query()
-        .find().then((nodes) ->
-          expect(nodes.length).to.equal(2)
-          checkNodeInResult(nodes, 'a')
-          checkNodeInResult(nodes, 'b')
-        )
-      )
-
-    it 'should not return relations when noRelations is set', ->
-      a = new Weaver.Node("a")
-      b = new Weaver.Node("b")
-      c = new Weaver.Node("c")
-      a.relation("to").add(b, "c")
-
-      a.save().then(->
-        new Weaver.Query()
-        .noRelations()
-        .find().then((nodes) ->
-          expect(nodes.length).to.equal(2)
-          checkNodeInResult(nodes, 'a')
-          checkNodeInResult(nodes, 'b')
         )
       )
 
@@ -375,99 +464,6 @@ describe 'WeaverQuery Test', ->
         .find().then((nodes)->
           expect(nodes.length).to.equal(1)
           checkNodeInResult(nodes, 'a')
-        )
-      )
-
-    it 'should allow "or" in predicates for hasNoRelationIn', ->
-      a = new Weaver.Node('a')
-      b = new Weaver.Node('b')
-      c = new Weaver.Node('c')
-
-      a.relation('linkA').add(b)
-      b.relation('linkB').add(c)
-      c.relation('linkC').add(a)
-
-      a.save().then(->
-        new Weaver.Query()
-        .hasNoRelationIn(['linkA','linkB'])
-        .find().then((nodes)->
-          expect(nodes.length).to.equal(1)
-          checkNodeInResult(nodes, 'a')
-        )
-      )
-
-    it 'should allow "or" in predicates for hasNoRelationOut', ->
-      a = new Weaver.Node('a')
-      b = new Weaver.Node('b')
-      c = new Weaver.Node('c')
-
-      a.relation('linkA').add(b)
-      b.relation('linkB').add(c)
-      c.relation('linkC').add(a)
-
-      a.save().then(->
-        new Weaver.Query()
-        .hasNoRelationOut(['linkA','linkB'])
-        .find().then((nodes)->
-          expect(nodes.length).to.equal(1)
-          checkNodeInResult(nodes, 'c')
-        )
-      )
-
-    it 'should allow "or" in predicates for hasRelationIn', ->
-      a = new Weaver.Node('a')
-      b = new Weaver.Node('b')
-      c = new Weaver.Node('c')
-
-      a.relation('linkA').add(b)
-      b.relation('linkB').add(c)
-      c.relation('linkC').add(a)
-
-      a.save().then(->
-        new Weaver.Query()
-        .hasRelationIn(['linkA','linkB'])
-        .find().then((nodes)->
-          expect(nodes.length).to.equal(2)
-          checkNodeInResult(nodes, 'b')
-          checkNodeInResult(nodes, 'c')
-        )
-      )
-
-    it 'should allow "or" in predicates for hasRelationOut', ->
-      a = new Weaver.Node('a')
-      b = new Weaver.Node('b')
-      c = new Weaver.Node('c')
-
-      a.relation('linkA').add(b)
-      b.relation('linkB').add(c)
-      c.relation('linkC').add(a)
-
-      a.save().then(->
-        new Weaver.Query()
-        .hasRelationOut(['linkA','linkB'])
-        .find().then((nodes)->
-          expect(nodes.length).to.equal(2)
-          checkNodeInResult(nodes, 'a')
-          checkNodeInResult(nodes, 'b')
-        )
-      )
-
-    it 'should allow "or" in objects for specific hasRelationOut', ->
-      a = new Weaver.Node('a')
-      b = new Weaver.Node('b')
-      c = new Weaver.Node('c')
-
-      a.relation('link').add(b)
-      b.relation('link').add(c)
-      c.relation('link').add(a)
-
-      a.save().then(->
-        new Weaver.Query()
-        .hasRelationOut('link', Weaver.Node.get('b'), Weaver.Node.get('c'))
-        .find().then((nodes)->
-          expect(nodes.length).to.equal(2)
-          checkNodeInResult(nodes, 'a')
-          checkNodeInResult(nodes, 'b')
         )
       )
 
@@ -698,69 +694,35 @@ describe 'WeaverQuery Test', ->
         expect(nodes[0].relation('rec').nodes['b'].relation('rec').nodes['a']).to.exist
       )
 
-    it 'should be able to do nested queries (to allow hops)', ->
-      a = new Weaver.Node('a')
-      b = new Weaver.Node('b')
-      c = new Weaver.Node('c')
-      a.relation('link').add(b)
-      b.relation('link').add(c)
-
-      a.save().then(->
-        new Weaver.Query()
-        .hasRelationOut('link',
-          new Weaver.Query().hasRelationOut('link')
-        ).find().then((nodes)->
-          expect(nodes.length).to.equal(1)
-          checkNodeInResult(nodes, 'a')
-        )
-      )
-
-    it 'should be able to do nested hasRelationIn queries', ->
-      a = new Weaver.Node('a')
-      b = new Weaver.Node('b')
-      c = new Weaver.Node('c')
-      a.relation('link').add(b)
-      b.relation('link').add(c)
-
-      a.save().then(->
-        new Weaver.Query()
-        .hasRelationIn('link',
-          new Weaver.Query().hasRelationIn('link')
-        ).find().then((nodes)->
-          expect(nodes.length).to.equal(1)
-          checkNodeInResult(nodes, 'c')
-        )
-      )
-
     it 'should be able to combine hasRelationIn queries with hasRelationOut', ->
+      a = new Weaver.Node('a')
+      b = new Weaver.Node('b')
       c = new Weaver.Node('c')
-      d = new Weaver.Node('d')
-      e = new Weaver.Node('e')
 
-      c.relation('link').add(d)
-      d.relation('test').add(e)
+      a.relation('link').add(b)
+      b.relation('test').add(c)
 
-      Promise.all([c.save()]).then(->
+      Promise.all([a.save()]).then(->
         new Weaver.Query()
           .hasRelationIn('link')
           .hasRelationOut('test')
         .find()
       ).then((nodes)->
           expect(nodes.length).to.equal(1)
-          checkNodeInResult(nodes, 'd')
+          checkNodeInResult(nodes, 'b')
       )
 
     it 'should be able to combine nested hasRelationIn queries with hasRelationOut', ->
       a = new Weaver.Node('a')
+      b = new Weaver.Node('b')
       c = new Weaver.Node('c')
       d = new Weaver.Node('d')
-      e = new Weaver.Node('e')
 
-      c.relation('link').add(d)
-      d.relation('link').add(a)
-      d.relation('test').add(e)
+      b.relation('link').add(c)
+      c.relation('link').add(a)
+      c.relation('test').add(d)
 
-      Promise.all([a.save(), d.save(), c.save()]).then(->
+      Promise.all([a.save(), c.save(), b.save()]).then(->
         q = new Weaver.Query()
         .hasRelationIn('link',
           new Weaver.Query()
@@ -789,6 +751,9 @@ describe 'WeaverQuery Test', ->
           expect(nodes[0].relation('link').nodes['b'].get('name')).to.be.undefined
         )
       )
+
+
+  # From this point on, no more beforeEach
 
   it 'should deny any other user than root to execute a native query', ->
     query = "select * where { ?s ?p ?o }"
