@@ -33,7 +33,7 @@ describe 'Weaver relation and WeaverRelationNode test', ->
 
       assert(loadedNode._loaded)
       assert(loadedNode._stored)
-      assert(!loadedNode.relation('comesBefore').nodes[bar.id()]._loaded)
+      expect(loadedNode.relation('comesBefore').nodes[bar.id()]).to.have.property('_loaded').equal(false)
       assert(loadedNode.relation('comesBefore').nodes[bar.id()]._stored)
 
       loadedNode.relation('comesBefore').to(bar)

@@ -27,7 +27,7 @@ class WeaverQuery
     @_orQueries          = []
     @_conditions         = {}
     @_include            = []
-    @_select             = []
+    @_select             = undefined
     @_selectOut          = []
     @_selectRecursiveOut = []
     @_noRelations        = true
@@ -49,7 +49,7 @@ class WeaverQuery
       Weaver.Query.notify(result)
       list = []
       for node in result.nodes
-        castedNode = Weaver.Node.loadFromQuery(node, @useConstructorFunction)
+        castedNode = Weaver.Node.loadFromQuery(node, @useConstructorFunction, !@_select?)
 
         list.push(castedNode)
       list
