@@ -1,8 +1,12 @@
-weaver  = require("./test-suite")
+weaver  = require("./test-suite").weaver
+wipeCurrentProject = require("./test-suite").wipeCurrentProject
 Weaver  = require('../src/Weaver')
 Promise = require('bluebird')
 
 describe 'WeaverProject Test', ->
+  beforeEach ->
+    wipeCurrentProject()
+
   actualProject = (p) ->
     expect(p).to.have.property('_stored').to.be.a('boolean').to.equal(true)
     expect(p).to.have.property('destroy').be.a('function')
@@ -68,6 +72,28 @@ describe 'WeaverProject Test', ->
       weaver.useProject(p)
     )
 
+  it 'should freeze a project making writing impossible', ->
+    weaver.currentProject().freeze().then(->
+      (new Weaver.Node()).save().should.be.rejected
+    )
+
+  it 'should unfreeze a project making writing possible', ->
+    weaver.currentProject().unfreeze().then(->
+      (new Weaver.Node()).save().should.not.be.rejected
+    )
+
+  it 'should be unable to freeze project due to acls', ->
+    new Weaver.User('testuser', 'testpass', 'test@example.com').signUp().then(->
+      weaver.currentProject().freeze()
+    ).should.be.rejectedWith(/Permission denied/)
+
+  it 'should be unable to unfreeze a project due to acls', ->
+    weaver.currentProject().freeze().then(->
+      new Weaver.User('testuser', 'testpass', 'test@example.com').signUp().then(->
+        weaver.currentProject().unfreeze()
+      ).should.be.rejectedWith(/Permission denied/)
+    )
+
   it.skip 'should raise an error while saving without currentProject', (done) ->
     p = weaver.currentProject()
     weaver.useProject(null)
@@ -83,7 +109,7 @@ describe 'WeaverProject Test', ->
     )
     return
 
-  it.skip 'should export the database content as snapshot', ->
+  it 'should export the database content as snapshot', ->
     node = new Weaver.Node()
 
     node.save().then((node) ->
@@ -141,9 +167,23 @@ describe 'WeaverProject Test', ->
       p.destroy()
     )
 
+  it 'should rename a project on the server and local', ->
+    p = weaver.currentProject()
+    p.rename('rename_test').then(->
+      Weaver.Project.list().then((list)->
+        expect(list[0].name).to.equal('rename_test')
+        expect(p.name).to.equal('rename_test')
+      )
+    )
+
+  it 'should not be able to rename a project with insufficient permissions', ->
+    new Weaver.User('testuser', 'testpass', 'test@example.com').signUp().then(->
+      weaver.currentProject().rename('rename_test')
+    ).should.be.rejectedWith(/Permission denied/)
+
   it 'should snapshot a project and get a minio filename gz', ->
     p = weaver.currentProject()
-    
+
     a = new Weaver.Node()
     b = new Weaver.Node()
     c = new Weaver.Node()
@@ -154,8 +194,4 @@ describe 'WeaverProject Test', ->
       p.getSnapshot(true)
     ).then((dump)->
       assert.include(dump, ".gz")
-    )
-    .catch((err)->
-      console.log err
-      assert(false, "The returned value from the server is not a gz filename: " + err)
     )

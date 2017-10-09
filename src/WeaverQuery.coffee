@@ -8,45 +8,60 @@ _           = require('lodash')
 quote = (s) ->
   '\\Q' + s.replace('\\E', '\\E\\\\E\\Q') + '\\E'
 
+nodeId = (node) ->
+  if _.isString(node)
+    node
+  else if node instanceof Weaver.Node
+    node.id()
+  else
+    throw new Error("Unsupported type")
+
 
 class WeaverQuery
 
+  @profilers = []
+
   constructor: (@target) ->
-    @_restrict     = []
-    @_equals       = {}
-    @_orQueries    = []
-    @_conditions   = {}
-    @_include      = []
-    @_select       = []
-    @_noRelations  = true
-    @_noAttributes = true
-    @_count        = false
-    @_hollow       = false
-    @_limit        = 99999
-    @_skip         = 0
-    @_order        = []
-    @_ascending    = true
-    @_arrayCount   = 0
+    @_restrict           = []
+    @_equals             = {}
+    @_orQueries          = []
+    @_conditions         = {}
+    @_include            = []
+    @_select             = undefined
+    @_selectOut          = []
+    @_selectRecursiveOut = []
+    @_noRelations        = true
+    @_noAttributes       = true
+    @_count              = false
+    @_hollow             = false
+    @_limit              = 99999
+    @_skip               = 0
+    @_order              = []
+    @_ascending          = true
+    @_arrayCount         = 0
 
   find: (Constructor) ->
 
-    Constructor = Constructor or Weaver.Node
-    Weaver.getCoreManager().query(@).then((result) ->
+    if Constructor?
+      @useConstructorFunction = -> Constructor
+
+    Weaver.getCoreManager().query(@).then((result) =>
+      Weaver.Query.notify(result)
       list = []
       for node in result.nodes
-        instance = new Constructor(node.nodeId)
-        instance._loadFromQuery(node)
-        instance._setStored()
-        instance._loaded = true
+        castedNode = Weaver.Node.loadFromQuery(node, @useConstructorFunction, !@_select?)
 
-        list.push(instance)
+        list.push(castedNode)
       list
     )
 
   count: ->
     @_count = true
     Weaver.getCoreManager().query(@).then((result) ->
+      Weaver.Query.notify(result)
       result.count
+    ).finally(=>
+      @_count = false
     )
 
   first: (Constructor) ->
@@ -110,7 +125,7 @@ class WeaverQuery
     else if node.length is 1 and node[0] instanceof WeaverQuery
       @_addCondition(key, '$relIn', node)
     else
-      @_addCondition(key, '$relIn', if node.length > 0 then (i.id() or i for i in node) else ['*'])
+      @_addCondition(key, '$relIn', if node.length > 0 then (nodeId(i) or i for i in node) else ['*'])
 
   hasRelationOut: (key, node...) ->
     if _.isArray(key)
@@ -118,7 +133,7 @@ class WeaverQuery
     else if node.length is 1 and node[0] instanceof WeaverQuery
       @_addCondition(key, '$relOut', node)
     else
-      @_addCondition(key, '$relOut', if node.length > 0 then (i.id() or i for i in node) else ['*'])
+      @_addCondition(key, '$relOut', if node.length > 0 then (nodeId(i) or i for i in node) else ['*'])
     @
 
   hasNoRelationIn: (key, node...) ->
@@ -127,7 +142,7 @@ class WeaverQuery
     else if node.length is 1 and node[0] instanceof WeaverQuery
       @_addCondition(key, '$noRelIn', node)
     else
-      @_addCondition(key, '$noRelIn', if node.length > 0 then (i.id() or i for i in node) else ['*'])
+      @_addCondition(key, '$noRelIn', if node.length > 0 then (nodeId(i) or i for i in node) else ['*'])
 
   hasNoRelationOut: (key, node...) ->
     if _.isArray(key)
@@ -135,7 +150,7 @@ class WeaverQuery
     else if node.length is 1 and node[0] instanceof WeaverQuery
       @_addCondition(key, '$noRelOut', node)
     else
-      @_addCondition(key, '$noRelOut', if node.length > 0 then (i.id() or i for i in node) else ['*'])
+      @_addCondition(key, '$noRelOut', if node.length > 0 then (nodeId(i) or i for i in node) else ['*'])
 
   containedIn: (key, values) ->
     @_addCondition(key, '$in', values)
@@ -225,6 +240,14 @@ class WeaverQuery
     @_select = keys
     @
 
+  selectOut: (relationKeys...) ->
+    @_selectOut.push(relationKeys)
+    @
+
+  selectRecursiveOut: (relationKeys...) ->
+    @_selectRecursiveOut = relationKeys
+    @
+
   hollow: (value) ->
     @_hollow = value
     @
@@ -237,6 +260,20 @@ class WeaverQuery
     query = new Weaver.Query()
     query.or(queries)
     query
+
+  @profile: (callback) ->
+    Weaver.Query.profilers.push(callback)
+
+  @clearProfilers: ->
+    Weaver.Query.profilers = []
+
+  @notify: (result) ->
+    for callback in Weaver.Query.profilers
+      callback(result)
+
+  useConstructor: (useConstructorFunction) ->
+    @useConstructorFunction = useConstructorFunction
+    @
 
   # Create, Update, Enter, Leave, Delete
   subscribe: ->

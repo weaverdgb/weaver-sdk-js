@@ -1,8 +1,8 @@
-weaver = require("./test-suite")
+weaver = require("./test-suite").weaver
+wipeCurrentProject = require("./test-suite").wipeCurrentProject
 Weaver = require('../src/Weaver')
 
 describe 'WeaverNode test', ->
-
   it 'should handle concurrent remove node operations', ->
     a = new Weaver.Node()
 
@@ -10,6 +10,13 @@ describe 'WeaverNode test', ->
       Promise.all([a.destroy(), a.destroy()])
     )
 
+  it 'should reject loading undefined nodes', ->
+    new Weaver.Node().save().then( ->
+      Weaver.Node.load(undefined).should.eventually.be.rejected
+    )
+
+  it 'should reject loading unexistant nodes', ->
+    Weaver.Node.load('doesnt-exist').should.eventually.be.rejected
 
   it 'should propagate delete to relations (part 1)', ->
     a = new Weaver.Node()
@@ -24,26 +31,26 @@ describe 'WeaverNode test', ->
       assert.isUndefined(res.relations.link)
     )
 
-
   it 'should propagate delete to relations (part 2)', ->
     a = new Weaver.Node()
     b = new Weaver.Node()
     c = new Weaver.Node()
 
-    a.relation('link').add(b)
-    c.relation('link').add(c)
-    Promise.all([a.save(), c.save()]).then(->
+    a.relation('2link').add(b)
+    c.relation('2link').add(c)
+    wipeCurrentProject().then(->
+      Promise.all([a.save(), c.save()])
+    ).then(->
       b.destroy()
     ).then(->
       new Weaver.Query()
       .withRelations()
-      .hasNoRelationIn('link')
-      .hasNoRelationOut('link')
+      .hasNoRelationIn('2link')
+      .hasNoRelationOut('2link')
       .find()
     ).then((res)->
       assert.equal(res.length, 2)
     )
-
 
   it 'should create a new node', ->
     node = new Weaver.Node()
@@ -69,11 +76,12 @@ describe 'WeaverNode test', ->
 
   it 'should remove a node', ->
     node = new Weaver.Node()
+    id = node.id()
 
     node.save().then((node) ->
       node.destroy()
     ).then(->
-      Weaver.Node.load(node.id())
+      Weaver.Node.load(id)
     ).catch((error) ->
       assert.equal(error.code, Weaver.Error.NODE_NOT_FOUND)
     )
@@ -194,8 +202,8 @@ describe 'WeaverNode test', ->
     )
 
   it.skip 'should give an error if node already exists', ->
-    node1 = new Weaver.Node('a')
-    node2 = new Weaver.Node('a')
+    node1 = new Weaver.Node('double-node')
+    node2 = new Weaver.Node('double-node')
 
     node1.save().then(->
       node2.save()
@@ -257,11 +265,10 @@ describe 'WeaverNode test', ->
       assert.equal(loadedNode.id(), c.id())
     )
 
-  it.skip 'should clone a node', ->
-
-    a = new Weaver.Node()
-    b = new Weaver.Node()
-    c = new Weaver.Node()
+  it 'should clone a node', ->
+    a = new Weaver.Node('clonea')
+    b = new Weaver.Node('cloneb')
+    c = new Weaver.Node('clonec')
     cloned = null
 
     a.set('name', 'Foo')
@@ -274,22 +281,66 @@ describe 'WeaverNode test', ->
 
     Weaver.Node.batchSave([a,b,c])
     .then(->
-      Weaver.Node.load(a.id())
-    ).then((node) ->
-      node.clone()
-    ).then((node) ->
-      cloned = node
-
+      a.clone('cloned-a')
+    ).then( ->
+      Weaver.Node.load('cloned-a')
+    ).then((cloned) ->
       assert.notEqual(cloned.id(), a.id())
       assert.equal(cloned.get('name'), 'Foo')
       to = value for key, value of cloned.relation('to').nodes
       assert.equal(to.id(), b.id())
-
       Weaver.Node.load(c.id())
     ).then((node) ->
-      assert.isDefined(node.relation('to').nodes[cloned.id()])
+      assert.isDefined(node.relation('to').nodes['cloned-a'])
     )
 
+  it 'should recursively clone a node', ->
+    foo = new Weaver.Node('foo')
+    bar = new Weaver.Node('bar')
+
+    foo.relation('baz').add(bar)
+
+    foo.save().then(->
+      foo.clone('new-foo', 'baz')
+    ).then(->
+      Weaver.Node.load('new-foo')
+    ).then((newFoo) ->
+      expect(newFoo.relation('baz').nodes).to.not.have.property('bar')
+    )
+
+  it 'should clone loops', ->
+    paper = new Weaver.Node('paper')
+    sissors = new Weaver.Node('sissors')
+    rock = new Weaver.Node('rock')
+
+    paper.relation('beats').add(rock)
+    rock.relation('beats').add(sissors)
+    sissors.relation('beats').add(paper)
+
+    paper.save().then(->
+      paper.clone('new-paper', 'beats')
+    )
+
+  it 'should clone links to loops', ->
+    paper = new Weaver.Node('2paper')
+    sissors = new Weaver.Node('2sissors')
+    rock = new Weaver.Node('2rock')
+
+    player = new Weaver.Node('2player')
+
+    paper.relation('beats').add(rock)
+    rock.relation('beats').add(sissors)
+    sissors.relation('beats').add(paper)
+    player.relation('chooses').add(sissors)
+
+    player.save().then(->
+      paper.clone('2new-paper', 'beats')
+    ).then(->
+      Weaver.Node.load('2player')
+    ).then((pl) ->
+      expect(pl.relation('chooses').all()).to.have.length.be(2)
+      expect(pl.relation('chooses').nodes).to.have.property('2sissors')
+    )
 
   it 'should load an incomplete node', ->
     incompleteNode = null
@@ -306,55 +357,35 @@ describe 'WeaverNode test', ->
     )
 
   it 'should create and return a node if it doesn\'t exist', ->
-    Weaver.Node.firstOrCreate('test')
+    Weaver.Node.firstOrCreate('firstOrCreate')
       .then((node) ->
         assert.isTrue(node._stored)
-        assert.equal(node.id(), 'test')
+        assert.equal(node.id(), 'firstOrCreate')
       )
 
   it 'should not create a node return the existing node if it already exist', ->
-    new Weaver.Node('test').save()
+    new Weaver.Node('firstOrCreateExists').save()
       .then((node) ->
         assert.isTrue(node._stored)
-        Weaver.Node.firstOrCreate('test')
+        Weaver.Node.firstOrCreate('firstOrCreateExists')
       ).then((node) ->
         assert.isTrue(node._stored)
         assert.isTrue(node._loaded)
-        assert.equal(node.id(), 'test')
+        assert.equal(node.id(), 'firstOrCreateExists')
       )
 
-  it.skip 'should recursively clone a node', ->
+  it 'should be possible to get write operations from a node when weaver is not instantiated', ->
+    instance = Weaver.instance
+    Weaver.instance = undefined
+    try
 
-    a = new Weaver.Node()
-    b = new Weaver.Node()
-    c = new Weaver.Node()
-    cloned = null
+      node = new Weaver.Node('jim')
+      node.set('has', 'beans')
 
-    a.set('name', 'Foo')
-    b.set('name', 'Bar')
-    c.set('name', 'Dear')
-
-    a.relation('to').add(b)
-    b.relation('to').add(c)
-    c.relation('to').add(a)
-
-    Weaver.Node.batchSave([a,b,c])
-    .then(->
-      Weaver.Node.load(a.id())
-    ).then((node) ->
-      node.clone({'to':Weaver.Node})
-    ).then((node) ->
-      cloned = node
-
-      assert.notEqual(cloned.id(), a.id())
-      assert.equal(cloned.get('name'), 'Foo')
-      to = value for key, value of cloned.relation('to').nodes
-      assert.notEqual(to.id(), b.id())
-
-      Weaver.Node.load(c.id())
-    ).then((node) ->
-      assert.isDefined(node.relation('to').nodes[cloned.id()])
-    )
+      operations = node.peekPendingWrites()
+      expect(operations).to.have.length(2)
+    finally
+      Weaver.instance = instance
 
   it 'should reject interaction with out-of-date nodes', ->
     a = new Weaver.Node('a') # a node is created and saved at some point

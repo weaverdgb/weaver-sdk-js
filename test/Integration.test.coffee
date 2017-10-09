@@ -1,12 +1,11 @@
 Promise = require('bluebird')
-weaver = require("./test-suite")
+weaver = require("./test-suite").weaver
 Weaver = require('../src/Weaver')
 
 alphaProject = null
 betaProject  = null
 
 describe 'Integration Test', ->
-
   it 'should demonstrate and assess all Weaver functionality', ->
 
     # Map to save state between promises
@@ -23,7 +22,7 @@ describe 'Integration Test', ->
       # - no data in any database
       # We therefore call the wipe function that only works in Development mode
       weaver.wipe()
-    
+
     ).then(->
 
       # Create a project with a name

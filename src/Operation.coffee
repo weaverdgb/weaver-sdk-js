@@ -2,7 +2,10 @@ Weaver = require('./Weaver')
 cuid   = require('cuid')
 
 NodeOperation = (node) ->
-  timestamp   = Weaver.getCoreManager().serverTime()
+  if Weaver.instance?
+    timestamp = Weaver.getCoreManager().serverTime()
+  else
+    timestamp = new Date().getTime()
 
   createNode: ->
     {

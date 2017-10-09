@@ -30,7 +30,7 @@ class WeaverRelation
   first: ->
     @.all()[0]
 
-  add: (node, relId) ->
+  add: (node, relId, addToPendingWrites = true) ->
     relId = cuid() if not relId?
     @nodes[node.id()] = node
 

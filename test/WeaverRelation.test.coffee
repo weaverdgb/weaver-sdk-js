@@ -1,8 +1,7 @@
-weaver = require("./test-suite")
+weaver = require("./test-suite").weaver
 Weaver = require('../src/Weaver')
 
 describe 'Weaver relation and WeaverRelationNode test', ->
-
   it 'should add a new relation without id', ->
     foo = new Weaver.Node()
     bar = new Weaver.Node()
@@ -34,7 +33,7 @@ describe 'Weaver relation and WeaverRelationNode test', ->
 
       assert(loadedNode._loaded)
       assert(loadedNode._stored)
-      assert(!loadedNode.relation('comesBefore').nodes[bar.id()]._loaded)
+      expect(loadedNode.relation('comesBefore').nodes[bar.id()]).to.have.property('_loaded').equal(false)
       assert(loadedNode.relation('comesBefore').nodes[bar.id()]._stored)
 
       loadedNode.relation('comesBefore').to(bar)
@@ -42,17 +41,6 @@ describe 'Weaver relation and WeaverRelationNode test', ->
       loadedRel = relation
       assert.isTrue(loadedRel instanceof Weaver.RelationNode)
       assert.equal(loadedRel.id(), rel.id())
-
-# todo: see ticket WEAV-132
-#      loadedRel.to()
-#    ).then((to) ->
-#      assert.isTrue(to instanceof Weaver.Node)
-#      assert.equal(to.id(), bar.id())
-#
-#      loadedRel.from()
-#    ).then((from) ->
-#      assert.isTrue(from instanceof Weaver.Node)
-#      assert.equal(from.id(), foo.id())
     )
 
   it 'should add a new relation with id', ->
