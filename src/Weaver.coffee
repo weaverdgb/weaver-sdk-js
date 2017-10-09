@@ -90,8 +90,7 @@ class Weaver
     Promise.setScheduler(fn)
 
   setOptions: (opts)->
-    if opts?ignoresOutOfDate
-      @_ignoresOutOfDate = opts.ignoresOutOfDate
+    @_ignoresOutOfDate = opts.ignoresOutOfDate
 
   # Returns the Weaver instance if instantiated. This should be called from
   # a static reference

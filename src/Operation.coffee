@@ -27,6 +27,8 @@ NodeOperation = (node) ->
     replaceId = null
     replaceId = cuid() if replaces?
 
+    console.log ignoreConcurrentReplace
+
     {
       timestamp
       action: "create-attribute"
