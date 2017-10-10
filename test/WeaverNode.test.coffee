@@ -250,6 +250,7 @@ describe 'WeaverNode test', ->
 
     Weaver.Node.batchSave([a,b,c])
     .then(() ->
+      expect(a).to.have.property('_stored').be.equal(true)
       Weaver.Node.load(a.id())
     ).then((loadedNode) ->
       assert.equal(loadedNode.id(), a.id())
