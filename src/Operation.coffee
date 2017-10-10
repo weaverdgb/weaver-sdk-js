@@ -27,8 +27,6 @@ NodeOperation = (node) ->
     replaceId = null
     replaceId = cuid() if replaces?
 
-    console.log ignoreConcurrentReplace
-
     {
       timestamp
       action: "create-attribute"
@@ -37,8 +35,9 @@ NodeOperation = (node) ->
       key
       value
       datatype
-      replacesId: replaces if not ignoreConcurrentReplace
+      replacesId: replaces
       replaceId
+      traverseReplaces: ignoreConcurrentReplace if replaces? and ignoreConcurrentReplace?
     }
 
   removeAttribute: (id) ->
@@ -60,8 +59,9 @@ NodeOperation = (node) ->
       sourceId: node.id()
       key
       targetId: to
-      replacesId: replaces if not ignoreConcurrentReplace
+      replacesId: replaces
       replaceId
+      traverseReplaces: ignoreConcurrentReplace if replaces? and ignoreConcurrentReplace?
     }
 
   removeRelation: (id) ->
