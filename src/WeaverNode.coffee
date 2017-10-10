@@ -303,7 +303,7 @@ class WeaverNode
       writes = [].concat.apply([], (i._collectPendingWrites() for i in array))
 
       cm.executeOperations((_.omit(i, "__pendingOpNode") for i in writes), project).then(->
-        i.__pendingOpNode._setStored() for i in writes
+        i.__pendingOpNode._setStored() for i in writes when i.__pendingOpNode._setStored?
         Promise.resolve()
       ).catch((e) =>
 
