@@ -3,6 +3,7 @@ Operation   = require('./Operation')
 Weaver      = require('./Weaver')
 util        = require('./util')
 _           = require('lodash')
+Promise     = require('bluebird')
 
 class WeaverNode
 

@@ -387,7 +387,7 @@ describe 'WeaverNode test', ->
     finally
       Weaver.instance = instance
 
-  it 'should reject interaction with out-of-date nodes if ignoresOutOfDate is true', ->
+  it 'should reject interaction with out-of-date nodes by default', ->
     a = new Weaver.Node() # a node is created and saved at some point
     a.set('name','a')
     ay = {}
@@ -439,43 +439,41 @@ describe 'WeaverNode test', ->
       assert.equal(res.get('name'),'A_')
     ).then(->
       ay.set('name', 'Ay')
-      ay.save()
       aay.set('name','Aay')
-      aay.save()
+      Promise.all([ay.save(), aay.save()])
+    ).finally(->
+      weaver.setOptions({ignoresOutOfDate: false})
     )
 
-  it 'should handle concurrent relation updates if the ignoresOutOfDate flag is passed', ->
-    weaver.setOptions({ignoresOutOfDate: true})
-    a = new Weaver.Node() # a node is created and saved at some point
-    a.set('name','a')
-    ay = {}
-    aay = {}
+  it 'should reject out-of-sync attribute updates by default', ->
+    a = new Weaver.Node()
+    a.set('name', 'first')
+    alsoA = undefined
 
-    a.save().then(->  # :: USE CASE ::
-      Weaver.Node.load(a.id())                       # node is loaded and assigned to some view variable at some point
-    ).then((res)->
-      ay = res
-      Weaver.Node.load(a.id())                       # node is loaded and assigned to some other view variable at some point (inside a separate component, most likely)
-    ).then((res)->
-      aay = res
-      ay.set('name','Ay')                         # user changed the name to 'Ay'
-      ay.save()
-      aay.set('name','A')                         # at some point in the future, a user saw the result, recognized the typo, and decided to change the name back to 'A'
-      aay.save()     # (it's weird that he would do this in a separate component, but hey, monkey-testing)
-    ).then((res)->
-      res.set('name','_A')
-      res.save()
-    ).then(()->
+    a.save().then(->
       Weaver.Node.load(a.id())
-    ).then((res)->
-      assert.equal(res.get('name'),'_A')
-      res.set('name','A_')
-      res.save()
-    ).then((res)->
-      assert.equal(res.get('name'),'A_')
+    ).then((node) ->
+      alsoA = node
+      a.set('name', 'second')
+      a.save()
     ).then(->
-      ay.set('name', 'Ay')
-      ay.save()
-      aay.set('name','Aay')
-      aay.save()
+      alsoA.set('name', 'allegedly updates first')
+      alsoA.save()
+    ).should.eventually.be.rejected
+
+  it 'should allow out-of-sync attribute updates if the ignoresOutOfDate flag is set', ->
+    weaver.setOptions({ignoresOutOfDate: true})
+    a = new Weaver.Node()
+    a.set('name', 'first')
+    alsoA = undefined
+
+    a.save().then(->
+      Weaver.Node.load(a.id())
+    ).then((node) ->
+      alsoA = node
+      a.set('name', 'second')
+      a.save()
+    ).then(->
+      alsoA.set('name', 'allegedly updates first')
+      alsoA.save()
     )
