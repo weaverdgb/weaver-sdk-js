@@ -476,4 +476,47 @@ describe 'WeaverNode test', ->
     ).then(->
       alsoA.set('name', 'allegedly updates first')
       alsoA.save()
+    ).finally(->
+      weaver.setOptions({ignoresOutOfDate: false})
+    )
+  
+  it 'should reject out-of-sync relation updates by default', ->
+    a = new Weaver.Node()
+    alsoA = undefined
+    b = new Weaver.Node()
+    c = new Weaver.Node()
+    d = new Weaver.Node()
+    a.relation('rel').add(b)
+
+    Weaver.Node.batchSave([a, b, c, d]).then(->
+      Weaver.Node.load(a.id())
+    ).then((node) ->
+      alsoA = node
+      a.relation('rel').update(b, c)
+      a.save()
+    ).then(->
+      alsoA.relation('rel').update(b, d)
+      alsoA.save()
+    ).should.eventually.be.rejected
+  
+  it 'should allow out-of-sync relation updates if the ignoresOutOfDate flag is set', ->
+    weaver.setOptions({ignoresOutOfDate: true})
+    a = new Weaver.Node()
+    alsoA = undefined
+    b = new Weaver.Node()
+    c = new Weaver.Node()
+    d = new Weaver.Node()
+    a.relation('rel').add(b)
+
+    Weaver.Node.batchSave([a, b, c, d]).then(->
+      Weaver.Node.load(a.id())
+    ).then((node) ->
+      alsoA = node
+      a.relation('rel').update(b, c)
+      a.save()
+    ).then(->
+      alsoA.relation('rel').update(b, d)
+      alsoA.save()
+    ).finally(->
+      weaver.setOptions({ignoresOutOfDate: false})
     )
