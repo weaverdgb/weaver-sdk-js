@@ -265,10 +265,9 @@ class WeaverNode
   # Save node and all values / relations and relation objects to server
   save: (project) ->
     cm = Weaver.getCoreManager()
+    writes = @_collectPendingWrites()
 
-    sp = cm.operationsQueue.then(=>
-      writes = @_collectPendingWrites()
-
+    cm.enqueue(=>
       cm.executeOperations((_.omit(i, "__pendingOpNode") for i in writes), project).then(=>
         @_setStored()
         @
@@ -283,25 +282,10 @@ class WeaverNode
       )
     )
 
-    new Promise((resultResolve, resultReject) =>
-      cm.operationsQueue = new Promise((resolve) =>
-        sp.then((r)->
-          resolve()
-          resultResolve(r)
-        ).catch((e) ->
-          resolve()
-          resultReject(e)
-        )
-      )
-    )
-
-
   @batchSave: (array, project) ->
     cm = Weaver.getCoreManager()
-
-    sp = cm.operationsQueue.then(=>
-      writes = [].concat.apply([], (i._collectPendingWrites() for i in array))
-
+    writes = [].concat.apply([], (i._collectPendingWrites() for i in array))
+    cm.enqueue(=>
       cm.executeOperations((_.omit(i, "__pendingOpNode") for i in writes), project).then(->
         i.__pendingOpNode._setStored() for i in writes when i.__pendingOpNode._setStored?
         Promise.resolve()
@@ -309,26 +293,13 @@ class WeaverNode
 
         # Restore the pending writes to their originating nodes
         # (in reverse order so create-node is done before adding attributes)
+
         for i in writes by -1
           i.__pendingOpNode.pendingWrites.unshift(i)
 
         Promise.reject(e)
       )
     )
-
-    new Promise((resultResolve, resultReject) =>
-      cm.operationsQueue = new Promise((resolve) =>
-        sp.then((r)->
-          resolve()
-          resultResolve(r)
-        ).catch((e) ->
-          resolve()
-          resultReject(e)
-        )
-      )
-    )
-
-
 
   # Removes node
   destroy: (project) ->
