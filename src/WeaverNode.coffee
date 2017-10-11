@@ -304,7 +304,7 @@ class WeaverNode
   # Removes node
   destroy: (project) ->
     cm = Weaver.getCoreManager()
-    rm = cm.operationsQueue.then( =>
+    cm.enqueue( =>
       if @nodeId?
         cm.executeOperations([Operation.Node(@).removeNode()], project).then(=>
           delete @[key] for key of @
@@ -314,17 +314,6 @@ class WeaverNode
         undefined
     )
 
-    new Promise((resultResolve, resultReject) =>
-      cm.operationsQueue = new Promise((resolve) =>
-        rm.then((r)->
-          resolve()
-          resultResolve(r)
-        ).catch((e) ->
-          resolve()
-          resultReject(e)
-        )
-      )
-    )
   # TODO: Implement
   setACL: (acl) ->
     return
