@@ -249,10 +249,10 @@ class CoreManager
   REQUEST: (type, path, payload, target) =>
     payload = @_resolvePayload(payload, target)
 
-    if type is "GET"
-      return @commController.GET(path, payload)
-    else
-      return @commController.POST(path, payload)
+    switch(type)
+      when "GET" then @commController.GET(path, payload)
+      when "POST" then @commController.POST(path, payload)
+      when "STREAM" then @commController.STREAM(path, payload)
 
   REQUEST_HTTP: (path, payload, target) ->
     payload = @_resolvePayload(payload, target)
@@ -262,23 +262,24 @@ class CoreManager
     file = @_resolvePayload(file)
     @commController.POST('file.deleteByID',file)
 
-  uploadFile: (formData) ->
-    formData = @_resolvePayload(formData)
-    new Promise((resolve, reject) =>
-      request.post({url:"#{@endpoint}/upload", formData: formData, rejectUnauthorized: @options.rejectUnauthorized}, (err, httpResponse, body) ->
-        if httpResponse?.statusCode is 500
-          reject(Error WeaverError.OTHER_CAUSE, httpResponse.body)
-          return
+  uploadFile: (stream, filename) ->
+    # formData = @_resolvePayload(formData)
+    @STREAM("file.upload", stream, {filename})
+    # new Promise((resolve, reject) =>
+    #   request.post({url:"#{@endpoint}/upload", formData: formData, rejectUnauthorized: @options.rejectUnauthorized}, (err, httpResponse, body) ->
+    #     if httpResponse?.statusCode is 500
+    #       reject(Error WeaverError.OTHER_CAUSE, httpResponse.body)
+    #       return
 
-        if err
-          if err.code is 'ENOENT'
-            reject(Error WeaverError.FILE_NOT_EXISTS_ERROR,"The file #{err.path} does not exits")
-          else
-            reject(Error WeaverError.OTHER_CAUSE,"Unknown error")
-        else
-          resolve(httpResponse.body)
-      )
-    )
+    #     if err
+    #       if err.code is 'ENOENT'
+    #         reject(Error WeaverError.FILE_NOT_EXISTS_ERROR,"The file #{err.path} does not exits")
+    #       else
+    #         reject(Error WeaverError.OTHER_CAUSE,"Unknown error")
+    #     else
+    #       resolve(httpResponse.body)
+    #   )
+    # )
 
   downloadFileByID: (payload, target) ->
     payload = @_resolvePayload(payload, target)
@@ -291,10 +292,12 @@ class CoreManager
   GET: (path, payload, target) ->
     @REQUEST("GET", path, payload, target)
 
-
-
   POST: (path, payload, target) ->
     @REQUEST("POST", path, payload, target)
+
+  STREAM: (path, stream, payload, target) ->
+    payload.stream = stream
+    @REQUEST("STREAM", path, payload, target)
 
 
 module.exports = CoreManager

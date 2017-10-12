@@ -1,18 +1,19 @@
 fs               = require('fs')
+Promise          = require('bluebird')
 Weaver           = require('./Weaver')
 WeaverError      = require('./WeaverError')
 Error            = require('./Error')
+ss               = require('socket.io-stream')
 
 
 
 class WeaverFile
 
-  saveFile: (path, fileName) ->
-    formData = {
-      file: fs.createReadStream(path)
-      fileName
-    }
-    Weaver.getCoreManager().uploadFile(formData)
+  saveFile: (path, filename) ->
+    stream = ss.createStream()
+    fs.createReadStream(path).pipe(stream)
+
+    Weaver.getCoreManager().uploadFile(stream, filename)
 
 
   getFileByID: (path, id) ->

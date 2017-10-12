@@ -2,6 +2,7 @@
 io       = require('socket.io-client')
 Promise  = require('bluebird')
 pjson    = require('../package.json')
+ss       = require('socket.io-stream')
 
 class SocketController
 
@@ -28,9 +29,10 @@ class SocketController
       )
     )
 
-  emit: (key, body) ->
+  emit: (key, body, streamable) ->
+    body = JSON.stringify(body) if not streamable
     new Promise((resolve, reject) =>
-      @io.emit(key, JSON.stringify(body), (response) ->
+      ss(@io).emit(key, body, (response) ->
         if response.code? and response.message?
           reject(new Error(response.message, response.code))
         else if response is 0
@@ -45,5 +47,9 @@ class SocketController
 
   POST: (path, body) ->
     @emit(path, body)
+
+  STREAM: (path, body) ->
+    body.type = "streamable"
+    @emit(path, body, true)
 
 module.exports = SocketController
