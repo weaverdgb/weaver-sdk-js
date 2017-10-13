@@ -155,4 +155,8 @@ describe 'WeaverQuery with single Network', ->
       expect(loadedMotorizedVehicle).to.have.property('_loaded').to.equal(true)
     )
 
-
+  it 'should allow for contains on the id property', ->
+    new Weaver.Query().contains('id', tree.id()).find().then((res) ->
+      expect(res).to.have.length.be(1)
+      expect(res[0].id()).to.equal(tree.id())
+    )

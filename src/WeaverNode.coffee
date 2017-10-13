@@ -108,6 +108,9 @@ class WeaverNode
 
   # Update attribute
   set: (field, value) ->
+    if field is 'id'
+      throw Error("Attribute 'id' cannot be set or updated")
+
     # Get attribute datatype, TODO: Support date
     dataType = null
     if util.isString(value)
