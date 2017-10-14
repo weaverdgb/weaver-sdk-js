@@ -11,9 +11,6 @@ describe 'WeaverFile test', ->
   beforeEach ->
     wipeCurrentProject()
 
-  file = ''
-  tmpDir = path.join(__dirname,"../tmp")
-
   it 'should create a new file', ->
     @timeout(15000) # This timeout is high because the 1st time minio takes more time (extra time creating a bucket)
 
@@ -36,11 +33,8 @@ describe 'WeaverFile test', ->
 
       Weaver.File.list()
     ).then((files) ->
-      listedFile = files[0]
-      assert.equal(listedFile.name(), file.name())
-      assert.isTrue(listedFile._stored)
-
-      Weaver.File.get(listedFile.id()).download("clone-#{listedFile.name()}")
+      expect(files.length).to.be.at.least(1)
+      Weaver.File.get(file.id()).download("clone-#{file.name()}")
     ).then((downloadedFile) ->
       new Promise((resolve, reject) ->
         fs.stat(downloadedFile.path(), (err, file) ->
