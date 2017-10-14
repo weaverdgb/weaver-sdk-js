@@ -192,6 +192,6 @@ describe 'WeaverProject Test', ->
     c.relation('link').add(c)
     Promise.all([a.save(), c.save()]).then(->
       p.getSnapshot(true)
-    ).then((dump)->
-      assert.include(dump, ".gz")
+    ).then((file)->
+      assert.include(file.name, ".gz")
     )

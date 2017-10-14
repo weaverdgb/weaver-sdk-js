@@ -29,8 +29,7 @@ class SocketController
       )
     )
 
-  emit: (key, body, streamable) ->
-    body = JSON.stringify(body) if not streamable
+  emit: (key, body) ->
     new Promise((resolve, reject) =>
       ss(@io).emit(key, body, (response) ->
         if response.code? and response.message?
@@ -49,7 +48,6 @@ class SocketController
     @emit(path, body)
 
   STREAM: (path, body) ->
-    body.type = "streamable"
-    @emit(path, body, true)
+    @emit(path, body)
 
 module.exports = SocketController

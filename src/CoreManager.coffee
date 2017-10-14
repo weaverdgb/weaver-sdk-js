@@ -39,13 +39,18 @@ class CoreManager
     target = target or @currentProject.id() if @currentProject?
     target
 
-  _resolvePayload: (payload, target) ->
+  _resolvePayload: (type, payload, target) ->
     payload = payload or {}
+    payload.type = type
+
     payload.target = @_resolveTarget(target)
     if @currentUser?
       payload.authToken = @currentUser.authToken
 
-    payload
+    if type is "STREAM"
+      return payload
+    else
+      JSON.stringify(payload)
 
   serverTime: ->
     clientTime = new Date().getTime()
@@ -247,7 +252,7 @@ class CoreManager
     @POST("user.projects", {id: userId})
 
   REQUEST: (type, path, payload, target) =>
-    payload = @_resolvePayload(payload, target)
+    payload = @_resolvePayload(type, payload, target)
 
     switch(type)
       when "GET" then @commController.GET(path, payload)
@@ -262,24 +267,14 @@ class CoreManager
     file = @_resolvePayload(file)
     @commController.POST('file.deleteByID',file)
 
-  uploadFile: (stream, filename) ->
-    # formData = @_resolvePayload(formData)
-    @STREAM("file.upload", stream, {filename})
-    # new Promise((resolve, reject) =>
-    #   request.post({url:"#{@endpoint}/upload", formData: formData, rejectUnauthorized: @options.rejectUnauthorized}, (err, httpResponse, body) ->
-    #     if httpResponse?.statusCode is 500
-    #       reject(Error WeaverError.OTHER_CAUSE, httpResponse.body)
-    #       return
+  listFiles: ->
+    @GET("file.list")
 
-    #     if err
-    #       if err.code is 'ENOENT'
-    #         reject(Error WeaverError.FILE_NOT_EXISTS_ERROR,"The file #{err.path} does not exits")
-    #       else
-    #         reject(Error WeaverError.OTHER_CAUSE,"Unknown error")
-    #     else
-    #       resolve(httpResponse.body)
-    #   )
-    # )
+  downloadFile: (fileId) ->
+    @STREAM("file.download", {fileId})
+
+  uploadFile: (stream, filename) ->
+    @STREAM("file.upload", {stream, filename})
 
   downloadFileByID: (payload, target) ->
     payload = @_resolvePayload(payload, target)
@@ -289,14 +284,16 @@ class CoreManager
       res
     )
 
+  deleteFile: (fileId) ->
+    @POST("file.delete", {fileId})
+
   GET: (path, payload, target) ->
     @REQUEST("GET", path, payload, target)
 
   POST: (path, payload, target) ->
     @REQUEST("POST", path, payload, target)
 
-  STREAM: (path, stream, payload, target) ->
-    payload.stream = stream
+  STREAM: (path, payload, target) ->
     @REQUEST("STREAM", path, payload, target)
 
 
