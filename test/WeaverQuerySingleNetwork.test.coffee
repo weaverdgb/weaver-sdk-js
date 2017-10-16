@@ -40,6 +40,14 @@ describe 'WeaverQuery with single Network', ->
       Promise.all([ferrari.save(), garden.save()])
     )
 
+  it 'should support wildcard with nested Weaver.Query values', ->
+    new Weaver.Query()
+    .hasRelationIn('*', new Weaver.Query().hasRelationOut('is-a', car))
+    .find().then((nodes) ->
+      expect(nodes).to.have.length.be(1)
+      expect(nodes[0].id()).to.equal(car.id())
+    )
+
   it 'should support wildcard relation hasRelationOut', ->
     new Weaver.Query()
     .hasRelationOut("*", tree)
