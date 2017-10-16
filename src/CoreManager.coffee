@@ -47,10 +47,10 @@ class CoreManager
     if @currentUser?
       payload.authToken = @currentUser.authToken
 
-    if type is "STREAM"
-      return payload
-    else
-      JSON.stringify(payload)
+    if type isnt "STREAM"
+      payload = JSON.stringify(payload)
+
+    payload
 
   serverTime: ->
     clientTime = new Date().getTime()
@@ -262,11 +262,6 @@ class CoreManager
   REQUEST_HTTP: (path, payload, target) ->
     payload = @_resolvePayload(payload, target)
 
-
-  deleteFileByID: (file) ->
-    file = @_resolvePayload(file)
-    @commController.POST('file.deleteByID',file)
-
   listFiles: ->
     @GET("file.list")
 
@@ -274,15 +269,7 @@ class CoreManager
     @STREAM("file.download", {fileId})
 
   uploadFile: (stream, filename) ->
-    @STREAM("file.upload", {stream, filename})
-
-  downloadFileByID: (payload, target) ->
-    payload = @_resolvePayload(payload, target)
-    payload = JSON.stringify(payload)
-    request.get({uri:"#{@endpoint}/file/downloadByID?payload=#{payload}", rejectUnauthorized: @options.rejectUnauthorized})
-    .on('response', (res) ->
-      res
-    )
+    @STREAM("file.upload", {file: stream, filename})
 
   deleteFile: (fileId) ->
     @POST("file.delete", {fileId})

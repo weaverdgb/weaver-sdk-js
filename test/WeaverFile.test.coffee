@@ -45,6 +45,14 @@ describe 'WeaverFile test', ->
       )
     )
 
+  it 'should support simultanious upload', ->
+    @timeout(15000)
+    file = new Weaver.File(path.join(__dirname,'../icon.png'))
+    file2 = new Weaver.File(path.join(__dirname,'../icon.png'))
+    Promise.all([file.upload(), file2.upload()])
+      .then((storedFiles) ->
+        expect(storedFiles.length).to.equal(2)
+      )
 
   it 'should deny access when uploading with unauthorized user', ->
     @timeout(15000)
