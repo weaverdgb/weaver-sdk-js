@@ -18,6 +18,17 @@ describe 'WeaverNode test', ->
   it 'should reject loading unexistant nodes', ->
     Weaver.Node.load('doesnt-exist').should.eventually.be.rejected
 
+  it 'should reject setting an id attribute', ->
+    a = new Weaver.Node()
+    expect(-> a.set('id', 'idea')).to.throw()
+
+  it 'should reject forcing an id attribute', ->
+    a = new Weaver.Node()
+    a.set('placeholder', 'totally-not-id')
+    writeOp = i for i in a.pendingWrites when i.action is 'create-attribute'
+    writeOp.key = 'id'
+    expect(a.save()).to.be.rejected
+
   it 'should propagate delete to relations (part 1)', ->
     a = new Weaver.Node()
     b = new Weaver.Node()
