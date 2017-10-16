@@ -215,7 +215,7 @@ class WeaverNode
       delete operation[field] for field, value of operation when not value?
 
     operations
-    
+
 
 
   # Go through each relation and recursively add all pendingWrites per relation AND that of the objects
@@ -267,10 +267,9 @@ class WeaverNode
   # Save node and all values / relations and relation objects to server
   save: (project) ->
     cm = Weaver.getCoreManager()
+    writes = @_collectPendingWrites()
 
-    sp = cm.operationsQueue.then(=>
-      writes = @_collectPendingWrites()
-
+    cm.enqueue(=>
       cm.executeOperations((_.omit(i, "__pendingOpNode") for i in writes), project).then(=>
         @_setStored()
         @
@@ -285,26 +284,29 @@ class WeaverNode
       )
     )
 
-    new Promise((resultResolve, resultReject) =>
-      cm.operationsQueue = new Promise((resolve) =>
-        sp.then((r)->
-          resolve()
-          resultResolve(r)
-        ).catch((e) ->
-          resolve()
-          resultReject(e)
-        )
+  @batchSave: (array, project) ->
+    cm = Weaver.getCoreManager()
+    writes = [].concat.apply([], (i._collectPendingWrites() for i in array))
+    cm.enqueue(=>
+      cm.executeOperations((_.omit(i, "__pendingOpNode") for i in writes), project).then(->
+        i.__pendingOpNode._setStored() for i in writes when i.__pendingOpNode._setStored?
+        Promise.resolve()
+      ).catch((e) =>
+
+        # Restore the pending writes to their originating nodes
+        # (in reverse order so create-node is done before adding attributes)
+
+        for i in writes by -1
+          i.__pendingOpNode.pendingWrites.unshift(i)
+
+        Promise.reject(e)
       )
     )
-
-
-  @batchSave: (array, project) ->
-    Promise.all(i.save(project) for i in array)
 
   # Removes node
   destroy: (project) ->
     cm = Weaver.getCoreManager()
-    rm = cm.operationsQueue.then( =>
+    cm.enqueue( =>
       if @nodeId?
         cm.executeOperations([Operation.Node(@).removeNode()], project).then(=>
           delete @[key] for key of @
@@ -314,17 +316,6 @@ class WeaverNode
         undefined
     )
 
-    new Promise((resultResolve, resultReject) =>
-      cm.operationsQueue = new Promise((resolve) =>
-        rm.then((r)->
-          resolve()
-          resultResolve(r)
-        ).catch((e) ->
-          resolve()
-          resultReject(e)
-        )
-      )
-    )
   # TODO: Implement
   setACL: (acl) ->
     return

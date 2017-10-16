@@ -288,6 +288,24 @@ class CoreManager
       res
     )
 
+  enqueue: (functionToEnqueue) ->
+    op = @operationsQueue.then(->
+      functionToEnqueue()
+    )
+
+    new Promise((resultResolve, resultReject) =>
+      @operationsQueue = new Promise((resolve) =>
+        op.then((r)->
+          resolve()
+          resultResolve(r)
+        ).catch((e) ->
+          resolve()
+          resultReject(e)
+        )
+      )
+    )
+
+
   GET: (path, payload, target) ->
     @REQUEST("GET", path, payload, target)
 
