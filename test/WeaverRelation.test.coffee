@@ -56,17 +56,19 @@ describe 'Weaver relation and WeaverRelationNode test', ->
       assert.isDefined(loadedNode)
     )
 
-  it.skip 'should update a relation', ->
+  it 'should update a relation', ->
     foo = new Weaver.Node()
     bar = new Weaver.Node()
     ono = new Weaver.Node()
     foo.relation('comesBefore').add(bar)
-    foo.relation('comesBefore').update(bar, ono)
-
     Weaver.Node.batchSave([foo, bar, ono]).then(->
+      foo.relation('comesBefore').update(bar, ono)
+      foo.save()
+    ).then(->
       Weaver.Node.load(foo.id())
     ).then((loadedNode) ->
-      assert.isDefined(loadedNode.relation('comesBefore').nodes[ono.id()])
+      expect(loadedNode.relation('comesBefore').nodes[ono.id()]).to.be.defined
+      expect(loadedNode.relation('comesBefore').nodes[bar.id()]).to.not.be.defined
     )
 
   it 'should remove a relation', ->

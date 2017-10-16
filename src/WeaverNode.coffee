@@ -3,6 +3,7 @@ Operation   = require('./Operation')
 Weaver      = require('./Weaver')
 util        = require('./util')
 _           = require('lodash')
+Promise     = require('bluebird')
 
 class WeaverNode
 
@@ -106,7 +107,6 @@ class WeaverNode
 
 
 
-  # Update attribute
   set: (field, value) ->
     if field is 'id'
       throw Error("Attribute 'id' cannot be set or updated")
@@ -130,8 +130,7 @@ class WeaverNode
         throw new Error("Specifiy which attribute to set, more than 1 found for " + field) # TODO: Support later
 
       oldAttribute = @attributes[field][0]
-      newAttributeOperation = Operation.Node(@).createAttribute(field, value, dataType, oldAttribute.nodeId)
-
+      newAttributeOperation = Operation.Node(@).createAttribute(field, value, dataType, oldAttribute.nodeId, Weaver.getInstance()._ignoresOutOfDate)
     else
       newAttributeOperation = Operation.Node(@).createAttribute(field, value, dataType)
 

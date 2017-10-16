@@ -50,7 +50,7 @@ class WeaverRelation
     delete @relationNodes[oldNode.id()]
     @relationNodes[newNode.id()] = Weaver.RelationNode.get(newRelId, Weaver.RelationNode)
 
-    @pendingWrites.push(Operation.Node(@parent).createRelation(@key, newNode.id(), newRelId, oldRelId))
+    @pendingWrites.push(Operation.Node(@parent).createRelation(@key, newNode.id(), newRelId, oldRelId, Weaver.getInstance()._ignoresOutOfDate))
 
 
   remove: (node) ->
