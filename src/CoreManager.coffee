@@ -68,8 +68,7 @@ class CoreManager
 
   executeOperations: (allOperations, target) ->
     if (allOperations.length <= @maxBatchSize)
-      operations = allOperations
-      @POST('write', {operations}, target)
+      @POST('write', {operations: allOperations}, target)
     else
       operations = allOperations.splice(0, @maxBatchSize)
       @POST('write', {operations}, target).then ( =>
