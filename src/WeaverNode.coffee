@@ -275,6 +275,10 @@ class WeaverNode
         @
       ).catch((e) =>
 
+        console.log '=^^=|_THE ERROR ON SAVE________________________|=^^='
+        console.log e
+        console.log '=^^=|___________________THE ERROR ON SAVE_______|=^^='
+
         # Restore the pending writes to their originating nodes
         # (in reverse order so create-node is done before adding attributes)
         for i in writes by -1

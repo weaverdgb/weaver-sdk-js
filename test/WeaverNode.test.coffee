@@ -12,11 +12,17 @@ describe 'WeaverNode test', ->
 
   it 'should reject loading undefined nodes', ->
     new Weaver.Node().save().then( ->
-      Weaver.Node.load(undefined).should.eventually.be.rejected
-    )
+      Weaver.Node.load(undefined)
+    ).catch((err) ->
+      console.error err
+    ).should.eventually.be.rejected
 
   it 'should reject loading unexistant nodes', ->
-    Weaver.Node.load('doesnt-exist').should.eventually.be.rejected
+    Weaver.Node.load('doesnt-exist')
+    .catch((err)->
+      console.error err
+    ).should.eventually.be.rejected
+
 
   it 'should reject setting an id attribute', ->
     a = new Weaver.Node()
@@ -491,7 +497,7 @@ describe 'WeaverNode test', ->
     ).finally(->
       weaver.setOptions({ignoresOutOfDate: false})
     )
-  
+
   it 'should reject out-of-sync relation updates by default', ->
     a = new Weaver.Node()
     alsoA = undefined
@@ -510,7 +516,7 @@ describe 'WeaverNode test', ->
       alsoA.relation('rel').update(b, d)
       alsoA.save()
     ).should.eventually.be.rejected
-  
+
   it 'should allow out-of-sync relation updates if the ignoresOutOfDate flag is set', ->
     weaver.setOptions({ignoresOutOfDate: true})
     a = new Weaver.Node()
@@ -532,3 +538,22 @@ describe 'WeaverNode test', ->
     ).finally(->
       weaver.setOptions({ignoresOutOfDate: false})
     )
+
+  it 'should fail trying to save a node with the same id than the destroyed node', ->
+    a = new Weaver.Node('theid')
+    a.save()
+    .then( ->
+      a.destroy()
+    ).then( ->
+      new Weaver.Node('theid').save()
+    ).should.eventually.be.rejected
+
+  it 'should fail trying to save a node saved with another attribute value', ->
+    a = new Weaver.Node('theid')
+    a.set('name','Toshio').save()
+    .then( ->
+      Weaver.Node.load('theid')
+    ).then((loadedNode) ->
+      loadedNode.set('name','Samantha')
+      loadedNode.save()
+    ).should.eventually.be.rejected
