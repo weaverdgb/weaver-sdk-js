@@ -38,7 +38,8 @@ class SocketController
           resolve()
         else
           emitEnd = Date.now()
-          response.totaltime = (emitEnd-emitStart)
+          response.totalTime = (emitEnd-emitStart)
+          response.timeToServer = response.totalTime - response.totalConnectorTime
           resolve(response)
       )
     )

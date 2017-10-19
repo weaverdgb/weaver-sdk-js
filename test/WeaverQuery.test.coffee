@@ -995,7 +995,30 @@ describe 'WeaverQuery Test', ->
       Weaver.Node.load('someNode')
     )
 
+  it 'gogogo', ->
+    Weaver.Query.profile((qr) ->
+      expect(qr.totalTime > qr.totalConnectorTime > qr.executionTime).to.be.true
+      expect(qr.totalTime).to.equal(qr.timeToServer + qr.timeToConnector + qr.executionTime + qr.subqueryTime + qr.processingTime)
+      expect(qr.totalConnectorTime).to.equal(qr.timeToConnector + qr.executionTime + qr.subqueryTime + qr.processingTime)
+    )
+    node = new Weaver.Node('someNode2')
+    node.save().then(->
+      Weaver.Node.load('someNode2')
+    )
 
+  it 'should know all timestamps and have them logically correct', ->
+    console.log("Hallo")
+    Weaver.Query.profile((qr) ->
+      console.log(qr)
+      expect(qr.totalTime > qr.totalConnectorTime > qr.executionTime).to.be.true
+      expect(qr.totalTime).to.equal(qr.timeToServer + qr.timeToConnector + qr.executionTime + qr.subqueryTime + qr.processingTime)
+      expect(qr.totalConnectorTime).to.equal(qr.timeToConnector + qr.executionTime + qr.subqueryTime + qr.processingTime)
+      # expect(qr.nodes[0].nodeId).to.equal('someNode2')
+    )
+    # nod3 = new Weaver.Node('someNode2')
+    # nod3.save().then(->
+    #   Weaver.Node.load('someNode2')
+    # )
 
   it 'should clear profilers', ->
 
