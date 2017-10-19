@@ -50,9 +50,8 @@ describe 'WeaverFile test', ->
     file = new Weaver.File(path.join(__dirname,'../icon.png'))
     file2 = new Weaver.File(path.join(__dirname,'../icon.png'))
 
-    #Make sure bucket exists and is empty
-    Weaver.File.list().then((files) ->
-      expect(files.length).to.equal(0)
+    #Make sure bucket exists
+    Weaver.File.list().then(->
       Promise.all([file.upload(), file2.upload()])
     ).then((storedFiles) ->
       expect(storedFiles.length).to.equal(2)
