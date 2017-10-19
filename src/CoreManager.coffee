@@ -171,6 +171,9 @@ class CoreManager
       return
     )
 
+  executeZippedWriteOperations: (id, filename) ->
+    @POST("project.executeZip", {id, filename}, id)
+
   readyProject: (id) ->
     @GET("project.ready", {id}, "$SYSTEM")
 
