@@ -29,6 +29,7 @@ class SocketController
     )
 
   emit: (key, body) ->
+    emitStart = Date.now()
     new Promise((resolve, reject) =>
       @io.emit(key, JSON.stringify(body), (response) ->
         if response.code? and response.message?
@@ -36,6 +37,8 @@ class SocketController
         else if response is 0
           resolve()
         else
+          emitEnd = Date.now()
+          response.totaltime = (emitEnd-emitStart)
           resolve(response)
       )
     )

@@ -147,7 +147,7 @@ describe 'WeaverQuery Test', ->
         checkNodeInResult(nodes, 'b')
         checkNodeInResult(nodes, 'c')
       )
-      
+
     it 'should do relation hasNoRelationOut', ->
       new Weaver.Query()
       .hasNoRelationOut("link", b)
@@ -166,7 +166,7 @@ describe 'WeaverQuery Test', ->
         expect(nodes.length).to.equal(3)
         checkNodeInResult(nodes, 'b')
       )
-        
+
     it 'should do relation hasNoRelationIn', ->
       new Weaver.Query()
       .noRelations()
@@ -318,7 +318,7 @@ describe 'WeaverQuery Test', ->
 
     beforeEach ->
       wipeCurrentProject()
-      
+
     it 'should allow "or" in objects for specific hasRelationOut', ->
       a = new Weaver.Node('a')
       b = new Weaver.Node('b')
@@ -421,7 +421,7 @@ describe 'WeaverQuery Test', ->
       )
 
     it 'should do relation hasRelationOut with subclasses', ->
-      
+
       class SpecialNodeA extends Weaver.Node
 
       a = new Weaver.Node("a")
@@ -656,7 +656,7 @@ describe 'WeaverQuery Test', ->
         )
       )
 
-    it 'shoud support recursive selectOut', ->
+    it 'should support recursive selectOut', ->
       a = new Weaver.Node('a')
       b = new Weaver.Node('b')
       c = new Weaver.Node('c')
@@ -678,7 +678,7 @@ describe 'WeaverQuery Test', ->
         expect(nodes[0].relation('rec').nodes['b'].relation('rec').nodes['c'].relation('rec').nodes['d'].relation('rec').nodes['e'].get('name')).to.equal("toprec")
       )
 
-    it 'shoud support multiple recursive selectOut relations', ->
+    it 'should support multiple recursive selectOut relations', ->
       a = new Weaver.Node('a')
       b = new Weaver.Node('b')
       c = new Weaver.Node('c')
@@ -695,7 +695,7 @@ describe 'WeaverQuery Test', ->
         expect(nodes[0].relation('rec').nodes['b'].relation('test').nodes['c']).to.exist
       )
 
-    it 'shoud not break on loops with recursive selectOut', ->
+    it 'should not break on loops with recursive selectOut', ->
       a = new Weaver.Node('a')
       b = new Weaver.Node('b')
       a.relation('selector').add(b)
@@ -807,7 +807,7 @@ describe 'WeaverQuery Test', ->
           expect(attrs).to.not.have.property('skip')
         )
       )
-    
+
   # From this point on, no more beforeEach
 
   it 'should deny any other user than root to execute a native query', ->
@@ -834,7 +834,7 @@ describe 'WeaverQuery Test', ->
       expect(err).to.have.property('message').match(/Permission denied/)
     )
 
-    
+
   it.skip 'should load in some secondary nodes with "selectIn"', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
@@ -995,6 +995,8 @@ describe 'WeaverQuery Test', ->
       Weaver.Node.load('someNode')
     )
 
+
+
   it 'should clear profilers', ->
 
     wipeCurrentProject().then(->
@@ -1011,4 +1013,4 @@ describe 'WeaverQuery Test', ->
     ).then(->
       Weaver.Node.load('someNode')
     )
-    
+
