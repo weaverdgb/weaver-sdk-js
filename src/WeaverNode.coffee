@@ -275,9 +275,14 @@ class WeaverNode
         @
       ).catch((e) =>
 
-        console.log '=^^=|_THE ERROR ON SAVE________________________|=^^='
-        console.log e
-        console.log '=^^=|___________________THE ERROR ON SAVE_______|=^^='
+        err = String(e)
+        if /duplicate key value violates unique constraint "nodes_uid_key"/g.test(err)
+          esplt = err.split('\'')
+          e = new Error("The id #{esplt[1]} already exists")
+        if /replaced_attributes_replaced_key/g.test(err)
+          e = new Error("The attribute that you are trying to update is out of synchronization with the database, therefore it wasn\'t saved")
+        if /replaced_relations_replaced_key/g.test(err)
+          e = new Error("The relation that you are trying to update is out of synchronization with the database, therefore it wasn\'t saved")
 
         # Restore the pending writes to their originating nodes
         # (in reverse order so create-node is done before adding attributes)
