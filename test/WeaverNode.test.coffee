@@ -563,3 +563,26 @@ describe 'WeaverNode test', ->
     ).catch((err) ->
       assert.equal(err,'Error: The id theid already exists')
     )
+
+
+  it 'should allow to override the out-of-sync attribute updates at the set operation if the ignoresOutOfDate flag is set', ->
+    weaver.setOptions({ignoresOutOfDate: true})
+    a = new Weaver.Node()
+    a.set('name', 'first')
+    alsoA = undefined
+
+    a.save().then(->
+      Weaver.Node.load(a.id())
+    ).then((node) ->
+      alsoA = node
+      a.set('name', 'second', false)    # checking for the existence of the ignoresOutOfDate parameter so any value passed here will overrides the {ignoresOutOfDate: true} state
+      a.save()
+    ).then(->
+      alsoA.set('name', 'allegedly updates first', false)
+      alsoA.save()
+    ).catch((err) ->
+      assert.equal(err,"Error: The attribute that you are trying to update is out of synchronization with the database, therefore it wasn\'t saved")
+    ).finally(->
+      false
+      weaver.setOptions({ignoresOutOfDate: false})
+    )

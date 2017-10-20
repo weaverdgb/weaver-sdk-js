@@ -107,11 +107,11 @@ class WeaverNode
 
 
 
-  set: (field, value) ->
+  set: (field, value, ignoresOutOfDate) ->
     if field is 'id'
       throw Error("Attribute 'id' cannot be set or updated")
 
-    # Get attribute datatype, TODO: Support date
+    # Get attribute datatype
     dataType = null
     if util.isString(value)
       dataType = 'string'
@@ -130,7 +130,7 @@ class WeaverNode
         throw new Error("Specifiy which attribute to set, more than 1 found for " + field) # TODO: Support later
 
       oldAttribute = @attributes[field][0]
-      newAttributeOperation = Operation.Node(@).createAttribute(field, value, dataType, oldAttribute.nodeId, Weaver.getInstance()._ignoresOutOfDate)
+      newAttributeOperation = Operation.Node(@).createAttribute(field, value, dataType, oldAttribute.nodeId, Weaver.getInstance()._ignoresOutOfDate if !ignoresOutOfDate?)
     else
       newAttributeOperation = Operation.Node(@).createAttribute(field, value, dataType)
 
