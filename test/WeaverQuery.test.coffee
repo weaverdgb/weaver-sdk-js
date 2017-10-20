@@ -1003,14 +1003,7 @@ describe 'WeaverQuery Test', ->
 
     it 'should know all timestamps and have them logically correct', ->
       Weaver.Query.profile((qr) ->
-        expect(qr.totalTime > qr.totalConnectorTime > qr.executionTime).to.be.true
-        expect(qr.totalTime).to.equal(qr.timeToServer + qr.timeToConnector + qr.executionTime + qr.subqueryTime + qr.processingTime)
-        expect(qr.totalConnectorTime).to.equal(qr.timeToConnector + qr.executionTime + qr.subqueryTime + qr.processingTime)
-        expect(qr.nodes[0].nodeId).to.equal('someNode')
-      )
-
-      node.save().then(->
-        Weaver.Node.load('someNode')
+        expect(qr.totalTime).to.equal(qr.sdkToServer + qr.serverToConn + qr.executionTime + qr.subqueryTime + qr.processingTime + qr.connToServer + qr.serverToSdk)
       )
 
     it 'should clear profilers', ->
