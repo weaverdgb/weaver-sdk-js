@@ -829,7 +829,7 @@ describe 'WeaverQuery Test', ->
     ).then(->
       q.nativeQuery(query)
     ).then(->
-       assert.fail()
+      assert.fail()
     ).catch((err) ->
       expect(err).to.have.property('message').match(/Permission denied/)
     )
@@ -985,42 +985,46 @@ describe 'WeaverQuery Test', ->
       )
     )
 
-  it 'should profile Weaver.Query', ->
-    Weaver.Query.profile((queryResult) ->
-      expect(queryResult.nodes[0].nodeId).to.equal('someNode')
-    )
 
+  describe 'Query profile', ->
     node = new Weaver.Node('someNode')
-    node.save().then(->
-      Weaver.Node.load('someNode')
-    )
 
-  it 'should know all timestamps and have them logically correct', ->
-    Weaver.Query.profile((qr) ->
-      expect(qr.totalTime > qr.totalConnectorTime > qr.executionTime).to.be.true
-      expect(qr.totalTime).to.equal(qr.timeToServer + qr.timeToConnector + qr.executionTime + qr.subqueryTime + qr.processingTime)
-      expect(qr.totalConnectorTime).to.equal(qr.timeToConnector + qr.executionTime + qr.subqueryTime + qr.processingTime)
-      # expect(qr.nodes[0].nodeId).to.equal('someNode2')
-    )
-    # node = new Weaver.Node('someNode2')
-    # node.save().then(->
-    #   Weaver.Node.load('someNode2')
-    # )
-
-  it 'should clear profilers', ->
-
-    wipeCurrentProject().then(->
-      Weaver.Query.profile((queryResult) ->
-        expect(queryResult.nodes[0].nodeId).to.equal('someNode')
-
-        Weaver.Query.clearProfilers()
+    before ->
+      wipeCurrentProject().then( ->
+        node.save().then(->
+          Weaver.Node.load('someNode')
+        )
       )
 
-      node = new Weaver.Node('someNode')
+    it 'should profile Weaver.Query', ->
+      Weaver.Query.profile((queryResult) ->
+        expect(queryResult.nodes[0].nodeId).to.equal('someNode')
+      )
+
+    it 'should know all timestamps and have them logically correct', ->
+      Weaver.Query.profile((qr) ->
+        expect(qr.totalTime > qr.totalConnectorTime > qr.executionTime).to.be.true
+        expect(qr.totalTime).to.equal(qr.timeToServer + qr.timeToConnector + qr.executionTime + qr.subqueryTime + qr.processingTime)
+        expect(qr.totalConnectorTime).to.equal(qr.timeToConnector + qr.executionTime + qr.subqueryTime + qr.processingTime)
+        expect(qr.nodes[0].nodeId).to.equal('someNode')
+      )
+
       node.save().then(->
         Weaver.Node.load('someNode')
       )
-    ).then(->
-      Weaver.Node.load('someNode')
-    )
 
+    it 'should clear profilers', ->
+      wipeCurrentProject().then(->
+        Weaver.Query.profile((queryResult) ->
+          expect(queryResult.nodes[0].nodeId).to.equal('someNode')
+
+          Weaver.Query.clearProfilers()
+        )
+
+        node = new Weaver.Node('someNode')
+        node.save().then(->
+          Weaver.Node.load('someNode')
+        )
+      ).then(->
+        Weaver.Node.load('someNode')
+      )
