@@ -32,6 +32,9 @@ class Weaver
     @_connected  = false
     @_local      = false
 
+    # Default options
+    @_ignoresOutOfDate = true
+
     if opts?
       @setOptions(opts)
 
