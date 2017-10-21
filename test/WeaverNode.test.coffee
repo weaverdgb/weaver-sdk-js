@@ -399,7 +399,7 @@ describe 'WeaverNode test', ->
     finally
       Weaver.instance = instance
 
-  it 'should reject interaction with out-of-date nodes by default', ->
+  it 'should not reject interaction with out-of-date nodes by default', ->
     a = new Weaver.Node() # a node is created and saved at some point
     a.set('name','a')
     ay = {}
@@ -418,7 +418,7 @@ describe 'WeaverNode test', ->
         ay.save(),
         aay.save()
       ])
-    ).should.eventually.be.rejected
+    ).should.eventually.not.be.rejected
 
   it 'should handle concurrent saves from multiple references, when the ignoresOutOfDate flag is passed', ->
     weaver.setOptions({ignoresOutOfDate: true})
@@ -457,7 +457,7 @@ describe 'WeaverNode test', ->
       weaver.setOptions({ignoresOutOfDate: false})
     )
 
-  it 'should reject out-of-sync attribute updates by default', ->
+  it 'should not reject out-of-sync attribute updates by default', ->
     a = new Weaver.Node()
     a.set('name', 'first')
     alsoA = undefined
@@ -471,7 +471,7 @@ describe 'WeaverNode test', ->
     ).then(->
       alsoA.set('name', 'allegedly updates first')
       alsoA.save()
-    ).should.eventually.be.rejected
+    ).should.eventually.not.be.rejected
 
   it 'should allow out-of-sync attribute updates if the ignoresOutOfDate flag is set', ->
     weaver.setOptions({ignoresOutOfDate: true})
@@ -491,7 +491,7 @@ describe 'WeaverNode test', ->
     ).finally(->
       weaver.setOptions({ignoresOutOfDate: false})
     )
-  
+
   it 'should reject out-of-sync relation updates by default', ->
     a = new Weaver.Node()
     alsoA = undefined
@@ -510,7 +510,7 @@ describe 'WeaverNode test', ->
       alsoA.relation('rel').update(b, d)
       alsoA.save()
     ).should.eventually.be.rejected
-  
+
   it 'should allow out-of-sync relation updates if the ignoresOutOfDate flag is set', ->
     weaver.setOptions({ignoresOutOfDate: true})
     a = new Weaver.Node()
