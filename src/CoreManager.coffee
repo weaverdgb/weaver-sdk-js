@@ -67,13 +67,9 @@ class CoreManager
     )
 
   executeOperations: (allOperations, target) ->
-    if (allOperations.length <= @maxBatchSize)
-      @POST('write', {operations: allOperations}, target)
-    else
-      operations = allOperations.splice(0, @maxBatchSize)
-      @POST('write', {operations}, target).then ( =>
-        @executeOperations(allOperations, target)
-      )
+    Promise.mapSeries(_.chunk(allOperations, @maxBatchSize), (operations) =>
+      @POST('write', {operations}, target)
+    )
 
 #  serverVersion: ->
 #    @POST('application.version')
