@@ -570,15 +570,15 @@ describe 'WeaverNode test', ->
     a = new Weaver.Node()
     a.set('name', 'first')
     alsoA = undefined
-
+    options = {ignoresOutOfDate: true}
     a.save().then(->
       Weaver.Node.load(a.id())
     ).then((node) ->
       alsoA = node
-      a.set('name', 'second', false)    # checking for the existence of the ignoresOutOfDate parameter so any value passed here will overrides the {ignoresOutOfDate: true} state
+      a.set('name', 'second', options)    # checking for the existence of the ignoresOutOfDate parameter so any value passed here will overrides the {ignoresOutOfDate: true} state
       a.save()
     ).then(->
-      alsoA.set('name', 'allegedly updates first', false)
+      alsoA.set('name', 'allegedly updates first', options)
       alsoA.save()
     ).catch((err) ->
       assert.equal(err,"Error: The attribute that you are trying to update is out of synchronization with the database, therefore it wasn\'t saved")

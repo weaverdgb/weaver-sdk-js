@@ -107,7 +107,7 @@ class WeaverNode
 
 
 
-  set: (field, value, ignoresOutOfDate) ->
+  set: (field, value, options) ->
     if field is 'id'
       throw Error("Attribute 'id' cannot be set or updated")
 
@@ -130,7 +130,7 @@ class WeaverNode
         throw new Error("Specifiy which attribute to set, more than 1 found for " + field) # TODO: Support later
 
       oldAttribute = @attributes[field][0]
-      newAttributeOperation = Operation.Node(@).createAttribute(field, value, dataType, oldAttribute.nodeId, Weaver.getInstance()._ignoresOutOfDate if !ignoresOutOfDate?)
+      newAttributeOperation = Operation.Node(@).createAttribute(field, value, dataType, oldAttribute.nodeId, Weaver.getInstance()._ignoresOutOfDate if !options?.ignoresOutOfDate?)
     else
       newAttributeOperation = Operation.Node(@).createAttribute(field, value, dataType)
 
@@ -274,15 +274,6 @@ class WeaverNode
         @_setStored()
         @
       ).catch((e) =>
-
-        err = String(e)
-        if /duplicate key value violates unique constraint "nodes_uid_key"/g.test(err)
-          esplt = err.split('\'')
-          e = new Error("The id #{esplt[1]} already exists")
-        if /replaced_attributes_replaced_key/g.test(err)
-          e = new Error("The attribute that you are trying to update is out of synchronization with the database, therefore it wasn\'t saved")
-        if /replaced_relations_replaced_key/g.test(err)
-          e = new Error("The relation that you are trying to update is out of synchronization with the database, therefore it wasn\'t saved")
 
         # Restore the pending writes to their originating nodes
         # (in reverse order so create-node is done before adding attributes)
