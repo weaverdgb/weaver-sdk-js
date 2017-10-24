@@ -18,7 +18,14 @@ class LocalController
             Promise.reject(error)
 
         $.handler[route] = (payload) ->
-          routeHandler.handleRequest(route, {payload}, res)
+          try
+            if payload.type isnt "STREAM"
+              routeHandler.handleRequest(route, {payload: JSON.parse(payload or "{}")}, res)
+            else
+              routeHandler.handleRequest(route, {payload}, res)
+          catch error
+            res.fail("Invalid json payload")
+            return
       )
     )
 
