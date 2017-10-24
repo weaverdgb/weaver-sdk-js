@@ -532,3 +532,62 @@ describe 'WeaverNode test', ->
     ).finally(->
       weaver.setOptions({ignoresOutOfDate: false})
     )
+
+  it 'should execute normally with a small amount of operations', ->
+    weaver.setOptions({ignoresOutOfDate: true})
+    a = new Weaver.Node()
+    alsoA = undefined
+    b = new Weaver.Node()
+    c = new Weaver.Node()
+    d = new Weaver.Node()
+    a.relation('rel').add(b)
+
+    Weaver.Node.batchSave([a, b, c, d]).then(->
+      Weaver.Node.load(a.id())
+    ).then((node) ->
+      alsoA = node
+      a.relation('rel').update(b, c)
+      a.save()
+    ).then(->
+      alsoA.relation('rel').update(b, d)
+      alsoA.save()
+    ).finally(->
+      weaver.setOptions({ignoresOutOfDate: false})
+    )
+
+  it 'should execute per batch with a high amount of operations', ->
+    ###
+    In this test there is still a low amount of operations, but the batchsize is reduced to 2.
+    This test will have 9 operations which lead to 5 batches (4x2 + 1x1)
+    Same test as it 'should clone a node', but with reduced batchsize.
+    ###
+
+    cm = Weaver.getCoreManager()
+    cm.maxBatchSize = 2
+    a = new Weaver.Node('clonea2')
+    b = new Weaver.Node('cloneb2')
+    c = new Weaver.Node('clonec2')
+    cloned = null
+
+    a.set('name', 'Foo')
+    b.set('name', 'Bar')
+    c.set('name', 'Dear')
+
+    a.relation('to').add(b)
+    b.relation('to').add(c)
+    c.relation('to').add(a)
+
+    Weaver.Node.batchSave([a,b,c])
+    .then(->
+      a.clone('cloned-a2')
+    ).then( ->
+      Weaver.Node.load('cloned-a2')
+    ).then((cloned) ->
+      assert.notEqual(cloned.id(), a.id())
+      assert.equal(cloned.get('name'), 'Foo')
+      to = value for key, value of cloned.relation('to').nodes
+      assert.equal(to.id(), b.id())
+      Weaver.Node.load(c.id())
+    ).then((node) ->
+      assert.isDefined(node.relation('to').nodes['cloned-a2'])
+    )
