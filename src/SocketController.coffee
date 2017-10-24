@@ -29,8 +29,8 @@ class SocketController
     )
 
   emit: (key, body) ->
-    emitStart = Date.now()
     new Promise((resolve, reject) =>
+      emitStart = Date.now()
       @io.emit(key, JSON.stringify(body), (response) =>
         if response.code? and response.message?
           reject(new Error(response.message, response.code))
@@ -43,8 +43,10 @@ class SocketController
     )
 
   calculateTimestamps: (response, emitStart, emitEnd) ->
+    response.serverEnterTimestamp
     response.sdkToServer  = response.serverStart - emitStart
-    response.serverToConn = response.executionTimeStart - response.serverStart
+    response.innerServerDelay = response.serverStartConnector - response.serverStart
+    response.serverToConn = response.executionTimeStart - response.serverStartConnector
     response.connToServer = response.serverEnd - response.executionTimeEnd
     response.serverToSdk  = emitEnd - response.serverEnd
     response.totalTime = emitEnd - emitStart
