@@ -316,6 +316,24 @@ class WeaverNode
         undefined
     )
 
+  # Removes nodes in batch
+  @batchDestroy: (array, project) ->
+    cm = Weaver.getCoreManager()
+    cm.enqueue(=>
+      if array? and array.length isnt 0
+        try
+          destroyOperations = (Operation.Node(node).removeNode() for node in array)
+          cm.executeOperations(destroyOperations, project).then(=>
+            Promise.resolve()
+          ).catch((e) =>
+            Promise.reject(e)
+          )
+        catch error
+          Promise.reject(error)
+      else
+        Promise.reject("Cannot batch destroy nodes without any node")
+    )
+
   # TODO: Implement
   setACL: (acl) ->
     return
