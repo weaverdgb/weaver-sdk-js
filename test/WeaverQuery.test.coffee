@@ -1001,7 +1001,7 @@ describe 'WeaverQuery Test', ->
         expect(queryResult.nodes[0].nodeId).to.equal('someNode')
       )
 
-    it 'should know all timestamps and have them logically correct', ->
+    it.skip 'should know all timestamps and have them logically correct', ->
       Weaver.Query.profile((qr) ->
         expect(qr.totalTime).to.equal(qr.sdkToServer + qr.innerServerDelay + qr.serverToConn + qr.executionTime + qr.subqueryTime + qr.processingTime + qr.connToServer + qr.serverToSdk)
       )
