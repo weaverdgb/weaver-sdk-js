@@ -591,3 +591,14 @@ describe 'WeaverNode test', ->
     ).then((node) ->
       assert.isDefined(node.relation('to').nodes['cloned-a2'])
     )
+
+  it 'should not crash on destroyed relation nodes', ->
+    a = new Weaver.Node()
+    b = new Weaver.Node()
+    a.relation('link').add(b)
+    a.save().then(->
+      b.destroy()
+    ).then(->
+      a.set('anything','x')
+      a.save()
+    ).should.not.be.rejected
