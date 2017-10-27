@@ -147,7 +147,7 @@ describe 'WeaverQuery Test', ->
         checkNodeInResult(nodes, 'b')
         checkNodeInResult(nodes, 'c')
       )
-
+      
     it 'should do relation hasNoRelationOut', ->
       new Weaver.Query()
       .hasNoRelationOut("link", b)
@@ -166,7 +166,7 @@ describe 'WeaverQuery Test', ->
         expect(nodes.length).to.equal(3)
         checkNodeInResult(nodes, 'b')
       )
-
+        
     it 'should do relation hasNoRelationIn', ->
       new Weaver.Query()
       .noRelations()
@@ -318,7 +318,7 @@ describe 'WeaverQuery Test', ->
 
     beforeEach ->
       wipeCurrentProject()
-
+      
     it 'should allow "or" in objects for specific hasRelationOut', ->
       a = new Weaver.Node('a')
       b = new Weaver.Node('b')
@@ -421,7 +421,7 @@ describe 'WeaverQuery Test', ->
       )
 
     it 'should do relation hasRelationOut with subclasses', ->
-
+      
       class SpecialNodeA extends Weaver.Node
 
       a = new Weaver.Node("a")
@@ -656,7 +656,7 @@ describe 'WeaverQuery Test', ->
         )
       )
 
-    it 'should support recursive selectOut', ->
+    it 'shoud support recursive selectOut', ->
       a = new Weaver.Node('a')
       b = new Weaver.Node('b')
       c = new Weaver.Node('c')
@@ -678,7 +678,7 @@ describe 'WeaverQuery Test', ->
         expect(nodes[0].relation('rec').nodes['b'].relation('rec').nodes['c'].relation('rec').nodes['d'].relation('rec').nodes['e'].get('name')).to.equal("toprec")
       )
 
-    it 'should support multiple recursive selectOut relations', ->
+    it 'shoud support multiple recursive selectOut relations', ->
       a = new Weaver.Node('a')
       b = new Weaver.Node('b')
       c = new Weaver.Node('c')
@@ -695,7 +695,7 @@ describe 'WeaverQuery Test', ->
         expect(nodes[0].relation('rec').nodes['b'].relation('test').nodes['c']).to.exist
       )
 
-    it 'should not break on loops with recursive selectOut', ->
+    it 'shoud not break on loops with recursive selectOut', ->
       a = new Weaver.Node('a')
       b = new Weaver.Node('b')
       a.relation('selector').add(b)
@@ -807,7 +807,7 @@ describe 'WeaverQuery Test', ->
           expect(attrs).to.not.have.property('skip')
         )
       )
-
+    
   # From this point on, no more beforeEach
 
   it 'should deny any other user than root to execute a native query', ->
@@ -829,12 +829,12 @@ describe 'WeaverQuery Test', ->
     ).then(->
       q.nativeQuery(query)
     ).then(->
-      assert.fail()
+       assert.fail()
     ).catch((err) ->
       expect(err).to.have.property('message').match(/Permission denied/)
     )
 
-
+    
   it.skip 'should load in some secondary nodes with "selectIn"', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
@@ -985,39 +985,30 @@ describe 'WeaverQuery Test', ->
       )
     )
 
+  it 'should profile Weaver.Query', ->
+    Weaver.Query.profile((queryResult) ->
+      expect(queryResult.nodes[0].nodeId).to.equal('someNode')
+    )
 
-  describe 'Query profile', ->
     node = new Weaver.Node('someNode')
+    node.save().then(->
+      Weaver.Node.load('someNode')
+    )
 
-    before ->
-      wipeCurrentProject().then( ->
-        node.save().then(->
-          Weaver.Node.load('someNode')
-        )
-      )
+  it 'should clear profilers', ->
 
-    it 'should profile Weaver.Query', ->
+    wipeCurrentProject().then(->
       Weaver.Query.profile((queryResult) ->
         expect(queryResult.nodes[0].nodeId).to.equal('someNode')
+
+        Weaver.Query.clearProfilers()
       )
 
-    it 'should know all timestamps and have them logically correct', ->
-      Weaver.Query.profile((qr) ->
-        expect(qr.totalTime).to.equal(qr.sdkToServer + qr.innerServerDelay + qr.serverToConn + qr.executionTime + qr.subqueryTime + qr.processingTime + qr.connToServer + qr.serverToSdk)
-      )
-
-    it 'should clear profilers', ->
-      wipeCurrentProject().then(->
-        Weaver.Query.profile((queryResult) ->
-          expect(queryResult.nodes[0].nodeId).to.equal('someNode')
-
-          Weaver.Query.clearProfilers()
-        )
-
-        node = new Weaver.Node('someNode')
-        node.save().then(->
-          Weaver.Node.load('someNode')
-        )
-      ).then(->
+      node = new Weaver.Node('someNode')
+      node.save().then(->
         Weaver.Node.load('someNode')
       )
+    ).then(->
+      Weaver.Node.load('someNode')
+    )
+    
