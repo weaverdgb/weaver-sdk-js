@@ -297,10 +297,13 @@ describe 'WeaverQuery Test', ->
       )
 
     it 'should combine hasNoRelationOut seperate clauses correctly', ->
-      expect(new Weaver.Query()
-        .hasNoRelationOut('link', Weaver.Node.get('b'))
-        .hasNoRelationOut('redundant', Weaver.Node.get('c'))
-        .find()).to.eventually.have.length.be(3)
+      new Weaver.Query()
+      .hasNoRelationOut('link', Weaver.Node.get('b'))
+      .hasNoRelationOut('redundant', Weaver.Node.get('c'))
+      .find().then((nodes) ->
+        expect(nodes).to.have.length.be(1)
+        checkNodeInResult(nodes, 'c')
+      )
 
     it 'should combine hasNoRelationOut combined clauses correctly', ->
       expect(new Weaver.Query()
