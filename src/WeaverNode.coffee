@@ -159,12 +159,29 @@ class WeaverNode
       throw new Error("Field " + field + " is not a number")
 
     currentValue = @get(field)
-    @set(field, currentValue + value)
+    @set(field, currentValue + value, {ignoresOutOfDate: true})
+
 
     # To be backwards compatible, but its better not to save here
     @save().then(->
       # Return the incremented value
-      currentValue + value
+      return currentValue + value
+    ).catch((error) =>
+
+      if (error.message == 'The attribute that you are trying to update is out of synchronization with the database, therefore it wasn\'t saved')
+
+        Weaver.Node.load(@nodeId).then((loadedNode) =>
+          currentValue = loadedNode.get(field)
+          console.log (currentValue + value)
+          @set(field, currentValue + value, {ignoresOutOfDate: true})
+
+          # To be backwards compatible, but its better not to save here
+          @save().then(->
+            # Return the incremented value
+            currentValue + value
+          )
+          console.log("after save, without save")
+        )
     )
 
 

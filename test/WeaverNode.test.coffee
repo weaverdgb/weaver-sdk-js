@@ -172,6 +172,31 @@ describe 'WeaverNode test', ->
       assert.equal(loadedNode.get('length'), 5)
     )
 
+  it 'should increment an existing out-of-sync number attribute', ->
+    weaver.setOptions({ignoresOutOfDate: true})
+    node = new Weaver.Node()
+    sameNode = undefined
+    node.set('length', 3)
+
+    node.save().then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.get('length'), 3)
+      sameNode = loadedNode
+      node.increment('length', 4)
+    ).then((value) ->
+      assert.equal(value, 7)
+      sameNode.increment('length', 5)
+    ).catch((err) ->
+      assert.equal(err,"Error: The attribute that you are trying to update is out of synchronization with the database, therefore it wasn\'t saved")
+    ).then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.get('length'), 10) #expect to be 12
+    ).finally(->
+      weaver.setOptions({ignoresOutOfDate: false})
+    )
+
   it 'should set a new number double attribute', ->
     node = new Weaver.Node()
     node.set('halved', 1.5)
@@ -585,4 +610,8 @@ describe 'WeaverNode test', ->
     ).finally(->
       false
       weaver.setOptions({ignoresOutOfDate: false})
+    # ).then(->
+    #   Weaver.Node.load(a.id())
+    # ).then((node) ->
+    #   assert.equal(node.get('name'), 'allegedly updates first')
     )
