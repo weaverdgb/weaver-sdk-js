@@ -87,6 +87,6 @@ describe 'Weaver idiosyncracies examination', ->
     ).then(->
       ay.relation('test').add(b)
       ay.save() # this fails
-    ).then((res)->
-      expect(Weaver.Node.load('b')).to.be.rejected # throws 101 (obviously)
+    ).catch((err)->
+      expect(err).to.be.defined # throws 101 (obviously)
     )
