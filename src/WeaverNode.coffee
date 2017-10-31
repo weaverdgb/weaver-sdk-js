@@ -151,38 +151,47 @@ class WeaverNode
 
 
   # Update attribute by incrementing the value, the result depends on concurrent requests, so check the result
-  increment: (field, value, project) ->
+  increment: (field, value, project, outOfSync = false) ->
+
 
     if not @attributes[field]?
       throw new Error("There is no field " + field + " to increment")
     if typeof value isnt 'number'
       throw new Error("Field " + field + " is not a number")
 
-    currentValue = @get(field)
-    @set(field, currentValue + value, {ignoresOutOfDate: true})
+    if (outOfSync)
+      Weaver.Node.load(@nodeId).then((loadedNode) =>
+        currentValue = loadedNode.get(field)
+        pendingNewValue = currentValue + value
+        @set(field, pendingNewValue)
+        console.log(pendingNewValue)
 
-
-    # To be backwards compatible, but its better not to save here
-    @save().then(->
-      # Return the incremented value
-      return currentValue + value
-    ).catch((error) =>
-
-      if (error.message == 'The attribute that you are trying to update is out of synchronization with the database, therefore it wasn\'t saved')
-
-        Weaver.Node.load(@nodeId).then((loadedNode) =>
-          currentValue = loadedNode.get(field)
-          console.log (currentValue + value)
-          @set(field, currentValue + value, {ignoresOutOfDate: true})
-
-          # To be backwards compatible, but its better not to save here
-          @save().then(->
-            # Return the incremented value
-            currentValue + value
-          )
-          console.log("after save, without save")
+        # To be backwards compatible, but its better not to save here
+        @save().then(->
+          console.log("Saving...")
+          # Return the incremented value
+          return pendingNewValue
+        ).catch((error) =>
+          console.log(error.message)
+          if (error.message == 'The attribute that you are trying to update is out of synchronization with the database, therefore it wasn\'t saved')
+            @increment(field, value, project, true)
         )
-    )
+      )
+    else
+      currentValue = @get(field)
+      pendingNewValue = currentValue + value
+      @set(field, pendingNewValue)
+      console.log(pendingNewValue)
+
+      # To be backwards compatible, but its better not to save here
+      @save().then(->
+        # Return the incremented value
+        pendingNewValue
+      ).catch((error) =>
+        console.log(error.message)
+        if (error.message == 'The attribute that you are trying to update is out of synchronization with the database, therefore it wasn\'t saved')
+          @increment(field, value, project, true)
+      )
 
 
   # Remove attribute
