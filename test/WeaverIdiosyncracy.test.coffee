@@ -78,7 +78,25 @@ describe 'Weaver idiosyncracies examination', ->
     ).then((res)->
       expect(Weaver.Node.load('c')).to.be.rejected # throws 101 (obviously)
     )
+
   it 'Should (or not?) allow writing relations to deleted nodes', ->
+    ay = {}
+    bee = {}
+
+    Weaver.Node.load('a').then((res)->
+      ay = res # ay is now another reference to the node a
+      Weaver.Node.load('b')
+    ).then((res)->
+      bee = res
+      b.destroy()
+    ).then(->
+      ay.relation('test').add(bee)
+      ay.save() # this fails
+    ).then(->
+      expect(Weaver.Node.load('b')).to.be.rejected # throws 101 (obviously)
+    )
+
+  it 'Should (or not?) allow writing relations to deleted nodes (using the reference of the client-deleted node, as opposed to the client- valid reference for the server-deleted node)', ->
     ay = {}
 
     Weaver.Node.load('a').then((res)->
