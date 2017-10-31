@@ -35,9 +35,6 @@ class WeaverProject
       @
     )
 
-  executeZip: (filename) ->
-    Weaver.getCoreManager().executeZippedWriteOperations(@id(), filename)
-
   destroy: ->
     super().then(=>
       Weaver.getCoreManager().deleteProject(@id())
@@ -59,7 +56,6 @@ class WeaverProject
     renamed = Weaver.getCoreManager().nameProject(@id(), name)
     @name = name
     renamed
-
   getSnapshot: (zipped = false) ->
     Weaver.getCoreManager().snapshotProject(@id(), zipped)
 
