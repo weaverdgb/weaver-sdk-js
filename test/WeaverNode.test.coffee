@@ -18,6 +18,17 @@ describe 'WeaverNode test', ->
   it 'should reject loading unexistant nodes', ->
     Weaver.Node.load('doesnt-exist').should.eventually.be.rejected
 
+  it 'should reject setting an id attribute', ->
+    a = new Weaver.Node()
+    expect(-> a.set('id', 'idea')).to.throw()
+
+  it 'should reject forcing an id attribute', ->
+    a = new Weaver.Node()
+    a.set('placeholder', 'totally-not-id')
+    writeOp = i for i in a.pendingWrites when i.action is 'create-attribute'
+    writeOp.key = 'id'
+    expect(a.save()).to.be.rejected
+
   it 'should propagate delete to relations (part 1)', ->
     a = new Weaver.Node()
     b = new Weaver.Node()
@@ -144,7 +155,7 @@ describe 'WeaverNode test', ->
       assert.equal(loadedNode.get('time').toJSON(), date.toJSON())
     )
 
-  it 'should increment an exiting number attribute', ->
+  it 'should increment an existing number attribute', ->
     node = new Weaver.Node()
     node.set('length', 3)
 
@@ -213,7 +224,7 @@ describe 'WeaverNode test', ->
       assert.equal(error.code, Weaver.Error.NODE_ALREADY_EXISTS)
     )
 
-  it 'should give an error if node does not exists', ->
+  it 'should give an error if node does not exist', ->
     Weaver.Node.load('lol').then((res) ->
       assert(false)
     ).catch((error) ->
@@ -250,6 +261,7 @@ describe 'WeaverNode test', ->
 
     Weaver.Node.batchSave([a,b,c])
     .then(() ->
+      expect(a).to.have.property('_stored').be.equal(true)
       Weaver.Node.load(a.id())
     ).then((loadedNode) ->
       assert.equal(loadedNode.id(), a.id())
@@ -384,6 +396,209 @@ describe 'WeaverNode test', ->
 
       operations = node.peekPendingWrites()
       expect(operations).to.have.length(2)
-
     finally
       Weaver.instance = instance
+
+  it 'should not reject interaction with out-of-date nodes by default', ->
+    a = new Weaver.Node() # a node is created and saved at some point
+    a.set('name','a')
+    ay = {}
+    aay = {}
+
+    a.save().then(->
+      Weaver.Node.load(a.id()) # node is loaded and assigned to some view variable at some point
+    ).then((res)->
+      ay = res
+      Weaver.Node.load(a.id()) # node is loaded and assigned to some other view variable at some point (inside a separate component, most likely)
+    ).then((res)->
+      aay = res
+      ay.set('name','Aq') # user changed the name to 'Aq'
+      aay.set('name','A') # at some point in the future, a user saw the result, recognized the typo, and decided to change the name back to 'A'
+      Promise.all([
+        ay.save(),
+        aay.save()
+      ])
+    ).should.eventually.not.be.rejected
+
+  it 'should handle concurrent saves from multiple references, when the ignoresOutOfDate flag is passed', ->
+    weaver.setOptions({ignoresOutOfDate: true})
+    a = new Weaver.Node() # a node is created and saved at some point
+    a.set('name','a')
+    ay = {}
+    aay = {}
+
+    a.save().then(->  # :: USE CASE ::
+      Weaver.Node.load(a.id())                       # node is loaded and assigned to some view variable at some point
+    ).then((res)->
+      ay = res
+      Weaver.Node.load(a.id())                       # node is loaded and assigned to some other view variable at some point (inside a separate component, most likely)
+    ).then((res)->
+      aay = res
+      ay.set('name','Ay')                         # user changed the name to 'Ay'
+      ay.save()
+      aay.set('name','A')                         # at some point in the future, a user saw the result, recognized the typo, and decided to change the name back to 'A'
+      aay.save()     # (it's weird that he would do this in a separate component, but hey, monkey-testing)
+    ).then((res)->
+      res.set('name','_A')
+      res.save()
+    ).then(()->
+      Weaver.Node.load(a.id())
+    ).then((res)->
+      assert.equal(res.get('name'),'_A')
+      res.set('name','A_')
+      res.save()
+    ).then((res)->
+      assert.equal(res.get('name'),'A_')
+    ).then(->
+      ay.set('name', 'Ay')
+      aay.set('name','Aay')
+      Promise.all([ay.save(), aay.save()])
+    ).finally(->
+      weaver.setOptions({ignoresOutOfDate: false})
+    )
+
+  it 'should not reject out-of-sync attribute updates by default', ->
+    a = new Weaver.Node()
+    a.set('name', 'first')
+    alsoA = undefined
+
+    a.save().then(->
+      Weaver.Node.load(a.id())
+    ).then((node) ->
+      alsoA = node
+      a.set('name', 'second')
+      a.save()
+    ).then(->
+      alsoA.set('name', 'allegedly updates first')
+      alsoA.save()
+    ).should.eventually.not.be.rejected
+
+  it 'should allow out-of-sync attribute updates if the ignoresOutOfDate flag is set', ->
+    weaver.setOptions({ignoresOutOfDate: true})
+    a = new Weaver.Node()
+    a.set('name', 'first')
+    alsoA = undefined
+
+    a.save().then(->
+      Weaver.Node.load(a.id())
+    ).then((node) ->
+      alsoA = node
+      a.set('name', 'second')
+      a.save()
+    ).then(->
+      alsoA.set('name', 'allegedly updates first')
+      alsoA.save()
+    ).finally(->
+      weaver.setOptions({ignoresOutOfDate: false})
+    )
+
+  it 'should reject out-of-sync relation updates by default', ->
+    a = new Weaver.Node()
+    alsoA = undefined
+    b = new Weaver.Node()
+    c = new Weaver.Node()
+    d = new Weaver.Node()
+    a.relation('rel').add(b)
+
+    Weaver.Node.batchSave([a, b, c, d]).then(->
+      Weaver.Node.load(a.id())
+    ).then((node) ->
+      alsoA = node
+      a.relation('rel').update(b, c)
+      a.save()
+    ).then(->
+      alsoA.relation('rel').update(b, d)
+      alsoA.save()
+    ).should.eventually.be.rejected
+
+  it 'should allow out-of-sync relation updates if the ignoresOutOfDate flag is set', ->
+    weaver.setOptions({ignoresOutOfDate: true})
+    a = new Weaver.Node()
+    alsoA = undefined
+    b = new Weaver.Node()
+    c = new Weaver.Node()
+    d = new Weaver.Node()
+    a.relation('rel').add(b)
+
+    Weaver.Node.batchSave([a, b, c, d]).then(->
+      Weaver.Node.load(a.id())
+    ).then((node) ->
+      alsoA = node
+      a.relation('rel').update(b, c)
+      a.save()
+    ).then(->
+      alsoA.relation('rel').update(b, d)
+      alsoA.save()
+    ).finally(->
+      weaver.setOptions({ignoresOutOfDate: false})
+    )
+
+  it 'should execute normally with a small amount of operations', ->
+    weaver.setOptions({ignoresOutOfDate: true})
+    a = new Weaver.Node()
+    alsoA = undefined
+    b = new Weaver.Node()
+    c = new Weaver.Node()
+    d = new Weaver.Node()
+    a.relation('rel').add(b)
+
+    Weaver.Node.batchSave([a, b, c, d]).then(->
+      Weaver.Node.load(a.id())
+    ).then((node) ->
+      alsoA = node
+      a.relation('rel').update(b, c)
+      a.save()
+    ).then(->
+      alsoA.relation('rel').update(b, d)
+      alsoA.save()
+    ).finally(->
+      weaver.setOptions({ignoresOutOfDate: false})
+    )
+
+  it 'should execute per batch with a high amount of operations', ->
+    ###
+    In this test there is still a low amount of operations, but the batchsize is reduced to 2.
+    This test will have 9 operations which lead to 5 batches (4x2 + 1x1)
+    Same test as it 'should clone a node', but with reduced batchsize.
+    ###
+
+    cm = Weaver.getCoreManager()
+    cm.maxBatchSize = 2
+    a = new Weaver.Node('clonea2')
+    b = new Weaver.Node('cloneb2')
+    c = new Weaver.Node('clonec2')
+    cloned = null
+
+    a.set('name', 'Foo')
+    b.set('name', 'Bar')
+    c.set('name', 'Dear')
+
+    a.relation('to').add(b)
+    b.relation('to').add(c)
+    c.relation('to').add(a)
+
+    Weaver.Node.batchSave([a,b,c])
+    .then(->
+      a.clone('cloned-a2')
+    ).then( ->
+      Weaver.Node.load('cloned-a2')
+    ).then((cloned) ->
+      assert.notEqual(cloned.id(), a.id())
+      assert.equal(cloned.get('name'), 'Foo')
+      to = value for key, value of cloned.relation('to').nodes
+      assert.equal(to.id(), b.id())
+      Weaver.Node.load(c.id())
+    ).then((node) ->
+      assert.isDefined(node.relation('to').nodes['cloned-a2'])
+    )
+
+  it 'should not crash on destroyed relation nodes', ->
+    a = new Weaver.Node()
+    b = new Weaver.Node()
+    a.relation('link').add(b)
+    a.save().then(->
+      b.destroy()
+    ).then(->
+      a.set('anything','x')
+      a.save()
+    ).should.not.be.rejected

@@ -99012,7 +99012,7 @@ module.exports = yeast;
 },{}],391:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "3.0.12",
+  "version": "3.0.13",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -99020,7 +99020,8 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredServerVersion": "~3.0.9"
+    "requiredServerVersion": "~3.0.9",
+    "requiredConnectorVersion": "~0.0.25"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -99105,6 +99106,7 @@ module.exports={
       this.currentProject = null;
       this.operationsQueue = Promise.resolve();
       this.timeOffset = 0;
+      this.maxBatchSize = 500;
     }
 
     CoreManager.prototype.connect = function(endpoint, options) {
@@ -99170,10 +99172,14 @@ module.exports={
       });
     };
 
-    CoreManager.prototype.executeOperations = function(operations, target) {
-      return this.POST('write', {
-        operations: operations
-      }, target);
+    CoreManager.prototype.executeOperations = function(allOperations, target) {
+      return Promise.mapSeries(_.chunk(allOperations, this.maxBatchSize), (function(_this) {
+        return function(operations) {
+          return _this.POST('write', {
+            operations: operations
+          }, target);
+        };
+      })(this));
     };
 
     CoreManager.prototype.cloneNode = function(sourceId, targetId, relationsToTraverse) {
@@ -99536,6 +99542,26 @@ module.exports={
       });
     };
 
+    CoreManager.prototype.enqueue = function(functionToEnqueue) {
+      var op;
+      op = this.operationsQueue.then(function() {
+        return functionToEnqueue();
+      });
+      return new Promise((function(_this) {
+        return function(resultResolve, resultReject) {
+          return _this.operationsQueue = new Promise(function(resolve) {
+            return op.then(function(r) {
+              resolve();
+              return resultResolve(r);
+            })["catch"](function(e) {
+              resolve();
+              return resultReject(e);
+            });
+          });
+        };
+      })(this));
+    };
+
     CoreManager.prototype.GET = function(path, payload, target) {
       return this.REQUEST("GET", path, payload, target);
     };
@@ -99654,7 +99680,7 @@ module.exports={
           removeId: cuid()
         };
       },
-      createAttribute: function(key, value, datatype, replaces) {
+      createAttribute: function(key, value, datatype, replaces, ignoreConcurrentReplace) {
         var replaceId;
         replaceId = null;
         if (replaces != null) {
@@ -99669,7 +99695,8 @@ module.exports={
           value: value,
           datatype: datatype,
           replacesId: replaces,
-          replaceId: replaceId
+          replaceId: replaceId,
+          traverseReplaces: (replaces != null) && (ignoreConcurrentReplace != null) ? ignoreConcurrentReplace : void 0
         };
       },
       removeAttribute: function(id) {
@@ -99681,11 +99708,14 @@ module.exports={
           removeId: cuid()
         };
       },
-      createRelation: function(key, to, id, replaces) {
+      createRelation: function(key, to, id, replaces, ignoreConcurrentReplace) {
         var replaceId;
         replaceId = null;
         if (replaces != null) {
           replaceId = cuid();
+        }
+        if (to == null) {
+          throw new Error("Unable to set relation " + key + " from " + (node.id()) + " to null node");
         }
         return {
           timestamp: timestamp,
@@ -99695,7 +99725,8 @@ module.exports={
           key: key,
           targetId: to,
           replacesId: replaces,
-          replaceId: replaceId
+          replaceId: replaceId,
+          traverseReplaces: (replaces != null) && (ignoreConcurrentReplace != null) ? ignoreConcurrentReplace : void 0
         };
       },
       removeRelation: function(id) {
@@ -99737,7 +99768,7 @@ module.exports={
       };
       this.options = this.options || defaultOptions;
       this.options.reconnection = true;
-      this.options.query = "sdkVersion=" + pjson.version + "&requiredServerVersion=" + pjson.com_weaverplatform.requiredServerVersion;
+      this.options.query = "sdkVersion=" + pjson.version + "&requiredServerVersion=" + pjson.com_weaverplatform.requiredServerVersion + "&requiredConnectorVersion=" + pjson.com_weaverplatform.requiredConnectorVersion;
     }
 
     SocketController.prototype.connect = function() {
@@ -99796,7 +99827,7 @@ module.exports={
   Promise = require('bluebird');
 
   Weaver = (function() {
-    function Weaver() {
+    function Weaver(opts) {
       if (Weaver.instance != null) {
         throw new Error('Do not instantiate Weaver twice');
       }
@@ -99820,6 +99851,10 @@ module.exports={
       this.coreManager = new Weaver.CoreManager();
       this._connected = false;
       this._local = false;
+      this._ignoresOutOfDate = true;
+      if (opts != null) {
+        this.setOptions(opts);
+      }
     }
 
     Weaver.prototype.version = function() {
@@ -99890,6 +99925,10 @@ module.exports={
 
     Weaver.prototype.setScheduler = function(fn) {
       return Promise.setScheduler(fn);
+    };
+
+    Weaver.prototype.setOptions = function(opts) {
+      return this._ignoresOutOfDate = opts.ignoresOutOfDate;
     };
 
     Weaver.getInstance = function() {
@@ -100413,7 +100452,7 @@ module.exports={
 
 },{"./Weaver":397}],402:[function(require,module,exports){
 (function() {
-  var Operation, Weaver, WeaverNode, _, cuid, util,
+  var Operation, Promise, Weaver, WeaverNode, _, cuid, util,
     slice = [].slice;
 
   cuid = require('cuid');
@@ -100425,6 +100464,8 @@ module.exports={
   util = require('./util');
 
   _ = require('lodash');
+
+  Promise = require('bluebird');
 
   WeaverNode = (function() {
     function WeaverNode(nodeId1) {
@@ -100464,23 +100505,29 @@ module.exports={
       }
     };
 
-    WeaverNode.loadFromQuery = function(node, constructorFunction) {
+    WeaverNode.loadFromQuery = function(node, constructorFunction, fullyLoaded) {
       var Constructor, instance;
+      if (fullyLoaded == null) {
+        fullyLoaded = true;
+      }
       if (constructorFunction != null) {
         Constructor = constructorFunction(Weaver.Node.loadFromQuery(node)) || Weaver.Node;
       } else {
         Constructor = Weaver.Node;
       }
       instance = new Constructor(node.nodeId);
-      instance._loadFromQuery(node, constructorFunction);
+      instance._loadFromQuery(node, constructorFunction, fullyLoaded);
       instance._setStored();
-      instance._loaded = true;
       return instance;
     };
 
-    WeaverNode.prototype._loadFromQuery = function(object, constructorFunction) {
+    WeaverNode.prototype._loadFromQuery = function(object, constructorFunction, fullyLoaded) {
       var Constructor, instance, j, key, len, ref, relation, relations;
+      if (fullyLoaded == null) {
+        fullyLoaded = true;
+      }
       this.attributes = object.attributes;
+      this._loaded = (object.creator != null) && fullyLoaded;
       ref = object.relations;
       for (key in ref) {
         relations = ref[key];
@@ -100492,7 +100539,7 @@ module.exports={
             Constructor = Weaver.Node;
           }
           instance = new Constructor(relation.target.nodeId);
-          instance._loadFromQuery(relation.target, constructorFunction);
+          instance._loadFromQuery(relation.target, constructorFunction, fullyLoaded);
           this.relation(key).add(instance, relation.nodeId, false);
         }
       }
@@ -100555,6 +100602,9 @@ module.exports={
 
     WeaverNode.prototype.set = function(field, value) {
       var dataType, newAttribute, newAttributeOperation, oldAttribute;
+      if (field === 'id') {
+        throw Error("Attribute 'id' cannot be set or updated");
+      }
       dataType = null;
       if (util.isString(value)) {
         dataType = 'string';
@@ -100573,7 +100623,7 @@ module.exports={
           throw new Error("Specifiy which attribute to set, more than 1 found for " + field);
         }
         oldAttribute = this.attributes[field][0];
-        newAttributeOperation = Operation.Node(this).createAttribute(field, value, dataType, oldAttribute.nodeId);
+        newAttributeOperation = Operation.Node(this).createAttribute(field, value, dataType, oldAttribute.nodeId, Weaver.getInstance()._ignoresOutOfDate);
       } else {
         newAttributeOperation = Operation.Node(this).createAttribute(field, value, dataType);
       }
@@ -100684,7 +100734,7 @@ module.exports={
         ref1 = relation.nodes;
         for (id in ref1) {
           node = ref1[id];
-          if (!collected[node.id()]) {
+          if ((node.id() != null) && !collected[node.id()]) {
             collected[node.id()] = true;
             operations = operations.concat(node._collectPendingWrites(collected));
           }
@@ -100741,12 +100791,12 @@ module.exports={
     };
 
     WeaverNode.prototype.save = function(project) {
-      var cm, sp;
+      var cm, writes;
       cm = Weaver.getCoreManager();
-      sp = cm.operationsQueue.then((function(_this) {
+      writes = this._collectPendingWrites();
+      return cm.enqueue((function(_this) {
         return function() {
-          var i, writes;
-          writes = _this._collectPendingWrites();
+          var i;
           return cm.executeOperations((function() {
             var j, len, results;
             results = [];
@@ -100768,38 +100818,55 @@ module.exports={
           });
         };
       })(this));
-      return new Promise((function(_this) {
-        return function(resultResolve, resultReject) {
-          return cm.operationsQueue = new Promise(function(resolve) {
-            return sp.then(function(r) {
-              resolve();
-              return resultResolve(r);
-            })["catch"](function(e) {
-              resolve();
-              return resultReject(e);
-            });
+    };
+
+    WeaverNode.batchSave = function(array, project) {
+      var cm, i, writes;
+      cm = Weaver.getCoreManager();
+      writes = [].concat.apply([], (function() {
+        var j, len, results;
+        results = [];
+        for (j = 0, len = array.length; j < len; j++) {
+          i = array[j];
+          results.push(i._collectPendingWrites());
+        }
+        return results;
+      })());
+      return cm.enqueue((function(_this) {
+        return function() {
+          return cm.executeOperations((function() {
+            var j, len, results;
+            results = [];
+            for (j = 0, len = writes.length; j < len; j++) {
+              i = writes[j];
+              results.push(_.omit(i, "__pendingOpNode"));
+            }
+            return results;
+          })(), project).then(function() {
+            var j, len;
+            for (j = 0, len = writes.length; j < len; j++) {
+              i = writes[j];
+              if (i.__pendingOpNode._setStored != null) {
+                i.__pendingOpNode._setStored();
+              }
+            }
+            return Promise.resolve();
+          })["catch"](function(e) {
+            var j;
+            for (j = writes.length - 1; j >= 0; j += -1) {
+              i = writes[j];
+              i.__pendingOpNode.pendingWrites.unshift(i);
+            }
+            return Promise.reject(e);
           });
         };
       })(this));
     };
 
-    WeaverNode.batchSave = function(array, project) {
-      var i;
-      return Promise.all((function() {
-        var j, len, results;
-        results = [];
-        for (j = 0, len = array.length; j < len; j++) {
-          i = array[j];
-          results.push(i.save(project));
-        }
-        return results;
-      })());
-    };
-
     WeaverNode.prototype.destroy = function(project) {
-      var cm, rm;
+      var cm;
       cm = Weaver.getCoreManager();
-      rm = cm.operationsQueue.then((function(_this) {
+      return cm.enqueue((function(_this) {
         return function() {
           if (_this.nodeId != null) {
             return cm.executeOperations([Operation.Node(_this).removeNode()], project).then(function() {
@@ -100814,19 +100881,6 @@ module.exports={
           }
         };
       })(this));
-      return new Promise((function(_this) {
-        return function(resultResolve, resultReject) {
-          return cm.operationsQueue = new Promise(function(resolve) {
-            return rm.then(function(r) {
-              resolve();
-              return resultResolve(r);
-            })["catch"](function(e) {
-              resolve();
-              return resultReject(e);
-            });
-          });
-        };
-      })(this));
     };
 
     WeaverNode.prototype.setACL = function(acl) {};
@@ -100839,7 +100893,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Operation":395,"./Weaver":397,"./util":410,"cuid":125,"lodash":237}],403:[function(require,module,exports){
+},{"./Operation":395,"./Weaver":397,"./util":410,"bluebird":74,"cuid":125,"lodash":237}],403:[function(require,module,exports){
 (function() {
   var Weaver, WeaverPlugin,
     slice = [].slice;
@@ -101054,7 +101108,7 @@ module.exports={
 
 },{"./Weaver":397,"cuid":125}],405:[function(require,module,exports){
 (function() {
-  var Weaver, WeaverQuery, _, quote, util,
+  var Weaver, WeaverQuery, _, nodeId, quote, util,
     slice = [].slice;
 
   util = require('./util');
@@ -101067,6 +101121,16 @@ module.exports={
     return '\\Q' + s.replace('\\E', '\\E\\\\E\\Q') + '\\E';
   };
 
+  nodeId = function(node) {
+    if (_.isString(node)) {
+      return node;
+    } else if (node instanceof Weaver.Node) {
+      return node.id();
+    } else {
+      throw new Error("Unsupported type");
+    }
+  };
+
   WeaverQuery = (function() {
     WeaverQuery.profilers = [];
 
@@ -101077,7 +101141,7 @@ module.exports={
       this._orQueries = [];
       this._conditions = {};
       this._include = [];
-      this._select = [];
+      this._select = void 0;
       this._selectOut = [];
       this._selectRecursiveOut = [];
       this._noRelations = true;
@@ -101105,7 +101169,7 @@ module.exports={
           ref = result.nodes;
           for (j = 0, len = ref.length; j < len; j++) {
             node = ref[j];
-            castedNode = Weaver.Node.loadFromQuery(node, _this.useConstructorFunction);
+            castedNode = Weaver.Node.loadFromQuery(node, _this.useConstructorFunction, _this._select == null);
             list.push(castedNode);
           }
           return list;
@@ -101213,7 +101277,7 @@ module.exports={
           results = [];
           for (j = 0, len = node.length; j < len; j++) {
             i = node[j];
-            results.push(i.id() || i);
+            results.push(nodeId(i) || i);
           }
           return results;
         })() : ['*']);
@@ -101233,7 +101297,7 @@ module.exports={
           results = [];
           for (j = 0, len = node.length; j < len; j++) {
             i = node[j];
-            results.push(i.id() || i);
+            results.push(nodeId(i) || i);
           }
           return results;
         })() : ['*']);
@@ -101254,7 +101318,7 @@ module.exports={
           results = [];
           for (j = 0, len = node.length; j < len; j++) {
             i = node[j];
-            results.push(i.id() || i);
+            results.push(nodeId(i) || i);
           }
           return results;
         })() : ['*']);
@@ -101274,7 +101338,7 @@ module.exports={
           results = [];
           for (j = 0, len = node.length; j < len; j++) {
             i = node[j];
-            results.push(i.id() || i);
+            results.push(nodeId(i) || i);
           }
           return results;
         })() : ['*']);
@@ -101550,7 +101614,7 @@ module.exports={
       this.nodes[newNode.id()] = newNode;
       delete this.relationNodes[oldNode.id()];
       this.relationNodes[newNode.id()] = Weaver.RelationNode.get(newRelId, Weaver.RelationNode);
-      return this.pendingWrites.push(Operation.Node(this.parent).createRelation(this.key, newNode.id(), newRelId, oldRelId));
+      return this.pendingWrites.push(Operation.Node(this.parent).createRelation(this.key, newNode.id(), newRelId, oldRelId, Weaver.getInstance()._ignoresOutOfDate));
     };
 
     WeaverRelation.prototype.remove = function(node) {
