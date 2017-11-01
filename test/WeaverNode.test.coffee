@@ -48,7 +48,7 @@ describe 'WeaverNode test', ->
     c = new Weaver.Node()
 
     a.relation('2link').add(b)
-    c.relation('2link').add(c)
+    c.relation('2link').add(c) # Is this right? or should it be b.relation('2link').add(c) ?
     wipeCurrentProject().then(->
       Promise.all([a.save(), c.save()])
     ).then(->
@@ -602,3 +602,16 @@ describe 'WeaverNode test', ->
       a.set('anything','x')
       a.save()
     ).should.not.be.rejected
+
+  it 'should be able to delete a node unrecoverable', ->
+    a = new Weaver.Node()
+    id = a.id()
+    a.save().then(->
+      # a.destroy() # Change function
+      a.destroyUnrecoverable()
+    ).then(->
+      Weaver.Node.load(id)
+    ).catch((error) ->
+      # assert.equal(error.code, Weaver.Error.NODE_NOT_FOUND)
+      # Node should not exist at all, not even in the garbage can.
+    )
