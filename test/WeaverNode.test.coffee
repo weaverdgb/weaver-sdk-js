@@ -184,8 +184,29 @@ describe 'WeaverNode test', ->
     ).then((value) ->
       assert.equal(value, 7)
       sameNode.increment('length', 5)
-    ).catch((err) ->
-      assert.equal(err,"Error: The attribute that you are trying to update is out of synchronization with the database, therefore it wasn\'t saved")
+    ).then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.get('length'), 12)
+    )
+
+  # This test is written to make sure it's possible to save a node after a out-of-sync increment where an error has been caught.
+  it 'should increment an existing out-of-sync number attribute and be able to save afterwards', ->
+    node = new Weaver.Node()
+    sameNode = undefined
+    node.set('length', 3)
+
+    node.save().then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.get('length'), 3)
+      sameNode = loadedNode
+      node.increment('length', 4)
+    ).then((value) ->
+      assert.equal(value, 7)
+      sameNode.increment('length', 5)
+    ).then(->
+      sameNode.save()
     ).then(->
       Weaver.Node.load(node.id())
     ).then((loadedNode) ->

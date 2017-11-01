@@ -185,7 +185,7 @@ class WeaverNode
         pendingNewValue
       ).catch((error) =>
         if (error.message == 'The attribute that you are trying to update is out of synchronization with the database, therefore it wasn\'t saved')
-          # @pendingWrites.splice(-1, 1)
+          @pendingWrites.splice(-1, 1) # remove last (failing) operation, otherwise the save() keeps on failing on this node
           @increment(field, value, project, true)
       )
 
