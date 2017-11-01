@@ -4,6 +4,7 @@ Weaver      = require('./Weaver')
 util        = require('./util')
 _           = require('lodash')
 Promise     = require('bluebird')
+WeaverError = require('./WeaverError')
 
 class WeaverNode
 
@@ -184,8 +185,15 @@ class WeaverNode
         # Return the incremented value
         pendingNewValue
       ).catch((error) =>
+        switch error.code
+          when WeaverError.WRITE_OPERATION_INVALID then console.log('found it')
+        console.log(error.code)
+
         if (error.message == 'The attribute that you are trying to update is out of synchronization with the database, therefore it wasn\'t saved')
-          @pendingWrites.splice(-1, 1) # remove last (failing) operation, otherwise the save() keeps on failing on this node
+
+          index = @pendingWrites.map((o) => o.key).indexOf(field) # find failed operation
+          @pendingWrites.splice(index, 1) if index > -1 # remove failing operation, otherwise the save() keeps on failing on this node
+
           @increment(field, value, project, true)
       )
 
