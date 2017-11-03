@@ -5,14 +5,16 @@ Weaver      = require('./Weaver')
 class WeaverModel
 
   constructor: (@definition) ->
-    
     # Register classes
     for modelClass in @definition.classes
       name = Object.keys(modelClass)[0]
 
       js = """
         (function() {
-          function #{name}() {}
+          function #{name}(nodeId) {
+            this.modelClass = #{name}.modelClass;
+            #{name}.__super__.constructor.call(this, nodeId);
+          }
 
           #{name}.defineBy = function(modelClass) {
             this.modelClass = modelClass;
