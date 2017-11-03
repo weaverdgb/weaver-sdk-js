@@ -44,4 +44,11 @@ describe 'WeaverModel test', ->
         new Weaver.Query().restrict('test-model:Person').find()
       ).should.eventually.have.length.be(1)
 
+    it 'should not do anything on multiple bootstraps', ->
+      model.bootstrap().then(->
+        model.bootstrap()
+      ).then(->
+        new Weaver.Query().restrict('test-model:Person').find()
+      ).should.eventually.have.length.be(1)
+
 
