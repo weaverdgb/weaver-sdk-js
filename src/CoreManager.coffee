@@ -111,6 +111,11 @@ class CoreManager
   executePluginFunction: (route, payload) ->
     @POST(route, payload)
 
+  getModel: (name, version) ->
+    @POST("model.read", {name, version}).then((model) ->
+      new Weaver.Model(model)
+    )
+
   createRole: (role) ->
     @POST("role.create", {role})
 
