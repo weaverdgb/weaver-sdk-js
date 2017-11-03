@@ -16,6 +16,7 @@ class CoreManager
     @currentProject = null
     @operationsQueue = Promise.resolve()
     @timeOffset = 0
+    @maxBatchSize = 500
 
   connect: (endpoint, @options) ->
     defaultOptions =
@@ -65,9 +66,10 @@ class CoreManager
       localTime - serverTime
     )
 
-
-  executeOperations: (operations, target) ->
-    @POST('write', {operations}, target)
+  executeOperations: (allOperations, target) ->
+    Promise.mapSeries(_.chunk(allOperations, @maxBatchSize), (operations) =>
+      @POST('write', {operations}, target)
+    )
 
 #  serverVersion: ->
 #    @POST('application.version')
