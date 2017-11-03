@@ -26,6 +26,7 @@ class Weaver
     @Error = Weaver.Error
     @LegacyError = Weaver.LegacyError
     @Model = Weaver.Model
+    @ModelClass = Weaver.ModelClass
     if !window?
       @File = Weaver.File
 
@@ -136,6 +137,7 @@ module.exports.User         = require('./WeaverUser')
 module.exports.Error        = require('./WeaverError')
 module.exports.LegacyError  = require('./Error')
 module.exports.Model        = require('./WeaverModel')
+module.exports.ModelClass   = require('./WeaverModelClass')
 
 if !window? # Prevent issues with WeaverFile when in browser
   module.exports.File       = require('./WeaverFile')

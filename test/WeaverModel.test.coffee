@@ -23,3 +23,12 @@ describe 'WeaverModel test', ->
     ).catch((error)->
       assert.equal(error.code, Weaver.Error.MODEL_VERSION_NOT_FOUND)
     )
+
+
+  it '#WIP should create instances from model classes', ->
+    Weaver.Model.load("test-model", "1.0.0").then((Model) ->
+      Person = Model.Person
+
+      person = new Person()
+      console.log person
+    )
