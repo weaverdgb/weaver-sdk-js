@@ -1,4 +1,5 @@
 Promise = require('bluebird')
+PubSub  = require('pubsub-js')
 
 class Weaver
 
@@ -107,6 +108,12 @@ class Weaver
   # a static reference
   @getCoreManager: ->
     @getInstance().getCoreManager()
+
+  # Expose PubSub
+  @subscribe:             PubSub.subscribe
+  @unsubscribe:           PubSub.unsubscribe
+  @publish:               PubSub.publish
+  @clearAllSubscriptions: PubSub.clearAllSubscriptions
 
 # Export
 module.exports = Weaver             # Node

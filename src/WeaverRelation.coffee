@@ -38,6 +38,7 @@ class WeaverRelation
     # it should change, but its here now for backwards compatibility
     @relationNodes[node.id()] = Weaver.RelationNode.get(relId, Weaver.RelationNode)
 
+    Weaver.publish("node.relation.add", {node: @parent, key: @key, target: node})
     @pendingWrites.push(Operation.Node(@parent).createRelation(@key, node.id(), relId))
 
   update: (oldNode, newNode) ->
@@ -50,6 +51,7 @@ class WeaverRelation
     delete @relationNodes[oldNode.id()]
     @relationNodes[newNode.id()] = Weaver.RelationNode.get(newRelId, Weaver.RelationNode)
 
+    Weaver.publish("node.relation.update", {node: @parent, key: @key, oldTarget: oldNode, target: newNode})
     @pendingWrites.push(Operation.Node(@parent).createRelation(@key, newNode.id(), newRelId, oldRelId, Weaver.getInstance()._ignoresOutOfDate))
 
 
@@ -59,6 +61,7 @@ class WeaverRelation
     # Deprecate this write operation
     #relId = @relationNodes[node.id()].id()
     #@pendingWrites.push(Operation.Node(@parent).removeRelation(relId))
+    Weaver.publish("node.relation.remove", {node: @parent, key: @key, target: node})
 
     delete @nodes[node.id()]
     delete @relationNodes[node.id()]
