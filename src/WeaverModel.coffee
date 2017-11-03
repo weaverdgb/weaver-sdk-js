@@ -43,7 +43,7 @@ class WeaverModel
 
   _bootstrapClasses: (existingDatabaseClasses) ->
     Promise.all(
-      for modelClassName in (Object.keys(i)[0] for i in@definition.classes)
+      for modelClassName in (Object.keys(i)[0] for i in @definition.classes)
         if !existingDatabaseClasses.includes("#{@definition.name}:#{modelClassName}")
           new Weaver.Node("#{@definition.name}:#{modelClassName}").save()
     )
