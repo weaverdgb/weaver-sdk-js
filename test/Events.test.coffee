@@ -73,9 +73,11 @@ describe 'Events test', ->
       done()
     )
 
-    new Weaver.Node(id).save()
-    Weaver.Node.load(id).then((node) ->
-      node.destroy()
+    node = new Weaver.Node(id)
+    node.save().then(->
+      Weaver.Node.load(id)
+    ).then((loadedNode) ->
+      loadedNode.destroy()
     )
     return
 
