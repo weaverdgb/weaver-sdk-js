@@ -3,33 +3,33 @@ wipeCurrentProject = require("./test-suite").wipeCurrentProject
 Weaver = require('../src/Weaver')
 
 describe 'WeaverNode test', ->
-  it 'should handle concurrent remove node operations', ->
+  it.skip 'should handle concurrent remove node operations', ->
     a = new Weaver.Node()
 
     a.save().then(->
       Promise.all([a.destroy(), a.destroy()])
     )
 
-  it 'should reject loading undefined nodes', ->
+  it.skip 'should reject loading undefined nodes', ->
     new Weaver.Node().save().then( ->
       Weaver.Node.load(undefined).should.eventually.be.rejected
     )
 
-  it 'should reject loading unexistant nodes', ->
+  it.skip 'should reject loading unexistant nodes', ->
     Weaver.Node.load('doesnt-exist').should.eventually.be.rejected
 
-  it 'should reject setting an id attribute', ->
+  it.skip 'should reject setting an id attribute', ->
     a = new Weaver.Node()
     expect(-> a.set('id', 'idea')).to.throw()
 
-  it 'should reject forcing an id attribute', ->
+  it.skip 'should reject forcing an id attribute', ->
     a = new Weaver.Node()
     a.set('placeholder', 'totally-not-id')
     writeOp = i for i in a.pendingWrites when i.action is 'create-attribute'
     writeOp.key = 'id'
     expect(a.save()).to.be.rejected
 
-  it 'should propagate delete to relations (part 1)', ->
+  it.skip 'should propagate delete to relations (part 1)', ->
     a = new Weaver.Node()
     b = new Weaver.Node()
 
@@ -42,7 +42,7 @@ describe 'WeaverNode test', ->
       assert.isUndefined(res.relations.link)
     )
 
-  it 'should propagate delete to relations (part 2)', ->
+  it.skip 'should propagate delete to relations (part 2)', ->
     a = new Weaver.Node()
     b = new Weaver.Node()
     c = new Weaver.Node()
@@ -155,7 +155,7 @@ describe 'WeaverNode test', ->
       assert.equal(loadedNode.get('time').toJSON(), date.toJSON())
     )
 
-  it 'should increment an existing number attribute', ->
+  it.skip 'should increment an existing number attribute', ->
     node = new Weaver.Node()
     node.set('length', 3)
 
@@ -212,7 +212,7 @@ describe 'WeaverNode test', ->
       assert.equal(loadedNode.get('name'), 'Bar')
     )
 
-  it.skip 'should give an error if node already exists', ->
+  it 'should give an error if node already exists', ->
     node1 = new Weaver.Node('double-node')
     node2 = new Weaver.Node('double-node')
 
@@ -254,7 +254,7 @@ describe 'WeaverNode test', ->
 
     a.save()
 
-  it 'should batch store nodes', ->
+  it.skip 'should batch store nodes', ->
     a = new Weaver.Node()
     b = new Weaver.Node()
     c = new Weaver.Node()
@@ -277,7 +277,7 @@ describe 'WeaverNode test', ->
       assert.equal(loadedNode.id(), c.id())
     )
 
-  it 'should clone a node', ->
+  it.skip 'should clone a node', ->
     a = new Weaver.Node('clonea')
     b = new Weaver.Node('cloneb')
     c = new Weaver.Node('clonec')
@@ -306,7 +306,7 @@ describe 'WeaverNode test', ->
       assert.isDefined(node.relation('to').nodes['cloned-a'])
     )
 
-  it 'should recursively clone a node', ->
+  it.skip 'should recursively clone a node', ->
     foo = new Weaver.Node('foo')
     bar = new Weaver.Node('bar')
 
@@ -320,7 +320,7 @@ describe 'WeaverNode test', ->
       expect(newFoo.relation('baz').nodes).to.not.have.property('bar')
     )
 
-  it 'should clone loops', ->
+  it.skip 'should clone loops', ->
     paper = new Weaver.Node('paper')
     sissors = new Weaver.Node('sissors')
     rock = new Weaver.Node('rock')
@@ -333,7 +333,7 @@ describe 'WeaverNode test', ->
       paper.clone('new-paper', 'beats')
     )
 
-  it 'should clone links to loops', ->
+  it.skip 'should clone links to loops', ->
     paper = new Weaver.Node('2paper')
     sissors = new Weaver.Node('2sissors')
     rock = new Weaver.Node('2rock')
@@ -354,7 +354,7 @@ describe 'WeaverNode test', ->
       expect(pl.relation('chooses').nodes).to.have.property('2sissors')
     )
 
-  it 'should load an incomplete node', ->
+  it.skip 'should load an incomplete node', ->
     incompleteNode = null
 
     node = new Weaver.Node()
@@ -368,14 +368,14 @@ describe 'WeaverNode test', ->
       assert.equal(incompleteNode.get('name'), 'Foo')
     )
 
-  it 'should create and return a node if it doesn\'t exist', ->
+  it.skip 'should create and return a node if it doesn\'t exist', ->
     Weaver.Node.firstOrCreate('firstOrCreate')
       .then((node) ->
         assert.isTrue(node._stored)
         assert.equal(node.id(), 'firstOrCreate')
       )
 
-  it 'should not create a node return the existing node if it already exist', ->
+  it.skip 'should not create a node return the existing node if it already exist', ->
     new Weaver.Node('firstOrCreateExists').save()
       .then((node) ->
         assert.isTrue(node._stored)
@@ -386,7 +386,7 @@ describe 'WeaverNode test', ->
         assert.equal(node.id(), 'firstOrCreateExists')
       )
 
-  it 'should be possible to get write operations from a node when weaver is not instantiated', ->
+  it.skip 'should be possible to get write operations from a node when weaver is not instantiated', ->
     instance = Weaver.instance
     Weaver.instance = undefined
     try
@@ -399,7 +399,7 @@ describe 'WeaverNode test', ->
     finally
       Weaver.instance = instance
 
-  it 'should not reject interaction with out-of-date nodes by default', ->
+  it.skip 'should not reject interaction with out-of-date nodes by default', ->
     a = new Weaver.Node() # a node is created and saved at some point
     a.set('name','a')
     ay = {}
@@ -420,7 +420,7 @@ describe 'WeaverNode test', ->
       ])
     ).should.eventually.not.be.rejected
 
-  it 'should handle concurrent saves from multiple references, when the ignoresOutOfDate flag is passed', ->
+  it.skip 'should handle concurrent saves from multiple references, when the ignoresOutOfDate flag is passed', ->
     weaver.setOptions({ignoresOutOfDate: true})
     a = new Weaver.Node() # a node is created and saved at some point
     a.set('name','a')
@@ -457,7 +457,7 @@ describe 'WeaverNode test', ->
       weaver.setOptions({ignoresOutOfDate: false})
     )
 
-  it 'should not reject out-of-sync attribute updates by default', ->
+  it.skip 'should not reject out-of-sync attribute updates by default', ->
     a = new Weaver.Node()
     a.set('name', 'first')
     alsoA = undefined
@@ -473,7 +473,7 @@ describe 'WeaverNode test', ->
       alsoA.save()
     ).should.eventually.not.be.rejected
 
-  it 'should allow out-of-sync attribute updates if the ignoresOutOfDate flag is set', ->
+  it.skip 'should allow out-of-sync attribute updates if the ignoresOutOfDate flag is set', ->
     weaver.setOptions({ignoresOutOfDate: true})
     a = new Weaver.Node()
     a.set('name', 'first')
@@ -492,7 +492,7 @@ describe 'WeaverNode test', ->
       weaver.setOptions({ignoresOutOfDate: false})
     )
 
-  it 'should reject out-of-sync relation updates by default', ->
+  it.skip 'should reject out-of-sync relation updates by default', ->
     a = new Weaver.Node()
     alsoA = undefined
     b = new Weaver.Node()
@@ -511,7 +511,7 @@ describe 'WeaverNode test', ->
       alsoA.save()
     ).should.eventually.be.rejected
 
-  it 'should allow out-of-sync relation updates if the ignoresOutOfDate flag is set', ->
+  it.skip 'should allow out-of-sync relation updates if the ignoresOutOfDate flag is set', ->
     weaver.setOptions({ignoresOutOfDate: true})
     a = new Weaver.Node()
     alsoA = undefined
@@ -533,7 +533,7 @@ describe 'WeaverNode test', ->
       weaver.setOptions({ignoresOutOfDate: false})
     )
 
-  it 'should execute normally with a small amount of operations', ->
+  it.skip 'should execute normally with a small amount of operations', ->
     weaver.setOptions({ignoresOutOfDate: true})
     a = new Weaver.Node()
     alsoA = undefined
@@ -555,11 +555,11 @@ describe 'WeaverNode test', ->
       weaver.setOptions({ignoresOutOfDate: false})
     )
 
-  it 'should execute per batch with a high amount of operations', ->
+  it.skip 'should execute per batch with a high amount of operations', ->
     ###
     In this test there is still a low amount of operations, but the batchsize is reduced to 2.
     This test will have 9 operations which lead to 5 batches (4x2 + 1x1)
-    Same test as it 'should clone a node', but with reduced batchsize.
+    Same test as it.skip 'should clone a node', but with reduced batchsize.
     ###
 
     cm = Weaver.getCoreManager()
@@ -592,7 +592,7 @@ describe 'WeaverNode test', ->
       assert.isDefined(node.relation('to').nodes['cloned-a2'])
     )
 
-  it 'should not crash on destroyed relation nodes', ->
+  it.skip 'should not crash on destroyed relation nodes', ->
     a = new Weaver.Node()
     b = new Weaver.Node()
     a.relation('link').add(b)
