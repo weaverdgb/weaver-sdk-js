@@ -11,12 +11,14 @@ class WeaverModel
       js = """
         (function() {
           function #{className}(nodeId) {
+            this.model           = #{className}.model;
             this.definition      = #{className}.definition;
             this.classDefinition = #{className}.classDefinition;
             #{className}.__super__.constructor.call(this, nodeId);
           };
 
-          #{className}.defineBy = function(definition, classDefinition) {
+          #{className}.defineBy = function(model, definition, classDefinition) {
+            this.model           = model;
             this.definition      = definition;
             this.classDefinition = classDefinition;
           };
@@ -27,7 +29,7 @@ class WeaverModel
 
       @[className] = eval(js)
       @[className] = @[className] extends Weaver.ModelClass
-      @[className].defineBy(@definition, classDefinition)
+      @[className].defineBy(@, @definition, classDefinition)
 
 
   # Load given model from server
