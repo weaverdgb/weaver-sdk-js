@@ -85,6 +85,15 @@ describe 'WeaverNode test', ->
 
     )
 
+  it 'should keep multiple references of the same db node in sync with each other', ->
+    a = new Weaver.Node('a')
+    a.save().then(->
+      Weaver.Node.load('a')
+    ).then((ay)->
+      ay.set('name', 'can\'t believe it was that easy')
+      assert.equal(a.get('name'), ay.get('name'))
+    )
+
   it 'should remove a node', ->
     node = new Weaver.Node()
     id = node.id()
