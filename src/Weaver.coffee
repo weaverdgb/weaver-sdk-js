@@ -1,5 +1,6 @@
 Promise = require('bluebird')
 PubSub  = require('pubsub-js')
+Bus     = require('./WeaverBus')
 
 class Weaver
 
@@ -12,6 +13,7 @@ class Weaver
 
     # Make Weaver objects available through the instance
     # FIXME: Should probably be done with a for loop or something
+    @bus = new Bus()
     @Node = Weaver.Node
     @ACL = Weaver.ACL
     @CoreManager = Weaver.CoreManager
@@ -34,6 +36,8 @@ class Weaver
 
     # Default options
     @_ignoresOutOfDate = true
+
+    @bus.setMaxListeners(0);
 
     if opts?
       @setOptions(opts)
@@ -103,6 +107,9 @@ class Weaver
       throw new Error('Please instantiate Weaver before calling getInstance!')
 
     @instance
+
+  @getBus: ->
+    @getInstance().bus
 
   # Returns the coremanager if Weaver is instantiated. This should be called from
   # a static reference

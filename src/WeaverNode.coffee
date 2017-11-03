@@ -19,7 +19,10 @@ class WeaverNode
     # All operations that need to get saved
     @pendingWrites = [Operation.Node(@).createNode()]
 
-    Weaver.publish('node.created', @)
+    Weaver.getBus().on(@nodeId, (node)=>
+      @relations = node.relations
+      @attributes = node.attributes
+    )
 
   # Node loading from server
   @load: (nodeId, target, Constructor, includeRelations = false, includeAttributes = false) ->
@@ -30,8 +33,10 @@ class WeaverNode
       query = new Weaver.Query(target)
       query.withRelations() if includeRelations
       query.withAttributes() if includeAttributes
-      query.get(nodeId, Constructor)
 
+      Weaver.getBus().emit(@nodeId, @)
+
+      query.get(nodeId, Constructor)
 
   @loadFromQuery: (node, constructorFunction, fullyLoaded = true) ->
     if constructorFunction?
@@ -161,6 +166,7 @@ class WeaverNode
     Weaver.publish(eventMsg, eventData)
     @pendingWrites.push(newAttributeOperation)
 
+    Weaver.getBus().emit(@nodeId, @)
     return @
 
 
@@ -199,17 +205,20 @@ class WeaverNode
 
     # Unset locally
     delete @attributes[field]
+    Weaver.getBus().emit(@nodeId, @)
     @
 
 
   # Create a new Relation
   relation: (key) ->
     @relations[key] = new Weaver.Relation(@, key) if not @relations[key]?
+    Weaver.getBus().emit(@nodeId, @)
     @relations[key]
 
 
   clone: (newId, relationTraversal...) ->
     cm = Weaver.getCoreManager()
+    Weaver.getBus().emit(@nodeId, @)
     cm.cloneNode(@nodeId, newId, relationTraversal)
 
   peekPendingWrites: (collected) ->
@@ -290,6 +299,7 @@ class WeaverNode
         Weaver.publish('node.saved', i.__pendingOpNode) for i in writes
 
         @_setStored()
+        Weaver.getBus().emit(@nodeId, @)
         @
       ).catch((e) =>
 
