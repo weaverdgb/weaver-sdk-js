@@ -9,6 +9,6 @@ class WeaverModelClass extends Weaver.Node
     @buildByDefinition()
 
   buildByDefinition: ->
-    console.log @modelClass
-
+    return
+    
 module.exports = WeaverModelClass

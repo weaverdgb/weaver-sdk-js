@@ -6,28 +6,29 @@ class WeaverModel
 
   constructor: (@definition) ->
     # Register classes
-    for modelClass in @definition.classes
-      name = Object.keys(modelClass)[0]
+    for className, classDefinition of @definition.classes
 
       js = """
         (function() {
-          function #{name}(nodeId) {
-            this.modelClass = #{name}.modelClass;
-            #{name}.__super__.constructor.call(this, nodeId);
+          function #{className}(nodeId) {
+            this.definition      = #{className}.definition;
+            this.classDefinition = #{className}.classDefinition;
+            #{className}.__super__.constructor.call(this, nodeId);
           }
 
-          #{name}.defineBy = function(modelClass) {
-            this.modelClass = modelClass;
+          #{className}.defineBy = function(definition, classDefinition) {
+            this.definition      = definition;
+            this.classDefinition = classDefinition;
           };
 
-          return #{name};
+          return #{className};
 
         })();
       """
 
-      @[name] = eval(js)
-      @[name] = @[name] extends Weaver.ModelClass
-      @[name].defineBy(modelClass)
+      @[className] = eval(js)
+      @[className] = @[className] extends Weaver.ModelClass
+      @[className].defineBy(@definition, classDefinition)
 
 
   # Load given model from server
