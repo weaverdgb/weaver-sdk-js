@@ -14,7 +14,7 @@ class WeaverModel
             this.definition      = #{className}.definition;
             this.classDefinition = #{className}.classDefinition;
             #{className}.__super__.constructor.call(this, nodeId);
-          }
+          };
 
           #{className}.defineBy = function(definition, classDefinition) {
             this.definition      = definition;
@@ -22,7 +22,6 @@ class WeaverModel
           };
 
           return #{className};
-
         })();
       """
 
