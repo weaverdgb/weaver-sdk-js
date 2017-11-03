@@ -79,3 +79,13 @@ describe 'WeaverModel test', ->
         model.bootstrap().then(->
           new Weaver.Query().restrict('test-model:Person').find()
         ).should.eventually.have.length.be(1)
+
+      it.skip 'should do Weaver.Query on models', ->
+        new Weaver.Query()
+          .model(model.Person)
+          .contains("fullName", "John")
+          .first()
+          .then((person) ->
+            assert.equal(person.get("fullName", "John Doe"))
+            # also assert person is of class Person
+          )
