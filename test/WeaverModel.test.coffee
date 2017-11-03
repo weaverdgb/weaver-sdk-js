@@ -24,11 +24,24 @@ describe 'WeaverModel test', ->
       assert.equal(error.code, Weaver.Error.MODEL_VERSION_NOT_FOUND)
     )
 
-
   it '#WIP should create instances from model classes', ->
     Weaver.Model.load("test-model", "1.0.0").then((Model) ->
       Person = Model.Person
 
       person = new Person()
-      console.log person
     )
+
+  describe 'with a loaded model', ->
+    Model = {}
+
+    before ->
+      Weaver.Model.load("test-model", "1.0.0").then((m) ->
+        Model = m
+      )
+
+    it.skip 'should bootstrap a model', ->
+      Model.bootstrap().then(->
+        new Weaver.Query().restrict('Person').find()
+      ).should.eventually.have.length.be(1)
+
+
