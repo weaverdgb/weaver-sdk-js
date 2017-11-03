@@ -35,4 +35,18 @@ class WeaverModel
   @load: (name, version) ->
     Weaver.getCoreManager().getModel(name, version)
 
+  bootstrap: ->
+    new Weaver.Query()
+    .contains('id', "#{@definition.name}:")
+    .find().then((classes) =>
+      @_bootstrapClasses(i.id() for i in classes)
+    )
+
+  _bootstrapClasses: (existingDatabaseClasses) ->
+    Promise.all(
+      for modelClassName in (Object.keys(i)[0] for i in @definition.classes)
+        if !existingDatabaseClasses.includes("#{@definition.name}:#{modelClassName}")
+          new Weaver.Node("#{@definition.name}:#{modelClassName}").save()
+    )
+
 module.exports = WeaverModel

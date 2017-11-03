@@ -32,16 +32,24 @@ describe 'WeaverModel test', ->
     )
 
   describe 'with a loaded model', ->
-    Model = {}
+    model = {}
 
     before ->
       Weaver.Model.load("test-model", "1.0.0").then((m) ->
-        Model = m
+        model = m
       )
 
-    it.skip 'should bootstrap a model', ->
-      Model.bootstrap().then(->
-        new Weaver.Query().restrict('Person').find()
+    it 'should bootstrap a model', ->
+      model.bootstrap().then(->
+        new Weaver.Query().restrict('test-model:Person').find()
       ).should.eventually.have.length.be(1)
 
+    describe 'that is bootstrapped', ->
+      before ->
+        model.bootstrap()
+
+      it 'should not do anything on multiple bootstraps', ->
+        model.bootstrap().then(->
+          new Weaver.Query().restrict('test-model:Person').find()
+        ).should.eventually.have.length.be(1)
 
