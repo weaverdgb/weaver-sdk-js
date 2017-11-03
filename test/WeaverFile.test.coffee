@@ -148,7 +148,8 @@ describe 'WeaverFile test', ->
     )
 
   it 'should delete a file by id', ->
-    this.timeout(30000)
+    @timeout(30000)
+    @retries(5)
     weaverFile = new Weaver.File()
     fileTemp = path.join(__dirname,'../icon.png')
     weaverFile.saveFile(fileTemp, 'weaverIcon.png')

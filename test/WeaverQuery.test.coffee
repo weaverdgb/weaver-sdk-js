@@ -147,7 +147,7 @@ describe 'WeaverQuery Test', ->
         checkNodeInResult(nodes, 'b')
         checkNodeInResult(nodes, 'c')
       )
-      
+
     it 'should do relation hasNoRelationOut', ->
       new Weaver.Query()
       .hasNoRelationOut("link", b)
@@ -166,7 +166,7 @@ describe 'WeaverQuery Test', ->
         expect(nodes.length).to.equal(3)
         checkNodeInResult(nodes, 'b')
       )
-        
+
     it 'should do relation hasNoRelationIn', ->
       new Weaver.Query()
       .noRelations()
@@ -292,8 +292,23 @@ describe 'WeaverQuery Test', ->
       wipeCurrentProject().then( ->
         a.relation('link').add(b)
         b.relation('link').add(c)
+        b.relation('redundant').add(c)
         a.save()
       )
+
+    it 'should combine hasNoRelationOut seperate clauses correctly', ->
+      new Weaver.Query()
+      .hasNoRelationOut('link', Weaver.Node.get('b'))
+      .hasNoRelationOut('redundant', Weaver.Node.get('c'))
+      .find().then((nodes) ->
+        expect(nodes).to.have.length.be(1)
+        checkNodeInResult(nodes, 'c')
+      )
+
+    it 'should combine hasNoRelationOut combined clauses correctly', ->
+      expect(new Weaver.Query()
+        .hasNoRelationOut('link', 'b', 'c')
+        .find()).to.eventually.have.length.be(1)
 
     it 'should be able to do nested queries (to allow hops)', ->
       new Weaver.Query()
@@ -318,7 +333,7 @@ describe 'WeaverQuery Test', ->
 
     beforeEach ->
       wipeCurrentProject()
-      
+
     it 'should allow "or" in objects for specific hasRelationOut', ->
       a = new Weaver.Node('a')
       b = new Weaver.Node('b')
@@ -421,7 +436,7 @@ describe 'WeaverQuery Test', ->
       )
 
     it 'should do relation hasRelationOut with subclasses', ->
-      
+
       class SpecialNodeA extends Weaver.Node
 
       a = new Weaver.Node("a")
@@ -807,7 +822,7 @@ describe 'WeaverQuery Test', ->
           expect(attrs).to.not.have.property('skip')
         )
       )
-    
+
   # From this point on, no more beforeEach
 
   it 'should deny any other user than root to execute a native query', ->
@@ -834,7 +849,7 @@ describe 'WeaverQuery Test', ->
       expect(err).to.have.property('message').match(/Permission denied/)
     )
 
-    
+
   it.skip 'should load in some secondary nodes with "selectIn"', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
@@ -1011,4 +1026,4 @@ describe 'WeaverQuery Test', ->
     ).then(->
       Weaver.Node.load('someNode')
     )
-    
+

@@ -246,7 +246,7 @@ class WeaverNode
 
     for key, relation of @relations
       for id, node of relation.nodes
-        if not collected[node.id()]
+        if node.id()? and not collected[node.id()]
           collected[node.id()] = true
           operations = operations.concat(node._collectPendingWrites(collected))
 

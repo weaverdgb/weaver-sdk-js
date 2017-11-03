@@ -399,7 +399,7 @@ describe 'WeaverNode test', ->
     finally
       Weaver.instance = instance
 
-  it 'should reject interaction with out-of-date nodes by default', ->
+  it 'should not reject interaction with out-of-date nodes by default', ->
     a = new Weaver.Node() # a node is created and saved at some point
     a.set('name','a')
     ay = {}
@@ -418,7 +418,7 @@ describe 'WeaverNode test', ->
         ay.save(),
         aay.save()
       ])
-    ).should.eventually.be.rejected
+    ).should.eventually.not.be.rejected
 
   it 'should handle concurrent saves from multiple references, when the ignoresOutOfDate flag is passed', ->
     weaver.setOptions({ignoresOutOfDate: true})
@@ -457,7 +457,7 @@ describe 'WeaverNode test', ->
       weaver.setOptions({ignoresOutOfDate: false})
     )
 
-  it 'should reject out-of-sync attribute updates by default', ->
+  it 'should not reject out-of-sync attribute updates by default', ->
     a = new Weaver.Node()
     a.set('name', 'first')
     alsoA = undefined
@@ -471,7 +471,7 @@ describe 'WeaverNode test', ->
     ).then(->
       alsoA.set('name', 'allegedly updates first')
       alsoA.save()
-    ).should.eventually.be.rejected
+    ).should.eventually.not.be.rejected
 
   it 'should allow out-of-sync attribute updates if the ignoresOutOfDate flag is set', ->
     weaver.setOptions({ignoresOutOfDate: true})
@@ -491,7 +491,7 @@ describe 'WeaverNode test', ->
     ).finally(->
       weaver.setOptions({ignoresOutOfDate: false})
     )
-  
+
   it 'should reject out-of-sync relation updates by default', ->
     a = new Weaver.Node()
     alsoA = undefined
@@ -510,7 +510,7 @@ describe 'WeaverNode test', ->
       alsoA.relation('rel').update(b, d)
       alsoA.save()
     ).should.eventually.be.rejected
-  
+
   it 'should allow out-of-sync relation updates if the ignoresOutOfDate flag is set', ->
     weaver.setOptions({ignoresOutOfDate: true})
     a = new Weaver.Node()
@@ -532,3 +532,73 @@ describe 'WeaverNode test', ->
     ).finally(->
       weaver.setOptions({ignoresOutOfDate: false})
     )
+
+  it 'should execute normally with a small amount of operations', ->
+    weaver.setOptions({ignoresOutOfDate: true})
+    a = new Weaver.Node()
+    alsoA = undefined
+    b = new Weaver.Node()
+    c = new Weaver.Node()
+    d = new Weaver.Node()
+    a.relation('rel').add(b)
+
+    Weaver.Node.batchSave([a, b, c, d]).then(->
+      Weaver.Node.load(a.id())
+    ).then((node) ->
+      alsoA = node
+      a.relation('rel').update(b, c)
+      a.save()
+    ).then(->
+      alsoA.relation('rel').update(b, d)
+      alsoA.save()
+    ).finally(->
+      weaver.setOptions({ignoresOutOfDate: false})
+    )
+
+  it 'should execute per batch with a high amount of operations', ->
+    ###
+    In this test there is still a low amount of operations, but the batchsize is reduced to 2.
+    This test will have 9 operations which lead to 5 batches (4x2 + 1x1)
+    Same test as it 'should clone a node', but with reduced batchsize.
+    ###
+
+    cm = Weaver.getCoreManager()
+    cm.maxBatchSize = 2
+    a = new Weaver.Node('clonea2')
+    b = new Weaver.Node('cloneb2')
+    c = new Weaver.Node('clonec2')
+    cloned = null
+
+    a.set('name', 'Foo')
+    b.set('name', 'Bar')
+    c.set('name', 'Dear')
+
+    a.relation('to').add(b)
+    b.relation('to').add(c)
+    c.relation('to').add(a)
+
+    Weaver.Node.batchSave([a,b,c])
+    .then(->
+      a.clone('cloned-a2')
+    ).then( ->
+      Weaver.Node.load('cloned-a2')
+    ).then((cloned) ->
+      assert.notEqual(cloned.id(), a.id())
+      assert.equal(cloned.get('name'), 'Foo')
+      to = value for key, value of cloned.relation('to').nodes
+      assert.equal(to.id(), b.id())
+      Weaver.Node.load(c.id())
+    ).then((node) ->
+      assert.isDefined(node.relation('to').nodes['cloned-a2'])
+    )
+
+  it 'should not crash on destroyed relation nodes', ->
+    a = new Weaver.Node()
+    b = new Weaver.Node()
+    a.relation('link').add(b)
+    a.save().then(->
+      b.destroy()
+    ).then(->
+      a.set('anything','x')
+      a.save()
+    ).should.not.be.rejected
