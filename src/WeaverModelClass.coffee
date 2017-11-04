@@ -21,9 +21,6 @@ class WeaverModelClass extends Weaver.Node
     @classDefinition.attributes[field].key or field
 
   _getRelationKey: (key) ->
-    # Return when using a special relation like $type
-    return key if ["$type"].includes(key)
-
     if not @classDefinition.relations?
       throw new Error("#{@className} model is not allowed to have relations")
 
@@ -39,7 +36,28 @@ class WeaverModelClass extends Weaver.Node
     super(@_getAttributeKey(field), value)
 
   relation: (key) ->
-    super(@_getRelationKey(key), Weaver.ModelRelation)
+    # Return when using a special relation like $type
+    return super(key) if ["$type"].includes(key)
+
+    databaseKey = @_getRelationKey(key)
+
+    # Based on the key, construct a specific Weaver.ModelRelation
+    modelKey           = key
+    model              = @model
+    classDefinition    = @classDefinition
+    relationDefinition = @classDefinition.relations[key]
+    className          = @className
+
+    classRelation = class extends Weaver.ModelRelation
+      constructor:(parent, key) ->
+        super(parent, key)
+        @model              = model
+        @modelKey           = modelKey
+        @className          = className
+        @classDefinition    = classDefinition
+        @relationDefinition = relationDefinition
+
+    super(databaseKey, classRelation)
 
   save: (project) ->
     # TODO Check if all required fields are set

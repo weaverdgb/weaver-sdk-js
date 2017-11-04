@@ -54,6 +54,23 @@ describe 'WeaverModel test', ->
       assert.equal(person.get('fullName'), "John Doe")
 
 
+    it 'should add allowed relations by correct range', ->
+      Person   = model.Person
+      Building = model.Building
+      person = new Person()
+
+      person.relation("hasFriend").add(new Person())
+      person.relation("livesIn").add(new Building())
+
+    it 'should deny allowed relations by different range', ->
+      Person   = model.Person
+      Building = model.Building
+      person = new Person()
+
+      assert.throws((-> person.relation("livesIn").add(new Weaver.Node())))
+      assert.throws((-> person.relation("livesIn").add(new Person())))
+
+
     it 'should deny setting invalid model attributes', ->
       Person = model.Person
       person = new Person()
