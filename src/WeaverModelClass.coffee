@@ -39,7 +39,7 @@ class WeaverModelClass extends Weaver.Node
     super(@_getAttributeKey(field), value)
 
   relation: (key) ->
-    super(@_getRelationKey(key))
+    super(@_getRelationKey(key), Weaver.ModelRelation)
 
   save: (project) ->
     # TODO Check if all required fields are set

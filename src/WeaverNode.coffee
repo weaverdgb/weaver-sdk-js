@@ -203,8 +203,8 @@ class WeaverNode
 
 
   # Create a new Relation
-  relation: (key) ->
-    @relations[key] = new Weaver.Relation(@, key) if not @relations[key]?
+  relation: (key, Constructor = Weaver.Relation) ->
+    @relations[key] = new Constructor(@, key) if not @relations[key]?
     @relations[key]
 
 
