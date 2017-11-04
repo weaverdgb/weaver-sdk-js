@@ -57,8 +57,9 @@ describe 'Events test', ->
       done()
     )
 
-    new Weaver.Node(id).save()
-    Weaver.Node.load(id)
+    new Weaver.Node(id).save().then(->
+      Weaver.Node.load(id)
+    )
     return
 
 
