@@ -32,6 +32,10 @@ describe 'WeaverModel test', ->
         model = m
       )
 
+    it 'should set the type definition to the model class', ->
+      Person = model.Person
+      person = new Person()
+      assert.equal(person.relation("$type").first().id(), "#{model.definition.name}:#{person.className}")
 
     it 'should set attributes on model instances', ->
       Person = model.Person
@@ -70,6 +74,11 @@ describe 'WeaverModel test', ->
         new Weaver.Query().restrict('test-model:Person').find()
       ).should.eventually.have.length.be(1)
 
+    it 'should fail saving with type definition that is not yet bootstrapped', ->
+      Person = model.Person
+      person = new Person()
+      assert.throws(person.save)
+
 
     describe 'that is bootstrapped', ->
       before ->
@@ -79,6 +88,14 @@ describe 'WeaverModel test', ->
         model.bootstrap().then(->
           new Weaver.Query().restrict('test-model:Person').find()
         ).should.eventually.have.length.be(1)
+
+
+      it 'should succeed saving with type definition that is bootstrapped', ->
+        Person = model.Person
+        person = new Person()
+        person.save().catch((error) ->
+          assert.fail()
+        )
 
       it.skip 'should do Weaver.Query on models', ->
         new Weaver.Query()
