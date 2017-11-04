@@ -115,14 +115,14 @@ describe 'WeaverNode test', ->
     node = new Weaver.Node()
 
     node.save().then((node) ->
-      node.set('name', 'http://www.yahoo.com/bean', 'xsd:anyURI')
-      assert.equal(node.get('name'), 'http://www.yahoo.com/bean')
+      node.set('url', 'http://www.yahoo.com/bean', 'xsd:anyURI')
+      assert.equal(node.get('url'), 'http://www.yahoo.com/bean')
 
       node.save()
     ).then(->
       Weaver.Node.load(node.id())
     ).then((loadedNode) ->
-      assert.equal(loadedNode.get('name'), 'Foo')
+      assert.equal(loadedNode.get('url'), 'http://www.yahoo.com/bean')
     )
 
   it 'should update a string attribute', ->
