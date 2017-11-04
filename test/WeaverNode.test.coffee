@@ -115,8 +115,8 @@ describe 'WeaverNode test', ->
     node = new Weaver.Node()
 
     node.save().then((node) ->
-      node.set('name', 'http://www.yahoo.com', 'xsd:anyURI')
-      assert.equal(node.get('name'), 'http://www.yahoo.com')
+      node.set('name', 'http://www.yahoo.com/bean', 'xsd:anyURI')
+      assert.equal(node.get('name'), 'http://www.yahoo.com/bean')
 
       node.save()
     ).then(->
