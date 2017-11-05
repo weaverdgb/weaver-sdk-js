@@ -26,11 +26,16 @@ describe 'WeaverModelQuery test', ->
       assert.equal(instances[0].get('fullName'), 'John Doe')
     )
 
+  describe 'with a default model', ->
+    before ->
+      Weaver.useModel(model)
 
-  it.skip 'should do Weaver.Query from the default currentModel', ->
-    Weaver.useModel(model)
-    assert.equal(model, Weaver.currentModel())
+    it 'should do Weaver.Query from the default currentModel', ->
+      assert.equal(model, Weaver.currentModel())
 
-    new Weaver.ModelQuery()
-    .class(model.Person)
-    .count()
+      new Weaver.ModelQuery()
+      .class(model.Person)
+      .count()
+      .then((count) ->
+        assert.equal(count, 1)
+      )

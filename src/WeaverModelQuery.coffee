@@ -4,7 +4,7 @@ Weaver      = require('./Weaver')
 
 class WeaverModelQuery extends Weaver.Query
 
-  constructor: (@model, target) ->
+  constructor: (@model = Weaver.currentModel(), target) ->
     super(target)
 
     # Define constructor function

@@ -14,6 +14,7 @@ class CoreManager
 
   constructor: ->
     @currentProject = null
+    @currentModel   = null
     @operationsQueue = Promise.resolve()
     @timeOffset = 0
     @maxBatchSize = 500

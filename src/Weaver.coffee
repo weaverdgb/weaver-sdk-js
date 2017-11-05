@@ -67,8 +67,14 @@ class Weaver
   useProject: (project) ->
     @coreManager.currentProject = project
 
+  @useModel: (model) ->
+    Weaver.getCoreManager().currentModel = model
+
   currentProject: ->
     @coreManager.currentProject
+
+  @currentModel: ->
+    Weaver.getCoreManager().currentModel
 
   currentUser: ->
     @coreManager.currentUser
