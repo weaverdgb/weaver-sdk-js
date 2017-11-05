@@ -1,36 +1,61 @@
 Weaver      = require('./Weaver')
-actions = require('./WeaverStateActions')
-weaver = Weaver.getInstance()
+actions     = require('./WeaverStateActions')
+createStore = require('redux').createStore
+
 
 normalizeNode = (node)->
-  normedNode = {id: node.id()}
+  normedNode = {nodeId: node.id()}
+
   normedNode.relations = {}
   for key, relation of node.relations
     normedNode.relations[key] = []
     for objId of relation.nodes
       normedNode.relations[key].push(relation.relationNodes[objId].nodeId)
+
+  normedNode.attributes = {}
+  for key, attr of node.attributes
+    normedNode.attributes[key] = []
+    normedNode.attributes[key].push(attr[0].nodeId)
   normedNode
 
-normalizeRelation = (relNode)->
-  normedRel = {id: relNode.nodeId}
+normalizeRelation = (srcUid, targetUid, nodeId, key)->
+  { srcUid, targetUid, nodeId, key }
 
-addRelations = (node)->
-  for key, relation of node.relations
-    # console.log(relation)
-    0
+normalizeAttribute = (nodeId, value, key, dataType)->
+  { nodeId, value, key, dataType }
 
+class StateManager
+  constructor: ->
+    @store = createStore(Weaver.Reducer)
 
-StateManager =
-  addNode: (node)->
-    addRelations(node)
+    listener = =>
+      @repository = @store.getState()
+    @store.subscribe(listener)
+
+    @repository = @store.getState()
+    @
+
+  storeNode: (node)->
+    @storeRelations(node)
+    @storeAttributes(node)
+
     normedNode = normalizeNode(node)
-    weaver.store.dispatch(actions.addNode(normedNode))
+    @store.dispatch(actions.addNode(normedNode))
 
   getNode: (id) ->
-    state = weaver.store.getState()
+    state = @store.getState()
     state.nodes[id]
 
-  # addRelation:
+  storeRelations: (node)->
+    for key, relation of node.relations
+      for id of relation.nodes
+        normedRel = normalizeRelation(node.nodeId, id, relation.relationNodes[id].nodeId, key)
+        @store.dispatch(actions.addRelation(normedRel))
+
+  storeAttributes: (node)->
+    for key, attr of node.attributes
+      normedAttr = normalizeAttribute(attr[0].nodeId, attr[0].value, attr[0].key, attr[0].dataType)
+      @store.dispatch(actions.addAttribute(normedAttr))
 
 
 module.exports = StateManager

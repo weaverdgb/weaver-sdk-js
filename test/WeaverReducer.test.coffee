@@ -7,25 +7,18 @@ describe 'WeaverReducer test', ->
 
 
     bla = weaver.Node.get('bla')
+    bLA = weaver.Node.get('BLA!')
+    blaah = weaver.Node.get('blaah')
+    bla.set('name', 'bla')
 
-    stateManager.addNode(bla)
-
-
-    blaah = stateManager.getNode('bla')
-    console.log(blaah)
-
-
-    console.log('
-    asdasdasdasdasdasd
-    ')
-
+    bla.set('name', 'test')
+    bla.set('name', 'test1')
+    bla.set('name', 'test2')
 
     dee = weaver.Node.get('dee')
     bla.relation('link').add(dee)
-    stateManager.addNode(bla)
+    bla.relation('link').add(dee)
+    bla.relation('link').add(bLA)
 
-    stateManager.addNode(dee)
 
-    console.log(blaah)
-
-    stateManager.addNode(weaver.Node.get('BLA!'))
+    console.log(JSON.stringify(weaver.stateManager.repository,null,2))

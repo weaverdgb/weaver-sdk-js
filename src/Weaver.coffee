@@ -1,5 +1,4 @@
 Promise     = require('bluebird')
-createStore = require('redux').createStore
 
 class Weaver
 
@@ -13,7 +12,6 @@ class Weaver
     # Make Weaver objects available through the instance
     # FIXME: Should probably be done with a for loop or something
     @reducer = Weaver.Reducer
-    @stateManager = Weaver.StateManager
     @Node = Weaver.Node
     @ACL = Weaver.ACL
     @CoreManager = Weaver.CoreManager
@@ -30,15 +28,8 @@ class Weaver
     if !window?
       @File = Weaver.File
 
-    @coreManager = new Weaver.CoreManager()
-
-    @store = createStore(@reducer)
-
-    listener = (arg1, arg2, arg3)=>
-      @repository = @store.getState()
-
-    @store.subscribe(listener)
-    @repository = @store.getState()
+    @coreManager  = new Weaver.CoreManager()
+    @stateManager = new Weaver.StateManager()
 
     @_connected  = false
     @_local      = false
@@ -67,6 +58,9 @@ class Weaver
 
   getCoreManager: ->
     @coreManager
+
+  getStateManager: ->
+    @stateManager
 
   getUsersDB: ->
     @coreManager.getUsersDB()
@@ -117,6 +111,9 @@ class Weaver
 
   # Returns the coremanager if Weaver is instantiated. This should be called from
   # a static reference
+  @getStateManager: ->
+    @getInstance().getStateManager()
+
   @getCoreManager: ->
     @getInstance().getCoreManager()
 
@@ -126,6 +123,7 @@ window.Weaver  = Weaver if window?  # Browser
 
 # Require Weaver objects after exporting Weaver to prevent circular dependency
 # issues
+module.exports.StateManager = require('./WeaverStateManager')
 module.exports.Reducer      = require('./WeaverReducer')
 module.exports.Node         = require('./WeaverNode')
 module.exports.ACL          = require('./WeaverACL')

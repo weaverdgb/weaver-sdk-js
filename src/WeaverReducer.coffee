@@ -9,8 +9,7 @@
 #     id_1:
 #       relations:
 #         relKey: [ 'id_2', 'id_3' ]
-#       attrs:
-#         attrKey: [ 'id_4' ]
+#       attrs: [ 'id_4' ]
 #   relations:
 #     rel_id_1:
 #       sourceUid: 'id_1'
@@ -21,6 +20,8 @@
 #       sourceUid: 'id_1'
 #       keyLabel: 'name'
 #       value:    'Node 1'
+#
+#
 
 
 initialState =
@@ -32,17 +33,15 @@ module.exports = (state = initialState, action) ->
   switch (action.type)
     when 'ADD_NODE'
       newNodes = {}
-      newNodes[action.id] = action.node
-      Object.assign({}, state, nodes: Object.assign({}, state.nodes, newNodes))
-    when 'SET_ATTRIBUTE'
-      if state.attributes[action.id]
-        state.attributes[action.id].value = action.value
+      newNodes[action.nodeId] = action.node
+      Object.assign(state, nodes: Object.assign({}, state.nodes, newNodes))
     when 'ADD_ATTRIBUTE'
-      state.attributes[action.id] = action.node
-    when 'SET_RELATION'
-      if state.relations[action.id]
-        state.relations[action.id] = action.node
+      newNodes = {}
+      newNodes[action.nodeId] = action.node
+      Object.assign(state, attributes: Object.assign({}, state.attributes, newNodes))
     when 'ADD_RELATION'
-      state.relations[action.id] = action.node
+      newNodes = {}
+      newNodes[action.nodeId] = action.node
+      Object.assign(state, relations: Object.assign({}, state.relations, newNodes))
     else
       state

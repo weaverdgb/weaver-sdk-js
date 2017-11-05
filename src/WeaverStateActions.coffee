@@ -1,12 +1,12 @@
 module.exports =
   addNode: (node)->
     type: 'ADD_NODE',
-    id:   node.id,
+    nodeId: node.nodeId,
     node: node
 
   addAttribute: (node)->
     type: 'ADD_ATTRIBUTE'
-    id:   node.id
+    nodeId:   node.nodeId
     node: node
   setAttribute: (id, val)->
     type: 'SET_ATTRIBUTE'
@@ -14,10 +14,11 @@ module.exports =
     val:  val
 
   addRelation: (node)->
-    type: 'ADD_RELATION'
-    id:   node.id
-    node: node
+    type:   'ADD_RELATION'
+    nodeId: node.nodeId
+    node:   node
+
   setRelation: (node)->
-    type: 'SET_RELATION'
-    id:   node.id
-    node: node
+    type:   'SET_RELATION'
+    nodeId: node.nodeId
+    node:   node

@@ -1,5 +1,5 @@
-Weaver = require('./Weaver')
-cuid   = require('cuid')
+Weaver       = require('./Weaver')
+cuid         = require('cuid')
 
 NodeOperation = (node) ->
   if Weaver.instance?
@@ -8,6 +8,7 @@ NodeOperation = (node) ->
     timestamp = new Date().getTime()
 
   createNode: ->
+    Weaver.getStateManager().storeNode(node)
     {
       timestamp
       action: "create-node"
@@ -15,6 +16,7 @@ NodeOperation = (node) ->
     }
 
   removeNode: ->
+    Weaver.getStateManager().storeNode(node)
     {
       timestamp
       cascade: true
@@ -24,6 +26,7 @@ NodeOperation = (node) ->
     }
 
   createAttribute: (key, value, datatype, replaces, ignoreConcurrentReplace) ->
+    Weaver.getStateManager().storeNode(node)
     replaceId = null
     replaceId = cuid() if replaces?
 
@@ -41,6 +44,7 @@ NodeOperation = (node) ->
     }
 
   removeAttribute: (id) ->
+    Weaver.getStateManager().storeNode(node)
     {
       timestamp
       cascade: true
@@ -50,6 +54,7 @@ NodeOperation = (node) ->
     }
 
   createRelation: (key, to, id, replaces, ignoreConcurrentReplace) ->
+    Weaver.getStateManager().storeNode(node)
     replaceId = null
     replaceId = cuid() if replaces?
     throw new Error("Unable to set relation #{key} from #{node.id()} to null node") if !to?
@@ -66,6 +71,7 @@ NodeOperation = (node) ->
     }
 
   removeRelation: (id) ->
+    Weaver.getStateManager().storeNode(node)
     {
       timestamp
       cascade: true
