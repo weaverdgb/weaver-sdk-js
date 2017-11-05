@@ -10,6 +10,7 @@ describe 'WeaverModel test', ->
       assert.equal(Model.definition.version, "1.0.0")
     )
 
+
   it 'should fail on a not existing model', ->
     Weaver.Model.load("ghost-model", "1.0.0").then((Model) ->
       assert(false)
@@ -17,12 +18,14 @@ describe 'WeaverModel test', ->
       assert.equal(error.code, Weaver.Error.MODEL_NOT_FOUND)
     )
 
+
   it 'should fail on a not existing version of an existing model', ->
     Weaver.Model.load("test-model", "1.0.1").then((Model) ->
       assert(false)
     ).catch((error)->
       assert.equal(error.code, Weaver.Error.MODEL_VERSION_NOT_FOUND)
     )
+
 
   describe 'with a loaded model', ->
     model = {}
@@ -35,13 +38,13 @@ describe 'WeaverModel test', ->
     it 'should set the type definition to the model class', ->
       Person = model.Person
       person = new Person()
-      assert.equal(person.relation("$type").first().id(), "#{model.definition.name}:#{person.className}")
+      assert.equal(person.relation("_proto").first().id(), "#{model.definition.name}:#{person.className}")
+
 
     it 'should set attributes on model instances', ->
       Person = model.Person
       person = new Person()
       person.set('fullName', "John Doe")
-
       assert.isDefined(person.attributes.hasFullName)
       assert.isUndefined(person.attributes.fullName)
 
@@ -50,7 +53,6 @@ describe 'WeaverModel test', ->
       Person = model.Person
       person = new Person()
       person.set('fullName', "John Doe")
-
       assert.equal(person.get('fullName'), "John Doe")
 
 
@@ -58,15 +60,14 @@ describe 'WeaverModel test', ->
       Person   = model.Person
       Building = model.Building
       person = new Person()
-
       person.relation("hasFriend").add(new Person())
       person.relation("livesIn").add(new Building())
+
 
     it 'should deny allowed relations by different range', ->
       Person   = model.Person
       Building = model.Building
       person = new Person()
-
       assert.throws((-> person.relation("livesIn").add(new Weaver.Node())))
       assert.throws((-> person.relation("livesIn").add(new Person())))
 
@@ -74,7 +75,6 @@ describe 'WeaverModel test', ->
     it 'should deny setting invalid model attributes', ->
       Person = model.Person
       person = new Person()
-
       assert.throws((-> person.set('hasFullName', "John Doe")))
 
 
@@ -82,7 +82,6 @@ describe 'WeaverModel test', ->
       Person = model.Person
       person = new Person()
       person.set('fullName', "John Doe")
-
       assert.throws((-> person.get('hasFullName')))
 
 
@@ -90,6 +89,7 @@ describe 'WeaverModel test', ->
       model.bootstrap().then(->
         new Weaver.Query().restrict('test-model:Person').find()
       ).should.eventually.have.length.be(1)
+
 
     it 'should fail saving with type definition that is not yet bootstrapped', ->
       Person = model.Person
@@ -100,6 +100,7 @@ describe 'WeaverModel test', ->
     describe 'that is bootstrapped', ->
       before ->
         model.bootstrap()
+
 
       it 'should not do anything on multiple bootstraps', ->
         model.bootstrap().then(->
@@ -113,13 +114,3 @@ describe 'WeaverModel test', ->
         person.save().catch((error) ->
           assert.fail()
         )
-
-      it.skip 'should do Weaver.Query on models', ->
-        new Weaver.Query()
-          .model(model.Person)
-          .contains("fullName", "John")
-          .first()
-          .then((person) ->
-            assert.equal(person.get("fullName", "John Doe"))
-            # also assert person is of class Person
-          )
