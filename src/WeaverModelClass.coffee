@@ -9,7 +9,10 @@ class WeaverModelClass extends Weaver.Node
     @className = @constructor.name
 
     # Add type definition to model class
-    @relation("$type").add(Weaver.Node.get("#{@definition.name}:#{@className}"))
+    @relation("_proto").add(Weaver.Node.get(@classId()))
+
+  classId: ->
+    "#{@definition.name}:#{@className}"
 
   _getAttributeKey: (field) ->
     if not @classDefinition.attributes?
@@ -36,8 +39,8 @@ class WeaverModelClass extends Weaver.Node
     super(@_getAttributeKey(field), value)
 
   relation: (key) ->
-    # Return when using a special relation like $type
-    return super(key) if ["$type"].includes(key)
+    # Return when using a special relation like _proto
+    return super(key) if ["_proto"].includes(key)
 
     databaseKey = @_getRelationKey(key)
 
