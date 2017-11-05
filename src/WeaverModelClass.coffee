@@ -6,7 +6,6 @@ class WeaverModelClass extends Weaver.Node
 
   constructor: (nodeId) ->
     super(nodeId)
-    @className = @constructor.name
 
     # Add type definition to model class
     @relation("_proto").add(Weaver.Node.get(@classId()))

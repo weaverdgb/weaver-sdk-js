@@ -28,6 +28,7 @@ class Weaver
     @Model = Weaver.Model
     @ModelClass = Weaver.ModelClass
     @ModelRelation = Weaver.ModelRelation
+    @ModelQuery = Weaver.ModelQuery
     if !window?
       @File = Weaver.File
 
@@ -140,6 +141,7 @@ module.exports.LegacyError  = require('./Error')
 module.exports.Model        = require('./WeaverModel')
 module.exports.ModelClass   = require('./WeaverModelClass')
 module.exports.ModelRelation = require('./WeaverModelRelation')
+module.exports.ModelQuery    = require('./WeaverModelQuery')
 
 if !window? # Prevent issues with WeaverFile when in browser
   module.exports.File       = require('./WeaverFile')
