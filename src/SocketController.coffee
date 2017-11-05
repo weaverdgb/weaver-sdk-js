@@ -2,6 +2,7 @@
 io       = require('socket.io-client')
 Promise  = require('bluebird')
 pjson    = require('../package.json')
+Weaver   = require('./Weaver')
 
 class SocketController
 
@@ -17,7 +18,12 @@ class SocketController
   connect: ->
     new Promise((resolve, reject) =>
       @io = io.connect(@address, @options)
-      @io.on('connect', ->
+
+      @io.on('socket.shout', (msg) ->
+        Weaver.publish('socket.shout', msg)
+      )
+
+      @io.on('connect', =>
         resolve()
       ).on('connect_error', ->
         reject('connect_error')
