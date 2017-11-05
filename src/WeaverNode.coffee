@@ -109,23 +109,25 @@ class WeaverNode
 
 
 
-  set: (field, value) ->
+  set: (field, value, dataType) ->
     if field is 'id'
       throw Error("Attribute 'id' cannot be set or updated")
 
     # Get attribute datatype, TODO: Support date
-    dataType = null
-    if util.isString(value)
-      dataType = 'string'
-    else if util.isNumber(value)
-      dataType = 'double'
-    else if util.isBoolean(value)
-      dataType = 'boolean'
-    else if util.isDate(value)
-      dataType = 'date'
-      value = value.getTime()
-    else
-      throw Error("Unsupported datatype for value " + value)
+    if not dataType?
+      if util.isString(value)
+        dataType = 'string'
+      else if util.isNumber(value)
+        dataType = 'double'
+      else if util.isBoolean(value)
+        dataType = 'boolean'
+      else if util.isDate(value)
+        dataType = 'date'
+        value = value.getTime()
+      else
+        throw Error("Unsupported datatype for value " + value)
+
+    # TODO validate dataType
 
     eventMsg  = 'node.attribute'
     eventData = {
