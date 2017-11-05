@@ -16,18 +16,21 @@ class WeaverModelQuery extends Weaver.Query
         Weaver.Node
     )
 
-  class: (modelClass)->
+  class: (modelClass) ->
     @hasRelationOut("_proto", modelClass.classId())
 
   # Key is composed of Class.modelAttribute
-  _mapKeys: (keys, source)->
+  _mapKeys: (keys, source) ->
     databaseKeys = []
     for key in keys
-      if ['_proto'].includes(key)
+      if ['_proto', '*'].includes(key)
         databaseKeys.push(key)
       else
         [className, modelKey] = key.split(".")
-        databaseKeys.push(@model[className][source][modelKey].key or modelKey)
+        modelClass = @model[className]
+        defintion  = modelClass.classDefinition
+
+        databaseKeys.push(defintion[source]?[modelKey]?.key or modelKey)
 
     databaseKeys
 
@@ -55,6 +58,7 @@ class WeaverModelQuery extends Weaver.Query
   find: (Constructor) ->
     # Always get the _proto relation to map to the correct modelclass
     @selectOut('_proto')
+    # @selectOut('*', '_proto') <- fixes failing test on WeaverModelQuery line 67
 
     super(Constructor)
 
