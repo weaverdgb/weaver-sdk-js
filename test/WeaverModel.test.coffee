@@ -108,6 +108,7 @@ describe 'WeaverModel test', ->
     it 'should fail saving with type definition that is not yet bootstrapped', ->
       Person = model.Person
       person = new Person()
+      person.set("fullName", "Valan son of Glassan")
       assert.throws(person.save)
 
 
@@ -125,6 +126,12 @@ describe 'WeaverModel test', ->
       it 'should succeed saving with type definition that is bootstrapped', ->
         Person = model.Person
         person = new Person()
+        person.set("fullName", "Arild Askholmen")
         person.save().catch((error) ->
           assert.fail()
         )
+
+      it 'should throw an error when saving without setting required attributes', ->
+        Person = model.Person
+        person = new Person()
+        assert.throws(person.save)

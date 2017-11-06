@@ -85,7 +85,10 @@ class WeaverModelClass extends Weaver.Node
     super(databaseKey, classRelation)
 
   save: (project) ->
-    # TODO Check if all required attributes are set
+    for key, attribute of @totalClassDefinition.attributes when attribute.required
+      if not @get(key)?
+        throw new Error("Attribute #{key} is required for a #{@className} model")
+
     # TODO Check min card on relations
     super(project)
 
