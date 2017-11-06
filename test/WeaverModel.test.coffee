@@ -48,13 +48,20 @@ describe 'WeaverModel test', ->
       assert.isDefined(person.attributes.hasFullName)
       assert.isUndefined(person.attributes.fullName)
 
-
     it 'should get attributes on model instances', ->
       Person = model.Person
       person = new Person()
       person.set('fullName', "John Doe")
       assert.equal(person.get('fullName'), "John Doe")
+      assert.isDefined(person.attributes.hasFullName)
+      assert.isUndefined(person.attributes.fullName)
 
+    it 'should set attributes on model instances by inheritance', ->
+      c = new model.Country()
+      c.set('areaName', "Area 51")
+      c.set('squareMeter', 200)
+      assert.equal(c.get('areaName'), "Area 51")
+      assert.equal(c.get('squareMeter'), 200)
 
     it 'should add allowed relations by correct range', ->
       Person   = model.Person

@@ -5,9 +5,23 @@ Weaver      = require('./Weaver')
 class WeaverModel
 
   constructor: (@definition) ->
+
+    # Set nulls to {}
+    for className, classDefinition of @definition.classes when classDefinition is null
+      @definition.classes[className] = {}
+
     # Register classes
     for className, classDefinition of @definition.classes
 
+      # Check if super is available
+      if classDefinition.super?
+        superDefinition = @definition.classes[classDefinition.super]
+        if not superDefinition?
+          throw new Error("Super class #{classDefinition.super} for #{className} could not be found in the definition.")
+
+      # TODO: Check if range exist and throw error otherwise
+      # TODO: Better to move these validation codes into a ModelValidator.coffee
+      
       js = """
         (function() {
           function #{className}(nodeId) {
