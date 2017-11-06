@@ -15,8 +15,7 @@ class WeaverModelRelation extends Weaver.Relation
     - livesIn:
         range: [Area]
 
-  Then this function should return all subs of Area, because that is where
-  the relation may point to:
+  Then this function should return all subs of Area, because that is where the relation may point to:
   [Area, Section, Country]
   ###
   _getAllRanges: ->

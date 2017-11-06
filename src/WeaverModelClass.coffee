@@ -43,7 +43,6 @@ class WeaverModelClass extends Weaver.Node
 
     @totalClassDefinition.attributes[field].key or field
 
-  # TODO: check max cardinality
   _getRelationKey: (key) ->
     if not @totalClassDefinition.relations?
       throw new Error("#{@className} model is not allowed to have relations")
@@ -94,11 +93,11 @@ class WeaverModelClass extends Weaver.Node
     for key, relation of @totalClassDefinition.relations when relation?.card?
       [min, max] = relation.card
       current = @relation(key).all().length
+      
       if current < min
         throw new Error("Relation #{key} requires a minimum of #{min} relations for a #{@className} model. Currently #{current} is set.")
       else if max isnt 'n' and current > max
         throw new Error("Relation #{key} allows a maximum of #{max} relations for a #{@className} model. Currently #{current} is set.")
-
 
     super(project)
 
