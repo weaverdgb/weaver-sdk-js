@@ -33,7 +33,6 @@ class WeaverModelClass extends Weaver.Node
 
     addFromSuper(@classDefinition)
 
-
   _getAttributeKey: (field) ->
     if not @totalClassDefinition.attributes?
       throw new Error("#{@className} model is not allowed to have attributes")
@@ -93,7 +92,7 @@ class WeaverModelClass extends Weaver.Node
     for key, relation of @totalClassDefinition.relations when relation?.card?
       [min, max] = relation.card
       current = @relation(key).all().length
-      
+
       if current < min
         throw new Error("Relation #{key} requires a minimum of #{min} relations for a #{@className} model. Currently #{current} is set.")
       else if max isnt 'n' and current > max
