@@ -85,11 +85,21 @@ class WeaverModelClass extends Weaver.Node
     super(databaseKey, classRelation)
 
   save: (project) ->
+    # Check required attributes
     for key, attribute of @totalClassDefinition.attributes when attribute.required
       if not @get(key)?
         throw new Error("Attribute #{key} is required for a #{@className} model")
 
-    # TODO Check min card on relations
+    # Check cardinality on relations
+    for key, relation of @totalClassDefinition.relations when relation?.card?
+      [min, max] = relation.card
+      current = @relation(key).all().length
+      if current < min
+        throw new Error("Relation #{key} requires a minimum of #{min} relations for a #{@className} model. Currently #{current} is set.")
+      else if max isnt 'n' and current > max
+        throw new Error("Relation #{key} allows a maximum of #{max} relations for a #{@className} model. Currently #{current} is set.")
+
+
     super(project)
 
 

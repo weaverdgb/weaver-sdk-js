@@ -135,3 +135,42 @@ describe 'WeaverModel test', ->
         Person = model.Person
         person = new Person()
         assert.throws(person.save)
+
+      it 'should throw an error when saving without setting required attributes', ->
+        Person = model.Person
+        person = new Person()
+        assert.throws(person.save)
+
+      it 'should throw an error when saving with min relations required', ->
+        b = new model.Building()
+        assert.throws(b.save)
+        p = new model.Person()
+        p.set("fullName", "Hola")
+        b.relation("buildBy").add(p)
+        b.save()
+
+      it 'should throw an error when saving with max relations required', ->
+        b = new model.Building()
+        p1 = new model.Person()
+        p1.set("fullName", "Hola 1")
+        p2 = new model.Person()
+        p2.set("fullName", "Hola 2")
+        p3 = new model.Person()
+        p3.set("fullName", "Hola 3")
+
+        b.relation("buildBy").add(p1)
+        b.relation("buildBy").add(p2)
+        b.relation("buildBy").add(p3)
+
+        assert.throws(b.save)
+
+      it 'should allow saving at max relations required', ->
+        b = new model.Building()
+        p1 = new model.Person()
+        p1.set("fullName", "Hola 1")
+        p2 = new model.Person()
+        p2.set("fullName", "Hola 2")
+
+        b.relation("buildBy").add(p1)
+        b.relation("buildBy").add(p2)
+        b.save()
