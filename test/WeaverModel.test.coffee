@@ -161,7 +161,6 @@ describe 'WeaverModel test', ->
         b.relation("buildBy").add(p1)
         b.relation("buildBy").add(p2)
         b.relation("buildBy").add(p3)
-
         assert.throws(b.save)
 
       it 'should allow saving at max relations required', ->
