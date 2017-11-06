@@ -26,7 +26,6 @@ NodeOperation = (node) ->
     }
 
   createAttribute: (key, value, datatype, replaces, ignoreConcurrentReplace) ->
-    Weaver.getStateManager().storeNode(node)
     replaceId = null
     replaceId = cuid() if replaces?
 

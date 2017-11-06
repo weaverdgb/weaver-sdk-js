@@ -62,6 +62,39 @@ class WeaverNode
     @._clearPendingWrites()
     @
 
+  @loadFromStore: (nodeId, constructorFunction) ->
+    if constructorFunction?
+      Constructor = constructorFunction(Weaver.Node.loadFromStore(nodeId)) or Weaver.Node
+    else
+      Constructor = Weaver.Node
+
+    instance = new Constructor(nodeId)
+    instance._loadFromStore(nodeId, constructorFunction)
+    instance._setStored()
+    instance
+
+  _loadFromStore: (id, constructorFunction) ->
+    store = Weaver.getStateManager().getState()
+    normalizedNode = store.nodes[id]
+    # console.log('@')
+    # console.log(store)
+    @attributes[key] = store.attributes[id] for id in attribute for key, attribute of normalizedNode.attributes
+
+    # for key, relations of object.relations
+    #   for relation in relations
+    #
+    #     if constructorFunction?
+    #       Constructor = constructorFunction(Weaver.Node.loadFromStore(relation.target)) or Weaver.Node
+    #     else
+    #       Constructor = Weaver.Node
+    #
+    #     instance = new Constructor(relation.target.nodeId)
+    #     instance._loadFromStore(relation.target, constructorFunction, fullyLoaded)
+    #     @relation(key).add(instance, relation.nodeId, false)
+
+    @._clearPendingWrites()
+    @
+
   # Loads current node
   load: ->
     Weaver.Node.load(@nodeId).then((loadedNode) =>
@@ -145,6 +178,7 @@ class WeaverNode
     }
 
     @attributes[field] = [newAttribute]
+    Weaver.getStateManager().storeNode(@)
     @pendingWrites.push(newAttributeOperation)
 
     return @

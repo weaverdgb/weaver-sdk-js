@@ -34,14 +34,16 @@ module.exports = (state = initialState, action) ->
     when 'ADD_NODE'
       newNodes = {}
       newNodes[action.nodeId] = action.node
-      Object.assign(state, nodes: Object.assign({}, state.nodes, newNodes))
+      Object.assign({}, state, nodes: Object.assign({}, state.nodes, newNodes))
     when 'ADD_ATTRIBUTE'
       newNodes = {}
       newNodes[action.nodeId] = action.node
-      Object.assign(state, attributes: Object.assign({}, state.attributes, newNodes))
+      Object.assign({}, state, attributes: Object.assign({}, state.attributes, newNodes))
     when 'ADD_RELATION'
       newNodes = {}
       newNodes[action.nodeId] = action.node
-      Object.assign(state, relations: Object.assign({}, state.relations, newNodes))
+      Object.assign({}, state, relations: Object.assign({}, state.relations, newNodes))
+    when 'WIPE_STORE'
+      Object.assign({}, initialState)
     else
       state

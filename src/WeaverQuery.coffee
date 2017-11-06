@@ -45,13 +45,27 @@ class WeaverQuery
     if Constructor?
       @useConstructorFunction = -> Constructor
 
-    Weaver.getCoreManager().query(@).then((result) =>
+    Weaver.getCoreManager().query(@).then((result)=>
+      # console.log('^')
+      # console.log(result.nodes[0])
+
       Weaver.Query.notify(result)
       list = []
       for node in result.nodes
         castedNode = Weaver.Node.loadFromQuery(node, @useConstructorFunction, !@_select?)
+        console.log(99)
+        console.log(castedNode)
+        # castedNode = Weaver.Node.loadFromStore(node.nodeId, @useConstructorFunction)
+        Weaver.getStateManager().storeNode(castedNode)
 
+
+
+      for node in result.nodes
+        castedNode = Weaver.Node.loadFromStore(node.nodeId, @useConstructorFunction)
+        # console.log('*')
+        # console.log(JSON.stringify(castedNode.attributes, null, 2))
         list.push(castedNode)
+
       list
     )
 

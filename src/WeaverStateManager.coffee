@@ -4,7 +4,9 @@ createStore = require('redux').createStore
 
 
 normalizeNode = (node)->
-  normedNode = {nodeId: node.id()}
+  console.log('&&')
+  console.log(node)
+  normedNode = {nodeId: node.nodeId}
 
   normedNode.relations = {}
   for key, relation of node.relations
@@ -36,6 +38,7 @@ class StateManager
     @
 
   storeNode: (node)->
+    # console.log(node)
     @storeRelations(node)
     @storeAttributes(node)
 
@@ -56,6 +59,12 @@ class StateManager
     for key, attr of node.attributes
       normedAttr = normalizeAttribute(attr[0].nodeId, attr[0].value, attr[0].key, attr[0].dataType)
       @store.dispatch(actions.addAttribute(normedAttr))
+
+  getState: ->
+    @repository = @store.getState()
+
+  wipeStore: ->
+    @store.dispatch(actions.wipeStore())
 
 
 module.exports = StateManager

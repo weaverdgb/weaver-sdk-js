@@ -39,6 +39,8 @@ class WeaverRelation
     @relationNodes[node.id()] = Weaver.RelationNode.get(relId, Weaver.RelationNode)
 
     @pendingWrites.push(Operation.Node(@parent).createRelation(@key, node.id(), relId))
+    @parent
+
 
   update: (oldNode, newNode) ->
     newRelId = cuid()

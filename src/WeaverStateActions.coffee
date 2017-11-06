@@ -22,3 +22,6 @@ module.exports =
     type:   'SET_RELATION'
     nodeId: node.nodeId
     node:   node
+
+  wipeStore: ->
+    type: 'WIPE_STORE'
