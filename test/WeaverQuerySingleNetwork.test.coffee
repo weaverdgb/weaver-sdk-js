@@ -12,6 +12,8 @@ describe 'WeaverQuery with single Network', ->
   ferrari          = new Weaver.Node()
   car              = new Weaver.Node()
   motorizedVehicle = new Weaver.Node()
+  wheel            = new Weaver.Node()
+  pirelli          = new Weaver.Node()
 
   tree.set('testset', '1')
 
@@ -35,17 +37,23 @@ describe 'WeaverQuery with single Network', ->
   ferrari.relation('is-a').add(car)
   car.relation('is-a').add(motorizedVehicle)
 
+  wheel.set('testset', '2')
+  pirelli.set('testset', '2')
+
+  pirelli.relation('is-brand-of').add(wheel)
+  ferrari.relation('hasTires').add(pirelli)
+
   before ->
     wipeCurrentProject().then( ->
       Promise.all([ferrari.save(), garden.save()])
     )
 
   it 'should support wildcard with nested Weaver.Query values', ->
+    # Get all nodes which have any relation in from a node that is-a car
     new Weaver.Query()
     .hasRelationIn('*', new Weaver.Query().hasRelationOut('is-a', car))
     .find().then((nodes) ->
-      expect(nodes).to.have.length.be(1)
-      expect(nodes[0].id()).to.equal(car.id())
+      expect(i.id() for i in nodes).to.eql([ car.id(), pirelli.id() ])
     )
 
   it 'should support wildcard relation hasRelationOut', ->
