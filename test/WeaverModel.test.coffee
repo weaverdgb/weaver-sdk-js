@@ -63,6 +63,13 @@ describe 'WeaverModel test', ->
       assert.equal(c.get('areaName'), "Area 51")
       assert.equal(c.get('squareMeter'), 200)
 
+    it 'should set relations on model instances by inheritance', ->
+      c1 = new model.Country()
+      c2 = new model.Country()
+      c1.relation("intersection").add(c2)
+
+      assert.equal(c1.relation("intersection").first().id(), c2.id())
+
     it 'should add allowed relations by correct range', ->
       Person   = model.Person
       Building = model.Building

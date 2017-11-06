@@ -32,7 +32,7 @@ class WeaverModelRelation extends Weaver.Relation
     totalRanges = []
     for range in @relationDefinition.range
       totalRanges.push(range)
-      totalRanges.concat(addSubRange(range))
+      totalRanges = totalRanges.concat(addSubRange(range))
 
     totalRanges
 
