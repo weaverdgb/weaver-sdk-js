@@ -47,6 +47,7 @@ describe 'WeaverModelQuery test', ->
         personA = new model.Person("personA")
         personA.set('fullName', "Aby Delores")
         personB = new model.Person("personB")
+        personB.set('fullName', "Gaby Baby")
         personA.relation("hasHead").add(head)
         personB.relation("hasHead").add(head)
         personB.relation("comesFrom").add(spain)
