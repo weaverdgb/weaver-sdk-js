@@ -187,7 +187,7 @@ describe 'WeaverQuery with single Network', ->
     )
 
   it 'should support always including a relation of non-loaded relations', ->
-    new Weaver.Query().alwaysLoad('is-brand-of').restrict(ferrari.id()).find().then((nodes) ->
+    new Weaver.Query().alwaysLoadRelations('is-brand-of').restrict(ferrari.id()).find().then((nodes) ->
       expect(i.id() for i in nodes).to.eql([ferrari.id()])
       expect(nodes[0])
       .to.have.property('relations')
@@ -201,7 +201,7 @@ describe 'WeaverQuery with single Network', ->
     )
 
   it 'should support selectOut always including a relation of non-loaded relations', ->
-    new Weaver.Query().selectOut('drives').alwaysLoad('is-brand-of').restrict(vettel.id()).find().then((nodes) ->
+    new Weaver.Query().selectOut('drives').alwaysLoadRelations('is-brand-of').restrict(vettel.id()).find().then((nodes) ->
       expect(i.id() for i in nodes).to.eql([vettel.id()])
       expect(nodes[0])
       .to.have.property('relations')
