@@ -176,3 +176,9 @@ describe 'WeaverQuery with single Network', ->
       expect(res).to.have.length.be(1)
       expect(res[0].id()).to.equal(tree.id())
     )
+
+  it 'should support always including a relation of non-loaded relations', ->
+    new Weaver.Query().alwaysLoad('is-brand-of').restrict(ferrari.id()).find().then((nodes) ->
+      expect(i.id() for i in nodes).to.eql([ferrari.id()])
+      console.log nodes[0].relations.hasTires
+    )
