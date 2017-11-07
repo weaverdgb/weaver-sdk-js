@@ -1,4 +1,5 @@
 weaver  = require("./test-suite").weaver
+wipeCurrentProject = require("./test-suite").wipeCurrentProject
 Weaver  = require('../src/Weaver')
 Promise = require('bluebird')
 
@@ -6,7 +7,9 @@ describe 'WeaverModelQuery test', ->
   model = {}
 
   before ->
-    Weaver.Model.load("test-model", "1.0.0").then((m) ->
+    wipeCurrentProject().then(->
+      Weaver.Model.load("test-model", "1.0.0")
+    ).then((m) ->
       model = m
       model.bootstrap()
     ).then(->
