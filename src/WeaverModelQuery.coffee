@@ -57,7 +57,7 @@ class WeaverModelQuery extends Weaver.Query
 
   find: (Constructor) ->
     # Always get the _proto relation to map to the correct modelclass
-    @selectOut('_proto')
+    @alwaysLoad('_proto')
     # @selectOut('*', '_proto') <- fixes failing test on WeaverModelQuery line 67
 
     super(Constructor)
