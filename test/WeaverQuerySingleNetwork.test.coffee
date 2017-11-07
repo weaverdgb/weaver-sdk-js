@@ -14,6 +14,8 @@ describe 'WeaverQuery with single Network', ->
   motorizedVehicle = new Weaver.Node()
   wheel            = new Weaver.Node()
   pirelli          = new Weaver.Node()
+  vettel           = new Weaver.Node()
+  hamilton         = new Weaver.Node()
 
   tree.set('testset', '1')
 
@@ -43,9 +45,16 @@ describe 'WeaverQuery with single Network', ->
   pirelli.relation('is-brand-of').add(wheel)
   ferrari.relation('hasTires').add(pirelli)
 
+  vettel.set('testset', '2')
+  vettel.relation('drives').add(ferrari)
+
+  hamilton.set('testset', '2')
+  vettel.relation('beats').add(hamilton)
+  hamilton.relation('beats').add(vettel)
+
   before ->
     wipeCurrentProject().then( ->
-      Promise.all([ferrari.save(), garden.save()])
+      Promise.all([vettel.save(), garden.save()])
     )
 
   it 'should support wildcard with nested Weaver.Query values', ->
@@ -178,9 +187,27 @@ describe 'WeaverQuery with single Network', ->
     )
 
   it 'should support always including a relation of non-loaded relations', ->
-    new Weaver.Query().alwaysLoad('is-brand-of').restrict(ferrari.id()).find().then((nodes) ->
+    new Weaver.Query().alwaysLoadRelations('is-brand-of').restrict(ferrari.id()).find().then((nodes) ->
       expect(i.id() for i in nodes).to.eql([ferrari.id()])
       expect(nodes[0])
+      .to.have.property('relations')
+      .to.have.property('hasTires')
+      .to.have.property('nodes')
+      .to.have.property(pirelli.id())
+      .to.have.property('relations')
+      .to.have.property('is-brand-of')
+      .to.have.property('nodes')
+      .to.have.property(wheel.id())
+    )
+
+  it 'should support selectOut always including a relation of non-loaded relations', ->
+    new Weaver.Query().selectOut('drives').alwaysLoadRelations('is-brand-of').restrict(vettel.id()).find().then((nodes) ->
+      expect(i.id() for i in nodes).to.eql([vettel.id()])
+      expect(nodes[0])
+      .to.have.property('relations')
+      .to.have.property('drives')
+      .to.have.property('nodes')
+      .to.have.property(ferrari.id())
       .to.have.property('relations')
       .to.have.property('hasTires')
       .to.have.property('nodes')
