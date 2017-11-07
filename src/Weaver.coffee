@@ -25,6 +25,10 @@ class Weaver
     @User = Weaver.User
     @Error = Weaver.Error
     @LegacyError = Weaver.LegacyError
+    @Model = Weaver.Model
+    @ModelClass = Weaver.ModelClass
+    @ModelRelation = Weaver.ModelRelation
+    @ModelQuery = Weaver.ModelQuery
     if !window?
       @File = Weaver.File
 
@@ -63,8 +67,14 @@ class Weaver
   useProject: (project) ->
     @coreManager.currentProject = project
 
+  @useModel: (model) ->
+    Weaver.getCoreManager().currentModel = model
+
   currentProject: ->
     @coreManager.currentProject
+
+  @currentModel: ->
+    Weaver.getCoreManager().currentModel
 
   currentUser: ->
     @coreManager.currentUser
@@ -134,5 +144,10 @@ module.exports.Role         = require('./WeaverRole')
 module.exports.User         = require('./WeaverUser')
 module.exports.Error        = require('./WeaverError')
 module.exports.LegacyError  = require('./Error')
+module.exports.Model        = require('./WeaverModel')
+module.exports.ModelClass   = require('./WeaverModelClass')
+module.exports.ModelRelation = require('./WeaverModelRelation')
+module.exports.ModelQuery    = require('./WeaverModelQuery')
+
 if !window? # Prevent issues with WeaverFile when in browser
   module.exports.File       = require('./WeaverFile')
