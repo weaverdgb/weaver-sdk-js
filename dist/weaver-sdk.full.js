@@ -99272,7 +99272,7 @@ module.exports = yeast;
 },{}],392:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "3.0.14-beta.0",
+  "version": "3.0.14-beta.1",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -99280,8 +99280,8 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredServerVersion": "^3.0.10-beta.0",
-    "requiredConnectorVersion": "~0.0.26"
+    "requiredServerVersion": "^3.0.10-beta.1",
+    "requiredConnectorVersion": "~0.0.27-SNAPSHOT.0"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -99445,6 +99445,9 @@ module.exports={
     };
 
     CoreManager.prototype.cloneNode = function(sourceId, targetId, relationsToTraverse) {
+      if (targetId == null) {
+        targetId = cuid();
+      }
       return this.POST('node.clone', {
         sourceId: sourceId,
         targetId: targetId,
@@ -101099,7 +101102,7 @@ module.exports={
     };
 
     WeaverModelQuery.prototype.find = function(Constructor) {
-      this.selectOut('_proto');
+      this.alwaysLoadRelations('_proto');
       return WeaverModelQuery.__super__.find.call(this, Constructor);
     };
 
@@ -101986,6 +101989,7 @@ module.exports={
       this._select = void 0;
       this._selectOut = [];
       this._selectRecursiveOut = [];
+      this._alwaysLoadRelations = [];
       this._noRelations = true;
       this._noAttributes = true;
       this._count = false;
@@ -102318,6 +102322,16 @@ module.exports={
       var relationKeys;
       relationKeys = 1 <= arguments.length ? slice.call(arguments, 0) : [];
       this._selectRecursiveOut = relationKeys;
+      return this;
+    };
+
+    WeaverQuery.prototype.alwaysLoadRelations = function() {
+      var i, j, len, relationKeys;
+      relationKeys = 1 <= arguments.length ? slice.call(arguments, 0) : [];
+      for (j = 0, len = relationKeys.length; j < len; j++) {
+        i = relationKeys[j];
+        this._alwaysLoadRelations.push(i);
+      }
       return this;
     };
 
