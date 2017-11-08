@@ -152,50 +152,49 @@ class WeaverNode
 
 
   # Update attribute by incrementing the value, the result depends on concurrent requests, so check the result
-  increment: (field, value = 1, project, outOfSync = false) ->
+  increment: (field, value = 1, project) ->
 
     if not @attributes[field]?
       throw new Error("There is no field " + field + " to increment")
     if typeof value isnt 'number'
       throw new Error("Field " + field + " is not a number")
 
-    if (outOfSync)
-      new Weaver.Query()
-      .select(field)
-      .restrict(@id())
-      .first()
-      .then((loadedNode) =>
-        currentValue = loadedNode.get(field)
-        pendingNewValue = currentValue + value
-        loadedNode.set(field, pendingNewValue)
+    currentValue = @get(field)
+    pendingNewValue = currentValue + value
+    @set(field, pendingNewValue)
 
-        # To be backwards compatible, but its better not to save here
-        loadedNode.save().then(->
-          # Return the incremented value
-          pendingNewValue
-        )
-      )
-    else
-      currentValue = @get(field)
+    # To be backwards compatible, but its better not to save here
+    @save().then(=>
+      # Return the incremented value
+      pendingNewValue
+    ).catch((error) =>
+      switch error.code
+        when WeaverError.WRITE_OPERATION_INVALID then return @_incrementOfOutSync(field, value, project)
+
+      # Will be removed when switch above does recognise error.code
+      if (error.message == 'The attribute that you are trying to update is out of synchronization with the database, therefore it wasn\'t saved')
+        index = @pendingWrites.map((o) => o.key).indexOf(field) # find failed operation
+        @pendingWrites.splice(index, 1) if index > -1 # remove failing operation, otherwise the save() keeps on failing on this node
+        @_incrementOfOutSync(field, value, project)
+    )
+
+  _incrementOfOutSync: (field, value, project) ->
+
+    new Weaver.Query()
+    .select(field)
+    .restrict(@id())
+    .first()
+    .then((loadedNode) =>
+      currentValue = loadedNode.get(field)
       pendingNewValue = currentValue + value
-      @set(field, pendingNewValue)
+      loadedNode.set(field, pendingNewValue)
 
       # To be backwards compatible, but its better not to save here
-      @save().then(=>
+      loadedNode.save().then(->
         # Return the incremented value
         pendingNewValue
-      ).catch((error) =>
-        switch error.code
-          when WeaverError.WRITE_OPERATION_INVALID then console.log('found it')
-        console.log(error.code)
-
-        if (error.message == 'The attribute that you are trying to update is out of synchronization with the database, therefore it wasn\'t saved')
-
-          index = @pendingWrites.map((o) => o.key).indexOf(field) # find failed operation
-          @pendingWrites.splice(index, 1) if index > -1 # remove failing operation, otherwise the save() keeps on failing on this node
-
-          @increment(field, value, project, true)
       )
+    )
 
 
   # Remove attribute
