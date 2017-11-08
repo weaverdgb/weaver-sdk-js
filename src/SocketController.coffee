@@ -32,7 +32,9 @@ class SocketController
     new Promise((resolve, reject) =>
       @io.emit(key, JSON.stringify(body), (response) ->
         if response.code? and response.message?
-          reject(new Error(response.message, response.code))
+          error = new Error(response.message)
+          error.code = response.code
+          reject(error)
         else if response is 0
           resolve()
         else

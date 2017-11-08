@@ -20,6 +20,7 @@ class WeaverNode
     # All operations that need to get saved
     @pendingWrites = [Operation.Node(@).createNode()]
 
+    Weaver.publish('node.created', @)
 
   # Node loading from server
   @load: (nodeId, target, Constructor, includeRelations = false, includeAttributes = false) ->
@@ -61,6 +62,7 @@ class WeaverNode
         @relation(key).add(instance, relation.nodeId, false)
 
     @._clearPendingWrites()
+    Weaver.publish('node.loaded', @)
     @
 
   # Loads current node
@@ -108,31 +110,44 @@ class WeaverNode
 
 
 
-  set: (field, value, options) ->
+  set: (field, value, dataType, options) ->
     if field is 'id'
       throw Error("Attribute 'id' cannot be set or updated")
 
-    # Get attribute datatype
-    dataType = null
-    if util.isString(value)
-      dataType = 'string'
-    else if util.isNumber(value)
-      dataType = 'double'
-    else if util.isBoolean(value)
-      dataType = 'boolean'
-    else if util.isDate(value)
-      dataType = 'date'
-      value = value.getTime()
-    else
-      throw Error("Unsupported datatype for value " + value)
+    # Get attribute datatype, TODO: Support date
+    if not dataType?
+      if util.isString(value)
+        dataType = 'string'
+      else if util.isNumber(value)
+        dataType = 'double'
+      else if util.isBoolean(value)
+        dataType = 'boolean'
+      else if util.isDate(value)
+        dataType = 'date'
+        value = value.getTime()
+      else
+        throw Error("Unsupported datatype for value " + value)
+
+    # TODO validate dataType
+
+    eventMsg  = 'node.attribute'
+    eventData = {
+      node: @
+      field,
+      value: value
+    }
 
     if @attributes[field]?
       if @attributes[field].length > 1
         throw new Error("Specifiy which attribute to set, more than 1 found for " + field) # TODO: Support later
 
       oldAttribute = @attributes[field][0]
+      eventData.oldValue = oldAttribute.value
+
+      eventMsg += '.update'
       newAttributeOperation = Operation.Node(@).createAttribute(field, value, dataType, oldAttribute.nodeId, Weaver.getInstance()._ignoresOutOfDate if !options?.ignoresOutOfDate?)
     else
+      eventMsg += '.set'
       newAttributeOperation = Operation.Node(@).createAttribute(field, value, dataType)
 
     newAttribute = {
@@ -146,6 +161,7 @@ class WeaverNode
     }
 
     @attributes[field] = [newAttribute]
+    Weaver.publish(eventMsg, eventData)
     @pendingWrites.push(newAttributeOperation)
 
     return @
@@ -210,14 +226,16 @@ class WeaverNode
     # Save change as pending
     @pendingWrites.push(Operation.Node(@).removeAttribute(currentAttribute.nodeId))
 
+    Weaver.publish('node.attribute.unset', {node: @, field})
+
     # Unset locally
     delete @attributes[field]
     @
 
 
   # Create a new Relation
-  relation: (key) ->
-    @relations[key] = new Weaver.Relation(@, key) if not @relations[key]?
+  relation: (key, Constructor = Weaver.Relation) ->
+    @relations[key] = new Constructor(@, key) if not @relations[key]?
     @relations[key]
 
 
@@ -259,7 +277,7 @@ class WeaverNode
 
     for key, relation of @relations
       for id, node of relation.nodes
-        if not collected[node.id()]
+        if node.id()? and not collected[node.id()]
           collected[node.id()] = true
           operations = operations.concat(node._collectPendingWrites(collected))
 
@@ -300,6 +318,8 @@ class WeaverNode
 
     cm.enqueue(=>
       cm.executeOperations((_.omit(i, "__pendingOpNode") for i in writes), project).then(=>
+        Weaver.publish('node.saved', i.__pendingOpNode) for i in writes
+
         @_setStored()
         @
       ).catch((e) =>
@@ -338,6 +358,7 @@ class WeaverNode
     cm.enqueue( =>
       if @nodeId?
         cm.executeOperations([Operation.Node(@).removeNode()], project).then(=>
+          Weaver.publish('node.destroyed', @id())
           delete @[key] for key of @
           undefined
         )

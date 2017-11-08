@@ -22,6 +22,9 @@ before ->
 signInAsAdmin = ->
   weaver.signInWithUsername('admin', 'admin')
 
+beforeEach ->
+  signInAsAdmin()
+    
 after ->
   signInAsAdmin()
   .then(->
