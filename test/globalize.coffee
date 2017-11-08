@@ -1,7 +1,6 @@
 # Libs
 Promise      = require('bluebird')
 config       = require('config')
-cuid         = require('cuid')
 chai         = require('chai')
 sinon        = require('sinon')
 

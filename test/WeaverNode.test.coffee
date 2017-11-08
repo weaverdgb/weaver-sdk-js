@@ -111,6 +111,20 @@ describe 'WeaverNode test', ->
       assert.equal(loadedNode.get('name'), 'Foo')
     )
 
+  it 'should set a new string attribute with special datatype', ->
+    node = new Weaver.Node()
+
+    node.save().then((node) ->
+      node.set('url', 'http://www.yahoo.com/bean', 'xsd:anyURI')
+      assert.equal(node.get('url'), 'http://www.yahoo.com/bean')
+
+      node.save()
+    ).then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.get('url'), 'http://www.yahoo.com/bean')
+    )
+
   it 'should update a string attribute', ->
     node = new Weaver.Node()
 
@@ -640,3 +654,14 @@ describe 'WeaverNode test', ->
     c = undefined
     Weaver.Node.batchDestroy([a,b,c])
     .should.eventually.be.rejected
+
+  it 'should not crash on destroyed relation nodes', ->
+    a = new Weaver.Node()
+    b = new Weaver.Node()
+    a.relation('link').add(b)
+    a.save().then(->
+      b.destroy()
+    ).then(->
+      a.set('anything','x')
+      a.save()
+    ).should.not.be.rejected

@@ -1,6 +1,6 @@
 {
   "name": "weaver-sdk",
-  "version": "3.0.13-beta.1",
+  "version": "3.0.14",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -8,8 +8,8 @@
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredServerVersion": "~3.0.9 || ^3.0.10-beta.0",
-    "requiredConnectorVersion": "~0.0.25"
+    "requiredServerVersion": "^3.0.10",
+    "requiredConnectorVersion": "~0.0.27"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -23,6 +23,7 @@
     "localforage": "^1.5.0",
     "lodash": "^4.17.4",
     "lokijs": "^1.4.2",
+    "pubsub-js": "^1.5.7",
     "request": "^2.81.0",
     "socket.io-client": "^2.0.1"
   },

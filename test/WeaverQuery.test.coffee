@@ -292,8 +292,23 @@ describe 'WeaverQuery Test', ->
       wipeCurrentProject().then( ->
         a.relation('link').add(b)
         b.relation('link').add(c)
+        b.relation('redundant').add(c)
         a.save()
       )
+
+    it 'should combine hasNoRelationOut seperate clauses correctly', ->
+      new Weaver.Query()
+      .hasNoRelationOut('link', Weaver.Node.get('b'))
+      .hasNoRelationOut('redundant', Weaver.Node.get('c'))
+      .find().then((nodes) ->
+        expect(nodes).to.have.length.be(1)
+        checkNodeInResult(nodes, 'c')
+      )
+
+    it 'should combine hasNoRelationOut combined clauses correctly', ->
+      expect(new Weaver.Query()
+        .hasNoRelationOut('link', 'b', 'c')
+        .find()).to.eventually.have.length.be(1)
 
     it 'should be able to do nested queries (to allow hops)', ->
       new Weaver.Query()
@@ -656,7 +671,7 @@ describe 'WeaverQuery Test', ->
         )
       )
 
-    it 'should support recursive selectOut', ->
+    it 'shoud support recursive selectOut', ->
       a = new Weaver.Node('a')
       b = new Weaver.Node('b')
       c = new Weaver.Node('c')
@@ -678,7 +693,7 @@ describe 'WeaverQuery Test', ->
         expect(nodes[0].relation('rec').nodes['b'].relation('rec').nodes['c'].relation('rec').nodes['d'].relation('rec').nodes['e'].get('name')).to.equal("toprec")
       )
 
-    it 'should support multiple recursive selectOut relations', ->
+    it 'shoud support multiple recursive selectOut relations', ->
       a = new Weaver.Node('a')
       b = new Weaver.Node('b')
       c = new Weaver.Node('c')
@@ -695,7 +710,7 @@ describe 'WeaverQuery Test', ->
         expect(nodes[0].relation('rec').nodes['b'].relation('test').nodes['c']).to.exist
       )
 
-    it 'should not break on loops with recursive selectOut', ->
+    it 'shoud not break on loops with recursive selectOut', ->
       a = new Weaver.Node('a')
       b = new Weaver.Node('b')
       a.relation('selector').add(b)
@@ -829,7 +844,7 @@ describe 'WeaverQuery Test', ->
     ).then(->
       q.nativeQuery(query)
     ).then(->
-      assert.fail()
+       assert.fail()
     ).catch((err) ->
       expect(err).to.have.property('message').match(/Permission denied/)
     )
@@ -985,39 +1000,30 @@ describe 'WeaverQuery Test', ->
       )
     )
 
+  it 'should profile Weaver.Query', ->
+    Weaver.Query.profile((queryResult) ->
+      expect(queryResult.nodes[0].nodeId).to.equal('someNode')
+    )
 
-  describe 'Query profile', ->
     node = new Weaver.Node('someNode')
+    node.save().then(->
+      Weaver.Node.load('someNode')
+    )
 
-    before ->
-      wipeCurrentProject().then( ->
-        node.save().then(->
-          Weaver.Node.load('someNode')
-        )
-      )
+  it 'should clear profilers', ->
 
-    it 'should profile Weaver.Query', ->
+    wipeCurrentProject().then(->
       Weaver.Query.profile((queryResult) ->
         expect(queryResult.nodes[0].nodeId).to.equal('someNode')
+
+        Weaver.Query.clearProfilers()
       )
 
-    it 'should know all timestamps and have them logically correct', ->
-      Weaver.Query.profile((qr) ->
-        expect(qr.totalTime).to.equal(qr.sdkToServer + qr.innerServerDelay + qr.serverToConn + qr.executionTime + qr.subqueryTime + qr.processingTime + qr.connToServer + qr.serverToSdk)
-      )
-
-    it 'should clear profilers', ->
-      wipeCurrentProject().then(->
-        Weaver.Query.profile((queryResult) ->
-          expect(queryResult.nodes[0].nodeId).to.equal('someNode')
-
-          Weaver.Query.clearProfilers()
-        )
-
-        node = new Weaver.Node('someNode')
-        node.save().then(->
-          Weaver.Node.load('someNode')
-        )
-      ).then(->
+      node = new Weaver.Node('someNode')
+      node.save().then(->
         Weaver.Node.load('someNode')
       )
+    ).then(->
+      Weaver.Node.load('someNode')
+    )
+
