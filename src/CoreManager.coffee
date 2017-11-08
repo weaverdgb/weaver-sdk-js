@@ -14,8 +14,10 @@ class CoreManager
 
   constructor: ->
     @currentProject = null
+    @currentModel   = null
     @operationsQueue = Promise.resolve()
     @timeOffset = 0
+    @maxBatchSize = 500
 
   connect: (endpoint, @options) ->
     defaultOptions =
@@ -65,14 +67,15 @@ class CoreManager
       localTime - serverTime
     )
 
-
-  executeOperations: (operations, target) ->
-    @POST('write', {operations}, target)
+  executeOperations: (allOperations, target) ->
+    Promise.mapSeries(_.chunk(allOperations, @maxBatchSize), (operations) =>
+      @POST('write', {operations}, target)
+    )
 
 #  serverVersion: ->
 #    @POST('application.version')
 
-  cloneNode: (sourceId, targetId, relationsToTraverse) ->
+  cloneNode: (sourceId, targetId = cuid(), relationsToTraverse) ->
     @POST('node.clone', { sourceId, targetId, relationsToTraverse})
 
   serverVersion: ->
@@ -108,6 +111,11 @@ class CoreManager
 
   executePluginFunction: (route, payload) ->
     @POST(route, payload)
+
+  getModel: (name, version) ->
+    @POST("model.read", {name, version}).then((model) ->
+      new Weaver.Model(model)
+    )
 
   createRole: (role) ->
     @POST("role.create", {role})

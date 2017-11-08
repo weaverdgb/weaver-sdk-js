@@ -1,4 +1,5 @@
 Promise = require('bluebird')
+PubSub  = require('pubsub-js')
 
 class Weaver
 
@@ -24,12 +25,19 @@ class Weaver
     @User = Weaver.User
     @Error = Weaver.Error
     @LegacyError = Weaver.LegacyError
+    @Model = Weaver.Model
+    @ModelClass = Weaver.ModelClass
+    @ModelRelation = Weaver.ModelRelation
+    @ModelQuery = Weaver.ModelQuery
     if !window?
       @File = Weaver.File
 
     @coreManager = new Weaver.CoreManager()
     @_connected  = false
     @_local      = false
+
+    # Default options
+    @_ignoresOutOfDate = true
 
     if opts?
       @setOptions(opts)
@@ -59,8 +67,14 @@ class Weaver
   useProject: (project) ->
     @coreManager.currentProject = project
 
+  @useModel: (model) ->
+    Weaver.getCoreManager().currentModel = model
+
   currentProject: ->
     @coreManager.currentProject
+
+  @currentModel: ->
+    Weaver.getCoreManager().currentModel
 
   currentUser: ->
     @coreManager.currentUser
@@ -105,6 +119,12 @@ class Weaver
   @getCoreManager: ->
     @getInstance().getCoreManager()
 
+  # Expose PubSub
+  @subscribe:             PubSub.subscribe
+  @unsubscribe:           PubSub.unsubscribe
+  @publish:               PubSub.publish
+  @clearAllSubscriptions: PubSub.clearAllSubscriptions
+
 # Export
 module.exports = Weaver             # Node
 window.Weaver  = Weaver if window?  # Browser
@@ -124,5 +144,10 @@ module.exports.Role         = require('./WeaverRole')
 module.exports.User         = require('./WeaverUser')
 module.exports.Error        = require('./WeaverError')
 module.exports.LegacyError  = require('./Error')
+module.exports.Model        = require('./WeaverModel')
+module.exports.ModelClass   = require('./WeaverModelClass')
+module.exports.ModelRelation = require('./WeaverModelRelation')
+module.exports.ModelQuery    = require('./WeaverModelQuery')
+
 if !window? # Prevent issues with WeaverFile when in browser
   module.exports.File       = require('./WeaverFile')
