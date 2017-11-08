@@ -25,7 +25,7 @@
     "lokijs": "^1.4.2",
     "pubsub-js": "^1.5.7",
     "request": "^2.81.0",
-    "socket.io-client": "^2.0.4"
+    "socket.io-client": "^2.0.1"
   },
   "devDependencies": {
     "browserify": "^14.3.0",
