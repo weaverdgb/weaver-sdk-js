@@ -101267,7 +101267,7 @@ module.exports={
 
 },{}],408:[function(require,module,exports){
 (function() {
-  var Operation, Promise, Weaver, WeaverNode, _, cuid, util,
+  var Operation, Promise, Weaver, WeaverError, WeaverNode, _, cuid, util,
     slice = [].slice;
 
   cuid = require('cuid');
@@ -101281,6 +101281,8 @@ module.exports={
   _ = require('lodash');
 
   Promise = require('bluebird');
+
+  WeaverError = require('./WeaverError');
 
   WeaverNode = (function() {
     function WeaverNode(nodeId1) {
@@ -101470,7 +101472,10 @@ module.exports={
     };
 
     WeaverNode.prototype.increment = function(field, value, project) {
-      var currentValue;
+      var currentValue, pendingNewValue;
+      if (value == null) {
+        value = 1;
+      }
       if (this.attributes[field] == null) {
         throw new Error("There is no field " + field + " to increment");
       }
@@ -101478,10 +101483,44 @@ module.exports={
         throw new Error("Field " + field + " is not a number");
       }
       currentValue = this.get(field);
-      this.set(field, currentValue + value);
-      return this.save().then(function() {
-        return currentValue + value;
-      });
+      pendingNewValue = currentValue + value;
+      this.set(field, pendingNewValue);
+      return this.save().then((function(_this) {
+        return function() {
+          return pendingNewValue;
+        };
+      })(this))["catch"]((function(_this) {
+        return function(error) {
+          var index;
+          switch (error.code) {
+            case WeaverError.WRITE_OPERATION_INVALID:
+              return _this._incrementOfOutSync(field, value, project);
+          }
+          if (error.message === 'The attribute that you are trying to update is out of synchronization with the database, therefore it wasn\'t saved') {
+            index = _this.pendingWrites.map(function(o) {
+              return o.key;
+            }).indexOf(field);
+            if (index > -1) {
+              _this.pendingWrites.splice(index, 1);
+            }
+            return _this._incrementOfOutSync(field, value, project);
+          }
+        };
+      })(this));
+    };
+
+    WeaverNode.prototype._incrementOfOutSync = function(field, value, project) {
+      return new Weaver.Query().select(field).restrict(this.id()).first().then((function(_this) {
+        return function(loadedNode) {
+          var currentValue, pendingNewValue;
+          currentValue = loadedNode.get(field);
+          pendingNewValue = currentValue + value;
+          loadedNode.set(field, pendingNewValue);
+          return loadedNode.save().then(function() {
+            return pendingNewValue;
+          });
+        };
+      })(this));
     };
 
     WeaverNode.prototype.unset = function(field) {
@@ -101734,7 +101773,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Operation":396,"./Weaver":398,"./util":416,"bluebird":74,"cuid":125,"lodash":237}],409:[function(require,module,exports){
+},{"./Operation":396,"./Weaver":398,"./WeaverError":400,"./util":416,"bluebird":74,"cuid":125,"lodash":237}],409:[function(require,module,exports){
 (function() {
   var Weaver, WeaverPlugin,
     slice = [].slice;

@@ -169,7 +169,7 @@ class WeaverNode
 
   # Update attribute by incrementing the value, the result depends on concurrent requests, so check the result
   increment: (field, value = 1, project) ->
-
+    Weaver.getInstance()._ignoresOutOfDate = false
     if not @attributes[field]?
       throw new Error("There is no field " + field + " to increment")
     if typeof value isnt 'number'
@@ -184,11 +184,7 @@ class WeaverNode
       # Return the incremented value
       pendingNewValue
     ).catch((error) =>
-      switch error.code
-        when WeaverError.WRITE_OPERATION_INVALID then return @_incrementOfOutSync(field, value, project)
-
-      # Will be removed when switch above does recognise error.code
-      if (error.message == 'The attribute that you are trying to update is out of synchronization with the database, therefore it wasn\'t saved')
+      if (error.code == WeaverError.WRITE_OPERATION_INVALID)
         index = @pendingWrites.map((o) => o.key).indexOf(field) # find failed operation
         @pendingWrites.splice(index, 1) if index > -1 # remove failing operation, otherwise the save() keeps on failing on this node
         @_incrementOfOutSync(field, value, project)

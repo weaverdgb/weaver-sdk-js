@@ -185,6 +185,7 @@ describe 'WeaverNode test', ->
     )
 
   it 'should increment an existing out-of-sync number attribute', ->
+    # weaver.setOptions({ignoresOutOfDate: false})
     node = new Weaver.Node()
     sameNode = undefined
     node.set('length', 3)
