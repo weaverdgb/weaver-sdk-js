@@ -413,6 +413,30 @@ describe 'WeaverNode test', ->
     finally
       Weaver.instance = instance
 
+  it 'should reject interaction with out-of-date nodes when ignoresOutOfDate is false', ->
+    weaver.setOptions({ignoresOutOfDate: false})
+    a = new Weaver.Node() # a node is created and saved at some point
+    a.set('name','a')
+    ay = {}
+    aay = {}
+
+    a.save().then(->
+      Weaver.Node.load(a.id()) # node is loaded and assigned to some view variable at some point
+    ).then((res)->
+      ay = res
+      Weaver.Node.load(a.id()) # node is loaded and assigned to some other view variable at some point (inside a separate component, most likely)
+    ).then((res)->
+      aay = res
+      ay.set('name','Aq') # user changed the name to 'Aq'
+      aay.set('name','A') # at some point in the future, a user saw the result, recognized the typo, and decided to change the name back to 'A'
+      Promise.all([
+        ay.save(),
+        aay.save()
+      ])
+    ).finally(->
+      weaver.setOptions({ignoresOutOfDate: true})
+    ).should.eventually.be.rejected
+
   it 'should not reject interaction with out-of-date nodes by default', ->
     a = new Weaver.Node() # a node is created and saved at some point
     a.set('name','a')
