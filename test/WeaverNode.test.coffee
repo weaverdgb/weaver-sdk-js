@@ -409,31 +409,27 @@ describe 'WeaverNode test', ->
     finally
       Weaver.instance = instance
 
-  # it 'should reject interaction with out-of-date nodes by default', ->
-  #   a = new Weaver.Node() # a node is created and saved at some point
-  #   a.set('name','a')
-  #   ay = {}
-  #   aay = {}
-  #
-  #   a.save().then(->
-  #     Weaver.Node.load(a.id()) # node is loaded and assigned to some view variable at some point
-  #   ).then((res)->
-  #     ay = res
-  #     Weaver.Node.load(a.id()) # node is loaded and assigned to some other view variable at some point (inside a separate component, most likely)
-  #   ).then((res)->
-  #     aay = res
-  #     ay.set('name','Aq') # user changed the name to 'Aq'
-  #     aay.set('name','A') # at some point in the future, a user saw the result, recognized the typo, and decided to change the name back to 'A'
-  #     Promise.all([
-  #       ay.save(),
-  #       aay.save()
-  #     ])
-  #   # ).should.be.rejectedWith('The attribute that you are trying to update is out of synchronization with the database, therefore it wasn\'t saved')
-  #   ).catch((err) ->
-  #     console.log '=^^=|_ERRR________________________|=^^='
-  #     console.log err
-  #     console.log '=^^=|_________________________|=^^='
-  #   )
+  it 'should reject interaction with out-of-date nodes by default', ->
+    weaver.setOptions({ignoresOutOfDate: false}) # what's going on with this options?
+    a = new Weaver.Node() # a node is created and saved at some point
+    a.set('name','a')
+    ay = {}
+    aay = {}
+
+    a.save().then(->
+      Weaver.Node.load(a.id()) # node is loaded and assigned to some view variable at some point
+    ).then((res)->
+      ay = res
+      Weaver.Node.load(a.id()) # node is loaded and assigned to some other view variable at some point (inside a separate component, most likely)
+    ).then((res)->
+      aay = res
+      ay.set('name','Aq') # user changed the name to 'Aq'
+      aay.set('name','A') # at some point in the future, a user saw the result, recognized the typo, and decided to change the name back to 'A'
+      Promise.all([
+        ay.save(),
+        aay.save()
+      ])
+    ).should.be.rejectedWith('The attribute that you are trying to update is out of synchronization with the database, therefore it wasn\'t saved')
 
   it 'should handle concurrent saves from multiple references, when the ignoresOutOfDate flag is passed', ->
     weaver.setOptions({ignoresOutOfDate: true})
@@ -473,7 +469,6 @@ describe 'WeaverNode test', ->
     )
 
   it 'should reject out-of-sync attribute updates by default', ->
-    # weaver.setOptions({ignoresOutOfDate: false})
     a = new Weaver.Node()
     a.set('name', 'first')
     alsoA = undefined
