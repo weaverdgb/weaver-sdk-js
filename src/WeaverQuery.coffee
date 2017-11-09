@@ -30,6 +30,7 @@ class WeaverQuery
     @_select             = undefined
     @_selectOut          = []
     @_selectRecursiveOut = []
+    @_alwaysLoadRelations= []
     @_noRelations        = true
     @_noAttributes       = true
     @_count              = false
@@ -246,6 +247,10 @@ class WeaverQuery
 
   selectRecursiveOut: (relationKeys...) ->
     @_selectRecursiveOut = relationKeys
+    @
+
+  alwaysLoadRelations: (relationKeys...) ->
+    @_alwaysLoadRelations.push(i) for i in relationKeys
     @
 
   hollow: (value) ->

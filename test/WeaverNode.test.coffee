@@ -111,6 +111,20 @@ describe 'WeaverNode test', ->
       assert.equal(loadedNode.get('name'), 'Foo')
     )
 
+  it 'should set a new string attribute with special datatype', ->
+    node = new Weaver.Node()
+
+    node.save().then((node) ->
+      node.set('url', 'http://www.yahoo.com/bean', 'xsd:anyURI')
+      assert.equal(node.get('url'), 'http://www.yahoo.com/bean')
+
+      node.save()
+    ).then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.get('url'), 'http://www.yahoo.com/bean')
+    )
+
   it 'should update a string attribute', ->
     node = new Weaver.Node()
 
