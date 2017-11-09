@@ -101343,6 +101343,39 @@ module.exports={
       })(this));
     };
 
+    WeaverNode.batchDestroy = function(array, project) {
+      var cm;
+      cm = Weaver.getCoreManager();
+      return cm.enqueue((function(_this) {
+        return function() {
+          var destroyOperations, error, node;
+          if ((array != null) && array.length !== 0) {
+            try {
+              destroyOperations = (function() {
+                var j, len, results;
+                results = [];
+                for (j = 0, len = array.length; j < len; j++) {
+                  node = array[j];
+                  results.push(Operation.Node(node).removeNode());
+                }
+                return results;
+              })();
+              return cm.executeOperations(destroyOperations, project).then(function() {
+                return Promise.resolve();
+              })["catch"](function(e) {
+                return Promise.reject(e);
+              });
+            } catch (error1) {
+              error = error1;
+              return Promise.reject(error);
+            }
+          } else {
+            return Promise.reject("Cannot batch destroy nodes without any node");
+          }
+        };
+      })(this));
+    };
+
     WeaverNode.prototype.setACL = function(acl) {};
 
     return WeaverNode;
