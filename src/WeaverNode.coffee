@@ -304,7 +304,7 @@ class WeaverNode
     )
 
   # Removes node
-  destroy: (project) ->
+  destroy: (project, options) ->
     cm = Weaver.getCoreManager()
     cm.enqueue( =>
       if @nodeId?

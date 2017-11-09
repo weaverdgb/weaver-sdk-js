@@ -603,15 +603,45 @@ describe 'WeaverNode test', ->
       a.save()
     ).should.not.be.rejected
 
+  it 'should not be able to recreate a node after deleting it', ->
+    node1 = new Weaver.Node('double-node')
+    node2 = new Weaver.Node('double-node')
+
+    node1.save().then((node) ->
+      node1.destroy()
+    # ).then(->
+    #   # node2.save().should.be.rejectedWith(error.code, Weaver.Error.NODE_ALREADY_EXISTS)
+    #   node2.save().should.eventually.be.rejected
+    # )
+    ).then(->
+      node2.save()
+    ).catch((error) ->
+      assert.equal(error.code, (Weaver.Error.NODE_ALREADY_EXISTS + 1))
+    )
+
+  it 'should be able to recreate a node after deleting it unrecoverable', ->
+    node1 = new Weaver.Node('double-node')
+    node2 = new Weaver.Node('double-node')
+
+    node1.save().then(->
+      node1.destroy(null, options({unrecoverableDestroy: true}))
+    ).then(->
+      node2.save()
+    ).then(->
+      assert(true)
+    ).catch((error) ->
+      console.log error
+      assert.equal(error.code, Weaver.Error.NODE_ALREADY_EXISTS) # Wrong error, shouldnt happen anyway
+    )
+
   it 'should be able to delete a node unrecoverable', ->
     a = new Weaver.Node()
     id = a.id()
     a.save().then(->
-      # a.destroy() # Change function
-      a.destroyUnrecoverable()
+      node.destroy(null, options({unrecoverableDestroy: true}))
     ).then(->
       Weaver.Node.load(id)
     ).catch((error) ->
-      # assert.equal(error.code, Weaver.Error.NODE_NOT_FOUND)
+      assert.equal(error.code, Weaver.Error.NODE_NOT_FOUND) # Error.code isn't fully working on this one, should have its own code. Node not found is working if node is in the deleted table
       # Node should not exist at all, not even in the garbage can.
     )
