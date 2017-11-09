@@ -188,6 +188,8 @@ class WeaverNode
         index = @pendingWrites.map((o) => o.key).indexOf(field) # find failed operation
         @pendingWrites.splice(index, 1) if index > -1 # remove failing operation, otherwise the save() keeps on failing on this node
         @_incrementOfOutSync(field, value, project)
+      else
+        Promise.reject()
     )
 
   _incrementOfOutSync: (field, value, project) ->
