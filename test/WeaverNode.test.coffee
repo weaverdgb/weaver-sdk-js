@@ -643,6 +643,55 @@ describe 'WeaverNode test', ->
       assert.isDefined(node.relation('to').nodes['cloned-a2'])
     )
 
+  it 'should batch delete nodes', ->
+    a = new Weaver.Node()
+    b = new Weaver.Node()
+    c = new Weaver.Node()
+
+    Weaver.Node.batchSave([a,b,c])
+    .then( ->
+      expect(a).to.have.property('_stored').be.equal(true)
+      Weaver.Node.load(a.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.id(), a.id())
+    ).then( ->
+      Weaver.Node.load(b.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.id(), b.id())
+    ).then( ->
+      Weaver.Node.load(c.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.id(), c.id())
+    ).then( ->
+      Weaver.Node.batchDestroy([a,b,c])
+    ).then( ->
+      Weaver.Node.load(a.id())
+    ).catch((error)->
+      assert.equal(error.code, Weaver.Error.NODE_NOT_FOUND)
+    ).then( ->
+      Weaver.Node.load(b.id())
+    ).catch((error)->
+      assert.equal(error.code, Weaver.Error.NODE_NOT_FOUND)
+    ).then( ->
+      Weaver.Node.load(c.id())
+    ).catch((error)->
+      assert.equal(error.code, Weaver.Error.NODE_NOT_FOUND)
+    )
+
+  it 'should handler an error when trying batch delete nodes with any node', ->
+
+    Weaver.Node.batchDestroy()
+    .catch((error)->
+      assert.equal(error, "Cannot batch destroy nodes without any node")
+    )
+
+  it 'should reject when trying batch delete nodes without proper nodes', ->
+    a = new Weaver.Node()
+    b = 'lol'
+    c = undefined
+    Weaver.Node.batchDestroy([a,b,c])
+    .should.eventually.be.rejected
+
   it 'should not crash on destroyed relation nodes', ->
     a = new Weaver.Node()
     b = new Weaver.Node()
