@@ -19,8 +19,14 @@ before ->
     weaver.useProject(project)
   )
 
-after ->
+signInAsAdmin = ->
   weaver.signInWithUsername('admin', 'admin')
+
+beforeEach ->
+  signInAsAdmin()
+    
+after ->
+  signInAsAdmin()
   .then(->
     weaver.wipe()
   )
@@ -34,4 +40,4 @@ wipeCurrentProject = ->
   .then(->weaver.currentProject().wipe())
   .then(->weaver.currentProject().unfreeze())
 
-module.exports = { weaver, wipeCurrentProject }
+module.exports = { weaver, wipeCurrentProject, signInAsAdmin}

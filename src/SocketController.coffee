@@ -13,7 +13,7 @@ class SocketController
 
     @options = @options or defaultOptions
     @options.reconnection = true
-    @options.query = "sdkVersion=#{pjson.version}&requiredServerVersion=#{pjson.com_weaverplatform.requiredServerVersion}"
+    @options.query = "sdkVersion=#{pjson.version}&requiredServerVersion=#{pjson.com_weaverplatform.requiredServerVersion}&requiredConnectorVersion=#{pjson.com_weaverplatform.requiredConnectorVersion}"
 
   connect: ->
     new Promise((resolve, reject) =>

@@ -1,8 +1,9 @@
 Promise = require('bluebird')
+PubSub  = require('pubsub-js')
 
 class Weaver
 
-  constructor: ->
+  constructor: (opts)->
 
     if Weaver.instance?
       throw new Error('Do not instantiate Weaver twice')
@@ -29,6 +30,12 @@ class Weaver
     @coreManager = new Weaver.CoreManager()
     @_connected  = false
     @_local      = false
+
+    # Default options
+    @_ignoresOutOfDate = true
+
+    if opts?
+      @setOptions(opts)
 
   version: ->
     require('../package.json').version
@@ -85,6 +92,9 @@ class Weaver
   setScheduler: (fn) ->
     Promise.setScheduler(fn)
 
+  setOptions: (opts)->
+    @_ignoresOutOfDate = opts.ignoresOutOfDate
+
   # Returns the Weaver instance if instantiated. This should be called from
   # a static reference
   @getInstance: ->
@@ -97,6 +107,12 @@ class Weaver
   # a static reference
   @getCoreManager: ->
     @getInstance().getCoreManager()
+
+  # Expose PubSub
+  @subscribe:             PubSub.subscribe
+  @unsubscribe:           PubSub.unsubscribe
+  @publish:               PubSub.publish
+  @clearAllSubscriptions: PubSub.clearAllSubscriptions
 
 # Export
 module.exports = Weaver             # Node
