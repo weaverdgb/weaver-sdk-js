@@ -8,7 +8,7 @@
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "~0.0.27-SNAPSHOT-handling-better-errors"
+    "requiredConnectorVersion": "~0.0.27-SNAPSHOT-handling-better-errors",
     "requiredServerVersion": "~3.1.0-beta.0"
   },
   "main": "lib/Weaver.js",
