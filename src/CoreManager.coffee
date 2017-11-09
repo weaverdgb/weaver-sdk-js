@@ -99,6 +99,9 @@ class CoreManager
   createProject: (id, name) ->
     @POST("project.create", {id, name})
 
+  shout: (message) ->
+    @POST("socket.shout", {message})
+
   listPlugins: ->
     @GET("plugins").then((plugins) ->
       (new Weaver.Plugin(p) for p in plugins)

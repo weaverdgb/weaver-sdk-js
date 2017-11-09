@@ -453,31 +453,27 @@ describe 'WeaverNode test', ->
     finally
       Weaver.instance = instance
 
-  # it 'should reject interaction with out-of-date nodes by default', ->
-  #   a = new Weaver.Node() # a node is created and saved at some point
-  #   a.set('name','a')
-  #   ay = {}
-  #   aay = {}
-  #
-  #   a.save().then(->
-  #     Weaver.Node.load(a.id()) # node is loaded and assigned to some view variable at some point
-  #   ).then((res)->
-  #     ay = res
-  #     Weaver.Node.load(a.id()) # node is loaded and assigned to some other view variable at some point (inside a separate component, most likely)
-  #   ).then((res)->
-  #     aay = res
-  #     ay.set('name','Aq') # user changed the name to 'Aq'
-  #     aay.set('name','A') # at some point in the future, a user saw the result, recognized the typo, and decided to change the name back to 'A'
-  #     Promise.all([
-  #       ay.save(),
-  #       aay.save()
-  #     ])
-  #   # ).should.be.rejectedWith('The attribute that you are trying to update is out of synchronization with the database, therefore it wasn\'t saved')
-  #   ).catch((err) ->
-  #     console.log '=^^=|_ERRR________________________|=^^='
-  #     console.log err
-  #     console.log '=^^=|_________________________|=^^='
-  #   )
+  it 'should reject interaction with out-of-date nodes by default', ->
+    weaver.setOptions({ignoresOutOfDate: false}) # what's going on with this options?
+    a = new Weaver.Node() # a node is created and saved at some point
+    a.set('name','a')
+    ay = {}
+    aay = {}
+
+    a.save().then(->
+      Weaver.Node.load(a.id()) # node is loaded and assigned to some view variable at some point
+    ).then((res)->
+      ay = res
+      Weaver.Node.load(a.id()) # node is loaded and assigned to some other view variable at some point (inside a separate component, most likely)
+    ).then((res)->
+      aay = res
+      ay.set('name','Aq') # user changed the name to 'Aq'
+      aay.set('name','A') # at some point in the future, a user saw the result, recognized the typo, and decided to change the name back to 'A'
+      Promise.all([
+        ay.save(),
+        aay.save()
+      ])
+    ).should.be.rejectedWith('The attribute that you are trying to update is out of synchronization with the database, therefore it wasn\'t saved')
 
   it 'should handle concurrent saves from multiple references, when the ignoresOutOfDate flag is passed', ->
     weaver.setOptions({ignoresOutOfDate: true})
@@ -517,7 +513,6 @@ describe 'WeaverNode test', ->
     )
 
   it 'should reject out-of-sync attribute updates by default', ->
-    # weaver.setOptions({ignoresOutOfDate: false})
     a = new Weaver.Node()
     a.set('name', 'first')
     alsoA = undefined
@@ -691,6 +686,55 @@ describe 'WeaverNode test', ->
     ).then((node) ->
       assert.isDefined(node.relation('to').nodes['cloned-a2'])
     )
+
+  it 'should batch delete nodes', ->
+    a = new Weaver.Node()
+    b = new Weaver.Node()
+    c = new Weaver.Node()
+
+    Weaver.Node.batchSave([a,b,c])
+    .then( ->
+      expect(a).to.have.property('_stored').be.equal(true)
+      Weaver.Node.load(a.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.id(), a.id())
+    ).then( ->
+      Weaver.Node.load(b.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.id(), b.id())
+    ).then( ->
+      Weaver.Node.load(c.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.id(), c.id())
+    ).then( ->
+      Weaver.Node.batchDestroy([a,b,c])
+    ).then( ->
+      Weaver.Node.load(a.id())
+    ).catch((error)->
+      assert.equal(error.code, Weaver.Error.NODE_NOT_FOUND)
+    ).then( ->
+      Weaver.Node.load(b.id())
+    ).catch((error)->
+      assert.equal(error.code, Weaver.Error.NODE_NOT_FOUND)
+    ).then( ->
+      Weaver.Node.load(c.id())
+    ).catch((error)->
+      assert.equal(error.code, Weaver.Error.NODE_NOT_FOUND)
+    )
+
+  it 'should handler an error when trying batch delete nodes with any node', ->
+
+    Weaver.Node.batchDestroy()
+    .catch((error)->
+      assert.equal(error, "Cannot batch destroy nodes without any node")
+    )
+
+  it 'should reject when trying batch delete nodes without proper nodes', ->
+    a = new Weaver.Node()
+    b = 'lol'
+    c = undefined
+    Weaver.Node.batchDestroy([a,b,c])
+    .should.eventually.be.rejected
 
   it 'should not crash on destroyed relation nodes', ->
     a = new Weaver.Node()
