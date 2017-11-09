@@ -25,6 +25,10 @@ class Weaver
     @User = Weaver.User
     @Error = Weaver.Error
     @LegacyError = Weaver.LegacyError
+    @Model = Weaver.Model
+    @ModelClass = Weaver.ModelClass
+    @ModelRelation = Weaver.ModelRelation
+    @ModelQuery = Weaver.ModelQuery
     @File = Weaver.File
 
     @coreManager = new Weaver.CoreManager()
@@ -62,8 +66,14 @@ class Weaver
   useProject: (project) ->
     @coreManager.currentProject = project
 
+  @useModel: (model) ->
+    Weaver.getCoreManager().currentModel = model
+
   currentProject: ->
     @coreManager.currentProject
+
+  @currentModel: ->
+    Weaver.getCoreManager().currentModel
 
   currentUser: ->
     @coreManager.currentUser
@@ -108,6 +118,15 @@ class Weaver
   @getCoreManager: ->
     @getInstance().getCoreManager()
 
+  # Shout a message to other connected clients
+  @shout: (message) ->
+    @getCoreManager().shout(message)
+
+  # Listen to shouted messages
+  @sniff: (callback) ->
+    Weaver.subscribe("socket.shout", callback)
+
+
   # Expose PubSub
   @subscribe:             PubSub.subscribe
   @unsubscribe:           PubSub.unsubscribe
@@ -133,4 +152,8 @@ module.exports.Role         = require('./WeaverRole')
 module.exports.User         = require('./WeaverUser')
 module.exports.Error        = require('./WeaverError')
 module.exports.LegacyError  = require('./Error')
+module.exports.Model        = require('./WeaverModel')
+module.exports.ModelClass   = require('./WeaverModelClass')
+module.exports.ModelRelation = require('./WeaverModelRelation')
+module.exports.ModelQuery    = require('./WeaverModelQuery')
 module.exports.File         = require('./WeaverFile')

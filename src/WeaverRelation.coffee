@@ -56,6 +56,7 @@ class WeaverRelation
 
 
   remove: (node) ->
+    # TODO: This failes when relation is not saved, should be able to only remove locally
     @relationNodes[node.id()].destroy()
 
     # Deprecate this write operation

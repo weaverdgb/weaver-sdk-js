@@ -277,5 +277,9 @@ WeaverError.MODEL_PROPERTY_NOT_FOUND = 604
 # Error code reminding you that deep properties of a model cannot be statically set.
 WeaverError.CANNOT_SET_DEEP_STATIC = 605
 
+# Error code indicating that a model was not found.
+WeaverError.MODEL_NOT_FOUND = 206
+
+WeaverError.MODEL_VERSION_NOT_FOUND = 207
 
 module.exports = WeaverError
