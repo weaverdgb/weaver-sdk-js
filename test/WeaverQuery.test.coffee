@@ -671,7 +671,7 @@ describe 'WeaverQuery Test', ->
         )
       )
 
-    it 'shoud support recursive selectOut', ->
+    it 'should support recursive selectOut', ->
       a = new Weaver.Node('a')
       b = new Weaver.Node('b')
       c = new Weaver.Node('c')
@@ -693,7 +693,7 @@ describe 'WeaverQuery Test', ->
         expect(nodes[0].relation('rec').nodes['b'].relation('rec').nodes['c'].relation('rec').nodes['d'].relation('rec').nodes['e'].get('name')).to.equal("toprec")
       )
 
-    it 'shoud support multiple recursive selectOut relations', ->
+    it 'should support multiple recursive selectOut relations', ->
       a = new Weaver.Node('a')
       b = new Weaver.Node('b')
       c = new Weaver.Node('c')
@@ -710,7 +710,7 @@ describe 'WeaverQuery Test', ->
         expect(nodes[0].relation('rec').nodes['b'].relation('test').nodes['c']).to.exist
       )
 
-    it 'shoud not break on loops with recursive selectOut', ->
+    it 'should not break on loops with recursive selectOut', ->
       a = new Weaver.Node('a')
       b = new Weaver.Node('b')
       a.relation('selector').add(b)
@@ -844,7 +844,7 @@ describe 'WeaverQuery Test', ->
     ).then(->
       q.nativeQuery(query)
     ).then(->
-       assert.fail()
+      assert.fail()
     ).catch((err) ->
       expect(err).to.have.property('message').match(/Permission denied/)
     )
@@ -1027,3 +1027,20 @@ describe 'WeaverQuery Test', ->
       Weaver.Node.load('someNode')
     )
 
+  it 'should know all timestamps and have them logically correct', ->
+    wipeCurrentProject().then(->
+      Weaver.Query.profile((qr) ->
+        total = qr.totalTime
+        sum = qr.sdkToServer + qr.innerServerDelay + qr.serverToConn + qr.executionTime + qr.subqueryTime + qr.processingTime + qr.connToServer + qr.serverToSdk
+
+        expect(total).to.equal(sum) # add 1 to break this test, add 10 to break all tests
+        Weaver.Query.clearProfilers()
+      )
+
+      node = new Weaver.Node('someNode')
+      node.save().then(->
+        Weaver.Node.load('someNode')
+      )
+    ).then(->
+      Weaver.Node.load('someNode')
+    )
