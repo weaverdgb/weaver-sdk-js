@@ -38,6 +38,7 @@ class Weaver
 
     # Default options
     @_ignoresOutOfDate = true
+    @_unrecoverableDestroy = false
 
     if opts?
       @setOptions(opts)
@@ -105,6 +106,7 @@ class Weaver
 
   setOptions: (opts)->
     @_ignoresOutOfDate = opts.ignoresOutOfDate
+    @_unrecoverableDestroy = opts.unrecoverableDestroy
 
   # Returns the Weaver instance if instantiated. This should be called from
   # a static reference

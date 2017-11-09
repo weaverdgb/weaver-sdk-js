@@ -323,18 +323,29 @@ class WeaverNode
       )
     )
 
-  # Removes node
+  # Removes node, with the option to remove it unrecoverable
   destroy: (project, options) ->
     cm = Weaver.getCoreManager()
     cm.enqueue( =>
-      if @nodeId?
-        cm.executeOperations([Operation.Node(@).removeNode()], project).then(=>
-          Weaver.publish('node.destroyed', @id())
-          delete @[key] for key of @
+
+      if (false) #if (Weaver.getInstance()._unrecoverableDestroy if !options?.unrecoverableDestroy?) # Something like this has to come here
+        if @nodeId?
+          cm.executeOperations([Operation.Node(@).removeNodeUnrecoverable()], project).then(=>
+            Weaver.publish('node.destroyed', @id())
+            delete @[key] for key of @
+            undefined
+          )
+        else
           undefined
-        )
       else
-        undefined
+        if @nodeId?
+          cm.executeOperations([Operation.Node(@).removeNode()], project).then(=>
+            Weaver.publish('node.destroyed', @id())
+            delete @[key] for key of @
+            undefined
+          )
+        else
+          undefined
     )
 
   # TODO: Implement

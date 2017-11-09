@@ -624,38 +624,48 @@ describe 'WeaverNode test', ->
     node1.save().then((node) ->
       node1.destroy()
     # ).then(->
-    #   # node2.save().should.be.rejectedWith(error.code, Weaver.Error.NODE_ALREADY_EXISTS)
     #   node2.save().should.eventually.be.rejected
     # )
     ).then(->
       node2.save()
     ).catch((error) ->
-      assert.equal(error.code, (Weaver.Error.NODE_ALREADY_EXISTS + 1))
+      assert.equal(error.code, 366) #Weaver.Error.NODE_ALREADY_EXISTS) #366 Write op failed, instead of 161 node_already_exists
     )
 
   it 'should be able to recreate a node after deleting it unrecoverable', ->
     node1 = new Weaver.Node('double-node')
     node2 = new Weaver.Node('double-node')
+    options = {unrecoverableDestroy: true}
+    weaver.setOptions({unrecoverableDestroy: true})
+
 
     node1.save().then(->
-      node1.destroy(null, options({unrecoverableDestroy: true}))
+      node1.destroy(null, options)
     ).then(->
       node2.save()
     ).then(->
-      assert(true)
-    ).catch((error) ->
-      console.log error
-      assert.equal(error.code, Weaver.Error.NODE_ALREADY_EXISTS) # Wrong error, shouldnt happen anyway
+      Weaver.Node.load(id)
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.id(), node.id())
+    ).finally (
+      options = {unrecoverableDestroy: false}
+      weaver.setOptions({unrecoverableDestroy: false})
     )
 
   it 'should be able to delete a node unrecoverable', ->
+    options = {unrecoverableDestroy: true}
+    weaver.setOptions({unrecoverableDestroy: true})
     a = new Weaver.Node()
     id = a.id()
     a.save().then(->
-      node.destroy(null, options({unrecoverableDestroy: true}))
+      node.destroy(null, options)
     ).then(->
       Weaver.Node.load(id)
     ).catch((error) ->
       assert.equal(error.code, Weaver.Error.NODE_NOT_FOUND) # Error.code isn't fully working on this one, should have its own code. Node not found is working if node is in the deleted table
       # Node should not exist at all, not even in the garbage can.
+    ).finally (
+      options = {unrecoverableDestroy: false}
+      weaver.setOptions({unrecoverableDestroy: false})
     )
