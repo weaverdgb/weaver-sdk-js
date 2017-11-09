@@ -98881,7 +98881,7 @@ module.exports={
   },
   "com_weaverplatform": {
     "requiredServerVersion": "^3.0.10",
-    "requiredConnectorVersion": "~0.0.27"
+    "requiredConnectorVersion": "~0.0.27-SNAPSHOT-handling-better-errors"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -101036,7 +101036,7 @@ module.exports={
       }
     };
 
-    WeaverNode.prototype.set = function(field, value, dataType) {
+    WeaverNode.prototype.set = function(field, value, dataType, options) {
       var eventData, eventMsg, newAttribute, newAttributeOperation, oldAttribute;
       if (field === 'id') {
         throw Error("Attribute 'id' cannot be set or updated");
@@ -101068,7 +101068,7 @@ module.exports={
         oldAttribute = this.attributes[field][0];
         eventData.oldValue = oldAttribute.value;
         eventMsg += '.update';
-        newAttributeOperation = Operation.Node(this).createAttribute(field, value, dataType, oldAttribute.nodeId, Weaver.getInstance()._ignoresOutOfDate);
+        newAttributeOperation = Operation.Node(this).createAttribute(field, value, dataType, oldAttribute.nodeId, (options != null ? options.ignoresOutOfDate : void 0) == null ? Weaver.getInstance()._ignoresOutOfDate : void 0);
       } else {
         eventMsg += '.set';
         newAttributeOperation = Operation.Node(this).createAttribute(field, value, dataType);

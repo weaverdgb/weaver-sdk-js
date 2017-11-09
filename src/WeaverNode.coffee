@@ -109,7 +109,7 @@ class WeaverNode
 
 
 
-  set: (field, value, dataType) ->
+  set: (field, value, dataType, options) ->
     if field is 'id'
       throw Error("Attribute 'id' cannot be set or updated")
 
@@ -144,7 +144,7 @@ class WeaverNode
       eventData.oldValue = oldAttribute.value
 
       eventMsg += '.update'
-      newAttributeOperation = Operation.Node(@).createAttribute(field, value, dataType, oldAttribute.nodeId, Weaver.getInstance()._ignoresOutOfDate)
+      newAttributeOperation = Operation.Node(@).createAttribute(field, value, dataType, oldAttribute.nodeId, Weaver.getInstance()._ignoresOutOfDate if !options?.ignoresOutOfDate?)
     else
       eventMsg += '.set'
       newAttributeOperation = Operation.Node(@).createAttribute(field, value, dataType)
