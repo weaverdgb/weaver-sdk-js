@@ -184,6 +184,50 @@ describe 'WeaverNode test', ->
       assert.equal(loadedNode.get('length'), 5)
     )
 
+  it 'should increment an existing out-of-sync number attribute', ->
+    # weaver.setOptions({ignoresOutOfDate: false})
+    node = new Weaver.Node()
+    sameNode = undefined
+    node.set('length', 3)
+
+    node.save().then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.get('length'), 3)
+      sameNode = loadedNode
+      node.increment('length', 4)
+    ).then((value) ->
+      assert.equal(value, 7)
+      sameNode.increment('length', 5)
+    ).then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.get('length'), 12)
+    )
+
+  # This test is written to make sure it's possible to save a node after a out-of-sync increment where an error has been caught.
+  it 'should increment an existing out-of-sync number attribute and be able to save afterwards', ->
+    node = new Weaver.Node()
+    sameNode = undefined
+    node.set('length', 3)
+
+    node.save().then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.get('length'), 3)
+      sameNode = loadedNode
+      node.increment('length', 4)
+    ).then((value) ->
+      assert.equal(value, 7)
+      sameNode.increment('length', 5)
+    ).then(->
+      sameNode.save()
+    ).then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.get('length'), 12)
+    )
+
   it 'should set a new number double attribute', ->
     node = new Weaver.Node()
     node.set('halved', 1.5)
