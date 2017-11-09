@@ -101476,6 +101476,7 @@ module.exports={
       if (value == null) {
         value = 1;
       }
+      Weaver.getInstance()._ignoresOutOfDate = false;
       if (this.attributes[field] == null) {
         throw new Error("There is no field " + field + " to increment");
       }
@@ -101492,11 +101493,7 @@ module.exports={
       })(this))["catch"]((function(_this) {
         return function(error) {
           var index;
-          switch (error.code) {
-            case WeaverError.WRITE_OPERATION_INVALID:
-              return _this._incrementOfOutSync(field, value, project);
-          }
-          if (error.message === 'The attribute that you are trying to update is out of synchronization with the database, therefore it wasn\'t saved') {
+          if (error.code === WeaverError.WRITE_OPERATION_INVALID) {
             index = _this.pendingWrites.map(function(o) {
               return o.key;
             }).indexOf(field);
@@ -101504,6 +101501,8 @@ module.exports={
               _this.pendingWrites.splice(index, 1);
             }
             return _this._incrementOfOutSync(field, value, project);
+          } else {
+            return Promise.reject();
           }
         };
       })(this));
