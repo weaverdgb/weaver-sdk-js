@@ -33,6 +33,7 @@ class WeaverPlugin
     prettyFunction = (f) ->
       args = ""
       args += r + "," for r in f.require
+      args += r + "," for r in f.optional
       args = args.slice(0, -1) # Remove last comma
       "#{f.name}(#{args})"
 
