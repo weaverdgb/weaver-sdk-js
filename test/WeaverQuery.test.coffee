@@ -1027,14 +1027,16 @@ describe 'WeaverQuery Test', ->
       Weaver.Node.load('someNode')
     )
 
-  it 'should know all timestamps and have them logically correct', ->
+  it 'should know all timestamps and have them logically correct', (done) ->
     wipeCurrentProject().then(->
       Weaver.Query.profile((qr) ->
         total = qr.totalTime
         sum = qr.sdkToServer + qr.innerServerDelay + qr.serverToConn + qr.executionTime + qr.subqueryTime + qr.processingTime + qr.connToServer + qr.serverToSdk
 
-        expect(total).to.equal(sum) # add 1 to break this test, add 10 to break all tests
         Weaver.Query.clearProfilers()
+
+        expect(total).to.equal(sum)
+        done()
       )
 
       node = new Weaver.Node('someNode')
@@ -1044,3 +1046,4 @@ describe 'WeaverQuery Test', ->
     ).then(->
       Weaver.Node.load('someNode')
     )
+    return
