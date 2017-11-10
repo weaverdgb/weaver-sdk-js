@@ -16,6 +16,7 @@ class WeaverPlugin
         # Build payload from arguments based on function require
         payload = {}
         payload[r] = args[index] for r, index in f.require
+        payload[r] = args[f.require.length + index] for r, index in f.optional
 
         # Execute by route and payload
         Weaver.getCoreManager().executePluginFunction(f.route, payload)
