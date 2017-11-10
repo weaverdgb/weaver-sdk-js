@@ -12,11 +12,13 @@ describe 'WeaverNode test', ->
 
   it 'should reject loading undefined nodes', ->
     new Weaver.Node().save().then( ->
-      Weaver.Node.load(undefined).should.eventually.be.rejected
-    )
+      Weaver.Node.load(undefined)
+    ).should.eventually.be.rejected
 
   it 'should reject loading unexistant nodes', ->
-    Weaver.Node.load('doesnt-exist').should.eventually.be.rejected
+    Weaver.Node.load('doesnt-exist')
+    .should.eventually.be.rejected
+
 
   it 'should reject setting an id attribute', ->
     a = new Weaver.Node()
@@ -93,9 +95,7 @@ describe 'WeaverNode test', ->
       node.destroy()
     ).then(->
       Weaver.Node.load(id)
-    ).catch((error) ->
-      assert.equal(error.code, Weaver.Error.NODE_NOT_FOUND)
-    )
+    ).should.be.rejectedWith(Weaver.Error.NODE_NOT_FOUND)
 
   it 'should set a new string attribute', ->
     node = new Weaver.Node()
@@ -184,6 +184,50 @@ describe 'WeaverNode test', ->
       assert.equal(loadedNode.get('length'), 5)
     )
 
+  it 'should increment an existing out-of-sync number attribute', ->
+    # weaver.setOptions({ignoresOutOfDate: false})
+    node = new Weaver.Node()
+    sameNode = undefined
+    node.set('length', 3)
+
+    node.save().then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.get('length'), 3)
+      sameNode = loadedNode
+      node.increment('length', 4)
+    ).then((value) ->
+      assert.equal(value, 7)
+      sameNode.increment('length', 5)
+    ).then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.get('length'), 12)
+    )
+
+  # This test is written to make sure it's possible to save a node after a out-of-sync increment where an error has been caught.
+  it 'should increment an existing out-of-sync number attribute and be able to save afterwards', ->
+    node = new Weaver.Node()
+    sameNode = undefined
+    node.set('length', 3)
+
+    node.save().then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.get('length'), 3)
+      sameNode = loadedNode
+      node.increment('length', 4)
+    ).then((value) ->
+      assert.equal(value, 7)
+      sameNode.increment('length', 5)
+    ).then(->
+      sameNode.save()
+    ).then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.get('length'), 12)
+    )
+
   it 'should set a new number double attribute', ->
     node = new Weaver.Node()
     node.set('halved', 1.5)
@@ -226,7 +270,7 @@ describe 'WeaverNode test', ->
       assert.equal(loadedNode.get('name'), 'Bar')
     )
 
-  it.skip 'should give an error if node already exists', ->
+  it 'should give an error if node already exists', ->
     node1 = new Weaver.Node('double-node')
     node2 = new Weaver.Node('double-node')
 
@@ -234,16 +278,12 @@ describe 'WeaverNode test', ->
       node2.save()
     ).then(->
       assert(false)
-    ).catch((error) ->
-      assert.equal(error.code, Weaver.Error.NODE_ALREADY_EXISTS)
-    )
+    ).should.be.rejectedWith('The id double-node already exists')
 
   it 'should give an error if node does not exist', ->
     Weaver.Node.load('lol').then((res) ->
       assert(false)
-    ).catch((error) ->
-      assert.equal(error.code, Weaver.Error.NODE_NOT_FOUND)
-    )
+    ).should.be.rejectedWith(Weaver.Error.NODE_NOT_FOUND)
 
   it 'should create a relation', ->
     a = new Weaver.Node()
@@ -413,7 +453,8 @@ describe 'WeaverNode test', ->
     finally
       Weaver.instance = instance
 
-  it 'should not reject interaction with out-of-date nodes by default', ->
+  it 'should reject interaction with out-of-date nodes by default', ->
+    weaver.setOptions({ignoresOutOfDate: false}) # what's going on with this options?
     a = new Weaver.Node() # a node is created and saved at some point
     a.set('name','a')
     ay = {}
@@ -432,7 +473,7 @@ describe 'WeaverNode test', ->
         ay.save(),
         aay.save()
       ])
-    ).should.eventually.not.be.rejected
+    ).should.be.rejectedWith('The attribute that you are trying to update is out of synchronization with the database, therefore it wasn\'t saved')
 
   it 'should handle concurrent saves from multiple references, when the ignoresOutOfDate flag is passed', ->
     weaver.setOptions({ignoresOutOfDate: true})
@@ -471,7 +512,7 @@ describe 'WeaverNode test', ->
       weaver.setOptions({ignoresOutOfDate: false})
     )
 
-  it 'should not reject out-of-sync attribute updates by default', ->
+  it 'should reject out-of-sync attribute updates by default', ->
     a = new Weaver.Node()
     a.set('name', 'first')
     alsoA = undefined
@@ -485,7 +526,7 @@ describe 'WeaverNode test', ->
     ).then(->
       alsoA.set('name', 'allegedly updates first')
       alsoA.save()
-    ).should.eventually.not.be.rejected
+    ).should.be.rejectedWith('The attribute that you are trying to update is out of synchronization with the database, therefore it wasn\'t saved')
 
   it 'should allow out-of-sync attribute updates if the ignoresOutOfDate flag is set', ->
     weaver.setOptions({ignoresOutOfDate: true})
@@ -523,7 +564,7 @@ describe 'WeaverNode test', ->
     ).then(->
       alsoA.relation('rel').update(b, d)
       alsoA.save()
-    ).should.eventually.be.rejected
+    ).should.be.rejectedWith('The relation that you are trying to update is out of synchronization with the database, therefore it wasn\'t saved')
 
   it 'should allow out-of-sync relation updates if the ignoresOutOfDate flag is set', ->
     weaver.setOptions({ignoresOutOfDate: true})
@@ -546,6 +587,46 @@ describe 'WeaverNode test', ->
     ).finally(->
       weaver.setOptions({ignoresOutOfDate: false})
     )
+
+  it 'should fail trying to save a node with the same id than the destroyed node', ->
+    a = new Weaver.Node('theid')
+    a.save()
+    .then( ->
+      a.destroy()
+    ).then( ->
+      new Weaver.Node('theid').save()
+    ).should.be.rejectedWith('The id theid already exists')
+
+  it 'should fail trying to save a node saved with another attribute value', ->
+    a = new Weaver.Node('theid')
+    a.set('name','Toshio').save()
+    .then( ->
+      Weaver.Node.load('theid')
+    ).then((loadedNode) ->
+      loadedNode.set('name','Samantha')
+      loadedNode.save()
+    ).should.be.rejectedWith('The id theid already exists')
+
+
+  it 'should allow to override the out-of-sync attribute updates at the set operation if the ignoresOutOfDate flag is set', ->
+    weaver.setOptions({ignoresOutOfDate: true})
+    a = new Weaver.Node()
+    a.set('name', 'first')
+    alsoA = undefined
+    options = {ignoresOutOfDate: true}
+    a.save().then(->
+      Weaver.Node.load(a.id())
+    ).then((node) ->
+      alsoA = node
+      a.set('name', 'second', null,options)    # checking for the existence of the ignoresOutOfDate parameter so any value passed here will overrides the {ignoresOutOfDate: true} state
+      a.save()
+    ).then(->
+      alsoA.set('name', 'allegedly updates first', null,options)
+      alsoA.save()
+    ).finally(->
+      false
+      weaver.setOptions({ignoresOutOfDate: false})
+    ).should.be.rejectedWith('The attribute that you are trying to update is out of synchronization with the database, therefore it wasn\'t saved')
 
   it 'should execute normally with a small amount of operations', ->
     weaver.setOptions({ignoresOutOfDate: true})
@@ -605,6 +686,55 @@ describe 'WeaverNode test', ->
     ).then((node) ->
       assert.isDefined(node.relation('to').nodes['cloned-a2'])
     )
+
+  it 'should batch delete nodes', ->
+    a = new Weaver.Node()
+    b = new Weaver.Node()
+    c = new Weaver.Node()
+
+    Weaver.Node.batchSave([a,b,c])
+    .then( ->
+      expect(a).to.have.property('_stored').be.equal(true)
+      Weaver.Node.load(a.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.id(), a.id())
+    ).then( ->
+      Weaver.Node.load(b.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.id(), b.id())
+    ).then( ->
+      Weaver.Node.load(c.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.id(), c.id())
+    ).then( ->
+      Weaver.Node.batchDestroy([a,b,c])
+    ).then( ->
+      Weaver.Node.load(a.id())
+    ).catch((error)->
+      assert.equal(error.code, Weaver.Error.NODE_NOT_FOUND)
+    ).then( ->
+      Weaver.Node.load(b.id())
+    ).catch((error)->
+      assert.equal(error.code, Weaver.Error.NODE_NOT_FOUND)
+    ).then( ->
+      Weaver.Node.load(c.id())
+    ).catch((error)->
+      assert.equal(error.code, Weaver.Error.NODE_NOT_FOUND)
+    )
+
+  it 'should handler an error when trying batch delete nodes with any node', ->
+
+    Weaver.Node.batchDestroy()
+    .catch((error)->
+      assert.equal(error, "Cannot batch destroy nodes without any node")
+    )
+
+  it 'should reject when trying batch delete nodes without proper nodes', ->
+    a = new Weaver.Node()
+    b = 'lol'
+    c = undefined
+    Weaver.Node.batchDestroy([a,b,c])
+    .should.eventually.be.rejected
 
   it 'should not crash on destroyed relation nodes', ->
     a = new Weaver.Node()
