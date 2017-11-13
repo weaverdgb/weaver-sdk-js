@@ -18,14 +18,7 @@ class LocalController
             Promise.reject(error)
 
         $.handler[route] = (payload) ->
-          try
-            if typeof payload is 'string'
-              routeHandler.handleRequest(route, {payload: JSON.parse(payload or "{}")}, res)
-            else
-              routeHandler.handleRequest(route, {payload}, res)
-          catch error
-            res.fail("Invalid json payload")
-            return
+          routeHandler.handleRequest(route, {payload}, res)
       )
     )
 

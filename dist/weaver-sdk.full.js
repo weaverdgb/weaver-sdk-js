@@ -106495,7 +106495,7 @@ module.exports={
   },
   "com_weaverplatform": {
     "requiredConnectorVersion": "~0.0.27-SNAPSHOT-handling-better-errors",
-    "requiredServerVersion": "~3.0.17-beta.0"
+    "requiredServerVersion": "~3.0.17-beta.1"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -106624,9 +106624,6 @@ module.exports={
       payload.target = this._resolveTarget(target);
       if (this.currentUser != null) {
         payload.authToken = this.currentUser.authToken;
-      }
-      if (type !== "STREAM") {
-        payload = JSON.stringify(payload);
       }
       return payload;
     };
@@ -107120,21 +107117,9 @@ module.exports={
               }
             };
             return $.handler[route] = function(payload) {
-              var error;
-              try {
-                if (typeof payload === 'string') {
-                  return routeHandler.handleRequest(route, {
-                    payload: JSON.parse(payload || "{}")
-                  }, res);
-                } else {
-                  return routeHandler.handleRequest(route, {
-                    payload: payload
-                  }, res);
-                }
-              } catch (error1) {
-                error = error1;
-                res.fail("Invalid json payload");
-              }
+              return routeHandler.handleRequest(route, {
+                payload: payload
+              }, res);
             };
           });
         };
@@ -107277,8 +107262,7 @@ module.exports={
       this.options = options;
       defaultOptions = {
         reconnection: true,
-        rejectUnauthorized: true,
-        pingTimeout: 120000
+        rejectUnauthorized: true
       };
       this.options = this.options || defaultOptions;
       this.options.reconnection = true;
@@ -107308,7 +107292,14 @@ module.exports={
     SocketController.prototype.emit = function(key, body) {
       return new Promise((function(_this) {
         return function(resolve, reject) {
-          return ss(_this.io).emit(key, body, function(response) {
+          var socket;
+          if (body.type !== 'STREAM') {
+            body = JSON.stringify(body);
+            socket = _this.io;
+          } else {
+            socket = ss(_this.io);
+          }
+          return socket.emit(key, body, function(response) {
             var error;
             if ((response.code != null) && (response.message != null)) {
               error = new Error(response.message);

@@ -11,7 +11,6 @@ class SocketController
     defaultOptions =
       reconnection: true
       rejectUnauthorized: true
-      pingTimeout: 120000
 
     @options = @options or defaultOptions
     @options.reconnection = true
@@ -38,7 +37,13 @@ class SocketController
 
   emit: (key, body) ->
     new Promise((resolve, reject) =>
-      ss(@io).emit(key, body, (response) ->
+      if body.type isnt 'STREAM'
+        body = JSON.stringify(body)
+        socket = @io
+      else
+        socket = ss(@io)
+
+      socket.emit(key, body, (response) ->
         if response.code? and response.message?
           error = new Error(response.message)
           error.code = response.code

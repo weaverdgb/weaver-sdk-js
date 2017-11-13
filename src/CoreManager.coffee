@@ -49,9 +49,6 @@ class CoreManager
     if @currentUser?
       payload.authToken = @currentUser.authToken
 
-    if type isnt "STREAM"
-      payload = JSON.stringify(payload)
-
     payload
 
   serverTime: ->
