@@ -9,7 +9,7 @@
   },
   "com_weaverplatform": {
     "requiredServerVersion": "^3.0.10",
-    "requiredConnectorVersion": "~0.0.27-SNAPSHOT-interpret-datetime-string"
+    "requiredConnectorVersion": "~0.0.27-SNAPSHOT-handling-better-errors || ~0.0.27-SNAPSHOT-interpret-datetime-string"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
