@@ -4,6 +4,7 @@ Weaver      = require('./Weaver')
 util        = require('./util')
 _           = require('lodash')
 Promise     = require('bluebird')
+WeaverError = require('./WeaverError')
 
 class WeaverNode
 
@@ -167,20 +168,46 @@ class WeaverNode
 
 
   # Update attribute by incrementing the value, the result depends on concurrent requests, so check the result
-  increment: (field, value, project) ->
-
+  increment: (field, value = 1, project) ->
+    Weaver.getInstance()._ignoresOutOfDate = false
     if not @attributes[field]?
       throw new Error("There is no field " + field + " to increment")
     if typeof value isnt 'number'
       throw new Error("Field " + field + " is not a number")
 
     currentValue = @get(field)
-    @set(field, currentValue + value)
+    pendingNewValue = currentValue + value
+    @set(field, pendingNewValue)
 
     # To be backwards compatible, but its better not to save here
-    @save().then(->
+    @save().then(=>
       # Return the incremented value
-      currentValue + value
+      pendingNewValue
+    ).catch((error) =>
+      if (error.code == WeaverError.WRITE_OPERATION_INVALID)
+        index = @pendingWrites.map((o) => o.key).indexOf(field) # find failed operation
+        @pendingWrites.splice(index, 1) if index > -1 # remove failing operation, otherwise the save() keeps on failing on this node
+        @_incrementOfOutSync(field, value, project)
+      else
+        Promise.reject()
+    )
+
+  _incrementOfOutSync: (field, value, project) ->
+
+    new Weaver.Query()
+    .select(field)
+    .restrict(@id())
+    .first()
+    .then((loadedNode) =>
+      currentValue = loadedNode.get(field)
+      pendingNewValue = currentValue + value
+      loadedNode.set(field, pendingNewValue)
+
+      # To be backwards compatible, but its better not to save here
+      loadedNode.save().then(->
+        # Return the incremented value
+        pendingNewValue
+      )
     )
 
 
