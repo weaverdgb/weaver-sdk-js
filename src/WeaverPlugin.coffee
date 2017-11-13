@@ -16,6 +16,7 @@ class WeaverPlugin
         # Build payload from arguments based on function require
         payload = {}
         payload[r] = args[index] for r, index in f.require
+        payload[r] = args[f.require.length + index] for r, index in f.optional
 
         # Execute by route and payload
         Weaver.getCoreManager().executePluginFunction(f.route, payload)
@@ -32,6 +33,7 @@ class WeaverPlugin
     prettyFunction = (f) ->
       args = ""
       args += r + "," for r in f.require
+      args += "[#{r}]," for r in f.optional
       args = args.slice(0, -1) # Remove last comma
       "#{f.name}(#{args})"
 
