@@ -10588,7 +10588,7 @@ module.exports = (function() {
  * 
  */
 /**
- * bluebird build version 3.5.0
+ * bluebird build version 3.5.1
  * Features enabled: core, race, call_get, generators, map, nodeify, promisify, props, reduce, settle, some, using, timers, filter, any, each
 */
 !function(e){if("object"==typeof exports&&"undefined"!=typeof module)module.exports=e();else if("function"==typeof define&&define.amd)define([],e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.Promise=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof _dereq_=="function"&&_dereq_;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof _dereq_=="function"&&_dereq_;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
@@ -11271,7 +11271,10 @@ Promise.prototype.suppressUnhandledRejections = function() {
 Promise.prototype._ensurePossibleRejectionHandled = function () {
     if ((this._bitField & 524288) !== 0) return;
     this._setRejectionIsUnhandled();
-    async.invokeLater(this._notifyUnhandledRejection, this, undefined);
+    var self = this;
+    setTimeout(function() {
+        self._notifyUnhandledRejection();
+    }, 1);
 };
 
 Promise.prototype._notifyUnhandledRejectionIsHandled = function () {
@@ -14061,7 +14064,7 @@ _dereq_("./synchronous_inspection")(Promise);
 _dereq_("./join")(
     Promise, PromiseArray, tryConvertToPromise, INTERNAL, async, getDomain);
 Promise.Promise = Promise;
-Promise.version = "3.5.0";
+Promise.version = "3.5.1";
 _dereq_('./map.js')(Promise, PromiseArray, apiRejection, tryConvertToPromise, INTERNAL, debug);
 _dereq_('./call_get.js')(Promise);
 _dereq_('./using.js')(Promise, apiRejection, tryConvertToPromise, createContext, INTERNAL, debug);
@@ -16025,10 +16028,11 @@ function safeToString(obj) {
 }
 
 function isError(obj) {
-    return obj !== null &&
+    return obj instanceof Error ||
+        (obj !== null &&
            typeof obj === "object" &&
            typeof obj.message === "string" &&
-           typeof obj.name === "string";
+           typeof obj.name === "string");
 }
 
 function markAsOriginatingFromRejection(e) {
@@ -108660,7 +108664,7 @@ module.exports={
 
 },{}],489:[function(require,module,exports){
 (function() {
-  var Operation, Promise, Weaver, WeaverNode, _, cuid, util,
+  var Operation, Promise, Weaver, WeaverError, WeaverNode, _, cuid, util,
     slice = [].slice;
 
   cuid = require('cuid');
@@ -108674,6 +108678,8 @@ module.exports={
   _ = require('lodash');
 
   Promise = require('bluebird');
+
+  WeaverError = require('./WeaverError');
 
   WeaverNode = (function() {
     function WeaverNode(nodeId1) {
@@ -108863,7 +108869,11 @@ module.exports={
     };
 
     WeaverNode.prototype.increment = function(field, value, project) {
-      var currentValue;
+      var currentValue, pendingNewValue;
+      if (value == null) {
+        value = 1;
+      }
+      Weaver.getInstance()._ignoresOutOfDate = false;
       if (this.attributes[field] == null) {
         throw new Error("There is no field " + field + " to increment");
       }
@@ -108871,10 +108881,42 @@ module.exports={
         throw new Error("Field " + field + " is not a number");
       }
       currentValue = this.get(field);
-      this.set(field, currentValue + value);
-      return this.save().then(function() {
-        return currentValue + value;
-      });
+      pendingNewValue = currentValue + value;
+      this.set(field, pendingNewValue);
+      return this.save().then((function(_this) {
+        return function() {
+          return pendingNewValue;
+        };
+      })(this))["catch"]((function(_this) {
+        return function(error) {
+          var index;
+          if (error.code === WeaverError.WRITE_OPERATION_INVALID) {
+            index = _this.pendingWrites.map(function(o) {
+              return o.key;
+            }).indexOf(field);
+            if (index > -1) {
+              _this.pendingWrites.splice(index, 1);
+            }
+            return _this._incrementOfOutSync(field, value, project);
+          } else {
+            return Promise.reject();
+          }
+        };
+      })(this));
+    };
+
+    WeaverNode.prototype._incrementOfOutSync = function(field, value, project) {
+      return new Weaver.Query().select(field).restrict(this.id()).first().then((function(_this) {
+        return function(loadedNode) {
+          var currentValue, pendingNewValue;
+          currentValue = loadedNode.get(field);
+          pendingNewValue = currentValue + value;
+          loadedNode.set(field, pendingNewValue);
+          return loadedNode.save().then(function() {
+            return pendingNewValue;
+          });
+        };
+      })(this));
     };
 
     WeaverNode.prototype.unset = function(field) {
@@ -109160,7 +109202,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Operation":477,"./Weaver":479,"./util":497,"bluebird":74,"cuid":125,"lodash":279}],490:[function(require,module,exports){
+},{"./Operation":477,"./Weaver":479,"./WeaverError":481,"./util":497,"bluebird":74,"cuid":125,"lodash":279}],490:[function(require,module,exports){
 (function() {
   var Weaver, WeaverPlugin,
     slice = [].slice;
@@ -109177,13 +109219,18 @@ module.exports={
       serverObject.functions.forEach((function(_this) {
         return function(f) {
           return _this[f.name] = function() {
-            var args, i, index, len, payload, r, ref;
+            var args, i, index, j, len, len1, payload, r, ref, ref1;
             args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
             payload = {};
             ref = f.require;
             for (index = i = 0, len = ref.length; i < len; index = ++i) {
               r = ref[index];
               payload[r] = args[index];
+            }
+            ref1 = f.optional;
+            for (index = j = 0, len1 = ref1.length; j < len1; index = ++j) {
+              r = ref1[index];
+              payload[r] = args[f.require.length + index];
             }
             return Weaver.getCoreManager().executePluginFunction(f.route, payload);
           };
@@ -109198,12 +109245,17 @@ module.exports={
     WeaverPlugin.prototype.printFunctions = function() {
       var f, i, len, prettyFunction, ref, results;
       prettyFunction = function(f) {
-        var args, i, len, r, ref;
+        var args, i, j, len, len1, r, ref, ref1;
         args = "";
         ref = f.require;
         for (i = 0, len = ref.length; i < len; i++) {
           r = ref[i];
           args += r + ",";
+        }
+        ref1 = f.optional;
+        for (j = 0, len1 = ref1.length; j < len1; j++) {
+          r = ref1[j];
+          args += "[" + r + "],";
         }
         args = args.slice(0, -1);
         return f.name + "(" + args + ")";
