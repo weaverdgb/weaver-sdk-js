@@ -19,7 +19,7 @@ class LocalController
 
         $.handler[route] = (payload) ->
           try
-            if payload.type isnt "STREAM"
+            if typeof payload is 'string'
               routeHandler.handleRequest(route, {payload: JSON.parse(payload or "{}")}, res)
             else
               routeHandler.handleRequest(route, {payload}, res)

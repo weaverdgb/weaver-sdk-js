@@ -107122,7 +107122,7 @@ module.exports={
             return $.handler[route] = function(payload) {
               var error;
               try {
-                if (payload.type !== "STREAM") {
+                if (typeof payload === 'string') {
                   return routeHandler.handleRequest(route, {
                     payload: JSON.parse(payload || "{}")
                   }, res);
@@ -107277,7 +107277,8 @@ module.exports={
       this.options = options;
       defaultOptions = {
         reconnection: true,
-        rejectUnauthorized: true
+        rejectUnauthorized: true,
+        pingTimeout: 120000
       };
       this.options = this.options || defaultOptions;
       this.options.reconnection = true;

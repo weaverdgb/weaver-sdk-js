@@ -11,6 +11,7 @@ class SocketController
     defaultOptions =
       reconnection: true
       rejectUnauthorized: true
+      pingTimeout: 120000
 
     @options = @options or defaultOptions
     @options.reconnection = true
