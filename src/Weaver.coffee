@@ -119,6 +119,15 @@ class Weaver
   @getCoreManager: ->
     @getInstance().getCoreManager()
 
+  # Shout a message to other connected clients
+  @shout: (message) ->
+    @getCoreManager().shout(message)
+
+  # Listen to shouted messages
+  @sniff: (callback) ->
+    Weaver.subscribe("socket.shout", callback)
+
+
   # Expose PubSub
   @subscribe:             PubSub.subscribe
   @unsubscribe:           PubSub.unsubscribe

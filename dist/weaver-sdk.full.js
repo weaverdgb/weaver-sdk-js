@@ -99281,7 +99281,7 @@ module.exports={
   },
   "com_weaverplatform": {
     "requiredServerVersion": "^3.0.10",
-    "requiredConnectorVersion": "~0.0.27"
+    "requiredConnectorVersion": "~0.0.27-SNAPSHOT-handling-better-errors"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -101267,7 +101267,7 @@ module.exports={
 
 },{}],408:[function(require,module,exports){
 (function() {
-  var Operation, Promise, Weaver, WeaverNode, _, cuid, util,
+  var Operation, Promise, Weaver, WeaverError, WeaverNode, _, cuid, util,
     slice = [].slice;
 
   cuid = require('cuid');
@@ -101281,6 +101281,8 @@ module.exports={
   _ = require('lodash');
 
   Promise = require('bluebird');
+
+  WeaverError = require('./WeaverError');
 
   WeaverNode = (function() {
     function WeaverNode(nodeId1) {
@@ -101417,7 +101419,7 @@ module.exports={
       }
     };
 
-    WeaverNode.prototype.set = function(field, value, dataType) {
+    WeaverNode.prototype.set = function(field, value, dataType, options) {
       var eventData, eventMsg, newAttribute, newAttributeOperation, oldAttribute;
       if (field === 'id') {
         throw Error("Attribute 'id' cannot be set or updated");
@@ -101449,7 +101451,7 @@ module.exports={
         oldAttribute = this.attributes[field][0];
         eventData.oldValue = oldAttribute.value;
         eventMsg += '.update';
-        newAttributeOperation = Operation.Node(this).createAttribute(field, value, dataType, oldAttribute.nodeId, Weaver.getInstance()._ignoresOutOfDate);
+        newAttributeOperation = Operation.Node(this).createAttribute(field, value, dataType, oldAttribute.nodeId, (options != null ? options.ignoresOutOfDate : void 0) == null ? Weaver.getInstance()._ignoresOutOfDate : void 0);
       } else {
         eventMsg += '.set';
         newAttributeOperation = Operation.Node(this).createAttribute(field, value, dataType);
@@ -101470,7 +101472,11 @@ module.exports={
     };
 
     WeaverNode.prototype.increment = function(field, value, project) {
-      var currentValue;
+      var currentValue, pendingNewValue;
+      if (value == null) {
+        value = 1;
+      }
+      Weaver.getInstance()._ignoresOutOfDate = false;
       if (this.attributes[field] == null) {
         throw new Error("There is no field " + field + " to increment");
       }
@@ -101478,10 +101484,42 @@ module.exports={
         throw new Error("Field " + field + " is not a number");
       }
       currentValue = this.get(field);
-      this.set(field, currentValue + value);
-      return this.save().then(function() {
-        return currentValue + value;
-      });
+      pendingNewValue = currentValue + value;
+      this.set(field, pendingNewValue);
+      return this.save().then((function(_this) {
+        return function() {
+          return pendingNewValue;
+        };
+      })(this))["catch"]((function(_this) {
+        return function(error) {
+          var index;
+          if (error.code === WeaverError.WRITE_OPERATION_INVALID) {
+            index = _this.pendingWrites.map(function(o) {
+              return o.key;
+            }).indexOf(field);
+            if (index > -1) {
+              _this.pendingWrites.splice(index, 1);
+            }
+            return _this._incrementOfOutSync(field, value, project);
+          } else {
+            return Promise.reject();
+          }
+        };
+      })(this));
+    };
+
+    WeaverNode.prototype._incrementOfOutSync = function(field, value, project) {
+      return new Weaver.Query().select(field).restrict(this.id()).first().then((function(_this) {
+        return function(loadedNode) {
+          var currentValue, pendingNewValue;
+          currentValue = loadedNode.get(field);
+          pendingNewValue = currentValue + value;
+          loadedNode.set(field, pendingNewValue);
+          return loadedNode.save().then(function() {
+            return pendingNewValue;
+          });
+        };
+      })(this));
     };
 
     WeaverNode.prototype.unset = function(field) {
@@ -101734,7 +101772,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Operation":396,"./Weaver":398,"./util":416,"bluebird":74,"cuid":125,"lodash":237}],409:[function(require,module,exports){
+},{"./Operation":396,"./Weaver":398,"./WeaverError":400,"./util":416,"bluebird":74,"cuid":125,"lodash":237}],409:[function(require,module,exports){
 (function() {
   var Weaver, WeaverPlugin,
     slice = [].slice;
