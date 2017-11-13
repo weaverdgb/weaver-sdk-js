@@ -106486,7 +106486,7 @@ module.exports = yeast;
 },{}],473:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "3.1.0-beta.0",
+  "version": "3.0.17-beta.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -106495,7 +106495,7 @@ module.exports={
   },
   "com_weaverplatform": {
     "requiredConnectorVersion": "~0.0.27-SNAPSHOT-handling-better-errors",
-    "requiredServerVersion": "~3.1.0-beta.0"
+    "requiredServerVersion": "~3.0.17-beta.0"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
