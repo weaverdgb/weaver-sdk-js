@@ -6,7 +6,7 @@ services:
     - "5432"
 
   postgresql-connector:
-    image: sysunite/weaver-database-postgresql:0.0.27-SNAPSHOT-interpret-datetime-string
+    image: sysunite/weaver-database-postgresql:0.0.27-SNAPSHOT-profile-weaverquery.0
     links:
     - postgres
     expose:
