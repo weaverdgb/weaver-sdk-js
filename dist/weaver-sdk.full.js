@@ -99280,8 +99280,8 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "~0.0.28-SNAPSHOT-rc.0",
-    "requiredServerVersion": "^3.0.11-rc.0"
+    "requiredConnectorVersion": "~0.0.28-SNAPSHOT-rc.1",
+    "requiredServerVersion": "^3.0.11-rc.1"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -100083,20 +100083,33 @@ module.exports={
     SocketController.prototype.emit = function(key, body) {
       return new Promise((function(_this) {
         return function(resolve, reject) {
+          var emitStart;
+          emitStart = Date.now();
           return _this.io.emit(key, JSON.stringify(body), function(response) {
             var error;
             if ((response.code != null) && (response.message != null)) {
               error = new Error(response.message);
               error.code = response.code;
-              return reject(error);
+              reject(error);
             } else if (response === 0) {
-              return resolve();
+              resolve();
             } else {
-              return resolve(response);
+              resolve(response);
             }
+            return _this._calculateTimestamps(response, emitStart, Date.now());
           });
         };
       })(this));
+    };
+
+    SocketController.prototype._calculateTimestamps = function(response, emitStart, emitEnd) {
+      response.sdkToServer = response.serverStart - emitStart;
+      response.innerServerDelay = response.serverStartConnector - response.serverStart;
+      response.serverToConn = response.executionTimeStart - response.serverStartConnector;
+      response.connToServer = response.serverEnd - response.processingTimeEnd;
+      response.serverToSdk = emitEnd - response.serverEnd;
+      response.totalTime = emitEnd - emitStart;
+      return response;
     };
 
     SocketController.prototype.GET = function(path, body) {
