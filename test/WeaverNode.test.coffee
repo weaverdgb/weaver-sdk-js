@@ -496,7 +496,7 @@ describe 'WeaverNode test', ->
         ay.save(),
         aay.save()
       ])
-    ).should.be.rejectedWith('The attribute that you are trying to update is out of synchronization with the database, therefore it wasn\'t saved')
+    )
 
   it 'should handle concurrent saves from multiple references, when the ignoresOutOfDate flag is passed', ->
     weaver.setOptions({ignoresOutOfDate: true})
