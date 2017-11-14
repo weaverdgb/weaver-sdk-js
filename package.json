@@ -8,8 +8,8 @@
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredServerVersion": "^3.0.11-beta.0",
-    "requiredConnectorVersion": "~0.0.27-SNAPSHOT-handling-better-errors"
+    "requiredConnectorVersion": "~0.0.27-SNAPSHOT-handling-better-errors || ~0.0.27-SNAPSHOT-interpret-datetime-string",
+    "requiredServerVersion": "^3.0.11-beta.0"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
