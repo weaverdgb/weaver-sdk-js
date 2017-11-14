@@ -99272,7 +99272,7 @@ module.exports = yeast;
 },{}],392:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "3.0.15",
+  "version": "3.0.16",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -99280,8 +99280,8 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredServerVersion": "^3.0.10",
-    "requiredConnectorVersion": "~0.0.27-SNAPSHOT-handling-better-errors || ~0.0.27-SNAPSHOT-interpret-datetime-string"
+    "requiredConnectorVersion": "~0.0.28",
+    "requiredServerVersion": "~3.0.11"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -100083,20 +100083,33 @@ module.exports={
     SocketController.prototype.emit = function(key, body) {
       return new Promise((function(_this) {
         return function(resolve, reject) {
+          var emitStart;
+          emitStart = Date.now();
           return _this.io.emit(key, JSON.stringify(body), function(response) {
             var error;
             if ((response.code != null) && (response.message != null)) {
               error = new Error(response.message);
               error.code = response.code;
-              return reject(error);
+              reject(error);
             } else if (response === 0) {
-              return resolve();
+              resolve();
             } else {
-              return resolve(response);
+              resolve(response);
             }
+            return _this._calculateTimestamps(response, emitStart, Date.now());
           });
         };
       })(this));
+    };
+
+    SocketController.prototype._calculateTimestamps = function(response, emitStart, emitEnd) {
+      response.sdkToServer = response.serverStart - emitStart;
+      response.innerServerDelay = response.serverStartConnector - response.serverStart;
+      response.serverToConn = response.executionTimeStart - response.serverStartConnector;
+      response.connToServer = response.serverEnd - response.processingTimeEnd;
+      response.serverToSdk = emitEnd - response.serverEnd;
+      response.totalTime = emitEnd - emitStart;
+      return response;
     };
 
     SocketController.prototype.GET = function(path, body) {
@@ -101841,13 +101854,18 @@ module.exports={
       serverObject.functions.forEach((function(_this) {
         return function(f) {
           return _this[f.name] = function() {
-            var args, i, index, len, payload, r, ref;
+            var args, i, index, j, len, len1, payload, r, ref, ref1;
             args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
             payload = {};
             ref = f.require;
             for (index = i = 0, len = ref.length; i < len; index = ++i) {
               r = ref[index];
               payload[r] = args[index];
+            }
+            ref1 = f.optional;
+            for (index = j = 0, len1 = ref1.length; j < len1; index = ++j) {
+              r = ref1[index];
+              payload[r] = args[f.require.length + index];
             }
             return Weaver.getCoreManager().executePluginFunction(f.route, payload);
           };
@@ -101862,12 +101880,17 @@ module.exports={
     WeaverPlugin.prototype.printFunctions = function() {
       var f, i, len, prettyFunction, ref, results;
       prettyFunction = function(f) {
-        var args, i, len, r, ref;
+        var args, i, j, len, len1, r, ref, ref1;
         args = "";
         ref = f.require;
         for (i = 0, len = ref.length; i < len; i++) {
           r = ref[i];
           args += r + ",";
+        }
+        ref1 = f.optional;
+        for (j = 0, len1 = ref1.length; j < len1; j++) {
+          r = ref1[j];
+          args += "[" + r + "],";
         }
         args = args.slice(0, -1);
         return f.name + "(" + args + ")";
