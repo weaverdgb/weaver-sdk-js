@@ -99272,7 +99272,7 @@ module.exports = yeast;
 },{}],392:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "3.0.14",
+  "version": "3.0.15",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -99281,7 +99281,7 @@ module.exports={
   },
   "com_weaverplatform": {
     "requiredServerVersion": "^3.0.10",
-    "requiredConnectorVersion": "~0.0.27-SNAPSHOT-handling-better-errors"
+    "requiredConnectorVersion": "~0.0.27-SNAPSHOT-handling-better-errors || ~0.0.27-SNAPSHOT-interpret-datetime-string"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -99485,6 +99485,12 @@ module.exports={
       return this.POST("project.create", {
         id: id,
         name: name
+      });
+    };
+
+    CoreManager.prototype.shout = function(message) {
+      return this.POST("socket.shout", {
+        message: message
       });
     };
 
@@ -100030,13 +100036,15 @@ module.exports={
 
 },{"./Weaver":398,"cuid":125}],397:[function(require,module,exports){
 (function() {
-  var Promise, SocketController, io, pjson;
+  var Promise, SocketController, Weaver, io, pjson;
 
   io = require('socket.io-client');
 
   Promise = require('bluebird');
 
   pjson = require('../package.json');
+
+  Weaver = require('./Weaver');
 
   SocketController = (function() {
     function SocketController(address, options) {
@@ -100056,6 +100064,9 @@ module.exports={
       return new Promise((function(_this) {
         return function(resolve, reject) {
           _this.io = io.connect(_this.address, _this.options);
+          _this.io.on('socket.shout', function(msg) {
+            return Weaver.publish('socket.shout', msg);
+          });
           return _this.io.on('connect', function() {
             return resolve();
           }).on('connect_error', function() {
@@ -100104,7 +100115,7 @@ module.exports={
 
 }).call(this);
 
-},{"../package.json":392,"bluebird":74,"socket.io-client":327}],398:[function(require,module,exports){
+},{"../package.json":392,"./Weaver":398,"bluebird":74,"socket.io-client":327}],398:[function(require,module,exports){
 (function() {
   var Promise, PubSub, Weaver;
 
@@ -100238,6 +100249,14 @@ module.exports={
 
     Weaver.getCoreManager = function() {
       return this.getInstance().getCoreManager();
+    };
+
+    Weaver.shout = function(message) {
+      return this.getCoreManager().shout(message);
+    };
+
+    Weaver.sniff = function(callback) {
+      return Weaver.subscribe("socket.shout", callback);
     };
 
     Weaver.subscribe = PubSub.subscribe;
@@ -101757,6 +101776,39 @@ module.exports={
             });
           } else {
             return void 0;
+          }
+        };
+      })(this));
+    };
+
+    WeaverNode.batchDestroy = function(array, project) {
+      var cm;
+      cm = Weaver.getCoreManager();
+      return cm.enqueue((function(_this) {
+        return function() {
+          var destroyOperations, error, node;
+          if ((array != null) && array.length !== 0) {
+            try {
+              destroyOperations = (function() {
+                var j, len, results;
+                results = [];
+                for (j = 0, len = array.length; j < len; j++) {
+                  node = array[j];
+                  results.push(Operation.Node(node).removeNode());
+                }
+                return results;
+              })();
+              return cm.executeOperations(destroyOperations, project).then(function() {
+                return Promise.resolve();
+              })["catch"](function(e) {
+                return Promise.reject(e);
+              });
+            } catch (error1) {
+              error = error1;
+              return Promise.reject(error);
+            }
+          } else {
+            return Promise.reject("Cannot batch destroy nodes without any node");
           }
         };
       })(this));
