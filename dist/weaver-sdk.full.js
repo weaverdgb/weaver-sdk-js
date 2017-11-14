@@ -99272,7 +99272,7 @@ module.exports = yeast;
 },{}],392:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "3.0.16-rc.1",
+  "version": "3.0.16",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -99280,8 +99280,8 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "~0.0.28-SNAPSHOT-rc.1",
-    "requiredServerVersion": "^3.0.11-rc.1"
+    "requiredConnectorVersion": "~0.0.28",
+    "requiredServerVersion": "~3.0.11"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
