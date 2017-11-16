@@ -98419,7 +98419,7 @@ module.exports = yeast;
 },{}],416:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "3.0.15",
+  "version": "3.0.16",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -98427,8 +98427,9 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredServerVersion": "^3.0.10",
-    "requiredConnectorVersion": "~0.0.27"
+
+    "requiredConnectorVersion": "~0.0.28-SNAPSHOT-remove-nodes-unrecoverable",
+    "requiredServerVersion": "~3.0.11"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -99114,6 +99115,15 @@ module.exports={
           removeId: cuid()
         };
       },
+      removeNodeUnrecoverable: function() {
+        return {
+          timestamp: timestamp,
+          cascade: true,
+          action: "remove-node-unrecoverable",
+          id: node.id(),
+          removeId: cuid()
+        };
+      },
       createAttribute: function(key, value, datatype, replaces, ignoreConcurrentReplace) {
         var replaceId;
         replaceId = null;
@@ -99230,20 +99240,33 @@ module.exports={
     SocketController.prototype.emit = function(key, body) {
       return new Promise((function(_this) {
         return function(resolve, reject) {
+          var emitStart;
+          emitStart = Date.now();
           return _this.io.emit(key, JSON.stringify(body), function(response) {
             var error;
             if ((response.code != null) && (response.message != null)) {
               error = new Error(response.message);
               error.code = response.code;
-              return reject(error);
+              reject(error);
             } else if (response === 0) {
-              return resolve();
+              resolve();
             } else {
-              return resolve(response);
+              resolve(response);
             }
+            return _this._calculateTimestamps(response, emitStart, Date.now());
           });
         };
       })(this));
+    };
+
+    SocketController.prototype._calculateTimestamps = function(response, emitStart, emitEnd) {
+      response.sdkToServer = response.serverStart - emitStart;
+      response.innerServerDelay = response.serverStartConnector - response.serverStart;
+      response.serverToConn = response.executionTimeStart - response.serverStartConnector;
+      response.connToServer = response.serverEnd - response.processingTimeEnd;
+      response.serverToSdk = emitEnd - response.serverEnd;
+      response.totalTime = emitEnd - emitStart;
+      return response;
     };
 
     SocketController.prototype.GET = function(path, body) {
@@ -99300,6 +99323,7 @@ module.exports={
       this._connected = false;
       this._local = false;
       this._ignoresOutOfDate = true;
+      this._unrecoverableRemove = false;
       if (opts != null) {
         this.setOptions(opts);
       }
@@ -99384,7 +99408,12 @@ module.exports={
     };
 
     Weaver.prototype.setOptions = function(opts) {
-      return this._ignoresOutOfDate = opts.ignoresOutOfDate;
+      if (opts.ignoresOutOfDate != null) {
+        this._ignoresOutOfDate = opts.ignoresOutOfDate;
+      }
+      if (opts.unrecoverableRemove != null) {
+        return this._unrecoverableRemove = opts.unrecoverableRemove;
+      }
     };
 
     Weaver.getInstance = function() {
@@ -100433,7 +100462,7 @@ module.exports={
 
 },{}],432:[function(require,module,exports){
 (function() {
-  var Operation, Promise, Weaver, WeaverNode, _, cuid, util,
+  var Operation, Promise, Weaver, WeaverError, WeaverNode, _, cuid, util,
     slice = [].slice;
 
   cuid = require('cuid');
@@ -100447,6 +100476,8 @@ module.exports={
   _ = require('lodash');
 
   Promise = require('bluebird');
+
+  WeaverError = require('./WeaverError');
 
   WeaverNode = (function() {
     function WeaverNode(nodeId1) {
@@ -100583,7 +100614,7 @@ module.exports={
       }
     };
 
-    WeaverNode.prototype.set = function(field, value, dataType) {
+    WeaverNode.prototype.set = function(field, value, dataType, options) {
       var eventData, eventMsg, newAttribute, newAttributeOperation, oldAttribute;
       if (field === 'id') {
         throw Error("Attribute 'id' cannot be set or updated");
@@ -100615,7 +100646,7 @@ module.exports={
         oldAttribute = this.attributes[field][0];
         eventData.oldValue = oldAttribute.value;
         eventMsg += '.update';
-        newAttributeOperation = Operation.Node(this).createAttribute(field, value, dataType, oldAttribute.nodeId, Weaver.getInstance()._ignoresOutOfDate);
+        newAttributeOperation = Operation.Node(this).createAttribute(field, value, dataType, oldAttribute.nodeId, (options != null ? options.ignoresOutOfDate : void 0) == null ? Weaver.getInstance()._ignoresOutOfDate : void 0);
       } else {
         eventMsg += '.set';
         newAttributeOperation = Operation.Node(this).createAttribute(field, value, dataType);
@@ -100636,7 +100667,11 @@ module.exports={
     };
 
     WeaverNode.prototype.increment = function(field, value, project) {
-      var currentValue;
+      var currentValue, pendingNewValue;
+      if (value == null) {
+        value = 1;
+      }
+      Weaver.getInstance()._ignoresOutOfDate = false;
       if (this.attributes[field] == null) {
         throw new Error("There is no field " + field + " to increment");
       }
@@ -100644,10 +100679,42 @@ module.exports={
         throw new Error("Field " + field + " is not a number");
       }
       currentValue = this.get(field);
-      this.set(field, currentValue + value);
-      return this.save().then(function() {
-        return currentValue + value;
-      });
+      pendingNewValue = currentValue + value;
+      this.set(field, pendingNewValue);
+      return this.save().then((function(_this) {
+        return function() {
+          return pendingNewValue;
+        };
+      })(this))["catch"]((function(_this) {
+        return function(error) {
+          var index;
+          if (error.code === WeaverError.WRITE_OPERATION_INVALID) {
+            index = _this.pendingWrites.map(function(o) {
+              return o.key;
+            }).indexOf(field);
+            if (index > -1) {
+              _this.pendingWrites.splice(index, 1);
+            }
+            return _this._incrementOfOutSync(field, value, project);
+          } else {
+            return Promise.reject();
+          }
+        };
+      })(this));
+    };
+
+    WeaverNode.prototype._incrementOfOutSync = function(field, value, project) {
+      return new Weaver.Query().select(field).restrict(this.id()).first().then((function(_this) {
+        return function(loadedNode) {
+          var currentValue, pendingNewValue;
+          currentValue = loadedNode.get(field);
+          pendingNewValue = currentValue + value;
+          loadedNode.set(field, pendingNewValue);
+          return loadedNode.save().then(function() {
+            return pendingNewValue;
+          });
+        };
+      })(this));
     };
 
     WeaverNode.prototype.unset = function(field) {
@@ -100869,22 +100936,70 @@ module.exports={
       })(this));
     };
 
-    WeaverNode.prototype.destroy = function(project, options) {
+    WeaverNode.prototype.destroy = function(project) {
       var cm;
       cm = Weaver.getCoreManager();
       return cm.enqueue((function(_this) {
         return function() {
-          if (_this.nodeId != null) {
-            return cm.executeOperations([Operation.Node(_this).removeNode()], project).then(function() {
-              var key;
-              Weaver.publish('node.destroyed', _this.id());
-              for (key in _this) {
-                delete _this[key];
-              }
+          if ((Weaver.getInstance()._unrecoverableRemove)) {
+            if (_this.nodeId != null) {
+              return cm.executeOperations([Operation.Node(_this).removeNodeUnrecoverable()], project).then(function() {
+                var key;
+                Weaver.publish('node.destroyed', _this.id());
+                for (key in _this) {
+                  delete _this[key];
+                }
+                return void 0;
+              });
+            } else {
               return void 0;
-            });
+            }
           } else {
-            return void 0;
+            if (_this.nodeId != null) {
+              return cm.executeOperations([Operation.Node(_this).removeNode()], project).then(function() {
+                var key;
+                Weaver.publish('node.destroyed', _this.id());
+                for (key in _this) {
+                  delete _this[key];
+                }
+                return void 0;
+              });
+            } else {
+              return void 0;
+            }
+          }
+        };
+      })(this));
+    };
+
+    WeaverNode.batchDestroy = function(array, project) {
+      var cm;
+      cm = Weaver.getCoreManager();
+      return cm.enqueue((function(_this) {
+        return function() {
+          var destroyOperations, error, node;
+          if ((array != null) && array.length !== 0) {
+            try {
+              destroyOperations = (function() {
+                var j, len, results;
+                results = [];
+                for (j = 0, len = array.length; j < len; j++) {
+                  node = array[j];
+                  results.push(Operation.Node(node).removeNode());
+                }
+                return results;
+              })();
+              return cm.executeOperations(destroyOperations, project).then(function() {
+                return Promise.resolve();
+              })["catch"](function(e) {
+                return Promise.reject(e);
+              });
+            } catch (error1) {
+              error = error1;
+              return Promise.reject(error);
+            }
+          } else {
+            return Promise.reject("Cannot batch destroy nodes without any node");
           }
         };
       })(this));
@@ -100900,7 +101015,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Operation":420,"./Weaver":422,"./util":440,"bluebird":73,"cuid":136,"lodash":249}],433:[function(require,module,exports){
+},{"./Operation":420,"./Weaver":422,"./WeaverError":424,"./util":440,"bluebird":73,"cuid":136,"lodash":249}],433:[function(require,module,exports){
 (function() {
   var Weaver, WeaverPlugin,
     slice = [].slice;
@@ -100917,13 +101032,18 @@ module.exports={
       serverObject.functions.forEach((function(_this) {
         return function(f) {
           return _this[f.name] = function() {
-            var args, i, index, len, payload, r, ref;
+            var args, i, index, j, len, len1, payload, r, ref, ref1;
             args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
             payload = {};
             ref = f.require;
             for (index = i = 0, len = ref.length; i < len; index = ++i) {
               r = ref[index];
               payload[r] = args[index];
+            }
+            ref1 = f.optional;
+            for (index = j = 0, len1 = ref1.length; j < len1; index = ++j) {
+              r = ref1[index];
+              payload[r] = args[f.require.length + index];
             }
             return Weaver.getCoreManager().executePluginFunction(f.route, payload);
           };
@@ -100938,12 +101058,17 @@ module.exports={
     WeaverPlugin.prototype.printFunctions = function() {
       var f, i, len, prettyFunction, ref, results;
       prettyFunction = function(f) {
-        var args, i, len, r, ref;
+        var args, i, j, len, len1, r, ref, ref1;
         args = "";
         ref = f.require;
         for (i = 0, len = ref.length; i < len; i++) {
           r = ref[i];
           args += r + ",";
+        }
+        ref1 = f.optional;
+        for (j = 0, len1 = ref1.length; j < len1; j++) {
+          r = ref1[j];
+          args += "[" + r + "],";
         }
         args = args.slice(0, -1);
         return f.name + "(" + args + ")";
