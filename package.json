@@ -8,7 +8,7 @@
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "~0.0.28-SNAPSHOT-remove-nodes-unrecoverable",
+    "requiredConnectorVersion": "~0.0.29-SNAPSHOT-remove-nodes-unrecoverable",
     "requiredServerVersion": "~3.0.11"
   },
   "main": "lib/Weaver.js",

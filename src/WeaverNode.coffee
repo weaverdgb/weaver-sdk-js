@@ -351,11 +351,11 @@ class WeaverNode
     )
 
   # Removes node, with the option to remove it unrecoverable
-  destroy: (project) ->
+  destroy: (project, unrecoverableRemove = false) ->
     cm = Weaver.getCoreManager()
     cm.enqueue( =>
 
-      if (Weaver.getInstance()._unrecoverableRemove)
+      if (Weaver.getInstance()._unrecoverableRemove or unrecoverableRemove)
         if @nodeId?
           cm.executeOperations([Operation.Node(@).removeNodeUnrecoverable()], project).then(=>
             Weaver.publish('node.destroyed', @id())

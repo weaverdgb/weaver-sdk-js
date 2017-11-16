@@ -796,7 +796,40 @@ describe 'WeaverNode test', ->
       Weaver.Node.load(node2.id())
     ).then((loadedNode) ->
       assert.equal(loadedNode.id(), id)
+    ).then(->
+    ).catch((error)->
+      console.log(error)
+    )
+    .finally( ->
       weaver.setOptions({unrecoverableRemove: false})
+    )
+
+  it 'should be possible to get write operations from a node when weaver is not instantiated', ->
+    instance = Weaver.instance
+    Weaver.instance = undefined
+    try
+
+      node = new Weaver.Node('jim')
+      node.set('has', 'beans')
+
+      operations = node.peekPendingWrites()
+      expect(operations).to.have.length(2)
+    finally
+      Weaver.instance = instance
+
+
+
+  it 'should be able to delete a node unrecoverable by setting it as a parameter', ->
+    node = new Weaver.Node()
+    id = node.id()
+    node.save().then(->
+      node.destroy(null, true)
+    ).then(->
+      Weaver.Node.load(id)
+    ).catch((error) ->
+      # Error.code isn't fully working on this one, should have its own code. Node not found is working if node is in the removed_node table
+      # Node should not exist at all, not even in the garbage can.
+      assert.equal(error.code, Weaver.Error.NODE_NOT_FOUND)
     )
 
   it 'should be able to delete a node unrecoverable', ->
@@ -811,7 +844,7 @@ describe 'WeaverNode test', ->
       # Error.code isn't fully working on this one, should have its own code. Node not found is working if node is in the removed_node table
       # Node should not exist at all, not even in the garbage can.
       assert.equal(error.code, Weaver.Error.NODE_NOT_FOUND)
-    ).finally(
+    ).finally( ->
       weaver.setOptions({unrecoverableRemove: false})
     )
 
