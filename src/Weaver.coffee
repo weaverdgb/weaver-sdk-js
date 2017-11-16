@@ -38,7 +38,7 @@ class Weaver
 
     # Default options
     @_ignoresOutOfDate = true
-    @_unrecoverableDestroy = false
+    @_unrecoverableRemove = false
 
     if opts?
       @setOptions(opts)
@@ -105,8 +105,8 @@ class Weaver
     Promise.setScheduler(fn)
 
   setOptions: (opts)->
-    @_ignoresOutOfDate = opts.ignoresOutOfDate
-    @_unrecoverableDestroy = opts.unrecoverableDestroy
+    @_ignoresOutOfDate = opts.ignoresOutOfDate if opts.ignoresOutOfDate?
+    @_unrecoverableRemove = opts.unrecoverableRemove if opts.unrecoverableRemove?
 
   # Returns the Weaver instance if instantiated. This should be called from
   # a static reference

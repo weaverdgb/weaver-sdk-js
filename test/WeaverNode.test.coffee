@@ -617,55 +617,73 @@ describe 'WeaverNode test', ->
       a.save()
     ).should.not.be.rejected
 
-  it 'should not be able to recreate a node after deleting it', ->
+  it 'should not be able to recreate a node after deleting it', -> # Fix when error codes are working properly
     node1 = new Weaver.Node('double-node')
     node2 = new Weaver.Node('double-node')
 
     node1.save().then((node) ->
       node1.destroy()
-    # ).then(->
-    #   node2.save().should.eventually.be.rejected
-    # )
     ).then(->
       node2.save()
     ).catch((error) ->
-      assert.equal(error.code, 366) #Weaver.Error.NODE_ALREADY_EXISTS) #366 Write op failed, instead of 161 node_already_exists
+      # assert.equal(error.code, NODE_ALREADY_EXISTS) #Expected
+      assert.equal(error.code, WRITE_OPERATION_INVALID) #Actual
     )
 
   it 'should be able to recreate a node after deleting it unrecoverable', ->
-    node1 = new Weaver.Node('double-node')
-    node2 = new Weaver.Node('double-node')
-    options = {unrecoverableDestroy: true}
-    weaver.setOptions({unrecoverableDestroy: true})
-
-
+    weaver.setOptions({unrecoverableRemove: true})
+    node1 = new Weaver.Node('double-node1')
+    node2 = new Weaver.Node('double-node1')
+    id = node1.id()
     node1.save().then(->
-      node1.destroy(null, options)
+      node1.destroy()
     ).then(->
       node2.save()
     ).then(->
-      Weaver.Node.load(id)
-      Weaver.Node.load(node.id())
+      Weaver.Node.load(node2.id())
     ).then((loadedNode) ->
-      assert.equal(loadedNode.id(), node.id())
-    ).finally (
-      options = {unrecoverableDestroy: false}
-      weaver.setOptions({unrecoverableDestroy: false})
+      assert.equal(loadedNode.id(), id)
+      weaver.setOptions({unrecoverableRemove: false})
     )
 
   it 'should be able to delete a node unrecoverable', ->
-    options = {unrecoverableDestroy: true}
-    weaver.setOptions({unrecoverableDestroy: true})
-    a = new Weaver.Node()
-    id = a.id()
-    a.save().then(->
-      node.destroy(null, options)
+    weaver.setOptions({unrecoverableRemove: true})
+    node = new Weaver.Node()
+    id = node.id()
+    node.save().then(->
+      node.destroy()
     ).then(->
       Weaver.Node.load(id)
     ).catch((error) ->
+      # Error.code isn't fully working on this one, should have its own code. Node not found is working if node is in the removed_node table
+      # Node should not exist at all, not even in the garbage can.
+      assert.equal(error.code, Weaver.Error.NODE_NOT_FOUND)
+    ).finally(
+      weaver.setOptions({unrecoverableRemove: false})
+    )
+
+  it 'should be able to remove a node with attributes and relations unrecoverable', ->
+    weaver.setOptions({unrecoverableRemove: true})
+    a = new Weaver.Node()
+    b = new Weaver.Node()
+    c = new Weaver.Node()
+    a.relation('link').add(b)
+    b.relation('link').add(c)
+    a.set('number', 50)
+    a.set('value', 100)
+    a.set('value', 200)
+
+    a.save().then( ->
+      a.relation('link').update(b, c)
+      a.save()
+      c.save()
+    ).then(->
+      a.destroy()
+    ).then(->
+      Weaver.Node.load(b.id())
+    ).catch((error) ->
       assert.equal(error.code, Weaver.Error.NODE_NOT_FOUND) # Error.code isn't fully working on this one, should have its own code. Node not found is working if node is in the deleted table
       # Node should not exist at all, not even in the garbage can.
-    ).finally (
-      options = {unrecoverableDestroy: false}
-      weaver.setOptions({unrecoverableDestroy: false})
+    ).finally(
+      weaver.setOptions({unrecoverableRemove: false})
     )
