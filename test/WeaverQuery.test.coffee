@@ -1050,3 +1050,23 @@ describe 'WeaverQuery Test', ->
       Weaver.Node.load('someNode')
     )
     return
+
+  it 'should be able to check existance on a list of Weaver nodes', ->
+    a = new Weaver.Node('a')
+    b = new Weaver.Node('b')
+    c = new Weaver.Node('c')
+    d = new Weaver.Node('d')
+    e = new Weaver.Node('e')
+    f = new Weaver.Node('f')
+    myNodes = [a,b,c,d,e,f]
+    Weaver.Node.batchSave([a,b,d])
+    .then(->
+      new Weaver.Query().findExistingNodes(myNodes).then((result)->
+        expect(result.a).to.be.true
+        expect(result.b).to.be.true
+        expect(result.c).to.be.false
+        expect(result.d).to.be.true
+        expect(result.e).to.be.false
+        expect(result.f).to.be.false
+      )
+    )

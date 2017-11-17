@@ -245,6 +245,19 @@ class WeaverQuery
     @_selectOut.push(relationKeys)
     @
 
+  findExistingNodes: (nodes) ->
+    map = {}
+    @restrict(nodes)
+    @find().then((results)->
+      for node in nodes
+        map[node.id()] = false
+        for res in results
+          if (node.id() == res.id())
+            map[node.id()] = true
+    ).then(->
+      map
+    )
+
   selectRecursiveOut: (relationKeys...) ->
     @_selectRecursiveOut = relationKeys
     @
