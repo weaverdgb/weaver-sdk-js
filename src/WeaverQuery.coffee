@@ -30,6 +30,7 @@ class WeaverQuery
     @_select             = undefined
     @_selectOut          = []
     @_selectRecursiveOut = []
+    @_recursiveConditions= []
     @_alwaysLoadRelations= []
     @_noRelations        = true
     @_noAttributes       = true
@@ -153,6 +154,31 @@ class WeaverQuery
     else
       @_addCondition(key, '$noRelOut', if node.length > 0 then (nodeId(i) or i for i in node) else ['*'])
 
+  _addRecursiveCondition: (op, relation, node, includeSelf) ->
+    target = if node instanceof Weaver.Node
+      node.id()
+    else
+      node
+    @_recursiveConditions.push({
+      operation: op
+      relation
+      nodeId: target
+      includeSelf
+    })
+    @
+
+  hasNoRecursiveRelationIn: (key, node, includeSelf = false) ->
+    @_addRecursiveCondition('$noRelIn', key, node, includeSelf)
+    
+  hasNoRecursiveRelationOut: (key, node, includeSelf = false) ->
+    @_addRecursiveCondition('$noRelOut', key, node, includeSelf)
+
+  hasRecursiveRelationIn: (key, node, includeSelf = false) ->
+    @_addRecursiveCondition('$relIn', key, node, includeSelf)
+    
+  hasRecursiveRelationOut: (key, node, includeSelf = false) ->
+    @_addRecursiveCondition('$relOut', key, node, includeSelf)
+    
   containedIn: (key, values) ->
     @_addCondition(key, '$in', values)
 
