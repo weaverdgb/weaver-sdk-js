@@ -44,7 +44,7 @@ class SocketController
       else
         socket = ss(@io)
 
-      socket.emit(key, body, (response) ->
+      socket.emit(key, body, (response) =>
         if response.code? and response.message?
           error = new Error(response.message)
           error.code = response.code
