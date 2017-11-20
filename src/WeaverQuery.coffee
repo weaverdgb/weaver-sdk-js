@@ -249,11 +249,22 @@ class WeaverQuery
     map = {}
     @restrict(nodes)
     @find().then((results)->
-      for node in nodes
+      sortedNodes = _.sortBy(nodes, ['nodeId']);
+      sortedResults = _.sortBy(results, ['nodeId']);
+
+      #First set all nodes to false, follow loops will only check for true values
+      for node in sortedNodes
         map[node.id()] = false
-        for res in results
-          if (node.id() == res.id())
-            map[node.id()] = true
+
+      # Algorithm to find all existing nodes, twice as fast as nested for loop on 10000 nodes.
+      i = 0; j = 0
+      while i < sortedNodes.length && j < sortedResults.length
+        if sortedNodes[i].id() == sortedResults[j].id()
+          map[sortedNodes[i].id()] = true
+          i++; j++
+        else if sortedNodes[i].id() < sortedResults[j].id()
+          i++
+        else j++
     ).then(->
       map
     )

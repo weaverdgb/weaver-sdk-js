@@ -1052,21 +1052,46 @@ describe 'WeaverQuery Test', ->
     return
 
   it 'should be able to check existance on a list of Weaver nodes', ->
-    a = new Weaver.Node('a')
-    b = new Weaver.Node('b')
-    c = new Weaver.Node('c')
-    d = new Weaver.Node('d')
-    e = new Weaver.Node('e')
-    f = new Weaver.Node('f')
-    myNodes = [a,b,c,d,e,f]
-    Weaver.Node.batchSave([a,b,d])
+    a = new Weaver.Node('a');    b = new Weaver.Node('b')
+    c = new Weaver.Node('c');    d = new Weaver.Node('d')
+    e = new Weaver.Node('e');    f = new Weaver.Node('f')
+    g = new Weaver.Node('g');    h = new Weaver.Node('h')
+    i = new Weaver.Node('i');    j = new Weaver.Node('j')
+    k = new Weaver.Node('k');    l = new Weaver.Node('l')
+    m = new Weaver.Node('m');
+    myNodes = [a,b,c,m,d,e,f,g,h,i,j,k,l]
+    Weaver.Node.batchSave([a,b,m,d,g,j,k,l])
     .then(->
       new Weaver.Query().findExistingNodes(myNodes).then((result)->
-        expect(result.a).to.be.true
-        expect(result.b).to.be.true
-        expect(result.c).to.be.false
-        expect(result.d).to.be.true
-        expect(result.e).to.be.false
-        expect(result.f).to.be.false
+        expect(result.a).to.be.true;        expect(result.b).to.be.true
+        expect(result.c).to.be.false;       expect(result.d).to.be.true
+        expect(result.e).to.be.false;       expect(result.f).to.be.false
+        expect(result.g).to.be.true;        expect(result.h).to.be.false
+        expect(result.i).to.be.false;       expect(result.j).to.be.true
+        expect(result.k).to.be.true;        expect(result.l).to.be.true
+        expect(result.m).to.be.true
+      )
+    )
+
+  it 'should be able to check existance on a list of many Weaver nodes', ->
+    myNodes = []
+    savedNodes = []
+    i = 0
+    while i < 5000
+      n = new Weaver.Node()
+      myNodes.push(n)
+      if i % 10 == 0
+        savedNodes.push(n)
+      i++
+    Weaver.Node.batchSave(savedNodes)
+    .then(->
+      new Weaver.Query().findExistingNodes(myNodes).then((result)->
+        countTrue = 0
+        countTrue += 1 for key, value of result when value is true
+        countFalse = 0
+        countFalse += 1 for key, value of result when value is false
+        expect(countTrue).to.equal(500)
+        expect(countFalse).to.equal(4500)
+        expect(Object.keys(result).length).to.equal(5000)
       )
     )
