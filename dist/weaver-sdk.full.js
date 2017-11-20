@@ -106486,7 +106486,7 @@ module.exports = yeast;
 },{}],473:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "3.0.17-beta.0",
+  "version": "3.0.14",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -106494,8 +106494,8 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "~0.0.27-SNAPSHOT-handling-better-errors",
-    "requiredServerVersion": "~3.0.17-beta.1"
+    "requiredServerVersion": "^3.0.10",
+    "requiredConnectorVersion": "~0.0.27-SNAPSHOT-handling-better-errors"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -107243,17 +107243,13 @@ module.exports={
 
 },{"./Weaver":479,"cuid":125}],478:[function(require,module,exports){
 (function() {
-  var Promise, SocketController, Weaver, io, pjson, ss;
+  var Promise, SocketController, io, pjson;
 
   io = require('socket.io-client');
 
   Promise = require('bluebird');
 
   pjson = require('../package.json');
-
-  Weaver = require('./Weaver');
-
-  ss = require('socket.io-stream');
 
   SocketController = (function() {
     function SocketController(address, options) {
@@ -107292,27 +107288,31 @@ module.exports={
     SocketController.prototype.emit = function(key, body) {
       return new Promise((function(_this) {
         return function(resolve, reject) {
-          var socket;
-          if (body.type !== 'STREAM') {
-            body = JSON.stringify(body);
-            socket = _this.io;
-          } else {
-            socket = ss(_this.io);
-          }
-          return socket.emit(key, body, function(response) {
+          return _this.io.emit(key, JSON.stringify(body), function(response) {
             var error;
             if ((response.code != null) && (response.message != null)) {
               error = new Error(response.message);
               error.code = response.code;
-              return reject(error);
+              reject(error);
             } else if (response === 0) {
-              return resolve();
+              resolve();
             } else {
-              return resolve(response);
+              resolve(response);
             }
+            return _this._calculateTimestamps(response, emitStart, Date.now());
           });
         };
       })(this));
+    };
+
+    SocketController.prototype._calculateTimestamps = function(response, emitStart, emitEnd) {
+      response.sdkToServer = response.serverStart - emitStart;
+      response.innerServerDelay = response.serverStartConnector - response.serverStart;
+      response.serverToConn = response.executionTimeStart - response.serverStartConnector;
+      response.connToServer = response.serverEnd - response.processingTimeEnd;
+      response.serverToSdk = emitEnd - response.serverEnd;
+      response.totalTime = emitEnd - emitStart;
+      return response;
     };
 
     SocketController.prototype.GET = function(path, body) {
@@ -107335,7 +107335,7 @@ module.exports={
 
 }).call(this);
 
-},{"../package.json":473,"./Weaver":479,"bluebird":74,"socket.io-client":394,"socket.io-stream":402}],479:[function(require,module,exports){
+},{"../package.json":392,"bluebird":74,"socket.io-client":327}],398:[function(require,module,exports){
 (function() {
   var Promise, PubSub, Weaver;
 
@@ -110332,3 +110332,21 @@ module.exports={
 }).call(this);
 
 },{}]},{},[479]);
+
+  "version": "3.0.17-beta.0",
+    "requiredConnectorVersion": "~0.0.27-SNAPSHOT-handling-better-errors",
+    "requiredServerVersion": "~3.0.17-beta.1"
+  var Promise, SocketController, Weaver, io, pjson, ss;
+  Weaver = require('./Weaver');
+
+  ss = require('socket.io-stream');
+
+          var socket;
+          if (body.type !== 'STREAM') {
+            body = JSON.stringify(body);
+            socket = _this.io;
+          } else {
+            socket = ss(_this.io);
+          }
+          return socket.emit(key, body, function(response) {
+},{"../package.json":473,"./Weaver":479,"bluebird":74,"socket.io-client":394,"socket.io-stream":402}],479:[function(require,module,exports){

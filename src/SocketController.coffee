@@ -44,6 +44,7 @@ class SocketController
         socket = ss(@io)
 
       socket.emit(key, body, (response) ->
+      emitStart = Date.now()
         if response.code? and response.message?
           error = new Error(response.message)
           error.code = response.code
@@ -52,8 +53,19 @@ class SocketController
           resolve()
         else
           resolve(response)
+        @_calculateTimestamps(response, emitStart, Date.now())
       )
     )
+
+  _calculateTimestamps: (response, emitStart, emitEnd) ->
+    # response.serverEnterTimestamp = response.serverStart
+    response.sdkToServer  = response.serverStart - emitStart
+    response.innerServerDelay = response.serverStartConnector - response.serverStart
+    response.serverToConn = response.executionTimeStart - response.serverStartConnector
+    response.connToServer = response.serverEnd - response.processingTimeEnd
+    response.serverToSdk  = emitEnd - response.serverEnd
+    response.totalTime = emitEnd - emitStart
+    response
 
   GET: (path, body) ->
     @emit(path, body)
