@@ -1,9 +1,15 @@
-weaver = require("./test-suite")
+weaver             = require("./test-suite").weaver
+wipeCurrentProject = require("./test-suite").wipeCurrentProject
+signInAsAdmin      = require("./test-suite").signInAsAdmin
+
 Weaver = require('../src/Weaver')
 Promise = require('bluebird')
 
-describe 'Authorization test', ->
+cuid = require('cuid')
 
+describe 'Authorization test', ->
+  beforeEach ->
+    wipeCurrentProject()
 
   it 'should not allow project creation by default', ->
     testUser = new Weaver.User('testuser', 'testpassword', 'email@dontevenvalidate.com')
@@ -40,24 +46,25 @@ describe 'Authorization test', ->
     )
 
   it 'should allow a user to destroy a project created by that user', ->
-    testUser = new Weaver.User('testuser', 'testpassword', 'email@dontevenvalidate.com')
-    Promise.join(weaver.currentProject().destroy(), testUser.create(), Weaver.ACL.load('create-projects'), (deleteResult, user, acl) ->
+    testProject = weaver.currentProject()
+    testUser = new Weaver.User(cuid(), 'testpassword', "#{cuid()}@dontevenvalidate.com")
+    Promise.join(testUser.create(), Weaver.ACL.load('create-projects'), (user, acl) ->
       acl.setUserWriteAccess(testUser, true)
       acl.save()
     ).then(->
       weaver.signOut()
     ).then(->
-      weaver.signInWithUsername('testuser', 'testpassword')
+      weaver.signInWithUsername(testUser.username, 'testpassword')
     ).then(->
       p = new Weaver.Project('A created project')
       weaver.useProject(p)
       p.create()
     ).then((project) ->
       project.destroy()
-    ).then(->
-      p = new Weaver.Project("yet another project", 'test')
-      weaver.useProject(p)
-      p.create()
+    ).finally( ->
+      signInAsAdmin().then(->
+        weaver.useProject(testProject)
+      )
     )
 
   it 'should not allow a user to delete a project by default', ->

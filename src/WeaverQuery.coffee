@@ -8,6 +8,14 @@ _           = require('lodash')
 quote = (s) ->
   '\\Q' + s.replace('\\E', '\\E\\\\E\\Q') + '\\E'
 
+nodeId = (node) ->
+  if _.isString(node)
+    node
+  else if node instanceof Weaver.Node
+    node.id()
+  else
+    throw new Error("Unsupported type")
+
 
 class WeaverQuery
 
@@ -19,9 +27,11 @@ class WeaverQuery
     @_orQueries          = []
     @_conditions         = {}
     @_include            = []
-    @_select             = []
+    @_select             = undefined
     @_selectOut          = []
     @_selectRecursiveOut = []
+    @_recursiveConditions= []
+    @_alwaysLoadRelations= []
     @_noRelations        = true
     @_noAttributes       = true
     @_count              = false
@@ -41,7 +51,7 @@ class WeaverQuery
       Weaver.Query.notify(result)
       list = []
       for node in result.nodes
-        castedNode = Weaver.Node.loadFromQuery(node, @useConstructorFunction)
+        castedNode = Weaver.Node.loadFromQuery(node, @useConstructorFunction, !@_select?)
 
         list.push(castedNode)
       list
@@ -52,6 +62,8 @@ class WeaverQuery
     Weaver.getCoreManager().query(@).then((result) ->
       Weaver.Query.notify(result)
       result.count
+    ).finally(=>
+      @_count = false
     )
 
   first: (Constructor) ->
@@ -115,7 +127,7 @@ class WeaverQuery
     else if node.length is 1 and node[0] instanceof WeaverQuery
       @_addCondition(key, '$relIn', node)
     else
-      @_addCondition(key, '$relIn', if node.length > 0 then (i.id() or i for i in node) else ['*'])
+      @_addCondition(key, '$relIn', if node.length > 0 then (nodeId(i) or i for i in node) else ['*'])
 
   hasRelationOut: (key, node...) ->
     if _.isArray(key)
@@ -123,7 +135,7 @@ class WeaverQuery
     else if node.length is 1 and node[0] instanceof WeaverQuery
       @_addCondition(key, '$relOut', node)
     else
-      @_addCondition(key, '$relOut', if node.length > 0 then (i.id() or i for i in node) else ['*'])
+      @_addCondition(key, '$relOut', if node.length > 0 then (nodeId(i) or i for i in node) else ['*'])
     @
 
   hasNoRelationIn: (key, node...) ->
@@ -132,7 +144,7 @@ class WeaverQuery
     else if node.length is 1 and node[0] instanceof WeaverQuery
       @_addCondition(key, '$noRelIn', node)
     else
-      @_addCondition(key, '$noRelIn', if node.length > 0 then (i.id() or i for i in node) else ['*'])
+      @_addCondition(key, '$noRelIn', if node.length > 0 then (nodeId(i) or i for i in node) else ['*'])
 
   hasNoRelationOut: (key, node...) ->
     if _.isArray(key)
@@ -140,8 +152,33 @@ class WeaverQuery
     else if node.length is 1 and node[0] instanceof WeaverQuery
       @_addCondition(key, '$noRelOut', node)
     else
-      @_addCondition(key, '$noRelOut', if node.length > 0 then (i.id() or i for i in node) else ['*'])
+      @_addCondition(key, '$noRelOut', if node.length > 0 then (nodeId(i) or i for i in node) else ['*'])
 
+  _addRecursiveCondition: (op, relation, node, includeSelf) ->
+    target = if node instanceof Weaver.Node
+      node.id()
+    else
+      node
+    @_recursiveConditions.push({
+      operation: op
+      relation
+      nodeId: target
+      includeSelf
+    })
+    @
+
+  hasNoRecursiveRelationIn: (key, node, includeSelf = false) ->
+    @_addRecursiveCondition('$noRelIn', key, node, includeSelf)
+    
+  hasNoRecursiveRelationOut: (key, node, includeSelf = false) ->
+    @_addRecursiveCondition('$noRelOut', key, node, includeSelf)
+
+  hasRecursiveRelationIn: (key, node, includeSelf = false) ->
+    @_addRecursiveCondition('$relIn', key, node, includeSelf)
+    
+  hasRecursiveRelationOut: (key, node, includeSelf = false) ->
+    @_addRecursiveCondition('$relOut', key, node, includeSelf)
+    
   containedIn: (key, values) ->
     @_addCondition(key, '$in', values)
 
@@ -236,6 +273,10 @@ class WeaverQuery
 
   selectRecursiveOut: (relationKeys...) ->
     @_selectRecursiveOut = relationKeys
+    @
+
+  alwaysLoadRelations: (relationKeys...) ->
+    @_alwaysLoadRelations.push(i) for i in relationKeys
     @
 
   hollow: (value) ->

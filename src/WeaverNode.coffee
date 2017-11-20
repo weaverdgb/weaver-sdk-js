@@ -3,6 +3,8 @@ Operation   = require('./Operation')
 Weaver      = require('./Weaver')
 util        = require('./util')
 _           = require('lodash')
+Promise     = require('bluebird')
+WeaverError = require('./WeaverError')
 
 class WeaverNode
 
@@ -18,31 +20,34 @@ class WeaverNode
     # All operations that need to get saved
     @pendingWrites = [Operation.Node(@).createNode()]
 
+    Weaver.publish('node.created', @)
 
   # Node loading from server
   @load: (nodeId, target, Constructor, includeRelations = false, includeAttributes = false) ->
-    Constructor = WeaverNode if not Constructor?
-    query = new Weaver.Query(target)
-    query.withRelations() if includeRelations
-    query.withAttributes() if includeAttributes
-    query.get(nodeId, Constructor)
+    if !nodeId?
+      Promise.reject("Cannot load nodes with an undefined id")
+    else
+      Constructor = WeaverNode if not Constructor?
+      query = new Weaver.Query(target)
+      query.withRelations() if includeRelations
+      query.withAttributes() if includeAttributes
+      query.get(nodeId, Constructor)
 
 
-  @loadFromQuery: (node, constructorFunction) ->
+  @loadFromQuery: (node, constructorFunction, fullyLoaded = true) ->
     if constructorFunction?
       Constructor = constructorFunction(Weaver.Node.loadFromQuery(node)) or Weaver.Node
     else
       Constructor = Weaver.Node
 
     instance = new Constructor(node.nodeId)
-    instance._loadFromQuery(node, constructorFunction)
+    instance._loadFromQuery(node, constructorFunction, fullyLoaded)
     instance._setStored()
-    instance._loaded = true
     instance
 
-
-  _loadFromQuery: (object, constructorFunction) ->
+  _loadFromQuery: (object, constructorFunction, fullyLoaded = true) ->
     @attributes = object.attributes
+    @_loaded    = object.creator? && fullyLoaded
 
     for key, relations of object.relations
       for relation in relations
@@ -53,10 +58,11 @@ class WeaverNode
           Constructor = Weaver.Node
 
         instance = new Constructor(relation.target.nodeId)
-        instance._loadFromQuery(relation.target, constructorFunction)
+        instance._loadFromQuery(relation.target, constructorFunction, fullyLoaded)
         @relation(key).add(instance, relation.nodeId, false)
 
     @._clearPendingWrites()
+    Weaver.publish('node.loaded', @)
     @
 
   # Loads current node
@@ -104,30 +110,44 @@ class WeaverNode
 
 
 
-  # Update attribute
-  set: (field, value) ->
+  set: (field, value, dataType, options) ->
+    if field is 'id'
+      throw Error("Attribute 'id' cannot be set or updated")
+
     # Get attribute datatype, TODO: Support date
-    dataType = null
-    if util.isString(value)
-      dataType = 'string'
-    else if util.isNumber(value)
-      dataType = 'double'
-    else if util.isBoolean(value)
-      dataType = 'boolean'
-    else if util.isDate(value)
-      dataType = 'date'
-      value = value.getTime()
-    else
-      throw Error("Unsupported datatype for value " + value)
+    if not dataType?
+      if util.isString(value)
+        dataType = 'string'
+      else if util.isNumber(value)
+        dataType = 'double'
+      else if util.isBoolean(value)
+        dataType = 'boolean'
+      else if util.isDate(value)
+        dataType = 'date'
+        value = value.getTime()
+      else
+        throw Error("Unsupported datatype for value " + value)
+
+    # TODO validate dataType
+
+    eventMsg  = 'node.attribute'
+    eventData = {
+      node: @
+      field,
+      value: value
+    }
 
     if @attributes[field]?
       if @attributes[field].length > 1
         throw new Error("Specifiy which attribute to set, more than 1 found for " + field) # TODO: Support later
 
       oldAttribute = @attributes[field][0]
-      newAttributeOperation = Operation.Node(@).createAttribute(field, value, dataType, oldAttribute.nodeId)
+      eventData.oldValue = oldAttribute.value
 
+      eventMsg += '.update'
+      newAttributeOperation = Operation.Node(@).createAttribute(field, value, dataType, oldAttribute.nodeId, Weaver.getInstance()._ignoresOutOfDate if !options?.ignoresOutOfDate?)
     else
+      eventMsg += '.set'
       newAttributeOperation = Operation.Node(@).createAttribute(field, value, dataType)
 
     newAttribute = {
@@ -141,26 +161,53 @@ class WeaverNode
     }
 
     @attributes[field] = [newAttribute]
+    Weaver.publish(eventMsg, eventData)
     @pendingWrites.push(newAttributeOperation)
 
     return @
 
 
   # Update attribute by incrementing the value, the result depends on concurrent requests, so check the result
-  increment: (field, value, project) ->
-
+  increment: (field, value = 1, project) ->
+    Weaver.getInstance()._ignoresOutOfDate = false
     if not @attributes[field]?
       throw new Error("There is no field " + field + " to increment")
     if typeof value isnt 'number'
       throw new Error("Field " + field + " is not a number")
 
     currentValue = @get(field)
-    @set(field, currentValue + value)
+    pendingNewValue = currentValue + value
+    @set(field, pendingNewValue)
 
     # To be backwards compatible, but its better not to save here
-    @save().then(->
+    @save().then(=>
       # Return the incremented value
-      currentValue + value
+      pendingNewValue
+    ).catch((error) =>
+      if (error.code == WeaverError.WRITE_OPERATION_INVALID)
+        index = @pendingWrites.map((o) => o.key).indexOf(field) # find failed operation
+        @pendingWrites.splice(index, 1) if index > -1 # remove failing operation, otherwise the save() keeps on failing on this node
+        @_incrementOfOutSync(field, value, project)
+      else
+        Promise.reject()
+    )
+
+  _incrementOfOutSync: (field, value, project) ->
+
+    new Weaver.Query()
+    .select(field)
+    .restrict(@id())
+    .first()
+    .then((loadedNode) =>
+      currentValue = loadedNode.get(field)
+      pendingNewValue = currentValue + value
+      loadedNode.set(field, pendingNewValue)
+
+      # To be backwards compatible, but its better not to save here
+      loadedNode.save().then(->
+        # Return the incremented value
+        pendingNewValue
+      )
     )
 
 
@@ -177,14 +224,16 @@ class WeaverNode
     # Save change as pending
     @pendingWrites.push(Operation.Node(@).removeAttribute(currentAttribute.nodeId))
 
+    Weaver.publish('node.attribute.unset', {node: @, field})
+
     # Unset locally
     delete @attributes[field]
     @
 
 
   # Create a new Relation
-  relation: (key) ->
-    @relations[key] = new Weaver.Relation(@, key) if not @relations[key]?
+  relation: (key, Constructor = Weaver.Relation) ->
+    @relations[key] = new Constructor(@, key) if not @relations[key]?
     @relations[key]
 
 
@@ -211,7 +260,7 @@ class WeaverNode
       delete operation[field] for field, value of operation when not value?
 
     operations
-    
+
 
 
   # Go through each relation and recursively add all pendingWrites per relation AND that of the objects
@@ -226,7 +275,7 @@ class WeaverNode
 
     for key, relation of @relations
       for id, node of relation.nodes
-        if not collected[node.id()]
+        if node.id()? and not collected[node.id()]
           collected[node.id()] = true
           operations = operations.concat(node._collectPendingWrites(collected))
 
@@ -263,11 +312,12 @@ class WeaverNode
   # Save node and all values / relations and relation objects to server
   save: (project) ->
     cm = Weaver.getCoreManager()
+    writes = @_collectPendingWrites()
 
-    sp = cm.operationsQueue.then(=>
-      writes = @_collectPendingWrites()
-
+    cm.enqueue(=>
       cm.executeOperations((_.omit(i, "__pendingOpNode") for i in writes), project).then(=>
+        Weaver.publish('node.saved', i.__pendingOpNode) for i in writes
+
         @_setStored()
         @
       ).catch((e) =>
@@ -281,28 +331,32 @@ class WeaverNode
       )
     )
 
-    new Promise((resultResolve, resultReject) =>
-      cm.operationsQueue = new Promise((resolve) =>
-        sp.then((r)->
-          resolve()
-          resultResolve(r)
-        ).catch((e) ->
-          resolve()
-          resultReject(e)
-        )
+  @batchSave: (array, project) ->
+    cm = Weaver.getCoreManager()
+    writes = [].concat.apply([], (i._collectPendingWrites() for i in array))
+    cm.enqueue(=>
+      cm.executeOperations((_.omit(i, "__pendingOpNode") for i in writes), project).then(->
+        i.__pendingOpNode._setStored() for i in writes when i.__pendingOpNode._setStored?
+        Promise.resolve()
+      ).catch((e) =>
+
+        # Restore the pending writes to their originating nodes
+        # (in reverse order so create-node is done before adding attributes)
+
+        for i in writes by -1
+          i.__pendingOpNode.pendingWrites.unshift(i)
+
+        Promise.reject(e)
       )
     )
-
-
-  @batchSave: (array, project) ->
-    Promise.all(i.save(project) for i in array)
 
   # Removes node
   destroy: (project) ->
     cm = Weaver.getCoreManager()
-    rm = cm.operationsQueue.then( =>
+    cm.enqueue( =>
       if @nodeId?
         cm.executeOperations([Operation.Node(@).removeNode()], project).then(=>
+          Weaver.publish('node.destroyed', @id())
           delete @[key] for key of @
           undefined
         )
@@ -310,17 +364,24 @@ class WeaverNode
         undefined
     )
 
-    new Promise((resultResolve, resultReject) =>
-      cm.operationsQueue = new Promise((resolve) =>
-        rm.then((r)->
-          resolve()
-          resultResolve(r)
-        ).catch((e) ->
-          resolve()
-          resultReject(e)
-        )
-      )
+  # Removes nodes in batch
+  @batchDestroy: (array, project) ->
+    cm = Weaver.getCoreManager()
+    cm.enqueue(=>
+      if array? and array.length isnt 0
+        try
+          destroyOperations = (Operation.Node(node).removeNode() for node in array)
+          cm.executeOperations(destroyOperations, project).then(=>
+            Promise.resolve()
+          ).catch((e) =>
+            Promise.reject(e)
+          )
+        catch error
+          Promise.reject(error)
+      else
+        Promise.reject("Cannot batch destroy nodes without any node")
     )
+
   # TODO: Implement
   setACL: (acl) ->
     return

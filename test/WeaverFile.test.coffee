@@ -1,35 +1,72 @@
-weaver = require("./test-suite")
+weaver = require("./test-suite").weaver
+wipeCurrentProject = require("./test-suite").wipeCurrentProject
 Weaver = require('../src/Weaver')
 
 path     = require('path')
+fs       = require('fs')
 Promise  = require('bluebird')
 readFile = Promise.promisify(require('fs').readFile)
 
 describe 'WeaverFile test', ->
-  file = ''
-  tmpDir = path.join(__dirname,"../tmp")
+  beforeEach ->
+    wipeCurrentProject()
 
   it 'should create a new file', ->
-    this.timeout(15000) # This timeout is high because the 1st time minio takes more time (extra time creating a bucket)
+    @timeout(15000) # This timeout is high because the 1st time minio takes more time (extra time creating a bucket)
 
-    weaverFile = new Weaver.File()
-    fileTemp = path.join(__dirname,'../icon.png')
-    weaverFile.saveFile(fileTemp, 'weaverIcon.png')
-    .then((res) ->
-      file = res
-      assert.equal(res.split('-')[1],'weaverIcon.png')
+    file = new Weaver.File(path.join(__dirname,'../icon.png'))
+    file.upload()
+    .then((storedFile) ->
+      assert.isTrue(file._stored)
+      assert.equal(storedFile.name(), file.name())
     )
+
+  it 'should create a new file, list it and then download it', ->
+    @timeout(15000)
+
+    file = new Weaver.File(path.join(__dirname, '../icon.png'))
+    assert.isFalse(file._stored)
+
+    file.upload().then((storedFile) ->
+      assert.isTrue(file._stored)
+      assert.equal(storedFile.name(), file.name())
+
+      Weaver.File.list()
+    ).then((files) ->
+      expect(files.length).to.be.at.least(1)
+      Weaver.File.get(file.id()).download("clone-#{file.name()}")
+    ).then((downloadedFile) ->
+      new Promise((resolve, reject) ->
+        fs.stat(downloadedFile.path(), (err, file) ->
+          fs.unlink(downloadedFile.path(), ->
+            resolve() if not err?
+          )
+        )
+      )
+    )
+
+  it 'should support simultanious upload', ->
+    @timeout(15000)
+    file = new Weaver.File(path.join(__dirname,'../icon.png'))
+    file2 = new Weaver.File(path.join(__dirname,'../icon.png'))
+
+    #Make sure bucket exists
+    Weaver.File.list().then(->
+      Promise.all([file.upload(), file2.upload()])
+    ).then((storedFiles) ->
+      expect(storedFiles.length).to.equal(2)
+    )
+
 
   it 'should deny access when uploading with unauthorized user', ->
     @timeout(15000)
 
-    weaverFile = new Weaver.File()
-    fileTemp = path.join(__dirname,'../icon.png')
+    file = new Weaver.File(path.join(__dirname,'../icon.png'))
 
     user = new Weaver.User("username", "password", "some@email.com")
     user.signUp()
     .then(->
-      weaverFile.saveFile(fileTemp, 'weaverIcon.png')
+      file.upload()
     ).then(->
        assert.fail()
     ).catch((err) ->
@@ -39,8 +76,7 @@ describe 'WeaverFile test', ->
   it 'should deny access when uploading with read-only user', ->
     @timeout(15000)
 
-    weaverFile = new Weaver.File()
-    fileTemp = path.join(__dirname,'../icon.png')
+    file = new Weaver.File(path.join(__dirname,'../icon.png'))
 
     user = new Weaver.User("username", "password", "some@email.com")
     user.create()
@@ -54,7 +90,7 @@ describe 'WeaverFile test', ->
     ).then(->
       weaver.signInWithUsername("username", "password")
     ).then(->
-      weaverFile.saveFile(fileTemp, 'weaverIcon.png')
+      file.upload()
     ).then(->
        assert.fail()
     ).catch((err) ->
@@ -64,8 +100,7 @@ describe 'WeaverFile test', ->
   it 'should allow access when uploading with authorized user with write permission', ->
     @timeout(15000)
 
-    weaverFile = new Weaver.File()
-    fileTemp = path.join(__dirname,'../icon.png')
+    file = new Weaver.File(path.join(__dirname,'../icon.png'))
 
     user = new Weaver.User("username", "password", "some@email.com")
     user.create()
@@ -80,81 +115,57 @@ describe 'WeaverFile test', ->
     ).then(->
       weaver.signInWithUsername("username", "password")
     ).then(->
-      weaverFile.saveFile(fileTemp, 'weaverIcon.png')
+      file.upload()
     ).then(->
       assert.isTrue(true)
     ).catch((err) ->
-      console.log err
       assert.fail()
     )
 
   it 'should fail creating a new file, because the file does not exists on local machine', ->
-    weaverFile = new Weaver.File()
-    fileTemp = '../foo.bar'
-    weaverFile.saveFile(fileTemp, 'foo.bar')
+    file = new Weaver.File('../foo.bar')
+    file.upload()
     .then((res) ->
       assert(false)
     ).catch((err) ->
-      assert.equal(err.code,Weaver.Error.FILE_NOT_EXISTS_ERROR)
+      assert.equal(err.code, Weaver.Error.FILE_NOT_EXISTS_ERROR)
     )
 
-
   it 'should fail retrieving a file, because the file does not exits on server', ->
-    weaverFile = new Weaver.File()
-    pathTemp = path.join(__dirname,'../tmp/weaver-icon.png')
-    weaverFile.getFileByID(pathTemp,'foo.bar')
+    file = Weaver.File.get('some-random-file')
+    file.download(path.join(__dirname,'../tmp/weaver-icon.png'))
     .then((res) ->
       assert(false)
     ).catch((err) ->
       assert(true)
     )
 
-
-
   it 'should retrieve a file by ID', ->
-    this.timeout(15000)
-    fileID = ''
-    pathTemp = ''
+    @timeout(15000)
 
-    weaverFile = new Weaver.File()
-    fileTemp = path.join(__dirname,'../icon.png')
+    file = new Weaver.File(path.join(__dirname,'../icon.png'))
 
-    weaverFile.saveFile(fileTemp, 'weaverIcon.png')
-    .then((res) ->
-      fileID = res
-      pathTemp = path.join(__dirname,"../tmp/id-#{fileID}")
-      weaverFile.getFileByID(pathTemp,"#{fileID}".split('-')[0])
-    ).then((res) ->
-      readFile(res)
+    file.upload()
+    .then((storedFile) ->
+      Weaver.File.get(storedFile.id()).download("clone-#{storedFile.name()}")
+    ).then((downloadedFile) ->
+      readFile(downloadedFile.path())
     ).then((destBuff) ->
-      readFile(fileTemp)
+      readFile(file.path())
       .then((originBuff) ->
         assert.equal(destBuff.toString(),originBuff.toString())
       )
     )
 
-  it 'should fail retrieving a file by ID, because there is no file matching this ID', ->
-    weaverFile = new Weaver.File()
-    pathTemp = path.join(__dirname,'../tmp/weaver-icon.png')
-    weaverFile.getFileByID(pathTemp,'f4k31d')
-    .then((res) ->
-      assert(false)
-    ).catch((err) ->
-      assert(true)
-    )
-
   it 'should delete a file by id', ->
-    this.timeout(15000)
-    weaverFile = new Weaver.File()
-    fileTemp = path.join(__dirname,'../icon.png')
-    weaverFile.saveFile(fileTemp, 'weaverIcon.png')
-    .then((res) ->
-      file = res
-      assert.equal(res.split('-')[1],'weaverIcon.png')
-      weaverFile.deleteFileByID("#{file}".split('-')[0])
+    @timeout(30000)
+    file = new Weaver.File(path.join(__dirname,'../icon.png'))
+    file.upload()
+    .then((storedFile) ->
+      assert.equal(storedFile.name(), file.name())
+      storedFile.destroy()
     ).then( ->
-      pathTemp = path.join(__dirname,'../tmp/weaver-icon.png')
-      weaverFile.getFileByID(pathTemp,"#{file}".split('-')[0])
+      Weaver.File.get(file.id()).download('./icon.png')
       .then((res) ->
         assert(false)
       ).catch((err) ->
@@ -166,8 +177,7 @@ describe 'WeaverFile test', ->
     beforeEach ->
       @timeout(15000)
 
-      weaverFile = new Weaver.File()
-      fileTemp = path.join(__dirname,'../icon.png')
+      file = new Weaver.File(path.join(__dirname,'../icon.png'))
 
       readOnly = new Weaver.User("readonly", "password", "some@email.com")
       noAccess = new Weaver.User("noAccess", "password", "some2@email.com")
@@ -180,18 +190,20 @@ describe 'WeaverFile test', ->
         projectACL.setUserReadAccess(readOnly, true)
         projectACL.save()
       ).then(->
-        weaverFile.saveFile(fileTemp, 'weaverIcon.png')
-      ).then((r) ->
-        @fileId = r
+        file.upload()
+      ).then((storedFile) ->
+        @fileId = storedFile.id()
       )
 
     it 'should allow users with read permission access to attachments', ->
       weaver.signOut().then(-> weaver.signInWithUsername('readonly', 'password'))
-      .then(-> new Weaver.File().getFileByID('./tmp/test-file', @fileId))
-    
+      .then(-> Weaver.File.get(@fileId).download('./tmp/test-file'))
+
     it 'should not allow users without read permission access to attachments', ->
-      weaver.signOut().then(-> weaver.signInWithUsername('noAccess', 'password'))
+      weaver.signOut()
+      .then(-> weaver.signInWithUsername('noAccess', 'password'))
       .then(->
-        expect( -> new Weaver.File().getFileByID('./tmp/test-file', @fileId)
+        expect(->
+          Weaver.File.get(@fileId).download('./tmp/test-file')
         ).to.throw
       )

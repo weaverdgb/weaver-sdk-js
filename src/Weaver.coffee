@@ -1,8 +1,9 @@
 Promise = require('bluebird')
+PubSub  = require('pubsub-js')
 
 class Weaver
 
-  constructor: ->
+  constructor: (opts)->
 
     if Weaver.instance?
       throw new Error('Do not instantiate Weaver twice')
@@ -24,12 +25,21 @@ class Weaver
     @User = Weaver.User
     @Error = Weaver.Error
     @LegacyError = Weaver.LegacyError
-    if !window?
-      @File = Weaver.File
+    @Model = Weaver.Model
+    @ModelClass = Weaver.ModelClass
+    @ModelRelation = Weaver.ModelRelation
+    @ModelQuery = Weaver.ModelQuery
+    @File = Weaver.File
 
     @coreManager = new Weaver.CoreManager()
     @_connected  = false
     @_local      = false
+
+    # Default options
+    @_ignoresOutOfDate = true
+
+    if opts?
+      @setOptions(opts)
 
   version: ->
     require('../package.json').version
@@ -56,8 +66,14 @@ class Weaver
   useProject: (project) ->
     @coreManager.currentProject = project
 
+  @useModel: (model) ->
+    Weaver.getCoreManager().currentModel = model
+
   currentProject: ->
     @coreManager.currentProject
+
+  @currentModel: ->
+    Weaver.getCoreManager().currentModel
 
   currentUser: ->
     @coreManager.currentUser
@@ -86,6 +102,9 @@ class Weaver
   setScheduler: (fn) ->
     Promise.setScheduler(fn)
 
+  setOptions: (opts)->
+    @_ignoresOutOfDate = opts.ignoresOutOfDate
+
   # Returns the Weaver instance if instantiated. This should be called from
   # a static reference
   @getInstance: ->
@@ -98,6 +117,21 @@ class Weaver
   # a static reference
   @getCoreManager: ->
     @getInstance().getCoreManager()
+
+  # Shout a message to other connected clients
+  @shout: (message) ->
+    @getCoreManager().shout(message)
+
+  # Listen to shouted messages
+  @sniff: (callback) ->
+    Weaver.subscribe("socket.shout", callback)
+
+
+  # Expose PubSub
+  @subscribe:             PubSub.subscribe
+  @unsubscribe:           PubSub.unsubscribe
+  @publish:               PubSub.publish
+  @clearAllSubscriptions: PubSub.clearAllSubscriptions
 
 # Export
 module.exports = Weaver             # Node
@@ -118,5 +152,8 @@ module.exports.Role         = require('./WeaverRole')
 module.exports.User         = require('./WeaverUser')
 module.exports.Error        = require('./WeaverError')
 module.exports.LegacyError  = require('./Error')
-if !window? # Prevent issues with WeaverFile when in browser
-  module.exports.File       = require('./WeaverFile')
+module.exports.Model        = require('./WeaverModel')
+module.exports.ModelClass   = require('./WeaverModelClass')
+module.exports.ModelRelation = require('./WeaverModelRelation')
+module.exports.ModelQuery    = require('./WeaverModelQuery')
+module.exports.File         = require('./WeaverFile')

@@ -19,19 +19,25 @@ before ->
     weaver.useProject(project)
   )
 
-after ->
+signInAsAdmin = ->
   weaver.signInWithUsername('admin', 'admin')
+
+beforeEach ->
+  signInAsAdmin()
+    
+after ->
+  signInAsAdmin()
   .then(->
     weaver.wipe()
   )
 
-# Runs after each test in each file
+# Previously ran before each test in each file
 # NOTE THAT THIS BREAKS THE ACL ASSOCIATED WITH A PROJECT TESTING ON
 
-beforeEach ->
+wipeCurrentProject = ->
   weaver.signInWithUsername('admin', 'admin')
   .then(->weaver.getCoreManager().wipeUsers())
   .then(->weaver.currentProject().wipe())
   .then(->weaver.currentProject().unfreeze())
 
-module.exports = weaver
+module.exports = { weaver, wipeCurrentProject, signInAsAdmin}

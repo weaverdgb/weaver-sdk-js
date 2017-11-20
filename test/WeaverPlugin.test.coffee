@@ -1,8 +1,7 @@
-weaver = require("./test-suite")
+weaver = require("./test-suite").weaver
 Weaver = require('../src/Weaver')
 
 describe 'WeaverPlugin test', ->
-
   it 'should list available plugins', ->
     Weaver.Plugin.list().then((plugins) ->
       expect(plugins).to.have.length.be.at.least(2)

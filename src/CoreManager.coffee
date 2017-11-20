@@ -14,8 +14,10 @@ class CoreManager
 
   constructor: ->
     @currentProject = null
+    @currentModel   = null
     @operationsQueue = Promise.resolve()
     @timeOffset = 0
+    @maxBatchSize = 500
 
   connect: (endpoint, @options) ->
     defaultOptions =
@@ -39,8 +41,10 @@ class CoreManager
     target = target or @currentProject.id() if @currentProject?
     target
 
-  _resolvePayload: (payload, target) ->
+  _resolvePayload: (type, payload, target) ->
     payload = payload or {}
+    payload.type = type
+
     payload.target = @_resolveTarget(target)
     if @currentUser?
       payload.authToken = @currentUser.authToken
@@ -65,14 +69,15 @@ class CoreManager
       localTime - serverTime
     )
 
-
-  executeOperations: (operations, target) ->
-    @POST('write', {operations}, target)
+  executeOperations: (allOperations, target) ->
+    Promise.mapSeries(_.chunk(allOperations, @maxBatchSize), (operations) =>
+      @POST('write', {operations}, target)
+    )
 
 #  serverVersion: ->
 #    @POST('application.version')
 
-  cloneNode: (sourceId, targetId, relationsToTraverse) ->
+  cloneNode: (sourceId, targetId = cuid(), relationsToTraverse) ->
     @POST('node.clone', { sourceId, targetId, relationsToTraverse})
 
   serverVersion: ->
@@ -96,6 +101,9 @@ class CoreManager
   createProject: (id, name) ->
     @POST("project.create", {id, name})
 
+  shout: (message) ->
+    @POST("socket.shout", {message})
+
   listPlugins: ->
     @GET("plugins").then((plugins) ->
       (new Weaver.Plugin(p) for p in plugins)
@@ -108,6 +116,11 @@ class CoreManager
 
   executePluginFunction: (route, payload) ->
     @POST(route, payload)
+
+  getModel: (name, version) ->
+    @POST("model.read", {name, version}).then((model) ->
+      new Weaver.Model(model)
+    )
 
   createRole: (role) ->
     @POST("role.create", {role})
@@ -170,6 +183,9 @@ class CoreManager
       @currentUser = undefined
       return
     )
+
+  executeZippedWriteOperations: (id, filename) ->
+    @POST("project.executeZip", {id, filename}, id)
 
   readyProject: (id) ->
     @GET("project.ready", {id}, "$SYSTEM")
@@ -247,54 +263,54 @@ class CoreManager
     @POST("user.projects", {id: userId})
 
   REQUEST: (type, path, payload, target) =>
-    payload = @_resolvePayload(payload, target)
+    payload = @_resolvePayload(type, payload, target)
 
-    if type is "GET"
-      return @commController.GET(path, payload)
-    else
-      return @commController.POST(path, payload)
+    switch(type)
+      when "GET" then @commController.GET(path, payload)
+      when "POST" then @commController.POST(path, payload)
+      when "STREAM" then @commController.STREAM(path, payload)
 
   REQUEST_HTTP: (path, payload, target) ->
     payload = @_resolvePayload(payload, target)
 
+  listFiles: ->
+    @GET("file.list")
 
-  deleteFileByID: (file) ->
-    file = @_resolvePayload(file)
-    @commController.POST('file.deleteByID',file)
+  downloadFile: (fileId) ->
+    @STREAM("file.download", {fileId})
 
-  uploadFile: (formData) ->
-    formData = @_resolvePayload(formData)
-    new Promise((resolve, reject) =>
-      request.post({url:"#{@endpoint}/upload", formData: formData, rejectUnauthorized: @options.rejectUnauthorized}, (err, httpResponse, body) ->
-        if httpResponse?.statusCode is 500
-          reject(Error WeaverError.OTHER_CAUSE, httpResponse.body)
-          return
+  uploadFile: (stream, filename) ->
+    @STREAM("file.upload", {file: stream, filename})
 
-        if err
-          if err.code is 'ENOENT'
-            reject(Error WeaverError.FILE_NOT_EXISTS_ERROR,"The file #{err.path} does not exits")
-          else
-            reject(Error WeaverError.OTHER_CAUSE,"Unknown error")
-        else
-          resolve(httpResponse.body)
+  deleteFile: (fileId) ->
+    @POST("file.delete", {fileId})
+
+  enqueue: (functionToEnqueue) ->
+    op = @operationsQueue.then(->
+      functionToEnqueue()
+    )
+
+    new Promise((resultResolve, resultReject) =>
+      @operationsQueue = new Promise((resolve) =>
+        op.then((r)->
+          resolve()
+          resultResolve(r)
+        ).catch((e) ->
+          resolve()
+          resultReject(e)
+        )
       )
     )
 
-  downloadFileByID: (payload, target) ->
-    payload = @_resolvePayload(payload, target)
-    payload = JSON.stringify(payload)
-    request.get({uri:"#{@endpoint}/file/downloadByID?payload=#{payload}", rejectUnauthorized: @options.rejectUnauthorized})
-    .on('response', (res) ->
-      res
-    )
 
   GET: (path, payload, target) ->
     @REQUEST("GET", path, payload, target)
 
-
-
   POST: (path, payload, target) ->
     @REQUEST("POST", path, payload, target)
+
+  STREAM: (path, payload, target) ->
+    @REQUEST("STREAM", path, payload, target)
 
 
 module.exports = CoreManager

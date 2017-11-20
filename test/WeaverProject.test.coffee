@@ -1,8 +1,13 @@
-weaver  = require("./test-suite")
+weaver  = require("./test-suite").weaver
+wipeCurrentProject = require("./test-suite").wipeCurrentProject
 Weaver  = require('../src/Weaver')
 Promise = require('bluebird')
+path    = require('path')
 
 describe 'WeaverProject Test', ->
+  beforeEach ->
+    wipeCurrentProject()
+
   actualProject = (p) ->
     expect(p).to.have.property('_stored').to.be.a('boolean').to.equal(true)
     expect(p).to.have.property('destroy').be.a('function')
@@ -132,7 +137,7 @@ describe 'WeaverProject Test', ->
     weaver.signOut().then(->weaver.coreManager.readyProject(weaver.currentProject().projectId)).should.be.rejected
 
   it 'should allow checking project readyness for admin' , ->
-    weaver.coreManager.readyProject(weaver.currentProject().projectId).should.eventually.eql({ready: true})
+    weaver.coreManager.readyProject(weaver.currentProject().projectId).should.eventually.contain({ready: true})
 
   it 'should allow checking project readyness for regular users with access' , ->
     testUser = new Weaver.User('testuser', 'testpassword', 'test@example.com')
@@ -146,7 +151,7 @@ describe 'WeaverProject Test', ->
       weaver.signInWithUsername('testuser', 'testpassword')
     ).then(->
       weaver.coreManager.readyProject(weaver.currentProject().projectId)
-    ).should.eventually.eql({ready: true})
+    ).should.eventually.contain({ready: true})
 
 
   it 'should not allow unauthorized snapshots', ->
@@ -179,15 +184,31 @@ describe 'WeaverProject Test', ->
 
   it 'should snapshot a project and get a minio filename gz', ->
     p = weaver.currentProject()
-    
+
     a = new Weaver.Node()
     b = new Weaver.Node()
     c = new Weaver.Node()
+    d = new Weaver.Node()
 
     a.relation('link').add(b)
-    c.relation('link').add(c)
-    Promise.all([a.save(), c.save()]).then(->
+    c.relation('link').add(d)
+    Promise.all([a.save(), b.save(), c.save(), d.save()]).then(->
       p.getSnapshot(true)
-    ).then((dump)->
-      assert.include(dump, ".gz")
+    ).then((file)->
+      assert.include(file.name, ".gz")
+    )
+
+  it 'should upload and execute a zip with writeoperations', ->
+    weaverFile = new Weaver.File(path.join(__dirname,'../test-write-operations.gz'))
+    weaverFile.upload().then((file)->
+      p = weaver.currentProject()
+      p.executeZip(file.id())
+    ).then(->
+      Weaver.Node.load("cj7a73kr000036dp4jbxqq3n4")
+    ).then(->
+      Weaver.Node.load("cj7a73kr000046dp4lhu1u5eu")
+    ).then(->
+      Weaver.Node.load("cj7a73kr000056dp4gujh1qcf")
+    ).then(->
+      Weaver.Node.load("cj7a73kr000066dp45qo9acyz")
     )

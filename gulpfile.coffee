@@ -44,7 +44,7 @@ gulp.task('browserify', ->
   browserify({
     entries: './tmp/Weaver.js',
     ignoreMissing: true
-    }).bundle()
+  }).bundle()
     .on('error', (error) ->
       console.log(error)
       @emit('end')
