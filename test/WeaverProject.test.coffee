@@ -194,16 +194,15 @@ describe 'WeaverProject Test', ->
     c.relation('link').add(d)
     Promise.all([a.save(), b.save(), c.save(), d.save()]).then(->
       p.getSnapshot(true)
-    ).then((dump)->
-      assert.include(dump, ".gz")
+    ).then((file)->
+      assert.include(file.name, ".gz")
     )
 
   it 'should upload and execute a zip with writeoperations', ->
-    weaverFile = new Weaver.File()
-    fileTemp = path.join(__dirname,'../test-write-operations.gz')
-    weaverFile.saveFile(fileTemp, 'test-write-operations.gz').then((filename)->
+    weaverFile = new Weaver.File(path.join(__dirname,'../test-write-operations.gz'))
+    weaverFile.upload().then((file)->
       p = weaver.currentProject()
-      p.executeZip(filename)
+      p.executeZip(file.id())
     ).then(->
       Weaver.Node.load("cj7a73kr000036dp4jbxqq3n4")
     ).then(->
