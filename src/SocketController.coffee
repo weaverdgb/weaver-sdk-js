@@ -37,6 +37,7 @@ class SocketController
 
   emit: (key, body) ->
     new Promise((resolve, reject) =>
+      emitStart = Date.now()
       if body.type isnt 'STREAM'
         body = JSON.stringify(body)
         socket = @io
@@ -44,7 +45,6 @@ class SocketController
         socket = ss(@io)
 
       socket.emit(key, body, (response) ->
-      emitStart = Date.now()
         if response.code? and response.message?
           error = new Error(response.message)
           error.code = response.code
