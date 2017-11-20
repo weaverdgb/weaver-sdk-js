@@ -29,8 +29,7 @@ class Weaver
     @ModelClass = Weaver.ModelClass
     @ModelRelation = Weaver.ModelRelation
     @ModelQuery = Weaver.ModelQuery
-    if !window?
-      @File = Weaver.File
+    @File = Weaver.File
 
     @coreManager = new Weaver.CoreManager()
     @_connected  = false
@@ -159,6 +158,4 @@ module.exports.Model        = require('./WeaverModel')
 module.exports.ModelClass   = require('./WeaverModelClass')
 module.exports.ModelRelation = require('./WeaverModelRelation')
 module.exports.ModelQuery    = require('./WeaverModelQuery')
-
-if !window? # Prevent issues with WeaverFile when in browser
-  module.exports.File       = require('./WeaverFile')
+module.exports.File         = require('./WeaverFile')
