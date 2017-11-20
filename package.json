@@ -8,7 +8,7 @@
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "~0.0.29",
+    "requiredConnectorVersion": "~0.0.29-SNAPSHOT-WEAV-222-recursive",
     "requiredServerVersion": "~3.1.0-beta.0"
   },
   "main": "lib/Weaver.js",
