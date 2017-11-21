@@ -105781,7 +105781,7 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "^0.0.29 || ^4.0.0",
+    "requiredConnectorVersion": "^0.0.29-SNAPSHOT-bigger-upload-size || ^4.0.0",
     "requiredServerVersion": "^3.0.12"
   },
   "main": "lib/Weaver.js",
