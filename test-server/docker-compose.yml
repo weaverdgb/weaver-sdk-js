@@ -6,7 +6,7 @@ services:
     - "5432"
 
   postgresql-connector:
-    image: sysunite/weaver-database-postgresql:0.0.29-SNAPSHOT-WEAV-222-recursive
+    image: sysunite/weaver-database-postgresql:0.0.29-SNAPSHOT-remove-nodes-unrecoverable
     links:
     - postgres
     expose:

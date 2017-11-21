@@ -350,18 +350,29 @@ class WeaverNode
       )
     )
 
-  # Removes node
-  destroy: (project) ->
+  # Removes node, with the option to remove it unrecoverable
+  destroy: (project, unrecoverableRemove = false) ->
     cm = Weaver.getCoreManager()
     cm.enqueue( =>
-      if @nodeId?
-        cm.executeOperations([Operation.Node(@).removeNode()], project).then(=>
-          Weaver.publish('node.destroyed', @id())
-          delete @[key] for key of @
+
+      if (Weaver.getInstance()._unrecoverableRemove or unrecoverableRemove)
+        if @nodeId?
+          cm.executeOperations([Operation.Node(@).removeNodeUnrecoverable()], project).then(=>
+            Weaver.publish('node.destroyed', @id())
+            delete @[key] for key of @
+            undefined
+          )
+        else
           undefined
-        )
       else
-        undefined
+        if @nodeId?
+          cm.executeOperations([Operation.Node(@).removeNode()], project).then(=>
+            Weaver.publish('node.destroyed', @id())
+            delete @[key] for key of @
+            undefined
+          )
+        else
+          undefined
     )
 
   # Removes nodes in batch
