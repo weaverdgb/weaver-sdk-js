@@ -6,7 +6,7 @@ services:
     - "5432"
 
   postgresql-connector:
-    image: sysunite/weaver-database-postgresql:0.0.29-SNAPSHOT-rc.0
+    image: sysunite/weaver-database-postgresql:0.0.29
     links:
     - postgres
     expose:
@@ -26,7 +26,7 @@ services:
     command: server /data
 
   weaver-server:
-    image: sysunite/weaver-server:3.0.12-rc.0
+    image: sysunite/weaver-server:3.0.12
     expose:
     - "9487"
     ports:
