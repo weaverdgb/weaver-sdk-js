@@ -105773,7 +105773,7 @@ module.exports = yeast;
 },{}],458:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -106461,6 +106461,15 @@ module.exports={
           removeId: cuid()
         };
       },
+      removeNodeUnrecoverable: function() {
+        return {
+          timestamp: timestamp,
+          cascade: true,
+          action: "remove-node-unrecoverable",
+          id: node.id(),
+          removeId: cuid()
+        };
+      },
       createAttribute: function(key, value, datatype, replaces, ignoreConcurrentReplace) {
         var replaceId;
         replaceId = null;
@@ -106670,6 +106679,7 @@ module.exports={
       this._connected = false;
       this._local = false;
       this._ignoresOutOfDate = true;
+      this._unrecoverableRemove = false;
       if (opts != null) {
         this.setOptions(opts);
       }
@@ -106754,7 +106764,12 @@ module.exports={
     };
 
     Weaver.prototype.setOptions = function(opts) {
-      return this._ignoresOutOfDate = opts.ignoresOutOfDate;
+      if (opts.ignoresOutOfDate != null) {
+        this._ignoresOutOfDate = opts.ignoresOutOfDate;
+      }
+      if (opts.unrecoverableRemove != null) {
+        return this._unrecoverableRemove = opts.unrecoverableRemove;
+      }
     };
 
     Weaver.getInstance = function() {
@@ -108429,22 +108444,40 @@ module.exports={
       })(this));
     };
 
-    WeaverNode.prototype.destroy = function(project) {
+    WeaverNode.prototype.destroy = function(project, unrecoverableRemove) {
       var cm;
+      if (unrecoverableRemove == null) {
+        unrecoverableRemove = false;
+      }
       cm = Weaver.getCoreManager();
       return cm.enqueue((function(_this) {
         return function() {
-          if (_this.nodeId != null) {
-            return cm.executeOperations([Operation.Node(_this).removeNode()], project).then(function() {
-              var key;
-              Weaver.publish('node.destroyed', _this.id());
-              for (key in _this) {
-                delete _this[key];
-              }
+          if (Weaver.getInstance()._unrecoverableRemove || unrecoverableRemove) {
+            if (_this.nodeId != null) {
+              return cm.executeOperations([Operation.Node(_this).removeNodeUnrecoverable()], project).then(function() {
+                var key;
+                Weaver.publish('node.destroyed', _this.id());
+                for (key in _this) {
+                  delete _this[key];
+                }
+                return void 0;
+              });
+            } else {
               return void 0;
-            });
+            }
           } else {
-            return void 0;
+            if (_this.nodeId != null) {
+              return cm.executeOperations([Operation.Node(_this).removeNode()], project).then(function() {
+                var key;
+                Weaver.publish('node.destroyed', _this.id());
+                for (key in _this) {
+                  delete _this[key];
+                }
+                return void 0;
+              });
+            } else {
+              return void 0;
+            }
           }
         };
       })(this));
