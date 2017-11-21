@@ -120,78 +120,6 @@ describe 'WeaverQuery Test', ->
         expect(nodes.length).to.equal(1)
         checkNodeInResult(nodes, 'b')
       )
-<<<<<<< HEAD
-    )
-
-  it 'should do equalTo a wildcard', ->
-    a = new Weaver.Node("a")
-    b = new Weaver.Node("b")
-    a.set('name','Aaay')
-
-    Promise.all([a.save(), b.save()]).then(->
-
-      new Weaver.Query()
-      .equalTo("name", '*')
-      .find().then((nodes) ->
-        expect(nodes.length).to.equal(1)
-        checkNodeInResult(nodes, 'a')
-      )
-    )
-
-  it 'should do greaterThan', ->
-    a = new Weaver.Node("a")
-    b = new Weaver.Node("b")
-    a.set('age', 11)
-    b.set('age', 10)
-
-    Promise.all([a.save(), b.save()]).then(->
-
-      new Weaver.Query()
-      .greaterThan("age", 10)
-      .find().then((nodes) ->
-        expect(nodes.length).to.equal(1)
-        checkNodeInResult(nodes, 'a')
-      )
-    )
-
-  it 'should do lessThan', ->
-    a = new Weaver.Node("a")
-    b = new Weaver.Node("b")
-    a.set('age', 10)
-    b.set('age', 11)
-
-    Promise.all([a.save(), b.save()]).then(->
-
-      new Weaver.Query()
-      .lessThan("age", 11)
-      .find().then((nodes) ->
-        expect(nodes.length).to.equal(1)
-        checkNodeInResult(nodes, 'a')
-      )
-    )
-
-  it 'should be able to combine greaterThan and lessThan', ->
-
-    a = new Weaver.Node("a")
-    b = new Weaver.Node("b")
-    c = new Weaver.Node("c")
-
-    a.set('age', 4)
-    b.set('age', 8)
-    c.set('age', 12)
-
-    Promise.all([a.save(), b.save(), c.save()]).then(->
-
-      new Weaver.Query()
-      .lessThan("age", 10)
-      .greaterThan("age", 5)
-      .find().then((nodes) ->
-        expect(nodes.length).to.equal(1)
-        checkNodeInResult(nodes, 'b')
-      )
-    )
-=======
->>>>>>> develop
 
     it 'should do relation hasRelationIn with id argument', ->
       new Weaver.Query()
@@ -1159,3 +1087,71 @@ describe 'WeaverQuery Test', ->
       Weaver.Node.load('someNode')
     )
     return
+
+  describe 'simple nodes, with age', ->
+    a = new Weaver.Node("a")
+    b = new Weaver.Node("b")
+    c = new Weaver.Node("c")
+    a.set('age', 4)
+    b.set('age', 8)
+    c.set('age', 12)
+    a.set('name','Aaay')
+
+    before ->
+      wipeCurrentProject().then( ->
+        Promise.all([a.save(), b.save(), c.save()])
+      )
+
+    it.skip 'should do equalTo a wildcard', ->
+      new Weaver.Query()
+      .equalTo("name", '*')
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+      )
+
+    it 'should do greaterThan', ->
+      new Weaver.Query()
+      .greaterThan("age", 8)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'c')
+      )
+
+    it 'should do lessThan', ->
+      new Weaver.Query()
+      .lessThan("age", 8)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+      )
+
+    it 'should do greaterThanOrEqualTo', ->
+      new Weaver.Query()
+      .greaterThanOrEqualTo("age", 8)
+      .find().then((nodes) ->
+        console.log(nodes)
+        expect(nodes.length).to.equal(2)
+        checkNodeInResult(nodes, 'b')
+        checkNodeInResult(nodes, 'c')
+      )
+
+    it 'should do lessThanOrEqualTo', ->
+      new Weaver.Query()
+      .lessThanOrEqualTo("age", 8)
+      .find().then((nodes) ->
+        console.log(nodes)
+        expect(nodes.length).to.equal(2)
+        checkNodeInResult(nodes, 'a')
+        checkNodeInResult(nodes, 'b')
+      )
+
+    it 'should be able to combine greaterThan and lessThan', ->
+      new Weaver.Query()
+      .lessThan("age", 10)
+      .greaterThan("length", 5)
+      .find().then((nodes) ->
+        console.log nodes
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'b')
+      )
