@@ -104928,7 +104928,7 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "~0.0.29-SNAPSHOT-remove-nodes-unrecoverable",
+    "requiredConnectorVersion": "~0.0.29-SNAPSHOT-bigger-upload-size",
     "requiredServerVersion": "~3.1.0-beta.0"
   },
   "main": "lib/Weaver.js",
