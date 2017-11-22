@@ -1102,12 +1102,21 @@ describe 'WeaverQuery Test', ->
         Promise.all([a.save(), b.save(), c.save()])
       )
 
-    it.skip 'should do equalTo a wildcard', ->
+    it 'should do equalTo a wildcard', ->
       new Weaver.Query()
       .equalTo("name", '*')
       .find().then((nodes) ->
         expect(nodes.length).to.equal(1)
         checkNodeInResult(nodes, 'a')
+      )
+
+    it 'should do notEqualTo', ->
+      new Weaver.Query()
+      .notEqualTo("age", 8)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(2)
+        checkNodeInResult(nodes, 'a')
+        checkNodeInResult(nodes, 'c')
       )
 
     it 'should do greaterThan', ->
@@ -1130,7 +1139,6 @@ describe 'WeaverQuery Test', ->
       new Weaver.Query()
       .greaterThanOrEqualTo("age", 8)
       .find().then((nodes) ->
-        console.log(nodes)
         expect(nodes.length).to.equal(2)
         checkNodeInResult(nodes, 'b')
         checkNodeInResult(nodes, 'c')
@@ -1140,7 +1148,6 @@ describe 'WeaverQuery Test', ->
       new Weaver.Query()
       .lessThanOrEqualTo("age", 8)
       .find().then((nodes) ->
-        console.log(nodes)
         expect(nodes.length).to.equal(2)
         checkNodeInResult(nodes, 'a')
         checkNodeInResult(nodes, 'b')
@@ -1148,10 +1155,40 @@ describe 'WeaverQuery Test', ->
 
     it 'should be able to combine greaterThan and lessThan', ->
       new Weaver.Query()
-      .lessThan("age", 10)
-      .greaterThan("length", 5)
+      .lessThan("age", 12)
+      .greaterThan("age", 4)
       .find().then((nodes) ->
-        console.log nodes
         expect(nodes.length).to.equal(1)
         checkNodeInResult(nodes, 'b')
+      )
+
+    it 'should be able to combine greaterThanOrEqualTo and lessThan', ->
+      new Weaver.Query()
+      .lessThanOrEqualTo("age", 12)
+      .greaterThan("age", 4)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(2)
+        checkNodeInResult(nodes, 'b')
+        checkNodeInResult(nodes, 'c')
+      )
+
+    it 'should be able to combine greaterThan and lessThanOrEqualTo', ->
+      new Weaver.Query()
+      .lessThan("age", 12)
+      .greaterThanOrEqualTo("age", 4)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(2)
+        checkNodeInResult(nodes, 'a')
+        checkNodeInResult(nodes, 'b')
+      )
+
+    it 'should be able to combine greaterThanOrEqualTo and lessThanOrEqualTo', ->
+      new Weaver.Query()
+      .lessThanOrEqualTo("age", 12)
+      .greaterThanOrEqualTo("age", 4)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(3)
+        checkNodeInResult(nodes, 'a')
+        checkNodeInResult(nodes, 'b')
+        checkNodeInResult(nodes, 'c')
       )
