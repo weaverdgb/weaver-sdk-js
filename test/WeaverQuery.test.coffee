@@ -845,23 +845,6 @@ describe 'WeaverQuery Test', ->
       expect(nodes[0].relation('rec').nodes['b'].relation('rec').nodes['c'].relation('rec').nodes['d'].relation('rec').nodes['e'].get('name')).to.equal("toprec")
     )
 
-  it 'shoud support multiple recursive selectOut relations', ->
-    a = new Weaver.Node('a')
-    b = new Weaver.Node('b')
-    c = new Weaver.Node('c')
-    a.relation('selector').add(b)
-    a.relation('rec').add(b)
-    b.relation('test').add(c)
-    a.save().then( ->
-      new Weaver.Query()
-      .hasRelationOut('selector')
-      .selectRecursiveOut('rec', 'test')
-      .find()
-    ).then((nodes) ->
-      expect(nodes.length).to.equal(1)
-      expect(nodes[0].relation('rec').nodes['b'].relation('test').nodes['c']).to.exist
-    )
-
   it 'should deny any other user than root to execute a native query', ->
     query = "select * where { ?s ?p ?o }"
     q = new Weaver.Query()
@@ -1102,7 +1085,7 @@ describe 'WeaverQuery Test', ->
         Promise.all([a.save(), b.save(), c.save()])
       )
 
-    it 'should do equalTo a wildcard', ->
+    it.skip 'should do equalTo a wildcard', ->
       new Weaver.Query()
       .equalTo("name", '*')
       .find().then((nodes) ->
