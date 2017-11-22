@@ -169,16 +169,16 @@ class WeaverQuery
 
   hasNoRecursiveRelationIn: (key, node, includeSelf = false) ->
     @_addRecursiveCondition('$noRelIn', key, node, includeSelf)
-    
+
   hasNoRecursiveRelationOut: (key, node, includeSelf = false) ->
     @_addRecursiveCondition('$noRelOut', key, node, includeSelf)
 
   hasRecursiveRelationIn: (key, node, includeSelf = false) ->
     @_addRecursiveCondition('$relIn', key, node, includeSelf)
-    
+
   hasRecursiveRelationOut: (key, node, includeSelf = false) ->
     @_addRecursiveCondition('$relOut', key, node, includeSelf)
-    
+
   containedIn: (key, values) ->
     @_addCondition(key, '$in', values)
 

@@ -1085,7 +1085,7 @@ describe 'WeaverQuery Test', ->
         Promise.all([a.save(), b.save(), c.save()])
       )
 
-    it.skip 'should do equalTo a wildcard', ->
+    it 'should do equalTo a wildcard', ->
       new Weaver.Query()
       .equalTo("name", '*')
       .find().then((nodes) ->
