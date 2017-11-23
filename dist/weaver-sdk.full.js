@@ -105373,7 +105373,7 @@ module.exports = yeast;
 },{}],454:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "4.0.3",
+  "version": "4.1.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -105382,7 +105382,7 @@ module.exports={
   },
   "com_weaverplatform": {
     "requiredConnectorVersion": "~0.0.29 || ^4.0.0",
-    "requiredServerVersion": "^3.0.12"
+    "requiredServerVersion": "^3.1.0"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -105634,6 +105634,15 @@ module.exports={
       });
     };
 
+    CoreManager.prototype.reloadModel = function(name, version) {
+      return this.POST("model.reload", {
+        name: name,
+        version: version
+      }).then(function(model) {
+        return new Weaver.Model(model);
+      });
+    };
+
     CoreManager.prototype.createRole = function(role) {
       return this.POST("role.create", {
         role: role
@@ -105771,6 +105780,20 @@ module.exports={
     CoreManager.prototype.unfreezeProject = function(id) {
       return this.GET("project.unfreeze", {
         id: id
+      }, id);
+    };
+
+    CoreManager.prototype.addApp = function(id, app) {
+      return this.GET("project.app.add", {
+        id: id,
+        app: app
+      }, id);
+    };
+
+    CoreManager.prototype.removeApp = function(id, app) {
+      return this.GET("project.app.remove", {
+        id: id,
+        app: app
       }, id);
     };
 
@@ -107104,6 +107127,10 @@ module.exports={
       return Weaver.getCoreManager().getModel(name, version);
     };
 
+    WeaverModel.reload = function(name, version) {
+      return Weaver.getCoreManager().reloadModel(name, version);
+    };
+
     WeaverModel.prototype.bootstrap = function() {
       return new Weaver.Query().contains('id', this.definition.name + ":").find().then((function(_this) {
         return function(classes) {
@@ -108243,11 +108270,12 @@ module.exports={
   WeaverProject = (function() {
     WeaverProject.READY_RETRY_TIMEOUT = 200;
 
-    function WeaverProject(name1, projectId, acl1, _stored) {
+    function WeaverProject(name1, projectId, acl1, _stored, apps) {
       this.name = name1;
       this.projectId = projectId;
       this.acl = acl1;
       this._stored = _stored != null ? _stored : false;
+      this.apps = apps != null ? apps : {};
       this.name = this.name || 'unnamed';
       this.projectId = this.projectId || cuid();
     }
@@ -108304,6 +108332,25 @@ module.exports={
       return Weaver.getCoreManager().unfreezeProject(this.id());
     };
 
+    WeaverProject.prototype.addApp = function(app) {
+      this.apps[app] = true;
+      return Weaver.getCoreManager().addApp(this.id(), app);
+    };
+
+    WeaverProject.prototype.removeApp = function(app) {
+      delete this.apps[app];
+      return Weaver.getCoreManager().removeApp(this.id(), app);
+    };
+
+    WeaverProject.prototype.getApps = function() {
+      var name, results;
+      results = [];
+      for (name in this.apps) {
+        results.push(name);
+      }
+      return results;
+    };
+
     WeaverProject.prototype.getAllNodes = function(attributes) {
       return Weaver.getCoreManager().getAllNodes(attributes, this.id());
     };
@@ -108350,7 +108397,7 @@ module.exports={
         results = [];
         for (i = 0, len = list.length; i < len; i++) {
           p = list[i];
-          results.push(new Weaver.Project(p.name, p.id, p.acl, true));
+          results.push(new Weaver.Project(p.name, p.id, p.acl, true, p.apps));
         }
         return results;
       });
