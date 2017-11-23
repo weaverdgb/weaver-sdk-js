@@ -26,7 +26,7 @@ services:
     command: server /data
 
   weaver-server:
-    image: sysunite/weaver-server:3.0.12
+    image: sysunite/weaver-server:3.0.12-project-apps
     expose:
     - "9487"
     ports:
