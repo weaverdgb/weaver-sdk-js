@@ -26,6 +26,9 @@ class WeaverModelQuery extends Weaver.Query
       if ['_proto', '*'].includes(key)
         databaseKeys.push(key)
       else
+        if key.indexOf(".") is -1
+          throw new Error("Key should be in the form of ModelClass.key")
+
         [className, modelKey] = key.split(".")
         modelClass = @model[className]
         defintion  = modelClass.classDefinition
@@ -37,8 +40,14 @@ class WeaverModelQuery extends Weaver.Query
   _mapKey: (key, source) ->
     @_mapKeys([key], source)[0]
 
-  _addCondition: (key, condition, value) ->
+  _addAttributeCondition: (key, condition, value) ->
     super(@_mapKey(key, "attributes"), condition, value)
+
+  _addRelationCondition: (key, condition, value) ->
+    super(@_mapKey(key, "relations"), condition, value)
+
+  _addRecursiveCondition: (op, relation, node, includeSelf) ->
+    super(op, @_mapKey(relation, "relations"), node, includeSelf)
 
   equalTo: (key, value) ->
     super(@_mapKey(key, "attributes"), value)
