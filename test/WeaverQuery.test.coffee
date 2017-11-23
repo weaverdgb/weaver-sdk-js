@@ -1051,7 +1051,7 @@ describe 'WeaverQuery Test', ->
     )
     return
 
-  it 'should be able to check existance on a list of Weaver nodes', ->
+  it 'should be able to check existence on a list of Weaver nodes', ->
     a = new Weaver.Node('a');    b = new Weaver.Node('b')
     c = new Weaver.Node('c');    d = new Weaver.Node('d')
     e = new Weaver.Node('e');    f = new Weaver.Node('f')
@@ -1073,7 +1073,38 @@ describe 'WeaverQuery Test', ->
       )
     )
 
-  it 'should be able to check existance on a list of many Weaver nodes', ->
+  it 'should not find relations and attributes when checking existence on a list of nodes', ->
+    a = new Weaver.Node('a')
+    b = new Weaver.Node('b')
+    c = new Weaver.Node('c')
+    a.set('name', 'Mathieu')
+    b.relation("to").add(c, "d")
+    myNodes = [a,b]
+    Weaver.Node.batchSave([a,b,c])
+      .then(->
+        new Weaver.Query().findExistingNodes(myNodes).then((result) ->
+          expect(Object.keys(result).length).to.equal(2)
+          expect(result.a).to.be.true
+          expect(result.b).to.be.true
+        )
+      )
+
+  it 'should allow a node id to be found aswell as a node', ->
+    a = new Weaver.Node('a')
+    b = new Weaver.Node('b')
+    myNodes = [a,'b']
+    Weaver.Node.batchSave([a,b])
+      .then(->
+        new Weaver.Query().findExistingNodes(myNodes).then((result) ->
+          expect(Object.keys(result).length).to.equal(2)
+          expect(result.a).to.be.true
+          expect(result.b).to.be.true
+        )
+      )
+
+
+  # This test should only exist in a performance testing set
+  it.skip 'should be able to check existence on a list of many Weaver nodes', ->
     myNodes = []
     savedNodes = []
     i = 0

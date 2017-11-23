@@ -75,6 +75,12 @@ class WeaverQuery
         res[0]
     )
 
+  getNodeId: (node) ->
+    if util.isString(node)
+      node
+    else if node instanceof Weaver.Node
+      node.id()
+
   get: (node, Constructor) ->
     @restrict(node)
     @first(Constructor)
@@ -82,10 +88,7 @@ class WeaverQuery
   restrict: (nodes) ->
 
     addRestrict = (node) =>
-      if util.isString(node)
-        @_restrict.push(node)
-      else if node instanceof Weaver.Node
-        @_restrict.push(node.id())
+        @_restrict.push(@getNodeId(node))
 
     if util.isArray(nodes)
       @_restrict = [] # Clear
@@ -274,24 +277,24 @@ class WeaverQuery
   findExistingNodes: (nodes) ->
     map = {}
     @restrict(nodes)
-    @find().then((results)->
+    @find().then((results) =>
+      console.log(results)
       sortedNodes = _.sortBy(nodes, ['nodeId']);
       sortedResults = _.sortBy(results, ['nodeId']);
 
       #First set all nodes to false, follow loops will only check for true values
       for node in sortedNodes
-        map[node.id()] = false
+        map[@getNodeId(node)] = false
 
       # Algorithm to find all existing nodes, twice as fast as nested for loop on 10000 nodes.
       i = 0; j = 0
       while i < sortedNodes.length && j < sortedResults.length
-        if sortedNodes[i].id() == sortedResults[j].id()
-          map[sortedNodes[i].id()] = true
+        if @getNodeId(sortedNodes[i]) == @getNodeId(sortedResults[j])
+          map[@getNodeId(sortedNodes[i])] = true
           i++; j++
-        else if sortedNodes[i].id() < sortedResults[j].id()
+        else if @getNodeId(sortedNodes[i]) < @getNodeId(sortedResults[j])
           i++
         else j++
-    ).then(->
       map
     )
 
