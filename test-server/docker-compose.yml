@@ -6,7 +6,7 @@ services:
     - "5432"
 
   postgresql-connector:
-    image: sysunite/weaver-database-postgresql:0.0.30
+    image: sysunite/weaver-database-postgresql:0.0.31-SNAPSHOT-graphs
     links:
     - postgres
     expose:
