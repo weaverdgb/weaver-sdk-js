@@ -5,7 +5,7 @@ class WeaverProject
 
   @READY_RETRY_TIMEOUT: 200
 
-  constructor: (@name, @projectId, @acl, @_stored = false) ->
+  constructor: (@name, @projectId, @acl, @_stored = false, @apps = {}) ->
     @name = @name or 'unnamed'
     @projectId = @projectId or cuid()
 
@@ -45,16 +45,27 @@ class WeaverProject
 
   freeze: ->
     Weaver.getCoreManager().freezeProject(@id())
-    
+
   unfreeze: ->
     Weaver.getCoreManager().unfreezeProject(@id())
+
+  addApp: (app) ->
+    @apps[app] = true
+    Weaver.getCoreManager().addApp(@id(), app)
+
+  removeApp: (app) ->
+    delete @apps[app]
+    Weaver.getCoreManager().removeApp(@id(), app)
+
+  getApps: ->
+    (name for name of @apps)
 
   getAllNodes: (attributes)->
     Weaver.getCoreManager().getAllNodes(attributes, @id())
 
   getAllRelations:->
     Weaver.getCoreManager().getAllRelations(@id())
-    
+
   rename: (name) ->
     renamed = Weaver.getCoreManager().nameProject(@id(), name)
     @name = name
@@ -82,7 +93,7 @@ class WeaverProject
 
   @list: ->
     Weaver.getCoreManager().listProjects().then((list) ->
-      ( new Weaver.Project(p.name, p.id, p.acl, true) for p in list )
+      ( new Weaver.Project(p.name, p.id, p.acl, true, p.apps) for p in list )
     )
 
 module.exports = WeaverProject

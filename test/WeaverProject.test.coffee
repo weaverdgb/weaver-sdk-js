@@ -73,6 +73,20 @@ describe 'WeaverProject Test', ->
       weaver.useProject(p)
     )
 
+  it 'should add a project app', ->
+    p = weaver.currentProject()
+    p.addApp('someApp').then(->
+      assert.equal('someApp', p.getApps()[0])
+    )
+
+  it 'should remove a project app', ->
+    p = weaver.currentProject()
+    p.addApp('someApp').then(->
+      p.removeApp('someApp')
+    ).then(->
+      assert.equal(p.getApps().length, 0)
+    )
+
   it 'should freeze a project making writing impossible', ->
     weaver.currentProject().freeze().then(->
       (new Weaver.Node()).save().should.be.rejected
