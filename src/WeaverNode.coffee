@@ -8,9 +8,10 @@ WeaverError = require('./WeaverError')
 
 class WeaverNode
 
-  constructor: (@nodeId) ->
+  constructor: (@nodeId, @_graph) ->
     # Generate random id if not given
     @nodeId = cuid() if not @nodeId?
+    @_graph = 'default-graph' if not @_graph?
     @_stored = false       # if true, available in database, local node can hold unsaved changes
     @_loaded = false       # if true, all information from the database was localised on construction
     # Store all attributes and relations in these objects
@@ -392,6 +393,9 @@ class WeaverNode
       else
         Promise.reject("Cannot batch destroy nodes without any node")
     )
+
+  @setGraph: (name) ->
+    @_graph = name
 
   # TODO: Implement
   setACL: (acl) ->
