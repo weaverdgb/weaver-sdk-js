@@ -10,7 +10,7 @@ class WeaverModel
 
     # Register classes
     for className, classDefinition of @definition.classes
-      
+
       js = """
         (function() {
           function #{className}(nodeId) {
@@ -44,6 +44,9 @@ class WeaverModel
   # Load given model from server
   @load: (name, version) ->
     Weaver.getCoreManager().getModel(name, version)
+
+  @reload: (name, version) ->
+    Weaver.getCoreManager().reloadModel(name, version)
 
   bootstrap: ->
     new Weaver.Query()
