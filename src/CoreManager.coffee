@@ -122,6 +122,11 @@ class CoreManager
       new Weaver.Model(model)
     )
 
+  reloadModel: (name, version) ->
+    @POST("model.reload", {name, version}).then((model) ->
+      new Weaver.Model(model)
+    )
+
   createRole: (role) ->
     @POST("role.create", {role})
 
