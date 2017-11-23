@@ -77,6 +77,9 @@ class WeaverProject
   getACL: ->
     Weaver.getCoreManager().getACL(@projectId)
 
+  compatibleApps: ->
+    Weaver.getCoreManager().getCompatibleApps(@projectId)
+
   @list: ->
     Weaver.getCoreManager().listProjects().then((list) ->
       ( new Weaver.Project(p.name, p.id, p.acl, true) for p in list )
