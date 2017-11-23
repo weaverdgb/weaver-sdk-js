@@ -873,13 +873,3 @@ describe 'WeaverNode test', ->
     ).finally(
       weaver.setOptions({unrecoverableRemove: false})
     )
-
-  it.skip 'should add graph options to nodes', -> #Final test
-    node = new Weaver.Node(cuid(), 'first-graph')
-    node.relation('link', 'second-graph').add(target)
-    node.set('age', 41, 'third-graph')
-    node.save().then( ->
-      Weaver.Node.load(node.id())
-    ).then((result) ->
-      expect(result.graph).to.be.defined()
-    )
