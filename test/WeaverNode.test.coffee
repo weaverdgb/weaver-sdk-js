@@ -804,21 +804,6 @@ describe 'WeaverNode test', ->
       weaver.setOptions({unrecoverableRemove: false})
     )
 
-  it 'should be possible to get write operations from a node when weaver is not instantiated', ->
-    instance = Weaver.instance
-    Weaver.instance = undefined
-    try
-
-      node = new Weaver.Node('jim')
-      node.set('has', 'beans')
-
-      operations = node.peekPendingWrites()
-      expect(operations).to.have.length(2)
-    finally
-      Weaver.instance = instance
-
-
-
   it 'should be able to delete a node unrecoverable by setting it as a parameter', ->
     node = new Weaver.Node()
     id = node.id()
@@ -874,6 +859,18 @@ describe 'WeaverNode test', ->
       weaver.setOptions({unrecoverableRemove: false})
     )
 
+  it 'should add create and remove statements to pendingWrites with graphs', ->
+    node = new Weaver.Node('node1', 'first-graph')
+    target = new Weaver.Node(null, 'second-graph')
+    target2 = new Weaver.Node(null, 'third-graph')
+    node.relation('link').add(target)
+    node.relation('link').add(target2)
+    node.set('age', 41, 'double', null, 'fourth-graph')
+    node.destroy()
+    expect(node.pendingWrites[0].graph).to.equal('first-graph')
+    expect(target.pendingWrites[0].graph).to.equal('second-graph')
+    expect(node.pendingWrites[1].graph).to.equal('fourth-graph')
+
   it.skip 'should add graph options to nodes', -> #Final test
     node = new Weaver.Node(cuid(), 'first-graph')
     node.relation('link', 'second-graph').add(target)
@@ -881,5 +878,5 @@ describe 'WeaverNode test', ->
     node.save().then( ->
       Weaver.Node.load(node.id())
     ).then((result) ->
-      expect(result.graph).to.be.defined()
+      expect(result.graph).to.be.defined
     )

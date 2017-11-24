@@ -1,5 +1,6 @@
 Weaver = require('./Weaver')
 cuid   = require('cuid')
+util   = require('./util')
 
 NodeOperation = (node) ->
   if Weaver.instance?
@@ -7,32 +8,35 @@ NodeOperation = (node) ->
   else
     timestamp = new Date().getTime()
 
-  createNode: ->
+  createNode: (graph)->
     {
       timestamp
       action: "create-node"
       id: node.id()
+      graph: graph
     }
 
-  removeNode: ->
+  removeNode: (graph)->
     {
       timestamp
       cascade: true
       action: "remove-node"
       id: node.id()
       removeId: cuid()
+      removeGraph: graph
     }
 
-  removeNodeUnrecoverable: ->
+  removeNodeUnrecoverable: (graph) ->
     {
       timestamp
       cascade: true
       action: "remove-node-unrecoverable"
       id: node.id()
       removeId: cuid()
+      removeGraph: graph
     }
 
-  createAttribute: (key, value, datatype, replaces, ignoreConcurrentReplace) ->
+  createAttribute: (key, value, datatype, replaces, ignoreConcurrentReplace, graph) ->
     replaceId = null
     replaceId = cuid() if replaces?
 
@@ -47,6 +51,7 @@ NodeOperation = (node) ->
       replacesId: replaces
       replaceId
       traverseReplaces: ignoreConcurrentReplace if replaces? and ignoreConcurrentReplace?
+      graph: graph
     }
 
   removeAttribute: (id) ->
@@ -59,6 +64,7 @@ NodeOperation = (node) ->
     }
 
   createRelation: (key, to, id, replaces, ignoreConcurrentReplace) ->
+    replacesId = replaces.id() if !util.isString(replaces) if replaces?
     replaceId = null
     replaceId = cuid() if replaces?
     throw new Error("Unable to set relation #{key} from #{node.id()} to null node") if !to?
@@ -68,10 +74,13 @@ NodeOperation = (node) ->
       id
       sourceId: node.id()
       key
-      targetId: to
-      replacesId: replaces
+      targetId: to.id()
+      replacesId: replacesId
       replaceId
       traverseReplaces: ignoreConcurrentReplace if replaces? and ignoreConcurrentReplace?
+      graph: node.getGraph()
+      targetGraph: to.getGraph()
+      replacesGraph: replaces.getGraph() if replaces.getGraph()? if replaces
     }
 
   removeRelation: (id) ->

@@ -18,8 +18,9 @@ class WeaverNode
     @attributes = {}
     @relations  = {}
 
+
     # All operations that need to get saved
-    @pendingWrites = [Operation.Node(@).createNode()]
+    @pendingWrites = [Operation.Node(@).createNode(@_graph)]
 
     Weaver.publish('node.created', @)
 
@@ -76,7 +77,7 @@ class WeaverNode
   # Node creating for in queries
   @get: (nodeId, Constructor) ->
     Constructor = WeaverNode if not Constructor?
-    node = new Constructor(nodeId)
+    node = new Constructor(nodeId, @_graph)
     node._clearPendingWrites()
     node
 
@@ -85,7 +86,7 @@ class WeaverNode
       .get(nodeId, Constructor)
       .catch(->
         Constructor = WeaverNode if not Constructor?
-        new Constructor(nodeId).save()
+        new Constructor(nodeId, @_graph).save()
       )
 
   # Return id
@@ -109,9 +110,14 @@ class WeaverNode
     else
       return fieldArray
 
+  setGraph: (value) ->
+    @_graph = value
+
+  getGraph: ->
+    @_graph
 
 
-  set: (field, value, dataType, options) ->
+  set: (field, value, dataType, options, graph) ->
     if field is 'id'
       throw Error("Attribute 'id' cannot be set or updated")
 
@@ -136,6 +142,7 @@ class WeaverNode
       node: @
       field,
       value: value
+      graph: graph
     }
 
     if @attributes[field]?
@@ -146,10 +153,10 @@ class WeaverNode
       eventData.oldValue = oldAttribute.value
 
       eventMsg += '.update'
-      newAttributeOperation = Operation.Node(@).createAttribute(field, value, dataType, oldAttribute.nodeId, Weaver.getInstance()._ignoresOutOfDate if !options?.ignoresOutOfDate?)
+      newAttributeOperation = Operation.Node(@).createAttribute(field, value, dataType, oldAttribute.nodeId, Weaver.getInstance()._ignoresOutOfDate if !options?.ignoresOutOfDate?, graph)
     else
       eventMsg += '.set'
-      newAttributeOperation = Operation.Node(@).createAttribute(field, value, dataType)
+      newAttributeOperation = Operation.Node(@).createAttribute(field, value, dataType, null, null, graph)
 
     newAttribute = {
       nodeId: newAttributeOperation.id
@@ -159,6 +166,7 @@ class WeaverNode
       created: newAttributeOperation.timestamp
       attributes: {}
       relations: {}
+      graph: graph
     }
 
     @attributes[field] = [newAttribute]
@@ -358,7 +366,7 @@ class WeaverNode
 
       if (Weaver.getInstance()._unrecoverableRemove or unrecoverableRemove)
         if @nodeId?
-          cm.executeOperations([Operation.Node(@).removeNodeUnrecoverable()], project).then(=>
+          cm.executeOperations([Operation.Node(@).removeNodeUnrecoverable(@_graph)], project).then(=>
             Weaver.publish('node.destroyed', @id())
             delete @[key] for key of @
             undefined
@@ -367,7 +375,7 @@ class WeaverNode
           undefined
       else
         if @nodeId?
-          cm.executeOperations([Operation.Node(@).removeNode()], project).then(=>
+          cm.executeOperations([Operation.Node(@).removeNode(@_graph)], project).then(=>
             Weaver.publish('node.destroyed', @id())
             delete @[key] for key of @
             undefined
@@ -382,7 +390,7 @@ class WeaverNode
     cm.enqueue(=>
       if array? and array.length isnt 0
         try
-          destroyOperations = (Operation.Node(node).removeNode() for node in array)
+          destroyOperations = (Operation.Node(node).removeNode(@_graph) for node in array)
           cm.executeOperations(destroyOperations, project).then(=>
             Promise.resolve()
           ).catch((e) =>
@@ -393,9 +401,6 @@ class WeaverNode
       else
         Promise.reject("Cannot batch destroy nodes without any node")
     )
-
-  @setGraph: (name) ->
-    @_graph = name
 
   # TODO: Implement
   setACL: (acl) ->
