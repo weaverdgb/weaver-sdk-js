@@ -10,6 +10,12 @@ describe 'WeaverModel test', ->
       assert.equal(Model.definition.version, "1.0.0")
     )
 
+  it 'should reload a model from the server', ->
+    Weaver.Model.reload("test-model", "1.0.0").then((Model) ->
+      assert.equal(Model.definition.name,    "test-model")
+      assert.equal(Model.definition.version, "1.0.0")
+    )
+
   it 'should fail on a not existing model', ->
     Weaver.Model.load("ghost-model", "1.0.0").then((Model) ->
       assert(false)
