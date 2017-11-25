@@ -9,21 +9,24 @@ class WeaverModelQuery extends Weaver.Query
 
     # Define constructor function
     @useConstructor((node) =>
-      if node.relation('_proto').first()?
-        [modelName, className] = node.relation('_proto').first().id().split(":")
+      if node.relation(@protoKey()).first()?
+        [modelName, className] = node.relation(@protoKey()).first().id().split(":")
         @model[className]
       else
         Weaver.Node
     )
 
+  protoKey: ->
+    @model.definition.proto or '_proto'
+
   class: (modelClass) ->
-    @hasRelationOut("_proto", modelClass.classId())
+    @hasRelationOut(@protoKey(), modelClass.classId())
 
   # Key is composed of Class.modelAttribute
   _mapKeys: (keys, source) ->
     databaseKeys = []
     for key in keys
-      if ['_proto', '*'].includes(key)
+      if [@protoKey(), '*'].includes(key)
         databaseKeys.push(key)
       else
         if key.indexOf(".") is -1
@@ -65,8 +68,8 @@ class WeaverModelQuery extends Weaver.Query
     super(key) for key in @_mapKeys(keys, "relations")
 
   find: (Constructor) ->
-    # Always get the _proto relation to map to the correct modelclass
-    @alwaysLoadRelations('_proto')
+    # Always get the proto relation to map to the correct modelclass
+    @alwaysLoadRelations(@protoKey())
 
     super(Constructor)
 

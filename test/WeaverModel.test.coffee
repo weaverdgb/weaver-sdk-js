@@ -41,7 +41,24 @@ describe 'WeaverModel test', ->
     it 'should set the type definition to the model class', ->
       Person = model.Person
       person = new Person()
+      assert.equal(person.relation(person.protoKey()).first().id(), "#{model.definition.name}:#{person.className}")
+      assert.equal(person.proto().id(), "#{model.definition.name}:#{person.className}")
+
+    it 'should be able to configure the proto relation', ->
+      originalProto = model.definition.proto
+      model.definition.proto = "proto:rel"
+      Person = model.Person
+      person = new Person()
+      assert.equal(person.relation("proto:rel").first().id(), "#{model.definition.name}:#{person.className}")
+      model.definition.proto = originalProto
+
+    it 'should fallback to the default _proto relation', ->
+      originalProto = model.definition.proto
+      delete model.definition.proto
+      Person = model.Person
+      person = new Person()
       assert.equal(person.relation("_proto").first().id(), "#{model.definition.name}:#{person.className}")
+      model.definition.proto = originalProto
 
     it 'should set attributes on model instances', ->
       Person = model.Person

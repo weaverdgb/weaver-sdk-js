@@ -9,7 +9,13 @@ class WeaverModelClass extends Weaver.Node
     @totalClassDefinition = @_collectFromSupers()
 
     # Add type definition to model class
-    @relation("_proto").add(Weaver.Node.get(@classId()))
+    @relation(@protoKey()).add(Weaver.Node.get(@classId()))
+
+  protoKey: ->
+    @model.definition.proto or '_proto'
+
+  proto: ->
+    @relation(@protoKey()).first()
 
   classId: ->
     "#{@definition.name}:#{@className}"
@@ -58,8 +64,8 @@ class WeaverModelClass extends Weaver.Node
     super(@_getAttributeKey(field), value)
 
   relation: (key) ->
-    # Return when using a special relation like _proto
-    return super(key) if ["_proto"].includes(key)
+    # Return when using a special relation like the proto relation
+    return super(key) if [@protoKey()].includes(key)
 
     databaseKey = @_getRelationKey(key)
 
