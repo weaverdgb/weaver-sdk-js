@@ -41,7 +41,7 @@ describe 'WeaverNode test', ->
     ).then(->
       Weaver.Node.load(a)
     ).then((res)->
-      assert.isUndefined(res.relations.link)
+      assert.isUndefined(res._relations.link)
     )
 
   it 'should propagate delete to relations (part 2)', ->
@@ -293,7 +293,7 @@ describe 'WeaverNode test', ->
 
     a.save().then(->
       Weaver.Node.load(a.id())
-    ).should.eventually.have.property('relations')
+    ).should.eventually.have.property('_relations')
         .with.property('rel')
         .with.property('nodes')
 

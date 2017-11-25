@@ -47,16 +47,16 @@ describe 'WeaverModel test', ->
       Person = model.Person
       person = new Person()
       person.set('fullName', "John Doe")
-      assert.isDefined(person.attributes.hasFullName)
-      assert.isUndefined(person.attributes.fullName)
+      assert.isDefined(person._attributes.hasFullName)
+      assert.isUndefined(person._attributes.fullName)
 
     it 'should get attributes on model instances', ->
       Person = model.Person
       person = new Person()
       person.set('fullName', "John Doe")
       assert.equal(person.get('fullName'), "John Doe")
-      assert.isDefined(person.attributes.hasFullName)
-      assert.isUndefined(person.attributes.fullName)
+      assert.isDefined(person._attributes.hasFullName)
+      assert.isUndefined(person._attributes.fullName)
 
     it 'should set attributes on model instances by inheritance', ->
       c = new model.Country()
@@ -167,3 +167,17 @@ describe 'WeaverModel test', ->
         b.relation("buildBy").add(p1)
         b.relation("buildBy").add(p2)
         b.save()
+
+      it 'should list attributes', ->
+        p1 = new model.Person()
+        p1.set("fullName", "Hola 1")
+
+        assert.equal(p1.attributes()['fullName'], 'Hola 1')
+
+      it 'should list relations', ->
+        b = new model.Building()
+        p = new model.Person("personId")
+        p.set("fullName", "Hola 1")
+        b.relation("buildBy").add(p)
+      
+        assert.equal(b.relations()['buildBy'].first().id(), 'personId')

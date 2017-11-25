@@ -111,8 +111,8 @@ describe 'WeaverQuery with single Network', ->
     .equalTo('theme', 'forest')
     .select('name').find().then((result) ->
       expect(result).to.have.length.be(1)
-      expect(result[0]).to.have.property('attributes').to.have.property('name')
-      expect(result[0]).to.have.property('attributes').to.not.have.property('theme')
+      expect(result[0]).to.have.property('_attributes').to.have.property('name')
+      expect(result[0]).to.have.property('_attributes').to.not.have.property('theme')
     )
 
   it 'should extend selects to selectOut nodes', ->
@@ -122,12 +122,12 @@ describe 'WeaverQuery with single Network', ->
     .selectOut('is-a').find().then((result)->
       expect(result).to.have.length.be(1)
       expect(result[0]).to.have.property('_loaded').equal(false)
-      expect(result[0]).to.have.property('relations').to.have.property('is-a')
-      types = result[0].relations['is-a'].all()
+      expect(result[0]).to.have.property('_relations').to.have.property('is-a')
+      types = result[0]._relations['is-a'].all()
       expect(types).to.have.length.be(1)
       expect(types[0]).to.have.property('_loaded').equal(false)
-      expect(types[0]).to.have.property('attributes').to.have.property('description')
-      expect(types[0]).to.have.property('attributes').to.not.have.property('objectiveValue')
+      expect(types[0]).to.have.property('_attributes').to.have.property('description')
+      expect(types[0]).to.have.property('_attributes').to.not.have.property('objectiveValue')
     )
 
   it 'should extend selects to recursive select out nodes', ->
@@ -137,18 +137,18 @@ describe 'WeaverQuery with single Network', ->
     .selectRecursiveOut('is-a').find().then((result)->
       expect(result).to.have.length.be(1)
       expect(result[0]).to.have.property('_loaded').equal(false)
-      expect(result[0]).to.have.property('relations').to.have.property('is-a')
-      types = result[0].relations['is-a'].all()
+      expect(result[0]).to.have.property('_relations').to.have.property('is-a')
+      types = result[0]._relations['is-a'].all()
       expect(types).to.have.length.be(1)
       expect(types[0]).to.have.property('_loaded').equal(false)
-      expect(types[0]).to.have.property('attributes').to.have.property('description')
-      expect(types[0]).to.have.property('attributes').to.not.have.property('objectiveValue')
-      expect(types[0]).to.have.property('relations').to.have.property('is-a')
-      parentTypes = result[0].relations['is-a'].all()
+      expect(types[0]).to.have.property('_attributes').to.have.property('description')
+      expect(types[0]).to.have.property('_attributes').to.not.have.property('objectiveValue')
+      expect(types[0]).to.have.property('_relations').to.have.property('is-a')
+      parentTypes = result[0]._relations['is-a'].all()
       expect(parentTypes).to.have.length.be(1)
       expect(parentTypes[0]).to.have.property('_loaded').equal(false)
-      expect(parentTypes[0]).to.have.property('attributes').to.have.property('description')
-      expect(parentTypes[0]).to.have.property('attributes').to.not.have.property('could-be-electric')
+      expect(parentTypes[0]).to.have.property('_attributes').to.have.property('description')
+      expect(parentTypes[0]).to.have.property('_attributes').to.not.have.property('could-be-electric')
     )
 
   it 'should mark nodes loaded with a select as non-loaded', ->
@@ -163,20 +163,20 @@ describe 'WeaverQuery with single Network', ->
 
   it 'should mark nodes not loaded nodes as non-loaded', ->
     new Weaver.Query().restrict(ferrari.id()).find().then((res) ->
-      expect(res[0].relations['is-a'].all()[0]).to.have.property('_loaded').equal(false)
+      expect(res[0]._relations['is-a'].all()[0]).to.have.property('_loaded').equal(false)
     )
 
   it 'should mark selectOut nodes loaded without a select as loaded', ->
     new Weaver.Query().restrict(ferrari.id()).selectOut('is-a').find().then((res) ->
-      loadedCar = res[0].relations['is-a'].all()[0]
+      loadedCar = res[0]._relations['is-a'].all()[0]
       expect(loadedCar).to.have.property('_loaded').to.equal(true)
     )
 
   it 'should mark selectRecursiveOut nodes loaded without a select as loaded', ->
     new Weaver.Query().restrict(ferrari.id()).selectRecursiveOut('is-a').find().then((res) ->
-      loadedCar = res[0].relations['is-a'].all()[0]
+      loadedCar = res[0]._relations['is-a'].all()[0]
       expect(loadedCar).to.have.property('_loaded').to.equal(true)
-      loadedMotorizedVehicle = loadedCar.relations['is-a'].all()[0]
+      loadedMotorizedVehicle = loadedCar._relations['is-a'].all()[0]
       expect(loadedMotorizedVehicle).to.have.property('_loaded').to.equal(true)
     )
 
@@ -190,11 +190,11 @@ describe 'WeaverQuery with single Network', ->
     new Weaver.Query().alwaysLoadRelations('is-brand-of').restrict(ferrari.id()).find().then((nodes) ->
       expect(i.id() for i in nodes).to.eql([ferrari.id()])
       expect(nodes[0])
-      .to.have.property('relations')
+      .to.have.property('_relations')
       .to.have.property('hasTires')
       .to.have.property('nodes')
       .to.have.property(pirelli.id())
-      .to.have.property('relations')
+      .to.have.property('_relations')
       .to.have.property('is-brand-of')
       .to.have.property('nodes')
       .to.have.property(wheel.id())
@@ -204,15 +204,15 @@ describe 'WeaverQuery with single Network', ->
     new Weaver.Query().selectOut('drives').alwaysLoadRelations('is-brand-of').restrict(vettel.id()).find().then((nodes) ->
       expect(i.id() for i in nodes).to.eql([vettel.id()])
       expect(nodes[0])
-      .to.have.property('relations')
+      .to.have.property('_relations')
       .to.have.property('drives')
       .to.have.property('nodes')
       .to.have.property(ferrari.id())
-      .to.have.property('relations')
+      .to.have.property('_relations')
       .to.have.property('hasTires')
       .to.have.property('nodes')
       .to.have.property(pirelli.id())
-      .to.have.property('relations')
+      .to.have.property('_relations')
       .to.have.property('is-brand-of')
       .to.have.property('nodes')
       .to.have.property(wheel.id())

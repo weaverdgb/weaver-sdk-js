@@ -51,6 +51,24 @@ class WeaverModelClass extends Weaver.Node
 
     @totalClassDefinition.relations[key].key or key
 
+  attributes: ->
+    return {} if not @totalClassDefinition.attributes?
+
+    attributes = {}
+    for key, definiton of @totalClassDefinition.attributes
+      attributes[key] = @get(key)
+
+    attributes
+
+  relations: ->
+    return {} if not @totalClassDefinition.relations?
+
+    relations = {}
+    for key, definiton of @totalClassDefinition.relations
+      relations[key] = @relation(key)
+
+    relations
+
   get: (field) ->
     super(@_getAttributeKey(field))
 
