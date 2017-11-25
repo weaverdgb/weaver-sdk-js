@@ -73,6 +73,20 @@ describe 'WeaverProject Test', ->
       weaver.useProject(p)
     )
 
+  it 'should add a project app', ->
+    p = weaver.currentProject()
+    p.addApp('someApp').then(->
+      assert.equal('someApp', p.getApps()[0])
+    )
+
+  it 'should remove a project app', ->
+    p = weaver.currentProject()
+    p.addApp('someApp').then(->
+      p.removeApp('someApp')
+    ).then(->
+      assert.equal(p.getApps().length, 0)
+    )
+
   it 'should freeze a project making writing impossible', ->
     weaver.currentProject().freeze().then(->
       (new Weaver.Node()).save().should.be.rejected
@@ -137,7 +151,7 @@ describe 'WeaverProject Test', ->
     weaver.signOut().then(->weaver.coreManager.readyProject(weaver.currentProject().projectId)).should.be.rejected
 
   it 'should allow checking project readyness for admin' , ->
-    weaver.coreManager.readyProject(weaver.currentProject().projectId).should.eventually.eql({ready: true})
+    weaver.coreManager.readyProject(weaver.currentProject().projectId).should.eventually.contain({ready: true})
 
   it 'should allow checking project readyness for regular users with access' , ->
     testUser = new Weaver.User('testuser', 'testpassword', 'test@example.com')
@@ -151,7 +165,7 @@ describe 'WeaverProject Test', ->
       weaver.signInWithUsername('testuser', 'testpassword')
     ).then(->
       weaver.coreManager.readyProject(weaver.currentProject().projectId)
-    ).should.eventually.eql({ready: true})
+    ).should.eventually.contain({ready: true})
 
 
   it 'should not allow unauthorized snapshots', ->
@@ -194,16 +208,15 @@ describe 'WeaverProject Test', ->
     c.relation('link').add(d)
     Promise.all([a.save(), b.save(), c.save(), d.save()]).then(->
       p.getSnapshot(true)
-    ).then((dump)->
-      assert.include(dump, ".gz")
+    ).then((file)->
+      assert.include(file.name, ".gz")
     )
 
   it 'should upload and execute a zip with writeoperations', ->
-    weaverFile = new Weaver.File()
-    fileTemp = path.join(__dirname,'../test-write-operations.gz')
-    weaverFile.saveFile(fileTemp, 'test-write-operations.gz').then((filename)->
+    weaverFile = new Weaver.File(path.join(__dirname,'../test-write-operations.gz'))
+    weaverFile.upload().then((file)->
       p = weaver.currentProject()
-      p.executeZip(filename)
+      p.executeZip(file.id())
     ).then(->
       Weaver.Node.load("cj7a73kr000036dp4jbxqq3n4")
     ).then(->

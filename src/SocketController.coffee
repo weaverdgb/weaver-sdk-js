@@ -2,6 +2,8 @@
 io       = require('socket.io-client')
 Promise  = require('bluebird')
 pjson    = require('../package.json')
+Weaver   = require('./Weaver')
+ss       = require('socket.io-stream')
 
 class SocketController
 
@@ -17,7 +19,12 @@ class SocketController
   connect: ->
     new Promise((resolve, reject) =>
       @io = io.connect(@address, @options)
-      @io.on('connect', ->
+
+      @io.on('socket.shout', (msg) ->
+        Weaver.publish('socket.shout', msg)
+      )
+
+      @io.on('connect', =>
         resolve()
       ).on('connect_error', ->
         reject('connect_error')
@@ -30,20 +37,43 @@ class SocketController
 
   emit: (key, body) ->
     new Promise((resolve, reject) =>
-      @io.emit(key, JSON.stringify(body), (response) ->
+      emitStart = Date.now()
+      if body.type isnt 'STREAM'
+        body = JSON.stringify(body)
+        socket = @io
+      else
+        socket = ss(@io)
+
+      socket.emit(key, body, (response) =>
         if response.code? and response.message?
-          reject(new Error(response.message, response.code))
+          error = new Error(response.message)
+          error.code = response.code
+          reject(error)
         else if response is 0
           resolve()
         else
           resolve(response)
+        @_calculateTimestamps(response, emitStart, Date.now())
       )
     )
+
+  _calculateTimestamps: (response, emitStart, emitEnd) ->
+    # response.serverEnterTimestamp = response.serverStart
+    response.sdkToServer  = response.serverStart - emitStart
+    response.innerServerDelay = response.serverStartConnector - response.serverStart
+    response.serverToConn = response.executionTimeStart - response.serverStartConnector
+    response.connToServer = response.serverEnd - response.processingTimeEnd
+    response.serverToSdk  = emitEnd - response.serverEnd
+    response.totalTime = emitEnd - emitStart
+    response
 
   GET: (path, body) ->
     @emit(path, body)
 
   POST: (path, body) ->
+    @emit(path, body)
+
+  STREAM: (path, body) ->
     @emit(path, body)
 
 module.exports = SocketController

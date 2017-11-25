@@ -4,6 +4,7 @@ Weaver      = require('./Weaver')
 util        = require('./util')
 _           = require('lodash')
 Promise     = require('bluebird')
+WeaverError = require('./WeaverError')
 
 class WeaverNode
 
@@ -109,23 +110,25 @@ class WeaverNode
 
 
 
-  set: (field, value) ->
+  set: (field, value, dataType, options) ->
     if field is 'id'
       throw Error("Attribute 'id' cannot be set or updated")
 
     # Get attribute datatype, TODO: Support date
-    dataType = null
-    if util.isString(value)
-      dataType = 'string'
-    else if util.isNumber(value)
-      dataType = 'double'
-    else if util.isBoolean(value)
-      dataType = 'boolean'
-    else if util.isDate(value)
-      dataType = 'date'
-      value = value.getTime()
-    else
-      throw Error("Unsupported datatype for value " + value)
+    if not dataType?
+      if util.isString(value)
+        dataType = 'string'
+      else if util.isNumber(value)
+        dataType = 'double'
+      else if util.isBoolean(value)
+        dataType = 'boolean'
+      else if util.isDate(value)
+        dataType = 'date'
+        value = value.getTime()
+      else
+        throw Error("Unsupported datatype for value " + value)
+
+    # TODO validate dataType
 
     eventMsg  = 'node.attribute'
     eventData = {
@@ -142,7 +145,7 @@ class WeaverNode
       eventData.oldValue = oldAttribute.value
 
       eventMsg += '.update'
-      newAttributeOperation = Operation.Node(@).createAttribute(field, value, dataType, oldAttribute.nodeId, Weaver.getInstance()._ignoresOutOfDate)
+      newAttributeOperation = Operation.Node(@).createAttribute(field, value, dataType, oldAttribute.nodeId, Weaver.getInstance()._ignoresOutOfDate if !options?.ignoresOutOfDate?)
     else
       eventMsg += '.set'
       newAttributeOperation = Operation.Node(@).createAttribute(field, value, dataType)
@@ -165,20 +168,46 @@ class WeaverNode
 
 
   # Update attribute by incrementing the value, the result depends on concurrent requests, so check the result
-  increment: (field, value, project) ->
-
+  increment: (field, value = 1, project) ->
+    Weaver.getInstance()._ignoresOutOfDate = false
     if not @attributes[field]?
       throw new Error("There is no field " + field + " to increment")
     if typeof value isnt 'number'
       throw new Error("Field " + field + " is not a number")
 
     currentValue = @get(field)
-    @set(field, currentValue + value)
+    pendingNewValue = currentValue + value
+    @set(field, pendingNewValue)
 
     # To be backwards compatible, but its better not to save here
-    @save().then(->
+    @save().then(=>
       # Return the incremented value
-      currentValue + value
+      pendingNewValue
+    ).catch((error) =>
+      if (error.code == WeaverError.WRITE_OPERATION_INVALID)
+        index = @pendingWrites.map((o) => o.key).indexOf(field) # find failed operation
+        @pendingWrites.splice(index, 1) if index > -1 # remove failing operation, otherwise the save() keeps on failing on this node
+        @_incrementOfOutSync(field, value, project)
+      else
+        Promise.reject()
+    )
+
+  _incrementOfOutSync: (field, value, project) ->
+
+    new Weaver.Query()
+    .select(field)
+    .restrict(@id())
+    .first()
+    .then((loadedNode) =>
+      currentValue = loadedNode.get(field)
+      pendingNewValue = currentValue + value
+      loadedNode.set(field, pendingNewValue)
+
+      # To be backwards compatible, but its better not to save here
+      loadedNode.save().then(->
+        # Return the incremented value
+        pendingNewValue
+      )
     )
 
 
@@ -203,8 +232,8 @@ class WeaverNode
 
 
   # Create a new Relation
-  relation: (key) ->
-    @relations[key] = new Weaver.Relation(@, key) if not @relations[key]?
+  relation: (key, Constructor = Weaver.Relation) ->
+    @relations[key] = new Constructor(@, key) if not @relations[key]?
     @relations[key]
 
 
@@ -321,18 +350,47 @@ class WeaverNode
       )
     )
 
-  # Removes node
-  destroy: (project) ->
+  # Removes node, with the option to remove it unrecoverable
+  destroy: (project, unrecoverableRemove = false) ->
     cm = Weaver.getCoreManager()
     cm.enqueue( =>
-      if @nodeId?
-        cm.executeOperations([Operation.Node(@).removeNode()], project).then(=>
-          Weaver.publish('node.destroyed', @id())
-          delete @[key] for key of @
+
+      if (Weaver.getInstance()._unrecoverableRemove or unrecoverableRemove)
+        if @nodeId?
+          cm.executeOperations([Operation.Node(@).removeNodeUnrecoverable()], project).then(=>
+            Weaver.publish('node.destroyed', @id())
+            delete @[key] for key of @
+            undefined
+          )
+        else
           undefined
-        )
       else
-        undefined
+        if @nodeId?
+          cm.executeOperations([Operation.Node(@).removeNode()], project).then(=>
+            Weaver.publish('node.destroyed', @id())
+            delete @[key] for key of @
+            undefined
+          )
+        else
+          undefined
+    )
+
+  # Removes nodes in batch
+  @batchDestroy: (array, project) ->
+    cm = Weaver.getCoreManager()
+    cm.enqueue(=>
+      if array? and array.length isnt 0
+        try
+          destroyOperations = (Operation.Node(node).removeNode() for node in array)
+          cm.executeOperations(destroyOperations, project).then(=>
+            Promise.resolve()
+          ).catch((e) =>
+            Promise.reject(e)
+          )
+        catch error
+          Promise.reject(error)
+      else
+        Promise.reject("Cannot batch destroy nodes without any node")
     )
 
   # TODO: Implement

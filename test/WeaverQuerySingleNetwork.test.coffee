@@ -12,6 +12,10 @@ describe 'WeaverQuery with single Network', ->
   ferrari          = new Weaver.Node()
   car              = new Weaver.Node()
   motorizedVehicle = new Weaver.Node()
+  wheel            = new Weaver.Node()
+  pirelli          = new Weaver.Node()
+  vettel           = new Weaver.Node()
+  hamilton         = new Weaver.Node()
 
   tree.set('testset', '1')
 
@@ -35,17 +39,30 @@ describe 'WeaverQuery with single Network', ->
   ferrari.relation('is-a').add(car)
   car.relation('is-a').add(motorizedVehicle)
 
+  wheel.set('testset', '2')
+  pirelli.set('testset', '2')
+
+  pirelli.relation('is-brand-of').add(wheel)
+  ferrari.relation('hasTires').add(pirelli)
+
+  vettel.set('testset', '2')
+  vettel.relation('drives').add(ferrari)
+
+  hamilton.set('testset', '2')
+  vettel.relation('beats').add(hamilton)
+  hamilton.relation('beats').add(vettel)
+
   before ->
     wipeCurrentProject().then( ->
-      Promise.all([ferrari.save(), garden.save()])
+      Promise.all([vettel.save(), garden.save()])
     )
 
   it 'should support wildcard with nested Weaver.Query values', ->
+    # Get all nodes which have any relation in from a node that is-a car
     new Weaver.Query()
     .hasRelationIn('*', new Weaver.Query().hasRelationOut('is-a', car))
     .find().then((nodes) ->
-      expect(nodes).to.have.length.be(1)
-      expect(nodes[0].id()).to.equal(car.id())
+      expect(i.id() for i in nodes).to.eql([ car.id(), pirelli.id() ])
     )
 
   it 'should support wildcard relation hasRelationOut', ->
@@ -167,4 +184,88 @@ describe 'WeaverQuery with single Network', ->
     new Weaver.Query().contains('id', tree.id()).find().then((res) ->
       expect(res).to.have.length.be(1)
       expect(res[0].id()).to.equal(tree.id())
+    )
+
+  it 'should support always including a relation of non-loaded relations', ->
+    new Weaver.Query().alwaysLoadRelations('is-brand-of').restrict(ferrari.id()).find().then((nodes) ->
+      expect(i.id() for i in nodes).to.eql([ferrari.id()])
+      expect(nodes[0])
+      .to.have.property('relations')
+      .to.have.property('hasTires')
+      .to.have.property('nodes')
+      .to.have.property(pirelli.id())
+      .to.have.property('relations')
+      .to.have.property('is-brand-of')
+      .to.have.property('nodes')
+      .to.have.property(wheel.id())
+    )
+
+  it 'should support selectOut always including a relation of non-loaded relations', ->
+    new Weaver.Query().selectOut('drives').alwaysLoadRelations('is-brand-of').restrict(vettel.id()).find().then((nodes) ->
+      expect(i.id() for i in nodes).to.eql([vettel.id()])
+      expect(nodes[0])
+      .to.have.property('relations')
+      .to.have.property('drives')
+      .to.have.property('nodes')
+      .to.have.property(ferrari.id())
+      .to.have.property('relations')
+      .to.have.property('hasTires')
+      .to.have.property('nodes')
+      .to.have.property(pirelli.id())
+      .to.have.property('relations')
+      .to.have.property('is-brand-of')
+      .to.have.property('nodes')
+      .to.have.property(wheel.id())
+    )
+
+  it 'should allow hasRecursiveRelationOut not including self', ->
+    new Weaver.Query().hasRecursiveRelationOut('is-a', motorizedVehicle.id()).find().then((nodes) ->
+      expect(i.id() for i in nodes).to.have.members([ car.id(), ferrari.id()])
+    )
+  
+  it 'should allow hasRecursiveRelationOut including self', ->
+    new Weaver.Query().hasRecursiveRelationOut('is-a', motorizedVehicle, true).find().then((nodes) ->
+      expect(i.id() for i in nodes).to.have.members([ car.id(), ferrari.id(), motorizedVehicle.id()])
+    )
+    
+  it 'should allow hasRecursiveRelationIn not including self', ->
+    new Weaver.Query().hasRecursiveRelationIn('is-a', ferrari.id()).find().then((nodes) ->
+      expect(i.id() for i in nodes).to.have.members([ car.id(), motorizedVehicle.id()])
+    )
+  
+  it 'should allow hasRecursiveRelationIn including self', ->
+    new Weaver.Query().hasRecursiveRelationIn('is-a', ferrari, true).find().then((nodes) ->
+      expect(i.id() for i in nodes).to.have.members([ car.id(), ferrari.id(), motorizedVehicle.id()])
+    )
+
+  it 'should allow hasNoRecursiveRelationOut not including self', ->
+    new Weaver.Query()
+    .equalTo('testset', '2')
+    .hasNoRecursiveRelationOut('is-a', motorizedVehicle.id())
+    .find().then((nodes) ->
+      expect(i.id() for i in nodes).to.not.have.members([ ferrari.id(), car.id() ])
+    )
+  
+  it 'should allow hasNoRecursiveRelationOut including self', ->
+    new Weaver.Query()
+    .equalTo('testset', '2')
+    .hasNoRecursiveRelationOut('is-a', motorizedVehicle, true)
+    .find().then((nodes) ->
+      expect(i.id() for i in nodes).to.not.have.members([ motorizedVehicle.id(), ferrari.id(), car.id() ])
+    )
+  
+  it 'should allow hasNoRecursiveRelationIn not including self', ->
+    new Weaver.Query()
+    .equalTo('testset', '2')
+    .hasNoRecursiveRelationIn('is-a', ferrari.id())
+    .find().then((nodes) ->
+      expect(i.id() for i in nodes).to.not.have.members([ motorizedVehicle.id(), car.id() ])
+    )
+  
+  it 'should allow hasNoRecursiveRelationIn including self', ->
+    new Weaver.Query()
+    .equalTo('testset', '2')
+    .hasNoRecursiveRelationIn('is-a', ferrari, true)
+    .find().then((nodes) ->
+      expect(i.id() for i in nodes).to.not.have.members([ motorizedVehicle.id(), ferrari.id(), car.id() ])
     )
