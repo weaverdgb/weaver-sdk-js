@@ -1074,31 +1074,31 @@ describe 'WeaverQuery Test', ->
     )
 
   it 'should not find relations and attributes when checking existence on a list of nodes', ->
-    a = new Weaver.Node('a')
-    b = new Weaver.Node('b')
-    c = new Weaver.Node('c')
-    a.set('name', 'Mathieu')
-    b.relation("to").add(c, "d")
-    myNodes = [a,b]
-    Weaver.Node.batchSave([a,b,c])
+    n = new Weaver.Node('n')
+    o = new Weaver.Node('o')
+    p = new Weaver.Node('p')
+    n.set('name', 'Mathieu')
+    o.relation("to").add(p, "q")
+    myNodes = [n,o]
+    Weaver.Node.batchSave([n,o,p])
       .then(->
         new Weaver.Query().findExistingNodes(myNodes).then((result) ->
           expect(Object.keys(result).length).to.equal(2)
-          expect(result.a).to.be.true
-          expect(result.b).to.be.true
+          expect(result.n).to.be.true
+          expect(result.o).to.be.true
         )
       )
 
   it 'should allow a node id to be found aswell as a node', ->
-    a = new Weaver.Node('a')
-    b = new Weaver.Node('b')
-    myNodes = [a,'b']
-    Weaver.Node.batchSave([a,b])
+    r = new Weaver.Node('r')
+    s = new Weaver.Node('s')
+    myNodes = [r,'s']
+    Weaver.Node.batchSave([r,s])
       .then(->
         new Weaver.Query().findExistingNodes(myNodes).then((result) ->
           expect(Object.keys(result).length).to.equal(2)
-          expect(result.a).to.be.true
-          expect(result.b).to.be.true
+          expect(result.r).to.be.true
+          expect(result.s).to.be.true
         )
       )
 

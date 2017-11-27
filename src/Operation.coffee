@@ -23,6 +23,15 @@ NodeOperation = (node) ->
       removeId: cuid()
     }
 
+  removeNodeUnrecoverable: ->
+    {
+      timestamp
+      cascade: true
+      action: "remove-node-unrecoverable"
+      id: node.id()
+      removeId: cuid()
+    }
+
   createAttribute: (key, value, datatype, replaces, ignoreConcurrentReplace) ->
     replaceId = null
     replaceId = cuid() if replaces?
