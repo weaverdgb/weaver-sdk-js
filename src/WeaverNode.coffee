@@ -8,9 +8,10 @@ WeaverError = require('./WeaverError')
 
 class WeaverNode
 
-  constructor: (@nodeId) ->
+  constructor: (@nodeId, @_graph) ->
     # Generate random id if not given
     @nodeId = cuid() if not @nodeId?
+    @_graph = 'default-graph' if not @_graph?
     @_stored = false       # if true, available in database, local node can hold unsaved changes
     @_loaded = false       # if true, all information from the database was localised on construction
     # Store all attributes and relations in these objects
@@ -19,7 +20,7 @@ class WeaverNode
 
 
     # All operations that need to get saved
-    @pendingWrites = [Operation.Node(@).createNode(@_graph)]
+    @pendingWrites = [Operation.Node(@).createNode()]
 
     Weaver.publish('node.created', @)
 
@@ -152,7 +153,7 @@ class WeaverNode
       eventData.oldValue = oldAttribute.value
 
       eventMsg += '.update'
-      newAttributeOperation = Operation.Node(@).createAttribute(field, value, dataType, oldAttribute.nodeId, Weaver.getInstance()._ignoresOutOfDate if !options?.ignoresOutOfDate?, graph)
+      newAttributeOperation = Operation.Node(@).createAttribute(field, value, dataType, oldAttribute, Weaver.getInstance()._ignoresOutOfDate if !options?.ignoresOutOfDate?, graph)
     else
       eventMsg += '.set'
       newAttributeOperation = Operation.Node(@).createAttribute(field, value, dataType, null, null, graph)
@@ -365,7 +366,7 @@ class WeaverNode
 
       if (Weaver.getInstance()._unrecoverableRemove or unrecoverableRemove)
         if @nodeId?
-          cm.executeOperations([Operation.Node(@).removeNodeUnrecoverable(@_graph)], project).then(=>
+          cm.executeOperations([Operation.Node(@).removeNodeUnrecoverable()], project).then(=>
             Weaver.publish('node.destroyed', @id())
             delete @[key] for key of @
             undefined
@@ -374,7 +375,7 @@ class WeaverNode
           undefined
       else
         if @nodeId?
-          cm.executeOperations([Operation.Node(@).removeNode(@_graph)], project).then(=>
+          cm.executeOperations([Operation.Node(@).removeNode()], project).then(=>
             Weaver.publish('node.destroyed', @id())
             delete @[key] for key of @
             undefined
@@ -389,7 +390,7 @@ class WeaverNode
     cm.enqueue(=>
       if array? and array.length isnt 0
         try
-          destroyOperations = (Operation.Node(node).removeNode(@_graph) for node in array)
+          destroyOperations = (Operation.Node(node).removeNode() for node in array)
           cm.executeOperations(destroyOperations, project).then(=>
             Promise.resolve()
           ).catch((e) =>

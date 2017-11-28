@@ -185,7 +185,6 @@ describe 'WeaverNode test', ->
     )
 
   it 'should increment an existing out-of-sync number attribute', ->
-    # weaver.setOptions({ignoresOutOfDate: false})
     node = new Weaver.Node()
     sameNode = undefined
     node.set('length', 3)
@@ -798,7 +797,7 @@ describe 'WeaverNode test', ->
       assert.equal(loadedNode.id(), id)
     ).then(->
     ).catch((error)->
-      console.log(error)
+      console.log(error.code) # shouldn't occur
     )
     .finally( ->
       weaver.setOptions({unrecoverableRemove: false})
@@ -866,10 +865,13 @@ describe 'WeaverNode test', ->
     node.relation('link').add(target)
     node.relation('link').add(target2)
     node.set('age', 41, 'double', null, 'fourth-graph')
+    node.set('age', 42, 'double', null, 'fifth-graph')
     node.destroy()
     expect(node.pendingWrites[0].graph).to.equal('first-graph')
     expect(target.pendingWrites[0].graph).to.equal('second-graph')
-    expect(node.pendingWrites[1].graph).to.equal('fourth-graph')
+    expect(target2.pendingWrites[0].graph).to.equal('third-graph')
+    expect(node.pendingWrites[1].replacedGraph).to.equal('fourth-graph')
+    expect(node.pendingWrites[2].replacedGraph).to.equal('fifth-graph')
 
   it.skip 'should add graph options to nodes', -> #Final test
     node = new Weaver.Node(cuid(), 'first-graph')
