@@ -102,7 +102,7 @@ NodeOperation = (node) ->
       targetId: to.id()
       targetGraph: to.getGraph()
       replacesId: replacesId
-      replacesGraph: replaces.getGraph() if replaces.getGraph()? if replaces
+      replacesGraph: replaces.graph if replaces
       replaceId
       replaceGraph: node.getGraph()
       traverseReplaces: ignoreConcurrentReplace if replaces? and ignoreConcurrentReplace?

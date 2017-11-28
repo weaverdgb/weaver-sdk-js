@@ -95,7 +95,9 @@ describe 'WeaverNode test', ->
       node.destroy()
     ).then(->
       Weaver.Node.load(id)
-    ).should.be.rejectedWith(Weaver.Error.NODE_NOT_FOUND)
+    ).catch((error) ->
+      expect(error.code).to.equal(Weaver.Error.NODE_NOT_FOUND)
+    )
 
   it 'should set a new string attribute', ->
     node = new Weaver.Node()
@@ -277,12 +279,16 @@ describe 'WeaverNode test', ->
       node2.save()
     ).then(->
       assert(false)
-    ).should.be.rejectedWith('The id double-node already exists')
+    ).catch((error) ->
+      expect(error.code).to.equal(Weaver.Error.NODE_ALREADY_EXISTS)
+    )
 
   it 'should give an error if node does not exist', ->
     Weaver.Node.load('lol').then((res) ->
       assert(false)
-    ).should.be.rejectedWith(Weaver.Error.NODE_NOT_FOUND)
+    ).catch((error) ->
+      expect(error.code).to.equal(Weaver.Error.NODE_NOT_FOUND)
+    )
 
   it 'should create a relation', ->
     a = new Weaver.Node()
@@ -548,7 +554,9 @@ describe 'WeaverNode test', ->
     ).then(->
       alsoA.set('name', 'allegedly updates first')
       alsoA.save()
-    ).should.be.rejectedWith('The attribute that you are trying to update is out of synchronization with the database, therefore it wasn\'t saved')
+    ).catch((error) ->
+      expect(error.code).to.equal(Weaver.Error.WRITE_OPERATION_INVALID) # I think
+    )
 
   it 'should allow out-of-sync attribute updates if the ignoresOutOfDate flag is set', ->
     weaver.setOptions({ignoresOutOfDate: true})
@@ -586,7 +594,9 @@ describe 'WeaverNode test', ->
     ).then(->
       alsoA.relation('rel').update(b, d)
       alsoA.save()
-    ).should.be.rejectedWith('The relation that you are trying to update is out of synchronization with the database, therefore it wasn\'t saved')
+    ).catch((error) ->
+      expect(error.code).to.equal(Weaver.Error.WRITE_OPERATION_INVALID)
+    )
 
   it 'should allow out-of-sync relation updates if the ignoresOutOfDate flag is set', ->
     weaver.setOptions({ignoresOutOfDate: true})
@@ -617,7 +627,9 @@ describe 'WeaverNode test', ->
       a.destroy()
     ).then( ->
       new Weaver.Node('theid').save()
-    ).should.be.rejectedWith('The id theid already exists')
+    ).catch((error) ->
+      expect(error.code).to.equal(Weaver.Error.NODE_ALREADY_EXISTS)
+    )
 
   it 'should fail trying to save a node saved with another attribute value', ->
     a = new Weaver.Node('theid')
@@ -627,8 +639,9 @@ describe 'WeaverNode test', ->
     ).then((loadedNode) ->
       loadedNode.set('name','Samantha')
       loadedNode.save()
-    ).should.be.rejectedWith('The id theid already exists')
-
+    ).catch((error) ->
+      expect(error.code).to.equal(Weaver.Error.NODE_ALREADY_EXISTS)
+    )
 
   it 'should allow to override the out-of-sync attribute updates at the set operation if the ignoresOutOfDate flag is set', ->
     weaver.setOptions({ignoresOutOfDate: true})
@@ -648,8 +661,9 @@ describe 'WeaverNode test', ->
     ).finally(->
       false
       weaver.setOptions({ignoresOutOfDate: false})
-    ).should.be.rejectedWith('The attribute that you are trying to update is out of synchronization with the database, therefore it wasn\'t saved')
-
+    ).catch((error) ->
+      expect(error.code).to.equal(Weaver.Error.WRITE_OPERATION_INVALID)
+    )
   it 'should execute normally with a small amount of operations', ->
     weaver.setOptions({ignoresOutOfDate: true})
     a = new Weaver.Node()
@@ -778,8 +792,7 @@ describe 'WeaverNode test', ->
     ).then(->
       node2.save()
     ).catch((error) ->
-      # assert.equal(error.code, Weaver.Error.NODE_ALREADY_EXISTS) #Expected
-      assert.equal(error.code, Weaver.Error.WRITE_OPERATION_INVALID) #Actual
+      assert.equal(error.code, Weaver.Error.NODE_ALREADY_EXISTS) #Expected
     )
 
   it 'should be able to recreate a node after deleting it unrecoverable', ->
