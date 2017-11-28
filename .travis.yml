@@ -34,5 +34,5 @@ deploy:
     branch: master
 
 after_script:
-  - docker-compose logs weaver-server
-  - docker-compose logs postgresql-connector
+  - docker-compose -f ./test-server/docker-compose.yml logs weaver-server
+  - docker-compose -f ./test-server/docker-compose.yml logs postgresql-connector
