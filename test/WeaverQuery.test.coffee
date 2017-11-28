@@ -1010,13 +1010,14 @@ describe 'WeaverQuery Test', ->
       Weaver.Node.load('someNode')
     )
 
-  it 'should clear profilers', ->
+  it 'should clear profilers', (done) ->
 
     wipeCurrentProject().then(->
       Weaver.Query.profile((queryResult) ->
         expect(queryResult.nodes[0].nodeId).to.equal('someNode')
 
         Weaver.Query.clearProfilers()
+        done()
       )
 
       node = new Weaver.Node('someNode')
@@ -1026,6 +1027,7 @@ describe 'WeaverQuery Test', ->
     ).then(->
       Weaver.Node.load('someNode')
     )
+    return
 
   it 'should know all timestamps and have them logically correct', (done) ->
     wipeCurrentProject().then(->
