@@ -246,9 +246,9 @@ class WeaverNode
     @relations[key]
 
 
-  clone: (newId, relationTraversal...) ->
+  clone: (newId, relationTraversal..., graph) ->
     cm = Weaver.getCoreManager()
-    cm.cloneNode(@nodeId, newId, relationTraversal)
+    cm.cloneNode(@nodeId, newId, relationTraversal, @_graph, graph)
 
   peekPendingWrites: (collected) ->
 
