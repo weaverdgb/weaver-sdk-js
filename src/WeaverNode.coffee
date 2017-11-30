@@ -25,7 +25,7 @@ class WeaverNode
     Weaver.publish('node.created', @)
 
   # Node loading from server
-  @load: (nodeId, target, Constructor, includeRelations = false, includeAttributes = false) ->
+  @load: (nodeId, target, Constructor, includeRelations = false, includeAttributes = false, graph) ->
     if !nodeId?
       Promise.reject("Cannot load nodes with an undefined id")
     else
@@ -33,7 +33,7 @@ class WeaverNode
       query = new Weaver.Query(target)
       query.withRelations() if includeRelations
       query.withAttributes() if includeAttributes
-      query.get(nodeId, Constructor)
+      query.get(nodeId, Constructor, graph)
 
 
   @loadFromQuery: (node, constructorFunction, fullyLoaded = true) ->
@@ -245,8 +245,12 @@ class WeaverNode
     @relations[key] = new Constructor(@, key) if not @relations[key]?
     @relations[key]
 
+  # always clones a node to the same graph as its original node
+  clone: (newId, relationTraversal...) ->
+    cm = Weaver.getCoreManager()
+    cm.cloneNode(@nodeId, newId, relationTraversal, @_graph)
 
-  clone: (newId, relationTraversal..., graph) ->
+  cloneToGraph: (newId, graph, relationTraversal...) ->
     cm = Weaver.getCoreManager()
     cm.cloneNode(@nodeId, newId, relationTraversal, @_graph, graph)
 
