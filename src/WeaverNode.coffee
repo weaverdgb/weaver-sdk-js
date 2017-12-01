@@ -206,6 +206,7 @@ class WeaverNode
     new Weaver.Query()
     .select(field)
     .restrict(@id())
+    .restrictGraphs(@graph)
     .first()
     .then((loadedNode) =>
       currentValue = loadedNode.get(field)
