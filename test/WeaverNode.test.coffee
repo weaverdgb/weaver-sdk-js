@@ -337,9 +337,9 @@ describe 'WeaverNode test', ->
     )
 
   it 'should clone a node to another graph', ->
-    a = new Weaver.Node('clonea', 'some-graph')
-    b = new Weaver.Node('cloneb', 'some-graph')
-    c = new Weaver.Node('clonec', 'some-graph')
+    a = new Weaver.Node('original-a')
+    b = new Weaver.Node('original-b')
+    c = new Weaver.Node('original-c')
     cloned = null
 
     a.set('name', 'Foo')
@@ -354,11 +354,8 @@ describe 'WeaverNode test', ->
     .then(->
       a.cloneToGraph('cloned-a', 'my-graph')
     ).then( ->
-      # Weaver.Node.load('cloned-a', 'my-graph')
-      Weaver.Node.load('cloned-a', undefined, undefined, false, true, 'my-graph')
+      Weaver.Node.load('cloned-a', undefined, undefined, false, false, 'my-graph')
     ).then((cloned) ->
-      console.log a
-      console.log cloned
       assert.notEqual(cloned.id(), a.id())
       assert.equal(cloned.get('name'), 'Foo')
       assert.equal(cloned.getGraph(), 'my-graph')
@@ -370,9 +367,9 @@ describe 'WeaverNode test', ->
     )
 
   it 'should clone a node', ->
-    a = new Weaver.Node('clonea')
-    b = new Weaver.Node('cloneb')
-    c = new Weaver.Node('clonec')
+    a = new Weaver.Node('original a')
+    b = new Weaver.Node('original b')
+    c = new Weaver.Node('original c')
     cloned = null
 
     a.set('name', 'Foo')
@@ -385,9 +382,9 @@ describe 'WeaverNode test', ->
 
     Weaver.Node.batchSave([a,b,c])
     .then(->
-      a.clone('cloned-a')
+      a.clone('cloned a')
     ).then( ->
-      Weaver.Node.load('cloned-a')
+      Weaver.Node.load('cloned a')
     ).then((cloned) ->
       assert.notEqual(cloned.id(), a.id())
       assert.equal(cloned.get('name'), 'Foo')
@@ -395,7 +392,7 @@ describe 'WeaverNode test', ->
       assert.equal(to.id(), b.id())
       Weaver.Node.load(c.id())
     ).then((node) ->
-      assert.isDefined(node.relation('to').nodes['cloned-a'])
+      assert.isDefined(node.relation('to').nodes['cloned a'])
     )
 
   it 'should recursively clone a node', ->

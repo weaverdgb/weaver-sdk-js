@@ -8,10 +8,10 @@ WeaverError = require('./WeaverError')
 
 class WeaverNode
 
-  constructor: (@nodeId, @_graph) ->
+  constructor: (@nodeId, @graph) ->
     # Generate random id if not given
     @nodeId = cuid() if not @nodeId?
-    @_graph = 'default-graph' if not @_graph?
+    @graph = 'default-graph' if not @graph?
     @_stored = false       # if true, available in database, local node can hold unsaved changes
     @_loaded = false       # if true, all information from the database was localised on construction
     # Store all attributes and relations in these objects
@@ -25,7 +25,7 @@ class WeaverNode
     Weaver.publish('node.created', @)
 
   # Node loading from server
-  @load: (nodeId, target, Constructor, includeRelations = false, includeAttributes = false, graph) ->
+  @load: (nodeId, target, Constructor, includeRelations = false, includeAttributes = false, graph = 'default-graph') ->
     if !nodeId?
       Promise.reject("Cannot load nodes with an undefined id")
     else
@@ -36,13 +36,14 @@ class WeaverNode
       query.get(nodeId, Constructor, graph)
 
 
+
   @loadFromQuery: (node, constructorFunction, fullyLoaded = true) ->
     if constructorFunction?
       Constructor = constructorFunction(Weaver.Node.loadFromQuery(node)) or Weaver.Node
     else
       Constructor = Weaver.Node
 
-    instance = new Constructor(node.nodeId)
+    instance = new Constructor(node.nodeId, node.graph)
     instance._loadFromQuery(node, constructorFunction, fullyLoaded)
     instance._setStored()
     instance
@@ -77,7 +78,7 @@ class WeaverNode
   # Node creating for in queries
   @get: (nodeId, Constructor) ->
     Constructor = WeaverNode if not Constructor?
-    node = new Constructor(nodeId, @_graph)
+    node = new Constructor(nodeId, @graph)
     node._clearPendingWrites()
     node
 
@@ -86,7 +87,7 @@ class WeaverNode
       .get(nodeId, Constructor)
       .catch(->
         Constructor = WeaverNode if not Constructor?
-        new Constructor(nodeId, @_graph).save()
+        new Constructor(nodeId, @graph).save()
       )
 
   # Return id
@@ -111,10 +112,10 @@ class WeaverNode
       return fieldArray
 
   setGraph: (value) ->
-    @_graph = value
+    @graph = value
 
   getGraph: ->
-    @_graph
+    @graph
 
 
   set: (field, value, dataType, options, graph) ->
@@ -249,11 +250,11 @@ class WeaverNode
   # always clones a node to the same graph as its original node
   clone: (newId, relationTraversal...) ->
     cm = Weaver.getCoreManager()
-    cm.cloneNode(@nodeId, newId, relationTraversal, @_graph)
+    cm.cloneNode(@nodeId, newId, relationTraversal, @graph)
 
   cloneToGraph: (newId, graph, relationTraversal...) ->
     cm = Weaver.getCoreManager()
-    cm.cloneNode(@nodeId, newId, relationTraversal, @_graph, graph)
+    cm.cloneNode(@nodeId, newId, relationTraversal, @graph, graph)
 
   peekPendingWrites: (collected) ->
 
