@@ -31,8 +31,5 @@ services:
     - "9487"
     ports:
     - "9487:9487"
-    links:
-    - postgresql-connector
-    - file-system
     volumes:
     - "./weaver-server-config:/usr/src/app/config"
