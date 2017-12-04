@@ -8,7 +8,7 @@
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "4.0.0-SNAPSHOT-graphs-in-snapshot|| ~0.0.29 || ^4.0.0",
+    "requiredConnectorVersion": "^4.0.0-SNAPSHOT-graph-query.0 || ~0.0.29 || ^4.0.0",
     "requiredServerVersion": "^3.2.0-beta.2 || ^3.1.0"
   },
   "main": "lib/Weaver.js",
