@@ -783,7 +783,7 @@ describe 'WeaverNode test', ->
       a.save()
     ).should.not.be.rejected
 
-  it 'should not be able to recreate a node after deleting it', -> # Fix when error codes are working properly
+  it 'should not be able to recreate a node after deleting it', ->
     node1 = new Weaver.Node('double-node')
     node2 = new Weaver.Node('double-node')
 
@@ -792,7 +792,7 @@ describe 'WeaverNode test', ->
     ).then(->
       node2.save()
     ).catch((error) ->
-      assert.equal(error.code, Weaver.Error.NODE_ALREADY_EXISTS) #Expected
+      assert.equal(error.code, Weaver.Error.NODE_ALREADY_EXISTS)
     )
 
   it 'should be able to recreate a node after deleting it unrecoverable', ->
