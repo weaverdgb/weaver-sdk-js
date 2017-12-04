@@ -336,10 +336,10 @@ describe 'WeaverNode test', ->
       assert.equal(loadedNode.id(), c.id())
     )
 
-  it 'should clone a node', ->
-    a = new Weaver.Node('clonea')
-    b = new Weaver.Node('cloneb')
-    c = new Weaver.Node('clonec')
+  it 'should clone a node to another graph', ->
+    a = new Weaver.Node('original-a')
+    b = new Weaver.Node('original-b')
+    c = new Weaver.Node('original-c')
     cloned = null
 
     a.set('name', 'Foo')
@@ -352,9 +352,39 @@ describe 'WeaverNode test', ->
 
     Weaver.Node.batchSave([a,b,c])
     .then(->
-      a.clone('cloned-a')
+      a.cloneToGraph('cloned-a', 'my-graph')
     ).then( ->
-      Weaver.Node.load('cloned-a')
+      Weaver.Node.load('cloned-a', undefined, undefined, false, false, 'my-graph')
+    ).then((cloned) ->
+      assert.notEqual(cloned.id(), a.id())
+      assert.equal(cloned.get('name'), 'Foo')
+      assert.equal(cloned.getGraph(), 'my-graph')
+      to = value for key, value of cloned.relation('to').nodes
+      assert.equal(to.id(), b.id())
+      Weaver.Node.load(c.id())
+    ).then((node) ->
+      assert.isDefined(node.relation('to').nodes['cloned-a'])
+    )
+
+  it 'should clone a node', ->
+    a = new Weaver.Node('original a')
+    b = new Weaver.Node('original b')
+    c = new Weaver.Node('original c')
+    cloned = null
+
+    a.set('name', 'Foo')
+    b.set('name', 'Bar')
+    c.set('name', 'Dear')
+
+    a.relation('to').add(b)
+    b.relation('to').add(c)
+    c.relation('to').add(a)
+
+    Weaver.Node.batchSave([a,b,c])
+    .then(->
+      a.clone('cloned a')
+    ).then( ->
+      Weaver.Node.load('cloned a')
     ).then((cloned) ->
       assert.notEqual(cloned.id(), a.id())
       assert.equal(cloned.get('name'), 'Foo')
@@ -362,7 +392,7 @@ describe 'WeaverNode test', ->
       assert.equal(to.id(), b.id())
       Weaver.Node.load(c.id())
     ).then((node) ->
-      assert.isDefined(node.relation('to').nodes['cloned-a'])
+      assert.isDefined(node.relation('to').nodes['cloned a'])
     )
 
   it 'should recursively clone a node', ->
