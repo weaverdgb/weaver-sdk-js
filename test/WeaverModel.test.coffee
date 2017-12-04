@@ -5,26 +5,26 @@ cuid   = require('cuid')
 describe 'WeaverModel test', ->
 
   it 'should load in a model from the server', ->
-    Weaver.Model.load("test-model", "1.0.0").then((Model) ->
+    Weaver.Model.load("test-model", "1.1.0").then((Model) ->
       assert.equal(Model.definition.name,    "test-model")
-      assert.equal(Model.definition.version, "1.0.0")
+      assert.equal(Model.definition.version, "1.1.0")
     )
 
   it 'should reload a model from the server', ->
-    Weaver.Model.reload("test-model", "1.0.0").then((Model) ->
+    Weaver.Model.reload("test-model", "1.1.0").then((Model) ->
       assert.equal(Model.definition.name,    "test-model")
-      assert.equal(Model.definition.version, "1.0.0")
+      assert.equal(Model.definition.version, "1.1.0")
     )
 
   it 'should fail on a not existing model', ->
-    Weaver.Model.load("ghost-model", "1.0.0").then((Model) ->
+    Weaver.Model.load("ghost-model", "1.1.0").then((Model) ->
       assert(false)
     ).catch((error)->
       assert.equal(error.code, Weaver.Error.MODEL_NOT_FOUND)
     )
 
   it 'should fail on a not existing version of an existing model', ->
-    Weaver.Model.load("test-model", "1.0.1").then((Model) ->
+    Weaver.Model.load("test-model", "1.1.1").then((Model) ->
       assert(false)
     ).catch((error)->
       assert.equal(error.code, Weaver.Error.MODEL_VERSION_NOT_FOUND)
@@ -34,7 +34,7 @@ describe 'WeaverModel test', ->
     model = {}
 
     before ->
-      Weaver.Model.load("test-model", "1.0.0").then((m) ->
+      Weaver.Model.load("test-model", "1.1.0").then((m) ->
         model = m
       )
 
@@ -124,6 +124,15 @@ describe 'WeaverModel test', ->
         person.save().catch((error) ->
           assert.fail()
         )
+
+      it 'should succeed save one instance', ->
+        Weaver.Node.load('test-model:Leiden').then((node)->
+          assert.isDefined(node.relations['rdf:type'])
+        )
+
+      it 'should succeed saving all instances', ->
+        new Weaver.Query().hasRelationOut('rdf:type', 'test-model:City').find()
+        .should.eventually.have.length.be(0)
 
       it 'should throw an error when saving without setting required attributes', ->
         Person = model.Person
