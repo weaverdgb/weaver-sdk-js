@@ -149,7 +149,7 @@ describe 'WeaverModel test', ->
 
       it 'should succeed saving all instances', ->
         new Weaver.Query().hasRelationOut('rdf:type', 'test-model:City').find()
-        .should.eventually.have.length.be(0)
+        .should.eventually.have.length.be(3)
 
       it 'should throw an error when saving without setting required attributes', ->
         Person = model.Person
