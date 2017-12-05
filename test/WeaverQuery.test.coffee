@@ -798,8 +798,8 @@ describe 'WeaverQuery Test', ->
         .find().then((nodes)->
           expect(nodes).to.have.length.be(1)
           checkNodeInResult(nodes, 'a')
-          expect(nodes[0]).to.have.property('_relations').to.have.property('link')
-          expect(nodes[0]._relations.link.all()).to.have.length.be(1)
+          expect(nodes[0]).to.have.property('relations()').to.have.property('link')
+          expect(nodes[0].relations().link.all()).to.have.length.be(1)
         )
       )
 

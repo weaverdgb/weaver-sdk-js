@@ -86,7 +86,7 @@ describe 'Weaver relation and WeaverRelationNode test', ->
     ).then( ->
       Weaver.Node.load(foo.id())
     ).then((loadedNode) ->
-      relations = (k for k of loadedNode._relations)
+      relations = (k for k of loadedNode.relations())
       assert.lengthOf(relations, 1)
     )
 
