@@ -41,8 +41,8 @@ describe 'WeaverModel test', ->
     it 'should set the type definition to the model class', ->
       Person = model.Person
       person = new Person()
-      assert.equal(person.relation(person.prototypeKey()).first().id(), "#{model.definition.name}:#{person.className}")
-      assert.equal(person.prototype().id(), "#{model.definition.name}:#{person.className}")
+      assert.equal(person.relation(person.getPrototypeKey()).first().id(), "#{model.definition.name}:#{person.className}")
+      assert.equal(person.getPrototype().id(), "#{model.definition.name}:#{person.className}")
 
     it 'should be able to configure the prototype relation', ->
       originalprototype = model.definition.prototype

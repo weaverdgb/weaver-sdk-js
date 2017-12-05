@@ -9,24 +9,24 @@ class WeaverModelQuery extends Weaver.Query
 
     # Define constructor function
     @useConstructor((node) =>
-      if node.relation(@prototypeKey()).first()?
-        [modelName, className] = node.relation(@prototypeKey()).first().id().split(":")
+      if node.relation(@getPrototypeKey()).first()?
+        [modelName, className] = node.relation(@getPrototypeKey()).first().id().split(":")
         @model[className]
       else
         Weaver.Node
     )
 
-  prototypeKey: ->
+  getPrototypeKey: ->
     @model.definition.prototype or '_prototype'
 
   class: (modelClass) ->
-    @hasRelationOut(@prototypeKey(), modelClass.classId())
+    @hasRelationOut(@getPrototypeKey(), modelClass.classId())
 
   # Key is composed of Class.modelAttribute
   _mapKeys: (keys, source) ->
     databaseKeys = []
     for key in keys
-      if [@prototypeKey(), '*'].includes(key)
+      if [@getPrototypeKey(), '*'].includes(key)
         databaseKeys.push(key)
       else
         if key.indexOf(".") is -1
@@ -69,7 +69,7 @@ class WeaverModelQuery extends Weaver.Query
 
   find: (Constructor) ->
     # Always get the prototype relation to map to the correct modelclass
-    @alwaysLoadRelations(@prototypeKey())
+    @alwaysLoadRelations(@getPrototypeKey())
 
     super(Constructor)
 
