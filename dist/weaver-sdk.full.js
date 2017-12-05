@@ -105773,7 +105773,7 @@ module.exports = yeast;
 },{}],458:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "4.2.0-beta.1",
+  "version": "4.2.0-rc.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -105781,8 +105781,8 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "0.0.31-SNAPSHOT-graphs || ~0.0.29 || ^4.0.0",
-    "requiredServerVersion": "^3.2.0-beta.0 || ^3.1.0"
+    "requiredConnectorVersion": "4.0.0-SNAPSHOT-rc.0 || ~0.0.29 || ^4.0.0",
+    "requiredServerVersion": "^3.2.0-rc.0 || ^3.1.0"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -107533,13 +107533,13 @@ module.exports={
 
     WeaverModel.prototype.bootstrap = function() {
       return new Weaver.Query().contains('id', this.definition.name + ":").find().then((function(_this) {
-        return function(classes) {
+        return function(nodes) {
           var i;
           return _this._bootstrapClasses((function() {
             var j, len, results;
             results = [];
-            for (j = 0, len = classes.length; j < len; j++) {
-              i = classes[j];
+            for (j = 0, len = nodes.length; j < len; j++) {
+              i = nodes[j];
               results.push(i.id());
             }
             return results;
@@ -107548,20 +107548,31 @@ module.exports={
       })(this));
     };
 
-    WeaverModel.prototype._bootstrapClasses = function(existingDatabaseClasses) {
-      var modelClassName;
-      return Promise.all((function() {
-        var results;
-        results = [];
-        for (modelClassName in this.definition.classes) {
-          if (!existingDatabaseClasses.includes(this.definition.name + ":" + modelClassName)) {
-            results.push(new Weaver.Node(this.definition.name + ":" + modelClassName).save());
-          } else {
-            results.push(void 0);
+    WeaverModel.prototype._bootstrapClasses = function(existingNodes) {
+      var className, classObj, itemName, j, len, modelClassName, node, promises, ref, ref1;
+      promises = [];
+      for (modelClassName in this.definition.classes) {
+        if (!existingNodes.includes(this.definition.name + ":" + modelClassName)) {
+          promises.push(new Weaver.Node(this.definition.name + ":" + modelClassName).save());
+        }
+      }
+      ref = this.definition.classes;
+      for (className in ref) {
+        classObj = ref[className];
+        if (classObj.init != null) {
+          ref1 = classObj.init;
+          for (j = 0, len = ref1.length; j < len; j++) {
+            itemName = ref1[j];
+            if (!(!existingNodes.includes(this.definition.name + ":" + itemName))) {
+              continue;
+            }
+            node = new Weaver.Node(this.definition.name + ":" + itemName);
+            node.relation('rdf:type').add(Weaver.Node.get(this.definition.name + ":" + modelClassName));
+            promises.push(node.save());
           }
         }
-        return results;
-      }).call(this));
+      }
+      return Promise.all(promises);
     };
 
     return WeaverModel;
