@@ -57,12 +57,15 @@ class WeaverModelQuery extends Weaver.Query
 
   select: (keys...) ->
     super(key) for key in @_mapKeys(keys, "attributes")
+    @
 
   selectOut: (keys...) ->
     super(key) for key in @_mapKeys(keys, "relations")
+    @
 
   selectRecursiveOut: (keys...) ->
     super(key) for key in @_mapKeys(keys, "relations")
+    @
 
   find: (Constructor) ->
     # Always get the _proto relation to map to the correct modelclass
