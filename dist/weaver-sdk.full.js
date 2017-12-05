@@ -105773,7 +105773,7 @@ module.exports = yeast;
 },{}],458:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "4.0.2",
+  "version": "4.2.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -105781,8 +105781,8 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "~0.0.29 || ^4.0.0",
-    "requiredServerVersion": "^3.0.12"
+    "requiredConnectorVersion": "^4.0.0",
+    "requiredServerVersion": "^3.1.0"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -106034,6 +106034,15 @@ module.exports={
       });
     };
 
+    CoreManager.prototype.reloadModel = function(name, version) {
+      return this.POST("model.reload", {
+        name: name,
+        version: version
+      }).then(function(model) {
+        return new Weaver.Model(model);
+      });
+    };
+
     CoreManager.prototype.createRole = function(role) {
       return this.POST("role.create", {
         role: role
@@ -106171,6 +106180,20 @@ module.exports={
     CoreManager.prototype.unfreezeProject = function(id) {
       return this.GET("project.unfreeze", {
         id: id
+      }, id);
+    };
+
+    CoreManager.prototype.addApp = function(id, app) {
+      return this.GET("project.app.add", {
+        id: id,
+        app: app
+      }, id);
+    };
+
+    CoreManager.prototype.removeApp = function(id, app) {
+      return this.GET("project.app.remove", {
+        id: id,
+        app: app
       }, id);
     };
 
@@ -107504,15 +107527,19 @@ module.exports={
       return Weaver.getCoreManager().getModel(name, version);
     };
 
+    WeaverModel.reload = function(name, version) {
+      return Weaver.getCoreManager().reloadModel(name, version);
+    };
+
     WeaverModel.prototype.bootstrap = function() {
       return new Weaver.Query().contains('id', this.definition.name + ":").find().then((function(_this) {
-        return function(classes) {
+        return function(nodes) {
           var i;
           return _this._bootstrapClasses((function() {
             var j, len, results;
             results = [];
-            for (j = 0, len = classes.length; j < len; j++) {
-              i = classes[j];
+            for (j = 0, len = nodes.length; j < len; j++) {
+              i = nodes[j];
               results.push(i.id());
             }
             return results;
@@ -107521,20 +107548,32 @@ module.exports={
       })(this));
     };
 
-    WeaverModel.prototype._bootstrapClasses = function(existingDatabaseClasses) {
-      var modelClassName;
-      return Promise.all((function() {
-        var results;
-        results = [];
-        for (modelClassName in this.definition.classes) {
-          if (!existingDatabaseClasses.includes(this.definition.name + ":" + modelClassName)) {
-            results.push(new Weaver.Node(this.definition.name + ":" + modelClassName).save());
-          } else {
-            results.push(void 0);
-          }
+    WeaverModel.prototype._bootstrapClasses = function(existingNodes) {
+      var ModelClass, className, classObj, itemName, j, len, modelClassName, node, promises, ref, ref1;
+      promises = [];
+      for (modelClassName in this.definition.classes) {
+        if (!existingNodes.includes(this.definition.name + ":" + modelClassName)) {
+          promises.push(new Weaver.Node(this.definition.name + ":" + modelClassName).save());
         }
-        return results;
-      }).call(this));
+      }
+      ref = this.definition.classes;
+      for (className in ref) {
+        classObj = ref[className];
+        if (!(classObj.init != null)) {
+          continue;
+        }
+        ModelClass = this[className];
+        ref1 = classObj.init;
+        for (j = 0, len = ref1.length; j < len; j++) {
+          itemName = ref1[j];
+          if (!(!existingNodes.includes(this.definition.name + ":" + itemName))) {
+            continue;
+          }
+          node = new ModelClass(this.definition.name + ":" + itemName);
+          promises.push(node.save());
+        }
+      }
+      return Promise.all(promises);
     };
 
     return WeaverModel;
@@ -107563,8 +107602,16 @@ module.exports={
     function WeaverModelClass(nodeId) {
       WeaverModelClass.__super__.constructor.call(this, nodeId);
       this.totalClassDefinition = this._collectFromSupers();
-      this.relation("_proto").add(Weaver.Node.get(this.classId()));
+      this.relation(this.getPrototypeKey()).add(Weaver.Node.get(this.classId()));
     }
+
+    WeaverModelClass.prototype.getPrototypeKey = function() {
+      return this.model.definition.prototype || '_prototype';
+    };
+
+    WeaverModelClass.prototype.getPrototype = function() {
+      return this.relation(this.getPrototypeKey()).first();
+    };
 
     WeaverModelClass.prototype.classId = function() {
       return this.definition.name + ":" + this.className;
@@ -107635,7 +107682,7 @@ module.exports={
 
     WeaverModelClass.prototype.relation = function(key) {
       var className, classRelation, databaseKey, definition, model, modelKey, relationDefinition, totalClassDefinition;
-      if (["_proto"].includes(key)) {
+      if ([this.getPrototypeKey()].includes(key)) {
         return WeaverModelClass.__super__.relation.call(this, key);
       }
       databaseKey = this._getRelationKey(key);
@@ -107721,8 +107768,8 @@ module.exports={
       this.useConstructor((function(_this) {
         return function(node) {
           var className, modelName, ref;
-          if (node.relation('_proto').first() != null) {
-            ref = node.relation('_proto').first().id().split(":"), modelName = ref[0], className = ref[1];
+          if (node.relation(_this.getPrototypeKey()).first() != null) {
+            ref = node.relation(_this.getPrototypeKey()).first().id().split(":"), modelName = ref[0], className = ref[1];
             return _this.model[className];
           } else {
             return Weaver.Node;
@@ -107731,8 +107778,12 @@ module.exports={
       })(this));
     }
 
+    WeaverModelQuery.prototype.getPrototypeKey = function() {
+      return this.model.definition.prototype || '_prototype';
+    };
+
     WeaverModelQuery.prototype["class"] = function(modelClass) {
-      return this.hasRelationOut("_proto", modelClass.classId());
+      return this.hasRelationOut(this.getPrototypeKey(), modelClass.classId());
     };
 
     WeaverModelQuery.prototype._mapKeys = function(keys, source) {
@@ -107740,9 +107791,12 @@ module.exports={
       databaseKeys = [];
       for (i = 0, len = keys.length; i < len; i++) {
         key = keys[i];
-        if (['_proto', '*'].includes(key)) {
+        if ([this.getPrototypeKey(), '*'].includes(key)) {
           databaseKeys.push(key);
         } else {
+          if (key.indexOf(".") === -1) {
+            throw new Error("Key should be in the form of ModelClass.key");
+          }
           ref = key.split("."), className = ref[0], modelKey = ref[1];
           modelClass = this.model[className];
           defintion = modelClass.classDefinition;
@@ -107756,8 +107810,16 @@ module.exports={
       return this._mapKeys([key], source)[0];
     };
 
-    WeaverModelQuery.prototype._addCondition = function(key, condition, value) {
-      return WeaverModelQuery.__super__._addCondition.call(this, this._mapKey(key, "attributes"), condition, value);
+    WeaverModelQuery.prototype._addAttributeCondition = function(key, condition, value) {
+      return WeaverModelQuery.__super__._addAttributeCondition.call(this, this._mapKey(key, "attributes"), condition, value);
+    };
+
+    WeaverModelQuery.prototype._addRelationCondition = function(key, condition, value) {
+      return WeaverModelQuery.__super__._addRelationCondition.call(this, this._mapKey(key, "relations"), condition, value);
+    };
+
+    WeaverModelQuery.prototype._addRecursiveCondition = function(op, relation, node, includeSelf) {
+      return WeaverModelQuery.__super__._addRecursiveCondition.call(this, op, this._mapKey(relation, "relations"), node, includeSelf);
     };
 
     WeaverModelQuery.prototype.equalTo = function(key, value) {
@@ -107769,43 +107831,40 @@ module.exports={
     };
 
     WeaverModelQuery.prototype.select = function() {
-      var i, key, keys, len, ref, results;
+      var i, key, keys, len, ref;
       keys = 1 <= arguments.length ? slice.call(arguments, 0) : [];
       ref = this._mapKeys(keys, "attributes");
-      results = [];
       for (i = 0, len = ref.length; i < len; i++) {
         key = ref[i];
-        results.push(WeaverModelQuery.__super__.select.call(this, key));
+        WeaverModelQuery.__super__.select.call(this, key);
       }
-      return results;
+      return this;
     };
 
     WeaverModelQuery.prototype.selectOut = function() {
-      var i, key, keys, len, ref, results;
+      var i, key, keys, len, ref;
       keys = 1 <= arguments.length ? slice.call(arguments, 0) : [];
       ref = this._mapKeys(keys, "relations");
-      results = [];
       for (i = 0, len = ref.length; i < len; i++) {
         key = ref[i];
-        results.push(WeaverModelQuery.__super__.selectOut.call(this, key));
+        WeaverModelQuery.__super__.selectOut.call(this, key);
       }
-      return results;
+      return this;
     };
 
     WeaverModelQuery.prototype.selectRecursiveOut = function() {
-      var i, key, keys, len, ref, results;
+      var i, key, keys, len, ref;
       keys = 1 <= arguments.length ? slice.call(arguments, 0) : [];
       ref = this._mapKeys(keys, "relations");
-      results = [];
       for (i = 0, len = ref.length; i < len; i++) {
         key = ref[i];
-        results.push(WeaverModelQuery.__super__.selectRecursiveOut.call(this, key));
+        WeaverModelQuery.__super__.selectRecursiveOut.call(this, key);
       }
-      return results;
+      return this;
     };
 
     WeaverModelQuery.prototype.find = function(Constructor) {
-      this.alwaysLoadRelations('_proto');
+      this.alwaysLoadRelations(this.getPrototypeKey());
       return WeaverModelQuery.__super__.find.call(this, Constructor);
     };
 
@@ -108632,11 +108691,12 @@ module.exports={
   WeaverProject = (function() {
     WeaverProject.READY_RETRY_TIMEOUT = 200;
 
-    function WeaverProject(name1, projectId, acl1, _stored) {
+    function WeaverProject(name1, projectId, acl1, _stored, apps) {
       this.name = name1;
       this.projectId = projectId;
       this.acl = acl1;
       this._stored = _stored != null ? _stored : false;
+      this.apps = apps != null ? apps : {};
       this.name = this.name || 'unnamed';
       this.projectId = this.projectId || cuid();
     }
@@ -108693,6 +108753,25 @@ module.exports={
       return Weaver.getCoreManager().unfreezeProject(this.id());
     };
 
+    WeaverProject.prototype.addApp = function(app) {
+      this.apps[app] = true;
+      return Weaver.getCoreManager().addApp(this.id(), app);
+    };
+
+    WeaverProject.prototype.removeApp = function(app) {
+      delete this.apps[app];
+      return Weaver.getCoreManager().removeApp(this.id(), app);
+    };
+
+    WeaverProject.prototype.getApps = function() {
+      var name, results;
+      results = [];
+      for (name in this.apps) {
+        results.push(name);
+      }
+      return results;
+    };
+
     WeaverProject.prototype.getAllNodes = function(attributes) {
       return Weaver.getCoreManager().getAllNodes(attributes, this.id());
     };
@@ -108739,7 +108818,7 @@ module.exports={
         results = [];
         for (i = 0, len = list.length; i < len; i++) {
           p = list[i];
-          results.push(new Weaver.Project(p.name, p.id, p.acl, true));
+          results.push(new Weaver.Project(p.name, p.id, p.acl, true, p.apps));
         }
         return results;
       });
@@ -108880,6 +108959,14 @@ module.exports={
       return this;
     };
 
+    WeaverQuery.prototype._addAttributeCondition = function(key, condition, value) {
+      return this._addCondition(key, condition, value);
+    };
+
+    WeaverQuery.prototype._addRelationCondition = function(key, condition, value) {
+      return this._addCondition(key, condition, value);
+    };
+
     WeaverQuery.prototype._addCondition = function(key, condition, value) {
       delete this._equals[key];
       this._conditions[key] = this._conditions[key] || {};
@@ -108894,34 +108981,34 @@ module.exports={
     };
 
     WeaverQuery.prototype.notEqualTo = function(key, value) {
-      return this._addCondition(key, '$ne', value);
+      return this._addAttributeCondition(key, '$ne', value);
     };
 
     WeaverQuery.prototype.lessThan = function(key, value) {
-      return this._addCondition(key, '$lt', value);
+      return this._addAttributeCondition(key, '$lt', value);
     };
 
     WeaverQuery.prototype.greaterThan = function(key, value) {
-      return this._addCondition(key, '$gt', value);
+      return this._addAttributeCondition(key, '$gt', value);
     };
 
     WeaverQuery.prototype.lessThanOrEqualTo = function(key, value) {
-      return this._addCondition(key, '$lte', value);
+      return this._addAttributeCondition(key, '$lte', value);
     };
 
     WeaverQuery.prototype.greaterThanOrEqualTo = function(key, value) {
-      return this._addCondition(key, '$gte', value);
+      return this._addAttributeCondition(key, '$gte', value);
     };
 
     WeaverQuery.prototype.hasRelationIn = function() {
       var i, key, node;
       key = arguments[0], node = 2 <= arguments.length ? slice.call(arguments, 1) : [];
       if (_.isArray(key)) {
-        return this._addCondition("$relationArray${@arrayCount++}", '$relIn', key);
+        return this._addRelationCondition("$relationArray${@arrayCount++}", '$relIn', key);
       } else if (node.length === 1 && node[0] instanceof WeaverQuery) {
-        return this._addCondition(key, '$relIn', node);
+        return this._addRelationCondition(key, '$relIn', node);
       } else {
-        return this._addCondition(key, '$relIn', node.length > 0 ? (function() {
+        return this._addRelationCondition(key, '$relIn', node.length > 0 ? (function() {
           var j, len, results;
           results = [];
           for (j = 0, len = node.length; j < len; j++) {
@@ -108937,11 +109024,11 @@ module.exports={
       var i, key, node;
       key = arguments[0], node = 2 <= arguments.length ? slice.call(arguments, 1) : [];
       if (_.isArray(key)) {
-        this._addCondition("$relationArray${@arrayCount++}", '$relOut', key);
+        this._addRelationCondition("$relationArray${@arrayCount++}", '$relOut', key);
       } else if (node.length === 1 && node[0] instanceof WeaverQuery) {
-        this._addCondition(key, '$relOut', node);
+        this._addRelationCondition(key, '$relOut', node);
       } else {
-        this._addCondition(key, '$relOut', node.length > 0 ? (function() {
+        this._addRelationCondition(key, '$relOut', node.length > 0 ? (function() {
           var j, len, results;
           results = [];
           for (j = 0, len = node.length; j < len; j++) {
@@ -108958,11 +109045,11 @@ module.exports={
       var i, key, node;
       key = arguments[0], node = 2 <= arguments.length ? slice.call(arguments, 1) : [];
       if (_.isArray(key)) {
-        return this._addCondition("$relationArray${@arrayCount++}", '$noRelIn', key);
+        return this._addRelationCondition("$relationArray${@arrayCount++}", '$noRelIn', key);
       } else if (node.length === 1 && node[0] instanceof WeaverQuery) {
-        return this._addCondition(key, '$noRelIn', node);
+        return this._addRelationCondition(key, '$noRelIn', node);
       } else {
-        return this._addCondition(key, '$noRelIn', node.length > 0 ? (function() {
+        return this._addRelationCondition(key, '$noRelIn', node.length > 0 ? (function() {
           var j, len, results;
           results = [];
           for (j = 0, len = node.length; j < len; j++) {
@@ -108978,11 +109065,11 @@ module.exports={
       var i, key, node;
       key = arguments[0], node = 2 <= arguments.length ? slice.call(arguments, 1) : [];
       if (_.isArray(key)) {
-        return this._addCondition("$relationArray${@arrayCount++}", '$noRelOut', key);
+        return this._addRelationCondition("$relationArray${@arrayCount++}", '$noRelOut', key);
       } else if (node.length === 1 && node[0] instanceof WeaverQuery) {
-        return this._addCondition(key, '$noRelOut', node);
+        return this._addRelationCondition(key, '$noRelOut', node);
       } else {
-        return this._addCondition(key, '$noRelOut', node.length > 0 ? (function() {
+        return this._addRelationCondition(key, '$noRelOut', node.length > 0 ? (function() {
           var j, len, results;
           results = [];
           for (j = 0, len = node.length; j < len; j++) {
@@ -109035,61 +109122,39 @@ module.exports={
     };
 
     WeaverQuery.prototype.containedIn = function(key, values) {
-      return this._addCondition(key, '$in', values);
+      return this._addAttributeCondition(key, '$in', values);
     };
 
     WeaverQuery.prototype.notContainedIn = function(key, values) {
-      return this._addCondition(key, '$nin', values);
+      return this._addAttributeCondition(key, '$nin', values);
     };
 
     WeaverQuery.prototype.containsAll = function(key, values) {
-      return this._addCondition(key, '$all', values);
+      return this._addAttributeCondition(key, '$all', values);
     };
 
     WeaverQuery.prototype.exists = function(key) {
-      return this._addCondition(key, '$exists', true);
+      return this._addAttributeCondition(key, '$exists', true);
     };
 
     WeaverQuery.prototype.doesNotExist = function(key) {
-      return this._addCondition(key, '$exists', false);
+      return this._addAttributeCondition(key, '$exists', false);
     };
 
     WeaverQuery.prototype.matches = function(key, value) {
-      return this._addCondition(key, '$regex', value);
+      return this._addAttributeCondition(key, '$regex', value);
     };
 
     WeaverQuery.prototype.contains = function(key, value) {
-      return this._addCondition(key, '$contains', value);
+      return this._addAttributeCondition(key, '$contains', value);
     };
 
     WeaverQuery.prototype.startsWith = function(key, value) {
-      return this._addCondition(key, '$regex', '^' + quote(value));
+      return this._addAttributeCondition(key, '$regex', '^' + quote(value));
     };
 
     WeaverQuery.prototype.endsWith = function(key, value) {
-      return this._addCondition(key, '$regex', quote(value) + '$');
-    };
-
-    WeaverQuery.prototype.matchesQuery = function(key, weaverQuery) {
-      return this._addCondition(key, '$inQuery', weaverQuery);
-    };
-
-    WeaverQuery.prototype.doesNotMatchQuery = function(key, query) {
-      return this._addCondition(key, '$notInQuery', query);
-    };
-
-    WeaverQuery.prototype.matchesKeyQuery = function(key, queryKey, query) {
-      return this._addCondition(key, '$select', {
-        queryKey: queryKey,
-        query: query
-      });
-    };
-
-    WeaverQuery.prototype.doesNotMatchKeyInQuery = function(key, queryKey, query) {
-      return this._addCondition(key, '$dontSelect', {
-        queryKey: queryKey,
-        query: query
-      });
+      return this._addAttributeCondition(key, '$regex', quote(value) + '$');
     };
 
     WeaverQuery.prototype.withAttributes = function() {

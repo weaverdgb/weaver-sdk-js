@@ -122,6 +122,11 @@ class CoreManager
       new Weaver.Model(model)
     )
 
+  reloadModel: (name, version) ->
+    @POST("model.reload", {name, version}).then((model) ->
+      new Weaver.Model(model)
+    )
+
   createRole: (role) ->
     @POST("role.create", {role})
 
@@ -198,6 +203,12 @@ class CoreManager
 
   unfreezeProject: (id) ->
     @GET("project.unfreeze", {id}, id)
+
+  addApp: (id, app) ->
+    @GET("project.app.add", {id, app}, id)
+
+  removeApp: (id, app) ->
+    @GET("project.app.remove", {id, app}, id)
 
   cloneProject: (id, clone_id, name) ->
     @POST("project.clone", {id: clone_id, name}, id)

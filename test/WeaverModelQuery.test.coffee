@@ -8,7 +8,7 @@ describe 'WeaverModelQuery test', ->
 
   before ->
     wipeCurrentProject().then(->
-      Weaver.Model.load("test-model", "1.0.0")
+      Weaver.Model.load("test-model", "1.1.0")
     ).then((m) ->
       model = m
       model.bootstrap()
@@ -70,3 +70,15 @@ describe 'WeaverModelQuery test', ->
           assert.equal(p.get('fullName'), 'Aby Delores')
           assert.equal(p.relation('hasHead').first().constructor, model.Head)  # <- this fails currently
         )
+
+      it 'should do a hasRelationIn WeaverModelQuery', ->
+        new Weaver.ModelQuery()
+        .hasRelationIn("Person.someRelation")
+        .find()
+        .then((instances) ->
+          assert.equal(instances.length, 0)
+        )
+
+      it 'should fail on wrong key', ->
+        q = new Weaver.ModelQuery()
+        assert.throws((-> q.hasRelationIn("someRelation")))

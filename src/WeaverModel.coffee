@@ -10,7 +10,7 @@ class WeaverModel
 
     # Register classes
     for className, classDefinition of @definition.classes
-      
+
       js = """
         (function() {
           function #{className}(nodeId) {
@@ -45,18 +45,29 @@ class WeaverModel
   @load: (name, version) ->
     Weaver.getCoreManager().getModel(name, version)
 
+  @reload: (name, version) ->
+    Weaver.getCoreManager().reloadModel(name, version)
+
   bootstrap: ->
     new Weaver.Query()
     .contains('id', "#{@definition.name}:")
-    .find().then((classes) =>
-      @_bootstrapClasses(i.id() for i in classes)
+    .find().then((nodes) =>
+      @_bootstrapClasses(i.id() for i in nodes)
     )
 
-  _bootstrapClasses: (existingDatabaseClasses) ->
-    Promise.all(
-      for modelClassName of @definition.classes
-        if !existingDatabaseClasses.includes("#{@definition.name}:#{modelClassName}")
-          new Weaver.Node("#{@definition.name}:#{modelClassName}").save()
-    )
+  _bootstrapClasses: (existingNodes) ->
+    promises = []
+
+    for modelClassName of @definition.classes when not existingNodes.includes("#{@definition.name}:#{modelClassName}")
+      promises.push(new Weaver.Node("#{@definition.name}:#{modelClassName}").save())
+
+    for className, classObj of @definition.classes when classObj.init?
+      ModelClass = @[className]
+      for itemName in classObj.init when not existingNodes.includes("#{@definition.name}:#{itemName}")
+        node = new ModelClass("#{@definition.name}:#{itemName}")
+        promises.push(node.save())
+
+    Promise.all(promises)
+
 
 module.exports = WeaverModel
