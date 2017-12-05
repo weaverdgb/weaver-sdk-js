@@ -111,8 +111,8 @@ describe 'WeaverQuery with single Network', ->
     .equalTo('theme', 'forest')
     .select('name').find().then((result) ->
       expect(result).to.have.length.be(1)
-      expect(result[0]).to.have.property('_attributes').to.have.property('name')
-      expect(result[0]).to.have.property('_attributes').to.not.have.property('theme')
+      expect(result[0]).to.have.property('attributes()').to.have.property('name')
+      expect(result[0]).to.have.property('attributes()').to.not.have.property('theme')
     )
 
   it 'should extend selects to selectOut nodes', ->
@@ -126,8 +126,8 @@ describe 'WeaverQuery with single Network', ->
       types = result[0]._relations['is-a'].all()
       expect(types).to.have.length.be(1)
       expect(types[0]).to.have.property('_loaded').equal(false)
-      expect(types[0]).to.have.property('_attributes').to.have.property('description')
-      expect(types[0]).to.have.property('_attributes').to.not.have.property('objectiveValue')
+      expect(types[0]).to.have.property('attributes()').to.have.property('description')
+      expect(types[0]).to.have.property('attributes()').to.not.have.property('objectiveValue')
     )
 
   it 'should extend selects to recursive select out nodes', ->
@@ -141,14 +141,14 @@ describe 'WeaverQuery with single Network', ->
       types = result[0]._relations['is-a'].all()
       expect(types).to.have.length.be(1)
       expect(types[0]).to.have.property('_loaded').equal(false)
-      expect(types[0]).to.have.property('_attributes').to.have.property('description')
-      expect(types[0]).to.have.property('_attributes').to.not.have.property('objectiveValue')
+      expect(types[0]).to.have.property('attributes()').to.have.property('description')
+      expect(types[0]).to.have.property('attributes()').to.not.have.property('objectiveValue')
       expect(types[0]).to.have.property('_relations').to.have.property('is-a')
       parentTypes = result[0]._relations['is-a'].all()
       expect(parentTypes).to.have.length.be(1)
       expect(parentTypes[0]).to.have.property('_loaded').equal(false)
-      expect(parentTypes[0]).to.have.property('_attributes').to.have.property('description')
-      expect(parentTypes[0]).to.have.property('_attributes').to.not.have.property('could-be-electric')
+      expect(parentTypes[0]).to.have.property('attributes()').to.have.property('description')
+      expect(parentTypes[0]).to.have.property('attributes()').to.not.have.property('could-be-electric')
     )
 
   it 'should mark nodes loaded with a select as non-loaded', ->

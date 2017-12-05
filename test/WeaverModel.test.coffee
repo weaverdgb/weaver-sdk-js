@@ -64,16 +64,16 @@ describe 'WeaverModel test', ->
       Person = model.Person
       person = new Person()
       person.set('fullName', "John Doe")
-      assert.isDefined(person._attributes.hasFullName)
-      assert.isUndefined(person._attributes.fullName)
+      assert.isDefined(person.attributes().hasFullName)
+      assert.isUndefined(person.attributes().fullName)
 
     it 'should get attributes on model instances', ->
       Person = model.Person
       person = new Person()
       person.set('fullName', "John Doe")
       assert.equal(person.get('fullName'), "John Doe")
-      assert.isDefined(person._attributes.hasFullName)
-      assert.isUndefined(person._attributes.fullName)
+      assert.isDefined(person.attributes().hasFullName)
+      assert.isUndefined(person.attributes().fullName)
 
     it 'should set attributes on model instances by inheritance', ->
       c = new model.Country()

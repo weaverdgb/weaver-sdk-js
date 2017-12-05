@@ -469,8 +469,7 @@ describe 'WeaverQuery Test', ->
         .noRelations()
         .ascending(['name'])
         .find().then((nodes) ->
-          (i._attributes.name[0].value for i in nodes).should.eql(['a', 'b', 'c'])
-
+          (i.attributes().name for i in nodes).should.eql(['a', 'b', 'c'])
         )
       )
 
@@ -816,7 +815,7 @@ describe 'WeaverQuery Test', ->
         .find().then((nodes)->
           expect(nodes).to.have.length.be(1)
           checkNodeInResult(nodes, 'a')
-          attrs = nodes[0]._attributes
+          attrs = nodes[0].attributes()
           expect(attrs).to.have.property('name')
           expect(attrs).to.have.property('description')
           expect(attrs).to.not.have.property('skip')
