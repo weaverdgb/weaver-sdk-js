@@ -41,7 +41,24 @@ describe 'WeaverModel test', ->
     it 'should set the type definition to the model class', ->
       Person = model.Person
       person = new Person()
-      assert.equal(person.relation("_proto").first().id(), "#{model.definition.name}:#{person.className}")
+      assert.equal(person.relation(person.getPrototypeKey()).first().id(), "#{model.definition.name}:#{person.className}")
+      assert.equal(person.getPrototype().id(), "#{model.definition.name}:#{person.className}")
+
+    it 'should be able to configure the prototype relation', ->
+      originalprototype = model.definition.prototype
+      model.definition.prototype = "prototype:rel"
+      Person = model.Person
+      person = new Person()
+      assert.equal(person.relation("prototype:rel").first().id(), "#{model.definition.name}:#{person.className}")
+      model.definition.prototype = originalprototype
+
+    it 'should fallback to the default _prototype relation', ->
+      originalprototype = model.definition.prototype
+      delete model.definition.prototype
+      Person = model.Person
+      person = new Person()
+      assert.equal(person.relation("_prototype").first().id(), "#{model.definition.name}:#{person.className}")
+      model.definition.prototype = originalprototype
 
     it 'should set attributes on model instances', ->
       Person = model.Person
@@ -132,7 +149,7 @@ describe 'WeaverModel test', ->
 
       it 'should succeed saving all instances', ->
         new Weaver.Query().hasRelationOut('rdf:type', 'test-model:City').find()
-        .should.eventually.have.length.be(0)
+        .should.eventually.have.length.be(3)
 
       it 'should throw an error when saving without setting required attributes', ->
         Person = model.Person
