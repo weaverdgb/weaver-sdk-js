@@ -24,6 +24,8 @@ services:
     - MINIO_ACCESS_KEY=NYLEXGR6MF2IE99LZ4UE
     - MINIO_SECRET_KEY=CjMuTRwYPcneXnGac2aQH0J+EdYdehTW4Cw7bZGD
     command: server /data
+    ports:
+    - "9000:9000"
 
   weaver-server:
     image: sysunite/weaver-server:3.2.0
