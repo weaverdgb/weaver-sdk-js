@@ -293,9 +293,9 @@ describe 'WeaverNode test', ->
 
     a.save().then(->
       Weaver.Node.load(a.id())
-    ).should.eventually.have.property('relations()')
-        .with.property('rel')
-        .with.property('nodes')
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.relation('rel').first().id(), b.id())
+    )
 
   it 'should not blow up when saving in circular chain', ->
     a = new Weaver.Node()

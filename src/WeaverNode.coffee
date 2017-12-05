@@ -93,8 +93,8 @@ class WeaverNode
 
   attributes: ->
     attributes = {}
-    for key, value of @_attributes
-      attributes[key] = @_getAttributeValue(value)
+    for key of @_attributes
+      attributes[key] = @get(key)
 
     attributes
 
