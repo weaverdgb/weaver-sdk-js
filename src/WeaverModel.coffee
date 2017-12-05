@@ -62,11 +62,11 @@ class WeaverModel
       promises.push(new Weaver.Node("#{@definition.name}:#{modelClassName}").save())
 
     for className, classObj of @definition.classes when classObj.init?
+      ModelClass = @[className]
       for itemName in classObj.init when not existingNodes.includes("#{@definition.name}:#{itemName}")
-        node = new Weaver.Node("#{@definition.name}:#{itemName}")
-        node.relation('rdf:type').add(Weaver.Node.get("#{@definition.name}:#{modelClassName}"))
+        node = new ModelClass("#{@definition.name}:#{itemName}")
         promises.push(node.save())
-        
+
     Promise.all(promises)
 
 

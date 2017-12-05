@@ -9,21 +9,24 @@ class WeaverModelQuery extends Weaver.Query
 
     # Define constructor function
     @useConstructor((node) =>
-      if node.relation('_proto').first()?
-        [modelName, className] = node.relation('_proto').first().id().split(":")
+      if node.relation(@getPrototypeKey()).first()?
+        [modelName, className] = node.relation(@getPrototypeKey()).first().id().split(":")
         @model[className]
       else
         Weaver.Node
     )
 
+  getPrototypeKey: ->
+    @model.definition.prototype or '_prototype'
+
   class: (modelClass) ->
-    @hasRelationOut("_proto", modelClass.classId())
+    @hasRelationOut(@getPrototypeKey(), modelClass.classId())
 
   # Key is composed of Class.modelAttribute
   _mapKeys: (keys, source) ->
     databaseKeys = []
     for key in keys
-      if ['_proto', '*'].includes(key)
+      if [@getPrototypeKey(), '*'].includes(key)
         databaseKeys.push(key)
       else
         if key.indexOf(".") is -1
@@ -57,16 +60,19 @@ class WeaverModelQuery extends Weaver.Query
 
   select: (keys...) ->
     super(key) for key in @_mapKeys(keys, "attributes")
+    @
 
   selectOut: (keys...) ->
     super(key) for key in @_mapKeys(keys, "relations")
+    @
 
   selectRecursiveOut: (keys...) ->
     super(key) for key in @_mapKeys(keys, "relations")
+    @
 
   find: (Constructor) ->
-    # Always get the _proto relation to map to the correct modelclass
-    @alwaysLoadRelations('_proto')
+    # Always get the prototype relation to map to the correct modelclass
+    @alwaysLoadRelations(@getPrototypeKey())
 
     super(Constructor)
 
