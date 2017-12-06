@@ -90,6 +90,7 @@ NodeOperation = (node) ->
     replaceId = null
     replaceId = cuid() if replaces?
     throw new Error("Unable to set relation #{key} from #{node.id()} to null node") if !to?
+    throw new Error("Unable to set relation #{key} from #{node.id()} to null node") if !to.nodeId?
     {
       timestamp
       action: "create-relation"
