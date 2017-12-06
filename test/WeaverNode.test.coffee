@@ -41,7 +41,7 @@ describe 'WeaverNode test', ->
     ).then(->
       Weaver.Node.load(a)
     ).then((res)->
-      assert.isUndefined(res.relations.link)
+      assert.isUndefined(res.relations().link)
     )
 
   it 'should propagate delete to relations (part 2)', ->
@@ -293,9 +293,9 @@ describe 'WeaverNode test', ->
 
     a.save().then(->
       Weaver.Node.load(a.id())
-    ).should.eventually.have.property('relations')
-        .with.property('rel')
-        .with.property('nodes')
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.relation('rel').first().id(), b.id())
+    )
 
   it 'should not blow up when saving in circular chain', ->
     a = new Weaver.Node()
@@ -770,7 +770,7 @@ describe 'WeaverNode test', ->
       a.save()
     ).should.not.be.rejected
 
-  it 'should not be able to recreate a node after deleting it', -> # Fix when error codes are working properly
+  it 'should not be able to recreate a node after deleting it', ->
     node1 = new Weaver.Node('double-node')
     node2 = new Weaver.Node('double-node')
 
@@ -779,8 +779,7 @@ describe 'WeaverNode test', ->
     ).then(->
       node2.save()
     ).catch((error) ->
-      # assert.equal(error.code, Weaver.Error.NODE_ALREADY_EXISTS) #Expected
-      assert.equal(error.code, Weaver.Error.WRITE_OPERATION_INVALID) #Actual
+      assert.equal(error.code, Weaver.Error.NODE_ALREADY_EXISTS)
     )
 
   it 'should be able to recreate a node after deleting it unrecoverable', ->
