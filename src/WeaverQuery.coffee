@@ -110,8 +110,7 @@ class WeaverQuery
         addRestrictGraph(graph) for graph in graphs
       else
         addRestrictGraph(graphs)
-
-      @
+    @
 
   _addAttributeCondition: (key, condition, value) ->
     @_addCondition(key, condition, value)
