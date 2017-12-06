@@ -41,7 +41,7 @@ class WeaverQuery
     @_order              = []
     @_ascending          = true
     @_arrayCount         = 0
-    @_inGraph            = []
+    @_inGraph            = undefined
 
   find: (Constructor) ->
 
@@ -97,20 +97,21 @@ class WeaverQuery
 
     @
 
-  restrictGraphs: (graphs = 'default-graph') ->
-    addRestrictGraph = (graph) =>
-      if util.isString(graph)
-        @_inGraph.push(graph)
-      else if graph instanceof Weaver.Graph
-        @_inGraph.push(graph.id())
+  restrictGraphs: (graphs) ->
+    if graphs?
+      addRestrictGraph = (graph) =>
+        if util.isString(graph)
+          @_inGraph.push(graph)
+        else if graph instanceof Weaver.Graph
+          @_inGraph.push(graph.id())
 
-    if util.isArray(graphs)
       @_inGraph = [] # Clear
-      addRestrictGraph(graph) for graph in graphs
-    else
-      addRestrictGraph(graphs)
+      if util.isArray(graphs)
+        addRestrictGraph(graph) for graph in graphs
+      else
+        addRestrictGraph(graphs)
 
-    @
+      @
 
   _addAttributeCondition: (key, condition, value) ->
     @_addCondition(key, condition, value)

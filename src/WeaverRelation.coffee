@@ -8,7 +8,7 @@ class WeaverRelation
     @pendingWrites = []   # All operations that need to get saved
     @nodes = {}           # All nodes that this relation points to
     @relationNodes = {}   # Map node id to RelationNode
-    @graph = 'default-graph' if not graph?
+    @graph = graph if graph?
 
   load: ->
     new Weaver.Query().hasRelationIn(@key, @parent).find()

@@ -38,10 +38,10 @@ NodeOperation = (node) ->
     }
 
   createAttribute: (key, value, datatype, replaces, ignoreConcurrentReplace, graph) ->
-    graph = node.getGraph() if !graph? # keep same graph is no update is emitted
+    graph = node.getGraph() if !graph? # keep same graph is no update is passed
     replaceId = null
     replaceId = cuid() if replaces?
-    replaces.graph = 'default-graph' if !replaces.graph? if replaces?
+    replaces.graph = replaces.graph if replaces?
     {
       timestamp
       action: "create-attribute"
@@ -59,8 +59,8 @@ NodeOperation = (node) ->
       datatype
 
       # Old attribute
-      replacesId: replaces.nodeId if replaces
-      replacesGraph: replaces.graph if replaces
+      replacesId: replaces.nodeId if replaces?
+      replacesGraph: replaces.graph if replaces?
 
       # Node of the new attribute
       replaceId
@@ -85,7 +85,6 @@ NodeOperation = (node) ->
     }
 
   createRelation: (key, to, id, replaces, ignoreConcurrentReplace) ->
-    replaces.graph = 'default-graph' if !replaces.graph? if replaces?
     replacesId = replaces.id() if !util.isString(replaces) if replaces?
     replacesId = replaces if util.isString(replaces) if replaces?
     replaceId = null
@@ -102,7 +101,7 @@ NodeOperation = (node) ->
       targetId: to.id()
       targetGraph: to.getGraph()
       replacesId: replacesId
-      replacesGraph: replaces.graph if replaces
+      replacesGraph: replaces.graph if replaces?
       replaceId
       replaceGraph: node.getGraph()
       traverseReplaces: ignoreConcurrentReplace if replaces? and ignoreConcurrentReplace?

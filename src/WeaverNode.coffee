@@ -8,10 +8,10 @@ WeaverError = require('./WeaverError')
 
 class WeaverNode
 
-  constructor: (@nodeId, @graph) ->
+  constructor: (@nodeId, graph) ->
     # Generate random id if not given
     @nodeId = cuid() if not @nodeId?
-    @graph = 'default-graph' if not @graph?
+    @graph = graph if graph?
     @_stored = false       # if true, available in database, local node can hold unsaved changes
     @_loaded = false       # if true, all information from the database was localised on construction
     # Store all attributes and relations in these objects
@@ -25,7 +25,7 @@ class WeaverNode
     Weaver.publish('node.created', @)
 
   # Node loading from server
-  @load: (nodeId, target, Constructor, includeRelations = false, includeAttributes = false, graph = 'default-graph') ->
+  @load: (nodeId, target, Constructor, includeRelations = false, includeAttributes = false, graph) ->
     if !nodeId?
       Promise.reject("Cannot load nodes with an undefined id")
     else
