@@ -105773,7 +105773,7 @@ module.exports = yeast;
 },{}],458:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "4.2.0-beta.1",
+  "version": "5.0.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -105781,8 +105781,8 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "0.0.31-SNAPSHOT-graphs || ~0.0.29 || ^4.0.0",
-    "requiredServerVersion": "^3.2.0-beta.0 || ^3.1.0"
+    "requiredConnectorVersion": "^4.0.0",
+    "requiredServerVersion": "^3.1.0"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -107533,13 +107533,13 @@ module.exports={
 
     WeaverModel.prototype.bootstrap = function() {
       return new Weaver.Query().contains('id', this.definition.name + ":").find().then((function(_this) {
-        return function(classes) {
+        return function(nodes) {
           var i;
           return _this._bootstrapClasses((function() {
             var j, len, results;
             results = [];
-            for (j = 0, len = classes.length; j < len; j++) {
-              i = classes[j];
+            for (j = 0, len = nodes.length; j < len; j++) {
+              i = nodes[j];
               results.push(i.id());
             }
             return results;
@@ -107548,20 +107548,32 @@ module.exports={
       })(this));
     };
 
-    WeaverModel.prototype._bootstrapClasses = function(existingDatabaseClasses) {
-      var modelClassName;
-      return Promise.all((function() {
-        var results;
-        results = [];
-        for (modelClassName in this.definition.classes) {
-          if (!existingDatabaseClasses.includes(this.definition.name + ":" + modelClassName)) {
-            results.push(new Weaver.Node(this.definition.name + ":" + modelClassName).save());
-          } else {
-            results.push(void 0);
-          }
+    WeaverModel.prototype._bootstrapClasses = function(existingNodes) {
+      var ModelClass, className, classObj, itemName, j, len, modelClassName, node, promises, ref, ref1;
+      promises = [];
+      for (modelClassName in this.definition.classes) {
+        if (!existingNodes.includes(this.definition.name + ":" + modelClassName)) {
+          promises.push(new Weaver.Node(this.definition.name + ":" + modelClassName).save());
         }
-        return results;
-      }).call(this));
+      }
+      ref = this.definition.classes;
+      for (className in ref) {
+        classObj = ref[className];
+        if (!(classObj.init != null)) {
+          continue;
+        }
+        ModelClass = this[className];
+        ref1 = classObj.init;
+        for (j = 0, len = ref1.length; j < len; j++) {
+          itemName = ref1[j];
+          if (!(!existingNodes.includes(this.definition.name + ":" + itemName))) {
+            continue;
+          }
+          node = new ModelClass(this.definition.name + ":" + itemName);
+          promises.push(node.save());
+        }
+      }
+      return Promise.all(promises);
     };
 
     return WeaverModel;
@@ -107590,8 +107602,16 @@ module.exports={
     function WeaverModelClass(nodeId) {
       WeaverModelClass.__super__.constructor.call(this, nodeId);
       this.totalClassDefinition = this._collectFromSupers();
-      this.relation("_proto").add(Weaver.Node.get(this.classId()));
+      this.relation(this.getPrototypeKey()).add(Weaver.Node.get(this.classId()));
     }
+
+    WeaverModelClass.prototype.getPrototypeKey = function() {
+      return this.model.definition.prototype || '_prototype';
+    };
+
+    WeaverModelClass.prototype.getPrototype = function() {
+      return this.relation(this.getPrototypeKey()).first();
+    };
 
     WeaverModelClass.prototype.classId = function() {
       return this.definition.name + ":" + this.className;
@@ -107652,6 +107672,34 @@ module.exports={
       return this.totalClassDefinition.relations[key].key || key;
     };
 
+    WeaverModelClass.prototype.attributes = function() {
+      var attributes, definiton, key, ref;
+      if (this.totalClassDefinition.attributes == null) {
+        return {};
+      }
+      attributes = {};
+      ref = this.totalClassDefinition.attributes;
+      for (key in ref) {
+        definiton = ref[key];
+        attributes[key] = this.get(key);
+      }
+      return attributes;
+    };
+
+    WeaverModelClass.prototype.relations = function() {
+      var definiton, key, ref, relations;
+      if (this.totalClassDefinition.relations == null) {
+        return {};
+      }
+      relations = {};
+      ref = this.totalClassDefinition.relations;
+      for (key in ref) {
+        definiton = ref[key];
+        relations[key] = this.relation(key);
+      }
+      return relations;
+    };
+
     WeaverModelClass.prototype.get = function(field) {
       return WeaverModelClass.__super__.get.call(this, this._getAttributeKey(field));
     };
@@ -107662,7 +107710,7 @@ module.exports={
 
     WeaverModelClass.prototype.relation = function(key) {
       var className, classRelation, databaseKey, definition, model, modelKey, relationDefinition, totalClassDefinition;
-      if (["_proto"].includes(key)) {
+      if ([this.getPrototypeKey()].includes(key)) {
         return WeaverModelClass.__super__.relation.call(this, key);
       }
       databaseKey = this._getRelationKey(key);
@@ -107748,8 +107796,8 @@ module.exports={
       this.useConstructor((function(_this) {
         return function(node) {
           var className, modelName, ref;
-          if (node.relation('_proto').first() != null) {
-            ref = node.relation('_proto').first().id().split(":"), modelName = ref[0], className = ref[1];
+          if (node.relation(_this.getPrototypeKey()).first() != null) {
+            ref = node.relation(_this.getPrototypeKey()).first().id().split(":"), modelName = ref[0], className = ref[1];
             return _this.model[className];
           } else {
             return Weaver.Node;
@@ -107758,8 +107806,12 @@ module.exports={
       })(this));
     }
 
+    WeaverModelQuery.prototype.getPrototypeKey = function() {
+      return this.model.definition.prototype || '_prototype';
+    };
+
     WeaverModelQuery.prototype["class"] = function(modelClass) {
-      return this.hasRelationOut("_proto", modelClass.classId());
+      return this.hasRelationOut(this.getPrototypeKey(), modelClass.classId());
     };
 
     WeaverModelQuery.prototype._mapKeys = function(keys, source) {
@@ -107767,7 +107819,7 @@ module.exports={
       databaseKeys = [];
       for (i = 0, len = keys.length; i < len; i++) {
         key = keys[i];
-        if (['_proto', '*'].includes(key)) {
+        if ([this.getPrototypeKey(), '*'].includes(key)) {
           databaseKeys.push(key);
         } else {
           if (key.indexOf(".") === -1) {
@@ -107807,43 +107859,40 @@ module.exports={
     };
 
     WeaverModelQuery.prototype.select = function() {
-      var i, key, keys, len, ref, results;
+      var i, key, keys, len, ref;
       keys = 1 <= arguments.length ? slice.call(arguments, 0) : [];
       ref = this._mapKeys(keys, "attributes");
-      results = [];
       for (i = 0, len = ref.length; i < len; i++) {
         key = ref[i];
-        results.push(WeaverModelQuery.__super__.select.call(this, key));
+        WeaverModelQuery.__super__.select.call(this, key);
       }
-      return results;
+      return this;
     };
 
     WeaverModelQuery.prototype.selectOut = function() {
-      var i, key, keys, len, ref, results;
+      var i, key, keys, len, ref;
       keys = 1 <= arguments.length ? slice.call(arguments, 0) : [];
       ref = this._mapKeys(keys, "relations");
-      results = [];
       for (i = 0, len = ref.length; i < len; i++) {
         key = ref[i];
-        results.push(WeaverModelQuery.__super__.selectOut.call(this, key));
+        WeaverModelQuery.__super__.selectOut.call(this, key);
       }
-      return results;
+      return this;
     };
 
     WeaverModelQuery.prototype.selectRecursiveOut = function() {
-      var i, key, keys, len, ref, results;
+      var i, key, keys, len, ref;
       keys = 1 <= arguments.length ? slice.call(arguments, 0) : [];
       ref = this._mapKeys(keys, "relations");
-      results = [];
       for (i = 0, len = ref.length; i < len; i++) {
         key = ref[i];
-        results.push(WeaverModelQuery.__super__.selectRecursiveOut.call(this, key));
+        WeaverModelQuery.__super__.selectRecursiveOut.call(this, key);
       }
-      return results;
+      return this;
     };
 
     WeaverModelQuery.prototype.find = function(Constructor) {
-      this.alwaysLoadRelations('_proto');
+      this.alwaysLoadRelations(this.getPrototypeKey());
       return WeaverModelQuery.__super__.find.call(this, Constructor);
     };
 
@@ -108033,8 +108082,8 @@ module.exports={
       }
       this._stored = false;
       this._loaded = false;
-      this.attributes = {};
-      this.relations = {};
+      this._attributes = {};
+      this._relations = {};
       this.pendingWrites = [Operation.Node(this).createNode()];
       Weaver.publish('node.created', this);
     }
@@ -108085,7 +108134,7 @@ module.exports={
       if (fullyLoaded == null) {
         fullyLoaded = true;
       }
-      this.attributes = object.attributes;
+      this._attributes = object.attributes;
       this._loaded = (object.creator != null) && fullyLoaded;
       ref = object.relations;
       for (key in ref) {
@@ -108143,18 +108192,34 @@ module.exports={
       return this.nodeId;
     };
 
+    WeaverNode.prototype.attributes = function() {
+      var attributes, key;
+      attributes = {};
+      for (key in this._attributes) {
+        attributes[key] = this.get(key);
+      }
+      return attributes;
+    };
+
+    WeaverNode.prototype.relations = function() {
+      return this._relations;
+    };
+
+    WeaverNode.prototype._getAttributeValue = function(attribute) {
+      if (attribute.dataType === 'date') {
+        return new Date(attribute.value);
+      } else {
+        return attribute.value;
+      }
+    };
+
     WeaverNode.prototype.get = function(field) {
-      var attribute, fieldArray;
-      fieldArray = this.attributes[field];
+      var fieldArray;
+      fieldArray = this._attributes[field];
       if ((fieldArray == null) || fieldArray.length === 0) {
         return void 0;
       } else if (fieldArray.length === 1) {
-        attribute = fieldArray[0];
-        if (attribute.dataType === 'date') {
-          return new Date(attribute.value);
-        } else {
-          return attribute.value;
-        }
+        return this._getAttributeValue(fieldArray[0]);
       } else {
         return fieldArray;
       }
@@ -108185,11 +108250,11 @@ module.exports={
         field: field,
         value: value
       };
-      if (this.attributes[field] != null) {
-        if (this.attributes[field].length > 1) {
+      if (this._attributes[field] != null) {
+        if (this._attributes[field].length > 1) {
           throw new Error("Specifiy which attribute to set, more than 1 found for " + field);
         }
-        oldAttribute = this.attributes[field][0];
+        oldAttribute = this._attributes[field][0];
         eventData.oldValue = oldAttribute.value;
         eventMsg += '.update';
         newAttributeOperation = Operation.Node(this).createAttribute(field, value, dataType, oldAttribute.nodeId, (options != null ? options.ignoresOutOfDate : void 0) == null ? Weaver.getInstance()._ignoresOutOfDate : void 0);
@@ -108206,7 +108271,7 @@ module.exports={
         attributes: {},
         relations: {}
       };
-      this.attributes[field] = [newAttribute];
+      this._attributes[field] = [newAttribute];
       Weaver.publish(eventMsg, eventData);
       this.pendingWrites.push(newAttributeOperation);
       return this;
@@ -108218,7 +108283,7 @@ module.exports={
         value = 1;
       }
       Weaver.getInstance()._ignoresOutOfDate = false;
-      if (this.attributes[field] == null) {
+      if (this._attributes[field] == null) {
         throw new Error("There is no field " + field + " to increment");
       }
       if (typeof value !== 'number') {
@@ -108265,19 +108330,19 @@ module.exports={
 
     WeaverNode.prototype.unset = function(field) {
       var currentAttribute;
-      if (this.attributes[field] == null) {
+      if (this._attributes[field] == null) {
         throw new Error("There is no field " + field + " to unset");
       }
-      if (this.attributes[field].length > 1) {
+      if (this._attributes[field].length > 1) {
         throw new Error("Currently not possible to unset is multiple attributes are present");
       }
-      currentAttribute = this.attributes[field][0];
+      currentAttribute = this._attributes[field][0];
       this.pendingWrites.push(Operation.Node(this).removeAttribute(currentAttribute.nodeId));
       Weaver.publish('node.attribute.unset', {
         node: this,
         field: field
       });
-      delete this.attributes[field];
+      delete this._attributes[field];
       return this;
     };
 
@@ -108285,10 +108350,10 @@ module.exports={
       if (Constructor == null) {
         Constructor = Weaver.Relation;
       }
-      if (this.relations[key] == null) {
-        this.relations[key] = new Constructor(this, key);
+      if (this._relations[key] == null) {
+        this._relations[key] = new Constructor(this, key);
       }
-      return this.relations[key];
+      return this._relations[key];
     };
 
     WeaverNode.prototype.clone = function() {
@@ -108305,7 +108370,7 @@ module.exports={
       }
       collected[this.id()] = true;
       operations = this.pendingWrites;
-      ref = this.relations;
+      ref = this._relations;
       for (key in ref) {
         relation = ref[key];
         ref1 = relation.nodes;
@@ -108342,7 +108407,7 @@ module.exports={
         i = operations[j];
         i.__pendingOpNode = this;
       }
-      ref = this.relations;
+      ref = this._relations;
       for (key in ref) {
         relation = ref[key];
         ref1 = relation.nodes;
@@ -108367,7 +108432,7 @@ module.exports={
     WeaverNode.prototype._clearPendingWrites = function() {
       var id, key, node, ref, ref1, relation, results;
       this.pendingWrites = [];
-      ref = this.relations;
+      ref = this._relations;
       results = [];
       for (key in ref) {
         relation = ref[key];
@@ -108386,7 +108451,7 @@ module.exports={
     WeaverNode.prototype._setStored = function() {
       var id, key, node, ref, ref1, relation;
       this._stored = true;
-      ref = this.relations;
+      ref = this._relations;
       for (key in ref) {
         relation = ref[key];
         ref1 = relation.nodes;
@@ -109412,10 +109477,6 @@ module.exports={
       if (this.nodeId == null) {
         throw new Error("Please always supply a relId when constructing WeaverRelationNode");
       }
-      this._stored = false;
-      this._loaded = false;
-      this.attributes = {};
-      this.relations = {};
       this.toNode = null;
       this.fromNode = null;
     }

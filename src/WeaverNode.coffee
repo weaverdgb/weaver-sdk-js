@@ -15,8 +15,8 @@ class WeaverNode
     @_stored = false       # if true, available in database, local node can hold unsaved changes
     @_loaded = false       # if true, all information from the database was localised on construction
     # Store all attributes and relations in these objects
-    @attributes = {}
-    @relations  = {}
+    @_attributes = {}
+    @_relations  = {}
 
 
     # All operations that need to get saved
@@ -49,7 +49,7 @@ class WeaverNode
     instance
 
   _loadFromQuery: (object, constructorFunction, fullyLoaded = true) ->
-    @attributes = object.attributes
+    @_attributes = object.attributes
     @_loaded    = object.creator? && fullyLoaded
 
     for key, relations of object.relations
@@ -94,20 +94,30 @@ class WeaverNode
   id: ->
     @nodeId
 
+  attributes: ->
+    attributes = {}
+    for key of @_attributes
+      attributes[key] = @get(key)
+
+    attributes
+
+  relations: ->
+    @_relations
+
+  _getAttributeValue: (attribute) ->
+    if attribute.dataType is 'date'
+      return new Date(attribute.value)
+    else
+      return attribute.value
 
   # Gets attributes
   get: (field) ->
-    fieldArray = @attributes[field]
+    fieldArray = @_attributes[field]
 
     if not fieldArray? or fieldArray.length is 0
       return undefined
     else if fieldArray.length is 1
-      attribute = fieldArray[0]
-
-      if attribute.dataType is 'date'
-        return new Date(attribute.value)
-      else
-        return attribute.value    # Returning value and not full object to be backwards compatible
+      return @_getAttributeValue(fieldArray[0])
     else
       return fieldArray
 
@@ -146,11 +156,11 @@ class WeaverNode
       graph: graph
     }
 
-    if @attributes[field]?
-      if @attributes[field].length > 1
+    if @_attributes[field]?
+      if @_attributes[field].length > 1
         throw new Error("Specifiy which attribute to set, more than 1 found for " + field) # TODO: Support later
 
-      oldAttribute = @attributes[field][0]
+      oldAttribute = @_attributes[field][0]
       eventData.oldValue = oldAttribute.value
 
       eventMsg += '.update'
@@ -170,7 +180,7 @@ class WeaverNode
       graph: graph
     }
 
-    @attributes[field] = [newAttribute]
+    @_attributes[field] = [newAttribute]
     Weaver.publish(eventMsg, eventData)
     @pendingWrites.push(newAttributeOperation)
 
@@ -180,7 +190,7 @@ class WeaverNode
   # Update attribute by incrementing the value, the result depends on concurrent requests, so check the result
   increment: (field, value = 1, project) ->
     Weaver.getInstance()._ignoresOutOfDate = false
-    if not @attributes[field]?
+    if not @_attributes[field]?
       throw new Error("There is no field " + field + " to increment")
     if typeof value isnt 'number'
       throw new Error("Field " + field + " is not a number")
@@ -224,13 +234,13 @@ class WeaverNode
 
   # Remove attribute
   unset: (field) ->
-    if not @attributes[field]?
+    if not @_attributes[field]?
       throw new Error("There is no field " + field + " to unset")
 
-    if @attributes[field].length > 1
+    if @_attributes[field].length > 1
       throw new Error("Currently not possible to unset is multiple attributes are present")
 
-    currentAttribute = @attributes[field][0]
+    currentAttribute = @_attributes[field][0]
 
     # Save change as pending
     @pendingWrites.push(Operation.Node(@).removeAttribute(currentAttribute.nodeId))
@@ -238,14 +248,14 @@ class WeaverNode
     Weaver.publish('node.attribute.unset', {node: @, field})
 
     # Unset locally
-    delete @attributes[field]
+    delete @_attributes[field]
     @
 
 
   # Create a new Relation
   relation: (key, Constructor = Weaver.Relation) ->
-    @relations[key] = new Constructor(@, key) if not @relations[key]?
-    @relations[key]
+    @_relations[key] = new Constructor(@, key) if not @_relations[key]?
+    @_relations[key]
 
   # always clones a node to the same graph as its original node
   clone: (newId, relationTraversal...) ->
@@ -263,7 +273,7 @@ class WeaverNode
     collected[@id()] = true
     operations = @pendingWrites
 
-    for key, relation of @relations
+    for key, relation of @_relations
       for id, node of relation.nodes
         if not collected[node.id()]
           collected[node.id()] = true
@@ -288,7 +298,7 @@ class WeaverNode
 
     i.__pendingOpNode = @ for i in operations
 
-    for key, relation of @relations
+    for key, relation of @_relations
       for id, node of relation.nodes
         if node.id()? and not collected[node.id()]
           collected[node.id()] = true
@@ -304,7 +314,7 @@ class WeaverNode
   _clearPendingWrites: ->
     @pendingWrites = []
 
-    for key, relation of @relations
+    for key, relation of @_relations
       for id, node of relation.nodes
         node._clearPendingWrites() if node.isDirty()
 
@@ -313,7 +323,7 @@ class WeaverNode
   _setStored: ->
     @_stored = true
 
-    for key, relation of @relations
+    for key, relation of @_relations
       for id, node of relation.nodes
         node._setStored() if not node._stored
     @

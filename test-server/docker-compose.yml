@@ -6,7 +6,7 @@ services:
     - "5432"
 
   postgresql-connector:
-    image: sysunite/weaver-database-postgresql:4.0.0-SNAPSHOT-graph-query.1
+    image: sysunite/weaver-database-postgresql:4.0.0
     links:
     - postgres
     expose:
@@ -24,9 +24,11 @@ services:
     - MINIO_ACCESS_KEY=NYLEXGR6MF2IE99LZ4UE
     - MINIO_SECRET_KEY=CjMuTRwYPcneXnGac2aQH0J+EdYdehTW4Cw7bZGD
     command: server /data
+    ports:
+    - "9000:9000"
 
   weaver-server:
-    image: sysunite/weaver-server:3.2.0-beta.1
+    image: sysunite/weaver-server:3.2.0
     expose:
     - "9487"
     ports:
