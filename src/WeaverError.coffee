@@ -246,7 +246,7 @@ WeaverError.DATATYPE_UNSUPPORTED = 333;
 WeaverError.WRITE_OPERATION_NOT_EXISTS = 344;
 
 
-# Some necessary fields in the write operation json is missing -- The id 'double-node' already exists
+# Some necessary fields in the write operation json is missing
 WeaverError.WRITE_OPERATION_INVALID = 345;
 
 # Failed executing batch, message given from connector, this should never occur though.

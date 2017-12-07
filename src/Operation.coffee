@@ -41,7 +41,6 @@ NodeOperation = (node) ->
     graph = node.getGraph() if !graph? # keep same graph is no update is passed
     replaceId = null
     replaceId = cuid() if replaces?
-    replaces.graph = replaces.graph if replaces?
     {
       timestamp
       action: "create-attribute"
@@ -69,8 +68,6 @@ NodeOperation = (node) ->
       traverseReplaces: ignoreConcurrentReplace if replaces? and ignoreConcurrentReplace?
 
       # New attribute
-      replaced: 'hi0' # yes
-      replacedId: 'hi1' # yes
       replacedGraph: graph if graph?
     }
 

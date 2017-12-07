@@ -585,7 +585,7 @@ describe 'WeaverNode test', ->
       alsoA.set('name', 'allegedly updates first')
       alsoA.save()
     ).catch((error) ->
-      expect(error.code).to.equal(Weaver.Error.WRITE_OPERATION_INVALID) # I think
+      expect(error.code).to.equal(Weaver.Error.WRITE_OPERATION_INVALID)
     )
 
   it 'should allow out-of-sync attribute updates if the ignoresOutOfDate flag is set', ->
@@ -916,12 +916,27 @@ describe 'WeaverNode test', ->
     expect(node.pendingWrites[1].replacedGraph).to.equal('fourth-graph')
     expect(node.pendingWrites[2].replacedGraph).to.equal('fifth-graph')
 
-  it.skip 'should add graph options to nodes', -> #Final test
-    node = new Weaver.Node(cuid(), 'first-graph')
-    node.relation('link', 'second-graph').add(target)
-    node.set('age', 41, 'third-graph')
+  it 'should add graph options to nodes', ->
+    node = new Weaver.Node(null, 'first-graph')
+    target = new Weaver.Node(null)
+    target2 = new Weaver.Node(null, 'second-graph')
+    node.relation('link').add(target)
+    node.set('age', 41, 'double', null, 'second-graph')
     node.save().then( ->
       Weaver.Node.load(node.id())
     ).then((result) ->
-      expect(result.graph).to.be.defined
+      expect(result.graph).to.equal('first-graph')
     )
+
+  it 'should be possible to get write operations from a node when weaver is not instantiated', ->
+    instance = Weaver.instance
+    Weaver.instance = undefined
+    try
+
+      node = new Weaver.Node('jim')
+      node.set('has', 'beans')
+
+      operations = node.peekPendingWrites()
+      expect(operations).to.have.length(2)
+    finally
+      Weaver.instance = instance

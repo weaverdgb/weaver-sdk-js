@@ -18,7 +18,6 @@ class WeaverNode
     @_attributes = {}
     @_relations  = {}
 
-
     # All operations that need to get saved
     @pendingWrites = [Operation.Node(@).createNode()]
 
