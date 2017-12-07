@@ -179,6 +179,7 @@ class WeaverNode
 
   # Update attribute by incrementing the value, the result depends on concurrent requests, so check the result
   increment: (field, value = 1, project) ->
+    wasIgnoring = Weaver.getInstance()._ignoresOutOfDate
     Weaver.getInstance()._ignoresOutOfDate = false
     if not @_attributes[field]?
       throw new Error("There is no field " + field + " to increment")
@@ -199,7 +200,9 @@ class WeaverNode
         @pendingWrites.splice(index, 1) if index > -1 # remove failing operation, otherwise the save() keeps on failing on this node
         @_incrementOfOutSync(field, value, project)
       else
-        Promise.reject()
+        Promise.reject(error)
+    ).finally(->
+      Weaver.getInstance()._ignoresOutOfDate = wasIgnoring
     )
 
   _incrementOfOutSync: (field, value, project) ->
