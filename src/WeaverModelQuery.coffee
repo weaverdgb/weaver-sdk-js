@@ -63,7 +63,9 @@ class WeaverModelQuery extends Weaver.Query
     @
 
   selectOut: (keys...) ->
-    super(key) for key in @_mapKeys(keys, "relations")
+    # Note that calling selectOut(1, 2) differs from calling selectOut(1);
+    # selectOut(2). Arrayity matters
+    super(@_mapKeys(keys, "relations")...)
     @
 
   selectRecursiveOut: (keys...) ->
