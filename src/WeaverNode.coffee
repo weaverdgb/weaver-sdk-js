@@ -222,6 +222,8 @@ class WeaverNode
       loadedNode.save().then(->
         # Return the incremented value
         pendingNewValue
+      ).catch(=>
+        @_incrementOfOutSync(field, value, project)
       )
     )
 
