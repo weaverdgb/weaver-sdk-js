@@ -97,7 +97,6 @@ describe 'WeaverModelQuery test', ->
         expect(q).to.have.property('_selectOut').to.have.length.be(1)
         expect(q._selectOut[0]).to.have.length.be(2)
 
-
       it 'should do a hasRelationIn WeaverModelQuery', ->
         new Weaver.ModelQuery()
         .hasRelationIn("Person.someRelation")
