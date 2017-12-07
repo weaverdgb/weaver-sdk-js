@@ -105773,7 +105773,7 @@ module.exports = yeast;
 },{}],458:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "5.0.0",
+  "version": "5.0.1",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -107870,13 +107870,9 @@ module.exports={
     };
 
     WeaverModelQuery.prototype.selectOut = function() {
-      var i, key, keys, len, ref;
+      var keys;
       keys = 1 <= arguments.length ? slice.call(arguments, 0) : [];
-      ref = this._mapKeys(keys, "relations");
-      for (i = 0, len = ref.length; i < len; i++) {
-        key = ref[i];
-        WeaverModelQuery.__super__.selectOut.call(this, key);
-      }
+      WeaverModelQuery.__super__.selectOut.apply(this, this._mapKeys(keys, "relations"));
       return this;
     };
 
