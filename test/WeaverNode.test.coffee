@@ -279,9 +279,7 @@ describe 'WeaverNode test', ->
       node2.save()
     ).then(->
       assert(false)
-    ).catch((error) ->
-      expect(error.code).to.equal(Weaver.Error.NODE_ALREADY_EXISTS)
-    )
+    ).should.be.rejectedWith(Weaver.Error.NODE_ALREADY_EXISTS)
 
   it 'should give an error if node does not exist', ->
     Weaver.Node.load('lol').then((res) ->
@@ -550,7 +548,7 @@ describe 'WeaverNode test', ->
       ay.set('name','Ay')                         # user changed the name to 'Ay'
       ay.save()
       aay.set('name','A')                         # at some point in the future, a user saw the result, recognized the typo, and decided to change the name back to 'A'
-      aay.save()     # (it's weird that he would do this in a separate component, but hey, monkey-testing)
+      aay.save()                                  # (it's weird that he would do this in a separate component, but hey, monkey-testing)
     ).then((res)->
       res.set('name','_A')
       res.save()
@@ -584,9 +582,7 @@ describe 'WeaverNode test', ->
     ).then(->
       alsoA.set('name', 'allegedly updates first')
       alsoA.save()
-    ).catch((error) ->
-      expect(error.code).to.equal(Weaver.Error.WRITE_OPERATION_INVALID)
-    )
+    ).should.be.rejectedWith(Weaver.Error.WRITE_OPERATION_INVALID)
 
   it 'should allow out-of-sync attribute updates if the ignoresOutOfDate flag is set', ->
     weaver.setOptions({ignoresOutOfDate: true})
@@ -624,9 +620,7 @@ describe 'WeaverNode test', ->
     ).then(->
       alsoA.relation('rel').update(b, d)
       alsoA.save()
-    ).catch((error) ->
-      expect(error.code).to.equal(Weaver.Error.WRITE_OPERATION_INVALID)
-    )
+    ).should.be.rejectedWith(Weaver.Error.WRITE_OPERATION_INVALID)
 
   it 'should allow out-of-sync relation updates if the ignoresOutOfDate flag is set', ->
     weaver.setOptions({ignoresOutOfDate: true})
@@ -657,9 +651,7 @@ describe 'WeaverNode test', ->
       a.destroy()
     ).then( ->
       new Weaver.Node('theid').save()
-    ).catch((error) ->
-      expect(error.code).to.equal(Weaver.Error.NODE_ALREADY_EXISTS)
-    )
+    ).should.be.rejectedWith(Weaver.Error.NODE_ALREADY_EXISTS)
 
   it 'should fail trying to save a node saved with another attribute value', ->
     a = new Weaver.Node('theid')
@@ -669,9 +661,7 @@ describe 'WeaverNode test', ->
     ).then((loadedNode) ->
       loadedNode.set('name','Samantha')
       loadedNode.save()
-    ).catch((error) ->
-      expect(error.code).to.equal(Weaver.Error.NODE_ALREADY_EXISTS)
-    )
+    ).should.be.rejectedWith(Weaver.Error.NODE_ALREADY_EXISTS)
 
   it 'should allow to override the out-of-sync attribute updates at the set operation if the ignoresOutOfDate flag is set', ->
     weaver.setOptions({ignoresOutOfDate: true})
@@ -691,9 +681,8 @@ describe 'WeaverNode test', ->
     ).finally(->
       false
       weaver.setOptions({ignoresOutOfDate: false})
-    ).catch((error) ->
-      expect(error.code).to.equal(Weaver.Error.WRITE_OPERATION_INVALID)
-    )
+    ).should.be.rejectedWith(Weaver.Error.WRITE_OPERATION_INVALID)
+
   it 'should execute normally with a small amount of operations', ->
     weaver.setOptions({ignoresOutOfDate: true})
     a = new Weaver.Node()
@@ -821,9 +810,7 @@ describe 'WeaverNode test', ->
       node1.destroy()
     ).then(->
       node2.save()
-    ).catch((error) ->
-      assert.equal(error.code, Weaver.Error.NODE_ALREADY_EXISTS)
-    )
+    ).should.be.rejectedWith(Weaver.Error.NODE_ALREADY_EXISTS)
 
   it 'should be able to recreate a node after deleting it unrecoverable', ->
     weaver.setOptions({unrecoverableRemove: true})
@@ -838,11 +825,7 @@ describe 'WeaverNode test', ->
       Weaver.Node.load(node2.id())
     ).then((loadedNode) ->
       assert.equal(loadedNode.id(), id)
-    ).then(->
-    ).catch((error)->
-      console.log(error.code) # shouldn't occur
-    )
-    .finally( ->
+    ).finally( ->
       weaver.setOptions({unrecoverableRemove: false})
     )
 
@@ -853,11 +836,9 @@ describe 'WeaverNode test', ->
       node.destroy(null, true)
     ).then(->
       Weaver.Node.load(id)
-    ).catch((error) ->
       # Error.code isn't fully working on this one, should have its own code. Node not found is working if node is in the removed_node table
       # Node should not exist at all, not even in the garbage can.
-      assert.equal(error.code, Weaver.Error.NODE_NOT_FOUND)
-    )
+    ).should.be.rejectedWith(Weaver.Error.NODE_NOT_FOUND)
 
   it 'should be able to delete a node unrecoverable', ->
     weaver.setOptions({unrecoverableRemove: true})
@@ -867,19 +848,17 @@ describe 'WeaverNode test', ->
       node.destroy()
     ).then(->
       Weaver.Node.load(id)
-    ).catch((error) ->
-      # Error.code isn't fully working on this one, should have its own code. Node not found is working if node is in the removed_node table
-      # Node should not exist at all, not even in the garbage can.
-      assert.equal(error.code, Weaver.Error.NODE_NOT_FOUND)
     ).finally( ->
       weaver.setOptions({unrecoverableRemove: false})
-    )
+      # Error.code isn't fully working on this one, should have its own code. Node not found is working if node is in the removed_node table
+      # Node should not exist at all, not even in the garbage can.
+    ).should.be.rejectedWith(Weaver.Error.NODE_NOT_FOUND)
 
   it 'should be able to remove a node with attributes and relations unrecoverable', ->
     weaver.setOptions({unrecoverableRemove: true})
-    a = new Weaver.Node()
-    b = new Weaver.Node()
-    c = new Weaver.Node()
+    a = new Weaver.Node('hi')
+    b = new Weaver.Node('hello')
+    c = new Weaver.Node('bye')
     a.relation('link').add(b)
     b.relation('link').add(c)
     a.set('number', 50)
@@ -893,13 +872,37 @@ describe 'WeaverNode test', ->
     ).then(->
       a.destroy()
     ).then(->
-      Weaver.Node.load(b.id())
-    ).catch((error) ->
-      assert.equal(error.code, Weaver.Error.NODE_NOT_FOUND) # Error.code isn't fully working on this one, should have its own code. Node not found is working if node is in the deleted table
-      # Node should not exist at all, not even in the garbage can.
+      Weaver.Node.load(a.id())
     ).finally(
       weaver.setOptions({unrecoverableRemove: false})
-    )
+      # Error.code isn't fully working on this one, should have its own code. Node not found is working if node is in the deleted table
+      # Node should not exist at all, not even in the garbage can.
+    ).should.be.rejectedWith(Weaver.Error.NODE_NOT_FOUND)
+
+  it 'should be able to remove a node and its attributes and relations unrecoverable', ->
+    weaver.setOptions({unrecoverableRemove: true})
+    a = new Weaver.Node('hi')
+    b = new Weaver.Node('hello')
+    c = new Weaver.Node('bye')
+    a.relation('link').add(b)
+    b.relation('link').add(c)
+    a.set('number', 50)
+    a.set('value', 100)
+    a.set('value', 200)
+
+    a.save().then( ->
+      a.relation('link').update(b, c)
+      a.save()
+      c.save()
+    ).then(->
+      a.destroy()
+    ).then(->
+      Weaver.Node.load(a.relation('link').relationNodes.hello.id())
+    ).finally(
+      weaver.setOptions({unrecoverableRemove: false})
+      # Error.code isn't fully working on this one, should have its own code. Node not found is working if node is in the deleted table
+      # Node should not exist at all, not even in the garbage can.
+    ).should.be.rejectedWith(Weaver.Error.NODE_NOT_FOUND)
 
   it 'should add create and remove statements to pendingWrites with graphs', ->
     node = new Weaver.Node('node1', 'first-graph')
