@@ -363,6 +363,35 @@ describe 'WeaverNode test', ->
     ).then((node) ->
       assert.isDefined(node.relation('to').nodes['cloned-a'])
     )
+  it 'should clone a node to another graph while using loadFromGraph function', ->
+    d = new Weaver.Node('original-d')
+    e = new Weaver.Node('original-e')
+    f = new Weaver.Node('original-f')
+    cloned = null
+
+    d.set('name', 'Foo')
+    e.set('name', 'Bar')
+    f.set('name', 'Dear')
+
+    d.relation('to').add(e)
+    e.relation('to').add(f)
+    f.relation('to').add(d)
+
+    Weaver.Node.batchSave([d,e,f])
+    .then(->
+      d.cloneToGraph('cloned-d', 'my-graph')
+    ).then( ->
+      Weaver.Node.loadFromGraph('cloned-d', 'my-graph')
+    ).then((cloned) ->
+      assert.notEqual(cloned.id(), d.id())
+      assert.equal(cloned.get('name'), 'Foo')
+      assert.equal(cloned.getGraph(), 'my-graph')
+      to = value for key, value of cloned.relation('to').nodes
+      assert.equal(to.id(), e.id())
+      Weaver.Node.load(f.id())
+    ).then((node) ->
+      assert.isDefined(node.relation('to').nodes['cloned-d'])
+    )
 
   it 'should clone a node', ->
     a = new Weaver.Node('original a')
