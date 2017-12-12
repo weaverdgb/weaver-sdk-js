@@ -97,6 +97,14 @@ describe 'WeaverQuery Test', ->
       )
 
 
+    it 'should do relation hasRelationOut without supplying a node', ->
+      new Weaver.Query()
+      .hasRelationOut("link")
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+      )
+
     it 'should do relation hasRelationOut', ->
       new Weaver.Query()
       .hasRelationOut("link", b)
@@ -111,6 +119,14 @@ describe 'WeaverQuery Test', ->
       .find().then((nodes) ->
         expect(nodes.length).to.equal(1)
         checkNodeInResult(nodes, 'a')
+      )
+
+    it 'should do relation hasRelationIn without supplying a node', ->
+      new Weaver.Query()
+      .hasRelationIn("link")
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'b')
       )
 
     it 'should do relation hasRelationIn', ->

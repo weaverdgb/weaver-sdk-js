@@ -41,6 +41,7 @@ class WeaverQuery
     @_order              = []
     @_ascending          = true
     @_arrayCount         = 0
+    @_inGraph            = undefined
 
   find: (Constructor) ->
 
@@ -75,8 +76,9 @@ class WeaverQuery
         res[0]
     )
 
-  get: (node, Constructor) ->
+  get: (node, Constructor, graph) ->
     @restrict(node)
+    @restrictGraphs(graph)
     @first(Constructor)
 
   restrict: (nodes) ->
@@ -93,6 +95,21 @@ class WeaverQuery
     else
       addRestrict(nodes)
 
+    @
+
+  restrictGraphs: (graphs) ->
+    if graphs?
+      addRestrictGraph = (graph) =>
+        if util.isString(graph)
+          @_inGraph.push(graph)
+        else if graph instanceof Weaver.Graph
+          @_inGraph.push(graph.id())
+
+      @_inGraph = [] # Clear
+      if util.isArray(graphs)
+        addRestrictGraph(graph) for graph in graphs
+      else
+        addRestrictGraph(graphs)
     @
 
   _addAttributeCondition: (key, condition, value) ->
