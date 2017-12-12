@@ -855,12 +855,19 @@ describe 'WeaverQuery Test', ->
     a = new Weaver.Node()
     b = new Weaver.Node()
 
+    nativeCount = -1
+
     Promise.all([a.save(), b.save()]).then(->
       weaver.signInWithUsername("admin", "admin")
     ).then(->
       q.nativeQuery(query)
     ).then((res) ->
-      expect(res[0].count).to.equal(2)
+      nativeCount = res[0].count
+    ).then( ->
+      new Weaver.Query()
+      .count().then((count) ->
+        expect(nativeCount).to.equal(count)
+      )
     )
 
 
