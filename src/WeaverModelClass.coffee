@@ -48,14 +48,26 @@ class WeaverModelClass extends Weaver.Node
 
     @totalClassDefinition.attributes[field].key or field
 
-  _getRelationKey: (key) ->
+  _getRelationKeys: (key) ->
     if not @totalClassDefinition.relations?
       throw new Error("#{@className} model is not allowed to have relations")
 
-    if not @totalClassDefinition.relations[key]?
-      throw new Error("Relation #{key} is not valid on this #{@className} model")
+    if @totalClassDefinition.relations[key]?
+      {
+        model: key
+        database: @totalClassDefinition.relations[key].key or key
+      }
+    else
+      # May be a database relation
+      modelKey = (j for j, i of @totalClassDefinition.relations when i? and i.key is key)
 
-    @totalClassDefinition.relations[key].key or key
+      if modelKey.length is 1
+        {
+          model: modelKey
+          database: key
+        }
+      else
+        throw new Error("Relation #{key} is not valid on this #{@className} model")
 
   attributes: ->
     return {} if not @totalClassDefinition.attributes?
@@ -85,12 +97,13 @@ class WeaverModelClass extends Weaver.Node
     # Return when using a special relation like the prototype relation
     return super(key) if [@getPrototypeKey()].includes(key)
 
-    databaseKey = @_getRelationKey(key)
+    relationKeys = @_getRelationKeys(key)
+    databaseKey = relationKeys.database
 
     # Based on the key, construct a specific Weaver.ModelRelation
-    modelKey             = key
+    modelKey             = relationKeys.model
     model                = @model
-    relationDefinition   = @totalClassDefinition.relations[key]
+    relationDefinition   = @totalClassDefinition.relations[relationKeys.model]
     className            = @className
     definition           = @definition
     totalClassDefinition = @totalClassDefinition
