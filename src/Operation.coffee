@@ -35,6 +35,7 @@ NodeOperation = (node) ->
       id: node.id()
       removeId: cuid()
       graph: node.getGraph()
+      removeGraph: node.getGraph()
     }
 
   createAttribute: (key, value, datatype, replaces, ignoreConcurrentReplace, graph) ->
@@ -47,7 +48,7 @@ NodeOperation = (node) ->
 
       # This object (attribute)
       id: cuid()
-      graph: node.getGraph()
+      graph: graph or node.getGraph()
 
       # Node it belongs to
       sourceId: node.id()
@@ -81,7 +82,7 @@ NodeOperation = (node) ->
       graph: node.getGraph()
     }
 
-  createRelation: (key, to, id, replaces, ignoreConcurrentReplace) ->
+  createRelation: (key, to, id, replaces, ignoreConcurrentReplace, graph) ->
     replacesId = replaces.id() if !util.isString(replaces) if replaces?
     replacesId = replaces if util.isString(replaces) if replaces?
     replaceId = null
@@ -92,7 +93,7 @@ NodeOperation = (node) ->
       timestamp
       action: "create-relation"
       id
-      graph: node.getGraph()
+      graph: graph or node.getGraph()
       sourceId: node.id()
       sourceGraph: node.getGraph()
       key
@@ -105,14 +106,15 @@ NodeOperation = (node) ->
       traverseReplaces: ignoreConcurrentReplace if replaces? and ignoreConcurrentReplace?
     }
 
-  removeRelation: (id) ->
+  removeRelation: (id, graph) ->
     {
       timestamp
       cascade: true
       action: "remove-relation"
       id
       removeId: cuid()
-      graph: node.getGraph()
+      graph: graph or node.getGraph()
+      removeGraph: node.getGraph()
     }
 
 module.exports=
