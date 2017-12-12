@@ -67,9 +67,6 @@ NodeOperation = (node) ->
       replaceGraph: graph if graph?
 
       traverseReplaces: ignoreConcurrentReplace if replaces? and ignoreConcurrentReplace?
-
-      # New attribute
-      replacedGraph: graph if graph?
     }
 
   removeAttribute: (id) ->

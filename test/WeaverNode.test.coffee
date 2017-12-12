@@ -941,12 +941,14 @@ describe 'WeaverNode test', ->
     node.relation('link').add(target2)
     node.set('age', 41, 'double', null, 'fourth-graph')
     node.set('age', 42, 'double', null, 'fifth-graph')
+    node.set('age', 43, 'double')
     node.destroy()
     expect(node.pendingWrites[0].graph).to.equal('first-graph')
     expect(target.pendingWrites[0].graph).to.equal('second-graph')
     expect(target2.pendingWrites[0].graph).to.equal('third-graph')
-    expect(node.pendingWrites[1].replacedGraph).to.equal('fourth-graph')
-    expect(node.pendingWrites[2].replacedGraph).to.equal('fifth-graph')
+    expect(node.pendingWrites[1].graph).to.equal('fourth-graph')
+    expect(node.pendingWrites[2].graph).to.equal('fifth-graph')
+    expect(node.pendingWrites[3].graph).to.equal('first-graph')
 
   it 'should add graph options to nodes', ->
     node = new Weaver.Node(null, 'first-graph')
