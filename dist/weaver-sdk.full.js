@@ -105773,7 +105773,7 @@ module.exports = yeast;
 },{}],458:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "5.0.1",
+  "version": "5.0.2",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -107662,14 +107662,38 @@ module.exports={
       return this.totalClassDefinition.attributes[field].key || field;
     };
 
-    WeaverModelClass.prototype._getRelationKey = function(key) {
+    WeaverModelClass.prototype._getRelationKeys = function(key) {
+      var i, j, modelKey;
       if (this.totalClassDefinition.relations == null) {
         throw new Error(this.className + " model is not allowed to have relations");
       }
-      if (this.totalClassDefinition.relations[key] == null) {
-        throw new Error("Relation " + key + " is not valid on this " + this.className + " model");
+      if (this.totalClassDefinition.relations[key] != null) {
+        return {
+          model: key,
+          database: this.totalClassDefinition.relations[key].key || key
+        };
+      } else {
+        modelKey = (function() {
+          var ref, results;
+          ref = this.totalClassDefinition.relations;
+          results = [];
+          for (j in ref) {
+            i = ref[j];
+            if ((i != null) && i.key === key) {
+              results.push(j);
+            }
+          }
+          return results;
+        }).call(this);
+        if (modelKey.length === 1) {
+          return {
+            model: modelKey,
+            database: key
+          };
+        } else {
+          throw new Error("Relation " + key + " is not valid on this " + this.className + " model");
+        }
       }
-      return this.totalClassDefinition.relations[key].key || key;
     };
 
     WeaverModelClass.prototype.attributes = function() {
@@ -107709,14 +107733,15 @@ module.exports={
     };
 
     WeaverModelClass.prototype.relation = function(key) {
-      var className, classRelation, databaseKey, definition, model, modelKey, relationDefinition, totalClassDefinition;
+      var className, classRelation, databaseKey, definition, model, modelKey, relationDefinition, relationKeys, totalClassDefinition;
       if ([this.getPrototypeKey()].includes(key)) {
         return WeaverModelClass.__super__.relation.call(this, key);
       }
-      databaseKey = this._getRelationKey(key);
-      modelKey = key;
+      relationKeys = this._getRelationKeys(key);
+      databaseKey = relationKeys.database;
+      modelKey = relationKeys.model;
       model = this.model;
-      relationDefinition = this.totalClassDefinition.relations[key];
+      relationDefinition = this.totalClassDefinition.relations[relationKeys.model];
       className = this.className;
       definition = this.definition;
       totalClassDefinition = this.totalClassDefinition;
@@ -108274,11 +108299,10 @@ module.exports={
     };
 
     WeaverNode.prototype.increment = function(field, value, project) {
-      var currentValue, pendingNewValue;
+      var currentValue, pendingNewValue, wasIgnoring;
       if (value == null) {
         value = 1;
       }
-      Weaver.getInstance()._ignoresOutOfDate = false;
       if (this._attributes[field] == null) {
         throw new Error("There is no field " + field + " to increment");
       }
@@ -108287,7 +108311,10 @@ module.exports={
       }
       currentValue = this.get(field);
       pendingNewValue = currentValue + value;
+      wasIgnoring = Weaver.getInstance()._ignoresOutOfDate;
+      Weaver.getInstance()._ignoresOutOfDate = false;
       this.set(field, pendingNewValue);
+      Weaver.getInstance()._ignoresOutOfDate = wasIgnoring;
       return this.save().then((function(_this) {
         return function() {
           return pendingNewValue;
@@ -108304,7 +108331,7 @@ module.exports={
             }
             return _this._incrementOfOutSync(field, value, project);
           } else {
-            return Promise.reject();
+            return Promise.reject(error);
           }
         };
       })(this));
@@ -108313,12 +108340,17 @@ module.exports={
     WeaverNode.prototype._incrementOfOutSync = function(field, value, project) {
       return new Weaver.Query().select(field).restrict(this.id()).first().then((function(_this) {
         return function(loadedNode) {
-          var currentValue, pendingNewValue;
+          var currentValue, pendingNewValue, wasIgnoring;
           currentValue = loadedNode.get(field);
           pendingNewValue = currentValue + value;
+          wasIgnoring = Weaver.getInstance()._ignoresOutOfDate;
+          Weaver.getInstance()._ignoresOutOfDate = false;
           loadedNode.set(field, pendingNewValue);
+          Weaver.getInstance()._ignoresOutOfDate = wasIgnoring;
           return loadedNode.save().then(function() {
             return pendingNewValue;
+          })["catch"](function() {
+            return _this._incrementOfOutSync(field, value, project);
           });
         };
       })(this));
