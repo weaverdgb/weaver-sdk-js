@@ -848,6 +848,21 @@ describe 'WeaverQuery Test', ->
       expect(err).to.have.property('message').match(/Permission denied/)
     )
 
+  it 'should allow user root to execute a native query', ->
+    query = "SELECT COUNT(1) FROM nodes"
+    q = new Weaver.Query()
+
+    a = new Weaver.Node()
+    b = new Weaver.Node()
+
+    Promise.all([a.save(), b.save()]).then(->
+      weaver.signInWithUsername("admin", "admin")
+    ).then(->
+      q.nativeQuery(query)
+    ).then((res) ->
+      expect(res[0].count).to.equal(2)
+    )
+
 
   it.skip 'should load in some secondary nodes with "selectIn"', ->
     a = new Weaver.Node('a')
