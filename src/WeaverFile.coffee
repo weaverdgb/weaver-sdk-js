@@ -94,12 +94,11 @@ class WeaverFile extends EventEmitter
   _getFileStats: (filePath) ->
     try
       _stats = fs.statSync(filePath)
-      @setName(path.basename(@filePath))
-      @setExtension(path.extname(@filePath))
+      @setName(path.basename(filePath))
+      @setExtension(path.extname(filePath))
       @fileSize = _stats.size
       @_local = true
     catch err
-      console.log(err)
       throw new Error(Weaver.Error.FILE_NOT_EXISTS_ERROR)
 
   ###*

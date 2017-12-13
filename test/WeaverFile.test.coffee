@@ -22,6 +22,26 @@ describe 'WeaverFile test', ->
       assert.equal(storedFile.name(), file.name())
     )
 
+  it 'should get filestats when setting the path', ->
+    file = new Weaver.File()
+    file.setPath(path.join(__dirname, '../icon.png'))
+    expect(file.path()).to.equal(path.join(__dirname, '../icon.png'))
+    expect(file._local).to.be.true
+
+  it 'should get filestats when setting the path', ->
+    file = new Weaver.File()
+    file.setPath(path.join(__dirname, '../icon.png'))
+    expect(file.path()).to.equal(path.join(__dirname, '../icon.png'))
+    expect(file.size()).to.be.not.undefined
+    expect(file._local).to.be.true
+
+  it 'should not read any filestats if file doesn\'t exist', ->
+    file = new Weaver.File()
+    file.setPath(path.join(__dirname, '../foo.bar'))
+    expect(file.path()).to.be.undefined
+    expect(file.size()).to.be.undefined
+    expect(file._local).to.be.false
+
   it 'should create a new file, list it and then download it', ->
     @timeout(15000)
 
