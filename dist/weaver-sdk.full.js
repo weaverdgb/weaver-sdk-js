@@ -105773,7 +105773,7 @@ module.exports = yeast;
 },{}],458:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "5.0.2",
+  "version": "5.1.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -105782,7 +105782,7 @@ module.exports={
   },
   "com_weaverplatform": {
     "requiredConnectorVersion": "^4.0.0",
-    "requiredServerVersion": "^3.1.0"
+    "requiredServerVersion": "^3.2.1-beta.1"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -105951,13 +105951,18 @@ module.exports={
       })(this));
     };
 
-    CoreManager.prototype.cloneNode = function(sourceId, targetId, relationsToTraverse) {
+    CoreManager.prototype.cloneNode = function(sourceId, targetId, relationsToTraverse, sourceGraph, targetGraph) {
       if (targetId == null) {
         targetId = cuid();
       }
+      if (targetGraph == null) {
+        targetGraph = sourceGraph;
+      }
       return this.POST('node.clone', {
         sourceId: sourceId,
+        sourceGraph: sourceGraph,
         targetId: targetId,
+        targetGraph: targetGraph,
         relationsToTraverse: relationsToTraverse
       });
     };
@@ -106454,11 +106459,13 @@ module.exports={
 
 },{"bluebird":74}],462:[function(require,module,exports){
 (function() {
-  var NodeOperation, Weaver, cuid;
+  var NodeOperation, Weaver, cuid, util;
 
   Weaver = require('./Weaver');
 
   cuid = require('cuid');
+
+  util = require('./util');
 
   NodeOperation = function(node) {
     var timestamp;
@@ -106472,7 +106479,8 @@ module.exports={
         return {
           timestamp: timestamp,
           action: "create-node",
-          id: node.id()
+          id: node.id(),
+          graph: node.getGraph()
         };
       },
       removeNode: function() {
@@ -106481,7 +106489,9 @@ module.exports={
           cascade: true,
           action: "remove-node",
           id: node.id(),
-          removeId: cuid()
+          graph: node.getGraph(),
+          removeId: cuid(),
+          removeGraph: node.getGraph()
         };
       },
       removeNodeUnrecoverable: function() {
@@ -106490,11 +106500,16 @@ module.exports={
           cascade: true,
           action: "remove-node-unrecoverable",
           id: node.id(),
-          removeId: cuid()
+          removeId: cuid(),
+          graph: node.getGraph(),
+          removeGraph: node.getGraph()
         };
       },
-      createAttribute: function(key, value, datatype, replaces, ignoreConcurrentReplace) {
+      createAttribute: function(key, value, datatype, replaces, ignoreConcurrentReplace, graph) {
         var replaceId;
+        if (graph == null) {
+          graph = node.getGraph();
+        }
         replaceId = null;
         if (replaces != null) {
           replaceId = cuid();
@@ -106503,12 +106518,16 @@ module.exports={
           timestamp: timestamp,
           action: "create-attribute",
           id: cuid(),
+          graph: graph || node.getGraph(),
           sourceId: node.id(),
+          sourceGraph: node.getGraph(),
           key: key,
           value: value,
           datatype: datatype,
-          replacesId: replaces,
+          replacesId: replaces != null ? replaces.nodeId : void 0,
+          replacesGraph: replaces != null ? replaces.graph : void 0,
           replaceId: replaceId,
+          replaceGraph: graph != null ? graph : void 0,
           traverseReplaces: (replaces != null) && (ignoreConcurrentReplace != null) ? ignoreConcurrentReplace : void 0
         };
       },
@@ -106518,11 +106537,22 @@ module.exports={
           cascade: true,
           action: "remove-attribute",
           id: id,
-          removeId: cuid()
+          removeId: cuid(),
+          graph: node.getGraph()
         };
       },
-      createRelation: function(key, to, id, replaces, ignoreConcurrentReplace) {
-        var replaceId;
+      createRelation: function(key, to, id, replaces, ignoreConcurrentReplace, graph) {
+        var replaceId, replacesId;
+        if (replaces != null) {
+          if (!util.isString(replaces)) {
+            replacesId = replaces.id();
+          }
+        }
+        if (replaces != null) {
+          if (util.isString(replaces)) {
+            replacesId = replaces;
+          }
+        }
         replaceId = null;
         if (replaces != null) {
           replaceId = cuid();
@@ -106530,25 +106560,35 @@ module.exports={
         if (to == null) {
           throw new Error("Unable to set relation " + key + " from " + (node.id()) + " to null node");
         }
+        if (to.nodeId == null) {
+          throw new Error("Unable to set relation " + key + " from " + (node.id()) + " to null node");
+        }
         return {
           timestamp: timestamp,
           action: "create-relation",
           id: id,
+          graph: graph || node.getGraph(),
           sourceId: node.id(),
+          sourceGraph: node.getGraph(),
           key: key,
-          targetId: to,
-          replacesId: replaces,
+          targetId: to.id(),
+          targetGraph: to.getGraph(),
+          replacesId: replacesId,
+          replacesGraph: replaces != null ? replaces.graph : void 0,
           replaceId: replaceId,
+          replaceGraph: node.getGraph(),
           traverseReplaces: (replaces != null) && (ignoreConcurrentReplace != null) ? ignoreConcurrentReplace : void 0
         };
       },
-      removeRelation: function(id) {
+      removeRelation: function(id, graph) {
         return {
           timestamp: timestamp,
           cascade: true,
           action: "remove-relation",
           id: id,
-          removeId: cuid()
+          removeId: cuid(),
+          graph: graph || node.getGraph(),
+          removeGraph: node.getGraph()
         };
       }
     };
@@ -106560,7 +106600,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Weaver":464,"cuid":125}],463:[function(require,module,exports){
+},{"./Weaver":464,"./util":482,"cuid":125}],463:[function(require,module,exports){
 (function() {
   var Promise, SocketController, Weaver, io, pjson, ss;
 
@@ -107161,6 +107201,8 @@ module.exports={
   WeaverError.WRITE_OPERATION_NOT_EXISTS = 344;
 
   WeaverError.WRITE_OPERATION_INVALID = 345;
+
+  WeaverError.WRITE_OPERATION_FAILED = 366;
 
   WeaverError.AGGREGATE_ERROR = 600;
 
@@ -108096,8 +108138,9 @@ module.exports={
   WeaverError = require('./WeaverError');
 
   WeaverNode = (function() {
-    function WeaverNode(nodeId1) {
+    function WeaverNode(nodeId1, graph1) {
       this.nodeId = nodeId1;
+      this.graph = graph1;
       if (this.nodeId == null) {
         this.nodeId = cuid();
       }
@@ -108109,7 +108152,7 @@ module.exports={
       Weaver.publish('node.created', this);
     }
 
-    WeaverNode.load = function(nodeId, target, Constructor, includeRelations, includeAttributes) {
+    WeaverNode.load = function(nodeId, target, Constructor, includeRelations, includeAttributes, graph) {
       var query;
       if (includeRelations == null) {
         includeRelations = false;
@@ -108130,7 +108173,15 @@ module.exports={
         if (includeAttributes) {
           query.withAttributes();
         }
-        return query.get(nodeId, Constructor);
+        return query.get(nodeId, Constructor, graph);
+      }
+    };
+
+    WeaverNode.loadFromGraph = function(nodeId, graph) {
+      if (nodeId == null) {
+        return Promise.reject("Cannot load nodes with an undefined id");
+      } else {
+        return this.load(nodeId, void 0, void 0, false, false, graph);
       }
     };
 
@@ -108144,7 +108195,7 @@ module.exports={
       } else {
         Constructor = Weaver.Node;
       }
-      instance = new Constructor(node.nodeId);
+      instance = new Constructor(node.nodeId, node.graph);
       instance._loadFromQuery(node, constructorFunction, fullyLoaded);
       instance._setStored();
       return instance;
@@ -108195,7 +108246,7 @@ module.exports={
       if (Constructor == null) {
         Constructor = WeaverNode;
       }
-      node = new Constructor(nodeId);
+      node = new Constructor(nodeId, this.graph);
       node._clearPendingWrites();
       return node;
     };
@@ -108205,7 +108256,7 @@ module.exports={
         if (Constructor == null) {
           Constructor = WeaverNode;
         }
-        return new Constructor(nodeId).save();
+        return new Constructor(nodeId, this.graph).save();
       });
     };
 
@@ -108246,7 +108297,15 @@ module.exports={
       }
     };
 
-    WeaverNode.prototype.set = function(field, value, dataType, options) {
+    WeaverNode.prototype.setGraph = function(value) {
+      return this.graph = value;
+    };
+
+    WeaverNode.prototype.getGraph = function() {
+      return this.graph;
+    };
+
+    WeaverNode.prototype.set = function(field, value, dataType, options, graph) {
       var eventData, eventMsg, newAttribute, newAttributeOperation, oldAttribute;
       if (field === 'id') {
         throw Error("Attribute 'id' cannot be set or updated");
@@ -108269,7 +108328,8 @@ module.exports={
       eventData = {
         node: this,
         field: field,
-        value: value
+        value: value,
+        graph: graph
       };
       if (this._attributes[field] != null) {
         if (this._attributes[field].length > 1) {
@@ -108278,10 +108338,10 @@ module.exports={
         oldAttribute = this._attributes[field][0];
         eventData.oldValue = oldAttribute.value;
         eventMsg += '.update';
-        newAttributeOperation = Operation.Node(this).createAttribute(field, value, dataType, oldAttribute.nodeId, (options != null ? options.ignoresOutOfDate : void 0) == null ? Weaver.getInstance()._ignoresOutOfDate : void 0);
+        newAttributeOperation = Operation.Node(this).createAttribute(field, value, dataType, oldAttribute, (options != null ? options.ignoresOutOfDate : void 0) == null ? Weaver.getInstance()._ignoresOutOfDate : void 0, graph);
       } else {
         eventMsg += '.set';
-        newAttributeOperation = Operation.Node(this).createAttribute(field, value, dataType);
+        newAttributeOperation = Operation.Node(this).createAttribute(field, value, dataType, null, null, graph);
       }
       newAttribute = {
         nodeId: newAttributeOperation.id,
@@ -108290,7 +108350,8 @@ module.exports={
         key: field,
         created: newAttributeOperation.timestamp,
         attributes: {},
-        relations: {}
+        relations: {},
+        graph: graph
       };
       this._attributes[field] = [newAttribute];
       Weaver.publish(eventMsg, eventData);
@@ -108338,7 +108399,7 @@ module.exports={
     };
 
     WeaverNode.prototype._incrementOfOutSync = function(field, value, project) {
-      return new Weaver.Query().select(field).restrict(this.id()).first().then((function(_this) {
+      return new Weaver.Query().select(field).restrict(this.id()).restrictGraphs(this.graph).first().then((function(_this) {
         return function(loadedNode) {
           var currentValue, pendingNewValue, wasIgnoring;
           currentValue = loadedNode.get(field);
@@ -108388,7 +108449,14 @@ module.exports={
       var cm, newId, relationTraversal;
       newId = arguments[0], relationTraversal = 2 <= arguments.length ? slice.call(arguments, 1) : [];
       cm = Weaver.getCoreManager();
-      return cm.cloneNode(this.nodeId, newId, relationTraversal);
+      return cm.cloneNode(this.nodeId, newId, relationTraversal, this.graph);
+    };
+
+    WeaverNode.prototype.cloneToGraph = function() {
+      var cm, graph, newId, relationTraversal;
+      newId = arguments[0], graph = arguments[1], relationTraversal = 3 <= arguments.length ? slice.call(arguments, 2) : [];
+      cm = Weaver.getCoreManager();
+      return cm.cloneNode(this.nodeId, newId, relationTraversal, this.graph, graph);
     };
 
     WeaverNode.prototype.peekPendingWrites = function(collected) {
@@ -108953,6 +109021,7 @@ module.exports={
       this._order = [];
       this._ascending = true;
       this._arrayCount = 0;
+      this._inGraph = void 0;
     }
 
     WeaverQuery.prototype.find = function(Constructor) {
@@ -109003,8 +109072,9 @@ module.exports={
       });
     };
 
-    WeaverQuery.prototype.get = function(node, Constructor) {
+    WeaverQuery.prototype.get = function(node, Constructor, graph) {
       this.restrict(node);
+      this.restrictGraphs(graph);
       return this.first(Constructor);
     };
 
@@ -109027,6 +109097,31 @@ module.exports={
         }
       } else {
         addRestrict(nodes);
+      }
+      return this;
+    };
+
+    WeaverQuery.prototype.restrictGraphs = function(graphs) {
+      var addRestrictGraph, graph, j, len;
+      if (graphs != null) {
+        addRestrictGraph = (function(_this) {
+          return function(graph) {
+            if (util.isString(graph)) {
+              return _this._inGraph.push(graph);
+            } else if (graph instanceof Weaver.Graph) {
+              return _this._inGraph.push(graph.id());
+            }
+          };
+        })(this);
+        this._inGraph = [];
+        if (util.isArray(graphs)) {
+          for (j = 0, len = graphs.length; j < len; j++) {
+            graph = graphs[j];
+            addRestrictGraph(graph);
+          }
+        } else {
+          addRestrictGraph(graphs);
+        }
       }
       return this;
     };
@@ -109383,12 +109478,15 @@ module.exports={
   Weaver = require('./Weaver');
 
   WeaverRelation = (function() {
-    function WeaverRelation(parent, key1) {
+    function WeaverRelation(parent, key1, graph) {
       this.parent = parent;
       this.key = key1;
       this.pendingWrites = [];
       this.nodes = {};
       this.relationNodes = {};
+      if (graph != null) {
+        this.graph = graph;
+      }
     }
 
     WeaverRelation.prototype.load = function() {
@@ -109444,13 +109542,13 @@ module.exports={
         key: this.key,
         target: node
       });
-      return this.pendingWrites.push(Operation.Node(this.parent).createRelation(this.key, node.id(), relId));
+      return this.pendingWrites.push(Operation.Node(this.parent).createRelation(this.key, node, relId));
     };
 
     WeaverRelation.prototype.update = function(oldNode, newNode) {
-      var newRelId, oldRelId;
+      var newRelId, oldRel;
       newRelId = cuid();
-      oldRelId = this.relationNodes[oldNode.id()].id();
+      oldRel = this.relationNodes[oldNode.id()];
       delete this.nodes[oldNode.id()];
       this.nodes[newNode.id()] = newNode;
       delete this.relationNodes[oldNode.id()];
@@ -109461,7 +109559,7 @@ module.exports={
         oldTarget: oldNode,
         target: newNode
       });
-      return this.pendingWrites.push(Operation.Node(this.parent).createRelation(this.key, newNode.id(), newRelId, oldRelId, Weaver.getInstance()._ignoresOutOfDate));
+      return this.pendingWrites.push(Operation.Node(this.parent).createRelation(this.key, newNode, newRelId, oldRel, Weaver.getInstance()._ignoresOutOfDate));
     };
 
     WeaverRelation.prototype.remove = function(node) {
