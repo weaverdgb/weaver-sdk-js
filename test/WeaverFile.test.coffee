@@ -42,6 +42,11 @@ describe 'WeaverFile test', ->
     expect(file.size()).to.be.undefined
     expect(file._local).to.be.false
 
+  it 'should throw an error when calling filestat with a non existing file', ->
+    expect(->
+      new Weaver.File()._getFileStats(path.join(__dirname, '../foo.bar'))
+    ).to.throw
+
   it 'should create a new file, list it and then download it', ->
     @timeout(15000)
 
