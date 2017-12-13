@@ -1048,7 +1048,7 @@ describe 'WeaverQuery Test', ->
     wipeCurrentProject().then(->
       Weaver.Query.profile((qr) ->
         total = qr.totalTime
-        sum = qr.sdkToServer + qr.innerServerDelay + qr.serverToConn + qr.executionTime + qr.subqueryTime + qr.processingTime + qr.connToServer + qr.serverToSdk
+        sum = qr.times.sdkToServer + qr.times.innerServerDelay + qr.times.serverToConn + qr.times.executionTime + qr.times.subqueryTime + qr.times.processingTime + qr.times.connToServer + qr.times.serverToSdk
 
         Weaver.Query.clearProfilers()
 
@@ -1056,6 +1056,39 @@ describe 'WeaverQuery Test', ->
         # on operations we add an offset to the total value compared to the sum of timestamps
         closeEnough = true if (total + 1 >= sum && total - 1 <= sum)
         expect(closeEnough).to.be.true
+        done()
+      )
+
+      node = new Weaver.Node('someNode')
+      node.save().then(->
+        Weaver.Node.load('someNode')
+      )
+    ).then(->
+      Weaver.Node.load('someNode')
+    )
+    return
+
+  it 'should not know any of the timestamps in the response object itself', (done) ->
+    wipeCurrentProject().then(->
+      Weaver.Query.profile((qr) ->
+
+        console.log qr;
+        console.log JSON.stringify(qr);
+
+        Weaver.Query.clearProfilers()
+
+        # Because of the posibility of skipping 1 ms between start and stop times
+        # on operations we add an offset to the total value compared to the sum of timestamps
+
+        expect(qr.sdkToServer).to.be.undefined
+        expect(qr.innerServerDelay).to.be.undefined
+        expect(qr.serverToConn).to.be.undefined
+        expect(qr.executionTime).to.be.undefined
+        expect(qr.subqueryTime).to.be.undefined
+        expect(qr.processingTime).to.be.undefined
+        expect(qr.connToServer).to.be.undefined
+        expect(qr.serverToSdk).to.be.undefined
+
         done()
       )
 
