@@ -58,13 +58,34 @@ class SocketController
     )
 
   _calculateTimestamps: (response, emitStart, emitEnd) ->
-    # response.serverEnterTimestamp = response.serverStart
-    response.sdkToServer  = response.serverStart - emitStart
-    response.innerServerDelay = response.serverStartConnector - response.serverStart
-    response.serverToConn = response.executionTimeStart - response.serverStartConnector
-    response.connToServer = response.serverEnd - response.processingTimeEnd
-    response.serverToSdk  = emitEnd - response.serverEnd
+
+    sdkToServer  = response.serverStart - emitStart
+    innerServerDelay = response.serverStartConnector - response.serverStart
+    serverToConn = response.executionTimeStart - response.serverStartConnector
+    connToServer = response.serverEnd - response.processingTimeEnd
+    serverToSdk  = emitEnd - response.serverEnd
     response.totalTime = emitEnd - emitStart
+
+    response.times = {
+      'sdkToServer': sdkToServer,
+      'innerServerDelay': innerServerDelay,
+      'serverToConn': serverToConn,
+      'connToServer': connToServer,
+      'serverToSdk': serverToSdk,
+      'executionTime': response.executionTime,
+      'subqueryTime': response.subqueryTime,
+      'processingTime': response.processingTime,
+    }
+
+    delete response['executionTime']
+    delete response['executionTimeStart']
+    delete response['processingTime']
+    delete response['processingTimeEnd']
+    delete response['subqueryTime']
+    delete response['serverStartConnector']
+    delete response['serverEnd']
+    delete response['serverStart']
+
     response
 
   GET: (path, body) ->
