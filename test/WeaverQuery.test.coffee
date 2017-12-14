@@ -1069,8 +1069,6 @@ describe 'WeaverQuery Test', ->
       node.save().then(->
         Weaver.Node.load('someNode')
       )
-    ).then(->
-      Weaver.Node.load('someNode')
     )
     return
 
@@ -1096,7 +1094,5 @@ describe 'WeaverQuery Test', ->
       node.save().then(->
         Weaver.Node.load('someNode')
       )
-    ).then(->
-      Weaver.Node.load('someNode')
     )
     return
