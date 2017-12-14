@@ -12,8 +12,8 @@ describe 'WeaverGraphQuery', ->
   it 'should allow hasNoRelationOut', ->
     new Weaver.Query()
       .hasNoRelationOut('test', node2)
-      .first()
-      .should.eventually.have.property('nodeId').be.equal('node2')
+      .find().then((nodes) -> (i.id() for i in nodes))
+      .should.eventually.eql([ 'node2' ])
 
   it 'should allow hasRelationOut', ->
     new Weaver.Query()
