@@ -45,6 +45,14 @@ describe 'WeaverQuery Test', ->
         expect(count).to.equal(2)
       )
 
+    it 'should count per graph', ->
+
+      new Weaver.Query()
+      .restrict([a,c])
+      .countPerGraph().then((count) ->
+        expect(count).to.equal(2)
+      )
+
     it 'should return relations', ->
       a.relation("to").add(b, "c")
 

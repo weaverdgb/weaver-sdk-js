@@ -104966,7 +104966,7 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "^4.0.1-fix-snapshot-datatatype",
+    "requiredConnectorVersion": "^4.0.3-SNAPSHOT-count-per-graph",
     "requiredServerVersion": "^3.3.0"
   },
   "main": "lib/Weaver.js",
@@ -108200,6 +108200,7 @@ module.exports={
       this._noRelations = true;
       this._noAttributes = true;
       this._count = false;
+      this._countPerGraph = false;
       this._hollow = false;
       this._limit = 99999;
       this._skip = 0;
@@ -108239,6 +108240,18 @@ module.exports={
       })["finally"]((function(_this) {
         return function() {
           return _this._count = false;
+        };
+      })(this));
+    };
+
+    WeaverQuery.prototype.countPerGraph = function() {
+      this._countPerGraph = true;
+      return Weaver.getCoreManager().query(this).then(function(result) {
+        Weaver.Query.notify(result);
+        return result;
+      })["finally"]((function(_this) {
+        return function() {
+          return _this._countPerGraph = false;
         };
       })(this));
     };
