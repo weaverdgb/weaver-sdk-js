@@ -75,7 +75,7 @@ class SocketController
       'connToServer': connToServer,
       'serverToSdk': serverToSdk,
       'executionTime': response.times.executionTime,
-      'subqueryTime': response.times.subqueryTime, # never set
+      'subQueryTime': response.times.subQueryTime, # never set
       'processingTime': response.times.processingTime,
     }
 
