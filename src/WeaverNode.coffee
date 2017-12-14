@@ -79,19 +79,25 @@ class WeaverNode
     )
 
   # Node creating for in queries
-  @get: (nodeId, Constructor) ->
+  @get: (nodeId, Constructor, graph) ->
     Constructor = WeaverNode if not Constructor?
-    node = new Constructor(nodeId, @graph)
+    node = new Constructor(nodeId, graph)
     node._clearPendingWrites()
     node
 
-  @firstOrCreate: (nodeId, Constructor) ->
+  @getFromGraph: (nodeId, graph) ->
+    @get(nodeId, undefined, graph)
+
+  @firstOrCreate: (nodeId, Constructor, graph) ->
     new Weaver.Query()
-      .get(nodeId, Constructor)
+      .get(nodeId, Constructor, graph)
       .catch(->
         Constructor = WeaverNode if not Constructor?
-        new Constructor(nodeId, @graph).save()
+        new Constructor(nodeId, graph).save()
       )
+
+  @firstOrCreateInGraph: (nodeId, graph) ->
+    @firstOrCreate(nodeId, undefined, graph)
 
   # Return id
   id: ->
