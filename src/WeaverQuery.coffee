@@ -84,7 +84,7 @@ class WeaverQuery
   restrict: (nodes) ->
 
     addRestrict = (node) =>
-        @_restrict.push(@nodeId(node))
+        @_restrict.push(nodeId(node))
 
     if util.isArray(nodes)
       @_restrict = [] # Clear
@@ -288,15 +288,15 @@ class WeaverQuery
 
       #First set all nodes to false, follow loops will only check for true values
       for node in sortedNodes
-        map[@nodeId(node)] = false
+        map[nodeId(node)] = false
 
       # Algorithm to find all existing nodes, twice as fast as nested for loop on 10000 nodes.
       i = 0; j = 0
       while i < sortedNodes.length && j < sortedResults.length
-        if @nodeId(sortedNodes[i]) == @nodeId(sortedResults[j])
-          map[@nodeId(sortedNodes[i])] = true
+        if nodeId(sortedNodes[i]) == nodeId(sortedResults[j])
+          map[nodeId(sortedNodes[i])] = true
           i++; j++
-        else if @nodeId(sortedNodes[i]) < @nodeId(sortedResults[j])
+        else if nodeId(sortedNodes[i]) < nodeId(sortedResults[j])
           i++
         else j++
       map
