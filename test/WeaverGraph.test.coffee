@@ -37,6 +37,3 @@ describe 'WeaverGraph support', ->
           .be.equal('WeaverGraph')
       )
 
-
-
-
