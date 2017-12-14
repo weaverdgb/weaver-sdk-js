@@ -5,26 +5,26 @@ cuid   = require('cuid')
 describe 'WeaverModel test', ->
 
   it 'should load in a model from the server', ->
-    Weaver.Model.load("test-model", "1.0.0").then((Model) ->
+    Weaver.Model.load("test-model", "1.1.0").then((Model) ->
       assert.equal(Model.definition.name,    "test-model")
-      assert.equal(Model.definition.version, "1.0.0")
+      assert.equal(Model.definition.version, "1.1.0")
     )
 
   it 'should reload a model from the server', ->
-    Weaver.Model.reload("test-model", "1.0.0").then((Model) ->
+    Weaver.Model.reload("test-model", "1.1.0").then((Model) ->
       assert.equal(Model.definition.name,    "test-model")
-      assert.equal(Model.definition.version, "1.0.0")
+      assert.equal(Model.definition.version, "1.1.0")
     )
 
   it 'should fail on a not existing model', ->
-    Weaver.Model.load("ghost-model", "1.0.0").then((Model) ->
+    Weaver.Model.load("ghost-model", "1.1.0").then((Model) ->
       assert(false)
     ).catch((error)->
       assert.equal(error.code, Weaver.Error.MODEL_NOT_FOUND)
     )
 
   it 'should fail on a not existing version of an existing model', ->
-    Weaver.Model.load("test-model", "1.0.1").then((Model) ->
+    Weaver.Model.load("test-model", "1.1.1").then((Model) ->
       assert(false)
     ).catch((error)->
       assert.equal(error.code, Weaver.Error.MODEL_VERSION_NOT_FOUND)
@@ -34,29 +34,46 @@ describe 'WeaverModel test', ->
     model = {}
 
     before ->
-      Weaver.Model.load("test-model", "1.0.0").then((m) ->
+      Weaver.Model.load("test-model", "1.1.0").then((m) ->
         model = m
       )
 
     it 'should set the type definition to the model class', ->
       Person = model.Person
       person = new Person()
-      assert.equal(person.relation("_proto").first().id(), "#{model.definition.name}:#{person.className}")
+      assert.equal(person.relation(person.getPrototypeKey()).first().id(), "#{model.definition.name}:#{person.className}")
+      assert.equal(person.getPrototype().id(), "#{model.definition.name}:#{person.className}")
+
+    it 'should be able to configure the prototype relation', ->
+      originalprototype = model.definition.prototype
+      model.definition.prototype = "prototype:rel"
+      Person = model.Person
+      person = new Person()
+      assert.equal(person.relation("prototype:rel").first().id(), "#{model.definition.name}:#{person.className}")
+      model.definition.prototype = originalprototype
+
+    it 'should fallback to the default _prototype relation', ->
+      originalprototype = model.definition.prototype
+      delete model.definition.prototype
+      Person = model.Person
+      person = new Person()
+      assert.equal(person.relation("_prototype").first().id(), "#{model.definition.name}:#{person.className}")
+      model.definition.prototype = originalprototype
 
     it 'should set attributes on model instances', ->
       Person = model.Person
       person = new Person()
       person.set('fullName', "John Doe")
-      assert.isDefined(person.attributes.hasFullName)
-      assert.isUndefined(person.attributes.fullName)
+      assert.isDefined(person.attributes().fullName)
+      assert.isUndefined(person.attributes().hasFullName)
 
     it 'should get attributes on model instances', ->
       Person = model.Person
       person = new Person()
       person.set('fullName', "John Doe")
       assert.equal(person.get('fullName'), "John Doe")
-      assert.isDefined(person.attributes.hasFullName)
-      assert.isUndefined(person.attributes.fullName)
+      assert.isDefined(person.attributes().fullName)
+      assert.isUndefined(person.attributes().hasFullName)
 
     it 'should set attributes on model instances by inheritance', ->
       c = new model.Country()
@@ -125,6 +142,15 @@ describe 'WeaverModel test', ->
           assert.fail()
         )
 
+      it 'should succeed save one instance', ->
+        Weaver.Node.load('test-model:Leiden').then((node)->
+          assert.isDefined(node.relation('rdf:type').first())
+        )
+
+      it 'should succeed saving all instances', ->
+        new Weaver.Query().hasRelationOut('rdf:type', 'test-model:City').find()
+        .should.eventually.have.length.be(3)
+
       it 'should throw an error when saving without setting required attributes', ->
         Person = model.Person
         person = new Person()
@@ -167,3 +193,17 @@ describe 'WeaverModel test', ->
         b.relation("buildBy").add(p1)
         b.relation("buildBy").add(p2)
         b.save()
+
+      it 'should list attributes', ->
+        p1 = new model.Person()
+        p1.set("fullName", "Hola 1")
+
+        assert.equal(p1.attributes()['fullName'], 'Hola 1')
+
+      it 'should list relations', ->
+        b = new model.Building()
+        p = new model.Person("personId")
+        p.set("fullName", "Hola 1")
+        b.relation("buildBy").add(p)
+
+        assert.equal(b.relations()['buildBy'].first().id(), 'personId')

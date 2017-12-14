@@ -9,7 +9,13 @@ class WeaverModelClass extends Weaver.Node
     @totalClassDefinition = @_collectFromSupers()
 
     # Add type definition to model class
-    @relation("_proto").add(Weaver.Node.get(@classId()))
+    @relation(@getPrototypeKey()).add(Weaver.Node.get(@classId()))
+
+  getPrototypeKey: ->
+    @model.definition.prototype or '_prototype'
+
+  getPrototype: ->
+    @relation(@getPrototypeKey()).first()
 
   classId: ->
     "#{@definition.name}:#{@className}"
@@ -42,14 +48,44 @@ class WeaverModelClass extends Weaver.Node
 
     @totalClassDefinition.attributes[field].key or field
 
-  _getRelationKey: (key) ->
+  _getRelationKeys: (key) ->
     if not @totalClassDefinition.relations?
       throw new Error("#{@className} model is not allowed to have relations")
 
-    if not @totalClassDefinition.relations[key]?
-      throw new Error("Relation #{key} is not valid on this #{@className} model")
+    if @totalClassDefinition.relations[key]?
+      {
+        model: key
+        database: @totalClassDefinition.relations[key].key or key
+      }
+    else
+      # May be a database relation
+      modelKey = (j for j, i of @totalClassDefinition.relations when i? and i.key is key)
 
-    @totalClassDefinition.relations[key].key or key
+      if modelKey.length is 1
+        {
+          model: modelKey
+          database: key
+        }
+      else
+        throw new Error("Relation #{key} is not valid on this #{@className} model")
+
+  attributes: ->
+    return {} if not @totalClassDefinition.attributes?
+
+    attributes = {}
+    for key, definiton of @totalClassDefinition.attributes
+      attributes[key] = @get(key)
+
+    attributes
+
+  relations: ->
+    return {} if not @totalClassDefinition.relations?
+
+    relations = {}
+    for key, definiton of @totalClassDefinition.relations
+      relations[key] = @relation(key)
+
+    relations
 
   get: (field) ->
     super(@_getAttributeKey(field))
@@ -58,15 +94,16 @@ class WeaverModelClass extends Weaver.Node
     super(@_getAttributeKey(field), value)
 
   relation: (key) ->
-    # Return when using a special relation like _proto
-    return super(key) if ["_proto"].includes(key)
+    # Return when using a special relation like the prototype relation
+    return super(key) if [@getPrototypeKey()].includes(key)
 
-    databaseKey = @_getRelationKey(key)
+    relationKeys = @_getRelationKeys(key)
+    databaseKey = relationKeys.database
 
     # Based on the key, construct a specific Weaver.ModelRelation
-    modelKey             = key
+    modelKey             = relationKeys.model
     model                = @model
-    relationDefinition   = @totalClassDefinition.relations[key]
+    relationDefinition   = @totalClassDefinition.relations[relationKeys.model]
     className            = @className
     definition           = @definition
     totalClassDefinition = @totalClassDefinition

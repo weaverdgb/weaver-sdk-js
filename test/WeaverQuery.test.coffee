@@ -97,6 +97,14 @@ describe 'WeaverQuery Test', ->
       )
 
 
+    it 'should do relation hasRelationOut without supplying a node', ->
+      new Weaver.Query()
+      .hasRelationOut("link")
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+      )
+
     it 'should do relation hasRelationOut', ->
       new Weaver.Query()
       .hasRelationOut("link", b)
@@ -111,6 +119,14 @@ describe 'WeaverQuery Test', ->
       .find().then((nodes) ->
         expect(nodes.length).to.equal(1)
         checkNodeInResult(nodes, 'a')
+      )
+
+    it 'should do relation hasRelationIn without supplying a node', ->
+      new Weaver.Query()
+      .hasRelationIn("link")
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'b')
       )
 
     it 'should do relation hasRelationIn', ->
@@ -469,8 +485,7 @@ describe 'WeaverQuery Test', ->
         .noRelations()
         .ascending(['name'])
         .find().then((nodes) ->
-          (i.attributes.name[0].value for i in nodes).should.eql(['a', 'b', 'c'])
-
+          (i.attributes().name for i in nodes).should.eql(['a', 'b', 'c'])
         )
       )
 
@@ -799,8 +814,8 @@ describe 'WeaverQuery Test', ->
         .find().then((nodes)->
           expect(nodes).to.have.length.be(1)
           checkNodeInResult(nodes, 'a')
-          expect(nodes[0]).to.have.property('relations').to.have.property('link')
-          expect(nodes[0].relations.link.all()).to.have.length.be(1)
+          expect(nodes[0].relation('link').first()).to.be.defined
+          expect(nodes[0].relation('link').all()).to.have.length.be(1)
         )
       )
 
@@ -816,7 +831,7 @@ describe 'WeaverQuery Test', ->
         .find().then((nodes)->
           expect(nodes).to.have.length.be(1)
           checkNodeInResult(nodes, 'a')
-          attrs = nodes[0].attributes
+          attrs = nodes[0].attributes()
           expect(attrs).to.have.property('name')
           expect(attrs).to.have.property('description')
           expect(attrs).to.not.have.property('skip')
@@ -1010,13 +1025,14 @@ describe 'WeaverQuery Test', ->
       Weaver.Node.load('someNode')
     )
 
-  it 'should clear profilers', ->
+  it 'should clear profilers', (done) ->
 
     wipeCurrentProject().then(->
       Weaver.Query.profile((queryResult) ->
         expect(queryResult.nodes[0].nodeId).to.equal('someNode')
 
         Weaver.Query.clearProfilers()
+        done()
       )
 
       node = new Weaver.Node('someNode')
@@ -1026,6 +1042,7 @@ describe 'WeaverQuery Test', ->
     ).then(->
       Weaver.Node.load('someNode')
     )
+    return
 
   it 'should know all timestamps and have them logically correct', (done) ->
     wipeCurrentProject().then(->
