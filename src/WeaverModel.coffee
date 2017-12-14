@@ -40,6 +40,8 @@ class WeaverModel
       @[className] = @[className] extends Weaver.ModelClass
       @[className].defineBy(@, @definition, className, classDefinition)
 
+    @graphName = "#{@definition.name}-#{@definition.version}"
+
 
   # Load given model from server
   @load: (name, version) ->
@@ -51,6 +53,7 @@ class WeaverModel
   bootstrap: ->
     new Weaver.Query()
     .contains('id', "#{@definition.name}:")
+    .restrictGraphs(@graphName)
     .find().then((nodes) =>
       @_bootstrapClasses(i.id() for i in nodes)
     )
@@ -59,12 +62,12 @@ class WeaverModel
     promises = []
 
     for modelClassName of @definition.classes when not existingNodes.includes("#{@definition.name}:#{modelClassName}")
-      promises.push(new Weaver.Node("#{@definition.name}:#{modelClassName}").save())
+      promises.push(new Weaver.Node("#{@definition.name}:#{modelClassName}", @graphName).save())
 
     for className, classObj of @definition.classes when classObj.init?
       ModelClass = @[className]
       for itemName in classObj.init when not existingNodes.includes("#{@definition.name}:#{itemName}")
-        node = new ModelClass("#{@definition.name}:#{itemName}")
+        node = new ModelClass("#{@definition.name}:#{itemName}", @graphName)
         promises.push(node.save())
 
     Promise.all(promises)

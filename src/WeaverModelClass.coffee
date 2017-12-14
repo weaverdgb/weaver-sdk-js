@@ -5,11 +5,11 @@ Weaver      = require('./Weaver')
 class WeaverModelClass extends Weaver.Node
 
   constructor: (nodeId) ->
-    super(nodeId)
+    super(nodeId, @model.graphName)
     @totalClassDefinition = @_collectFromSupers()
 
     # Add type definition to model class
-    @relation(@getPrototypeKey()).add(Weaver.Node.get(@classId()))
+    @relation(@getPrototypeKey()).add(Weaver.Node.getFromGraph(@classId(), @model.graphName))
 
   getPrototypeKey: ->
     @model.definition.prototype or '_prototype'
