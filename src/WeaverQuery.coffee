@@ -12,9 +12,18 @@ nodeId = (node) ->
   if _.isString(node)
     node
   else if node instanceof Weaver.Node
-    node.id()
+    {
+      id: node.id()
+      graph: node.getGraph()
+    }
   else
     throw new Error("Unsupported type")
+
+nodeRelationArrayValue = (nodes) ->
+  if nodes.length > 0
+    (nodeId(i) for i in nodes)
+  else
+    ["*"]
 
 
 class WeaverQuery
@@ -150,7 +159,7 @@ class WeaverQuery
     else if node.length is 1 and node[0] instanceof WeaverQuery
       @_addRelationCondition(key, '$relIn', node)
     else
-      @_addRelationCondition(key, '$relIn', if node.length > 0 then (nodeId(i) or i for i in node) else ['*'])
+      @_addRelationCondition(key, '$relIn', nodeRelationArrayValue(node))
 
   hasRelationOut: (key, node...) ->
     if _.isArray(key)
@@ -158,7 +167,7 @@ class WeaverQuery
     else if node.length is 1 and node[0] instanceof WeaverQuery
       @_addRelationCondition(key, '$relOut', node)
     else
-      @_addRelationCondition(key, '$relOut', if node.length > 0 then (nodeId(i) or i for i in node) else ['*'])
+      @_addRelationCondition(key, '$relOut', nodeRelationArrayValue(node))
     @
 
   hasNoRelationIn: (key, node...) ->
@@ -167,7 +176,7 @@ class WeaverQuery
     else if node.length is 1 and node[0] instanceof WeaverQuery
       @_addRelationCondition(key, '$noRelIn', node)
     else
-      @_addRelationCondition(key, '$noRelIn', if node.length > 0 then (nodeId(i) or i for i in node) else ['*'])
+      @_addRelationCondition(key, '$noRelIn', nodeRelationArrayValue(node))
 
   hasNoRelationOut: (key, node...) ->
     if _.isArray(key)
@@ -175,7 +184,7 @@ class WeaverQuery
     else if node.length is 1 and node[0] instanceof WeaverQuery
       @_addRelationCondition(key, '$noRelOut', node)
     else
-      @_addRelationCondition(key, '$noRelOut', if node.length > 0 then (nodeId(i) or i for i in node) else ['*'])
+      @_addRelationCondition(key, '$noRelOut', nodeRelationArrayValue(node))
 
   _addRecursiveCondition: (op, relation, node, includeSelf) ->
     target = if node instanceof Weaver.Node
