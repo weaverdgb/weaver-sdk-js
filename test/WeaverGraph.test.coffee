@@ -3,11 +3,12 @@ Weaver = require('../src/Weaver')
 
 describe 'WeaverGraph support', ->
   a = new Weaver.Node()
+  b = new Weaver.Node()
   aInGraph = new Weaver.Node(a.id(), 'WeaverGraph')
   aInOtherGraph = new Weaver.Node(a.id(), 'WeaverGraph2')
   
   before ->
-    Weaver.Node.batchSave([a, aInGraph, aInOtherGraph])
+    Weaver.Node.batchSave([a, b, aInGraph, aInOtherGraph])
 
   describe 'in WeaverNode getFromGraph', ->
     it 'should support graphs', ->
@@ -24,4 +25,18 @@ describe 'WeaverGraph support', ->
           .restrict(a.id())
           .find()
         ).should.eventually.have.length.be(3)
+  
+  describe 'in WeaverRelation', ->
+    it 'should allow to link to a node in a graph', ->
+      b.relation('test').add(aInGraph)
+      b.save().then(->
+        new Weaver.Query()
+          .hasRelationIn('test', b)
+          .first()
+          .should.eventually.have.property('graph')
+          .be.equal('WeaverGraph')
+      )
+
+
+
 
