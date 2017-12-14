@@ -148,7 +148,8 @@ describe 'WeaverModel test', ->
         )
 
       it 'should succeed saving all instances', ->
-        new Weaver.Query().hasRelationOut('rdf:type', 'test-model:City').find()
+        new Weaver.Query().restrictGraphs(model.graphName).hasRelationOut('rdf:type', Weaver.Node.getFromGraph('test-model:City', model.graphName))
+        .find()
         .should.eventually.have.length.be(3)
 
       it 'should throw an error when saving without setting required attributes', ->
