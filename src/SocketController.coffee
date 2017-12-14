@@ -53,38 +53,31 @@ class SocketController
           resolve()
         else
           resolve(response)
-        @_calculateTimestamps(response, emitStart, Date.now())
+        if (response.times?)
+          @_calculateTimestamps(response, emitStart, Date.now())
+        response
       )
     )
 
   _calculateTimestamps: (response, emitStart, emitEnd) ->
 
-    sdkToServer  = response.serverStart - emitStart
-    innerServerDelay = response.serverStartConnector - response.serverStart
-    serverToConn = response.executionTimeStart - response.serverStartConnector
-    connToServer = response.serverEnd - response.processingTimeEnd
-    serverToSdk  = emitEnd - response.serverEnd
-    response.totalTime = emitEnd - emitStart
+    sdkToServer  = response.times.serverStart - emitStart
+    innerServerDelay = response.times.serverStartConnector - response.times.serverStart
+    serverToConn = response.times.executionTimeStart - response.times.serverStartConnector
+    connToServer = response.times.serverEnd - response.times.processingTimeEnd
+    serverToSdk  = emitEnd - response.times.serverEnd
 
+    response.totalTime = emitEnd - emitStart
     response.times = {
       'sdkToServer': sdkToServer,
       'innerServerDelay': innerServerDelay,
       'serverToConn': serverToConn,
       'connToServer': connToServer,
       'serverToSdk': serverToSdk,
-      'executionTime': response.executionTime,
-      'subqueryTime': response.subqueryTime,
-      'processingTime': response.processingTime,
+      'executionTime': response.times.executionTime,
+      'subqueryTime': response.times.subqueryTime, # never set
+      'processingTime': response.times.processingTime,
     }
-
-    delete response['executionTime']
-    delete response['executionTimeStart']
-    delete response['processingTime']
-    delete response['processingTimeEnd']
-    delete response['subqueryTime']
-    delete response['serverStartConnector']
-    delete response['serverEnd']
-    delete response['serverStart']
 
     response
 
