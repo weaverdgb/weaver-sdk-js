@@ -8,7 +8,7 @@ _           = require('lodash')
 quote = (s) ->
   '\\Q' + s.replace('\\E', '\\E\\\\E\\Q') + '\\E'
 
-nodeId = (node) ->
+getNodeIdFromStringOrNode = (node) ->
   if _.isString(node)
     node
   else if node instanceof Weaver.Node
@@ -21,7 +21,7 @@ nodeId = (node) ->
 
 nodeRelationArrayValue = (nodes) ->
   if nodes.length > 0
-    (nodeId(i) for i in nodes)
+    (getNodeIdFromStringOrNode(i) for i in nodes)
   else
     ["*"]
 
@@ -187,14 +187,18 @@ class WeaverQuery
       @_addRelationCondition(key, '$noRelOut', nodeRelationArrayValue(node))
 
   _addRecursiveCondition: (op, relation, node, includeSelf) ->
-    target = if node instanceof Weaver.Node
-      node.id()
+    nodeId = ''
+    graph = undefined
+    if node instanceof Weaver.Node
+      nodeId = node.id()
+      graph  = node.getGraph()
     else
-      node
+      nodeId = node
     @_recursiveConditions.push({
       operation: op
       relation
-      nodeId: target
+      nodeId
+      nodeGraph: graph
       includeSelf
     })
     @
