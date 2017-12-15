@@ -11,6 +11,7 @@ describe 'WeaverGraphQuery', ->
 
   it 'should allow hasNoRelationOut', ->
     new Weaver.Query()
+      .restrictGraphs('WeaverGraphQuery')
       .hasNoRelationOut('test', node2)
       .find().then((nodes) -> (i.id() for i in nodes))
       .should.eventually.eql([ 'node2' ])
@@ -23,6 +24,7 @@ describe 'WeaverGraphQuery', ->
 
   it 'should allow hasNoRelationIn', ->
     new Weaver.Query()
+      .restrictGraphs('WeaverGraphQuery')
       .hasNoRelationIn('test', node1)
       .first()
       .should.eventually.have.property('nodeId').be.equal('node1')
