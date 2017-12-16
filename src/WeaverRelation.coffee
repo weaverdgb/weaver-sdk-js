@@ -4,11 +4,11 @@ Weaver  = require('./Weaver')
 
 class WeaverRelation
 
-  constructor: (@parent, @key, graph) ->
+  constructor: (@parent, @key) ->
     @pendingWrites = []   # All operations that need to get saved
     @nodes = {}           # All nodes that this relation points to
     @relationNodes = {}   # Map node id to RelationNode
-    @graph = graph if graph?
+
 
   load: ->
     new Weaver.Query().hasRelationIn(@key, @parent).find()
@@ -31,7 +31,10 @@ class WeaverRelation
   first: ->
     @.all()[0]
 
-  add: (node, relId, addToPendingWrites = true) ->
+  addInGraph: (node, graph) ->
+    @add(node, undefined, true, graph)
+
+  add: (node, relId, addToPendingWrites = true, graph) ->
     relId = cuid() if not relId?
     @nodes[node.id()] = node
 
@@ -40,7 +43,7 @@ class WeaverRelation
     @relationNodes[node.id()] = Weaver.RelationNode.get(relId, Weaver.RelationNode)
 
     Weaver.publish("node.relation.add", {node: @parent, key: @key, target: node})
-    @pendingWrites.push(Operation.Node(@parent).createRelation(@key, node, relId))
+    @pendingWrites.push(Operation.Node(@parent).createRelation(@key, node, relId, undefined, false, graph))
 
   update: (oldNode, newNode) ->
     newRelId = cuid()

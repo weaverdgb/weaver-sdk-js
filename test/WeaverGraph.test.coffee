@@ -37,3 +37,9 @@ describe 'WeaverGraph support', ->
           .be.equal('WeaverGraph')
       )
 
+    it 'should set its graph in the write operations', ->
+      b = new Weaver.Node()
+      c = new Weaver.Node()
+      rel = b.relation('test')
+      rel.addInGraph(c, 'somegraph')
+      expect(rel.pendingWrites[0]).to.have.property('graph').be.equal('somegraph')
