@@ -48,25 +48,27 @@ class WeaverModel
   @reload: (name, version) ->
     Weaver.getCoreManager().reloadModel(name, version)
 
-  bootstrap: ->
+  bootstrap: (graph)->
+    modelGraph = if graph? then graph else @definition.name
     new Weaver.Query()
+    .restrictGraphs(modelGraph)
     .contains('id', "#{@definition.name}:")
     .find().then((nodes) =>
-      @_bootstrapClasses(i.id() for i in nodes)
+      @_bootstrapClasses((i.id() for i in nodes), modelGraph)
     )
 
-  _bootstrapClasses: (existingNodes) ->
+  _bootstrapClasses: (existingNodes, graph) ->
     promises = []
     nodesToCreate = {}
 
     for modelClassName of @definition.classes when not existingNodes.includes("#{@definition.name}:#{modelClassName}")
-      node = new Weaver.Node("#{@definition.name}:#{modelClassName}")
+      node = new Weaver.Node("#{@definition.name}:#{modelClassName}", graph)
       nodesToCreate[node.id()] = node
 
     for className, classObj of @definition.classes when classObj.init?
       ModelClass = @[className]
       for itemName in classObj.init when not existingNodes.includes("#{@definition.name}:#{itemName}")
-        nodesToCreate["#{@definition.name}:#{itemName}"] = new ModelClass("#{@definition.name}:#{itemName}")
+        nodesToCreate["#{@definition.name}:#{itemName}"] = new ModelClass("#{@definition.name}:#{itemName}", graph)
 
     promises.push(node.save()) for id, node of nodesToCreate
 
