@@ -130,12 +130,8 @@ class WeaverNode
     else
       return fieldArray
 
-  setGraph: (value) ->
-    @graph = value
-
   getGraph: ->
     @graph
-
 
   set: (field, value, dataType, options, graph) ->
     if field is 'id'
