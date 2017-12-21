@@ -1,6 +1,6 @@
 {
   "name": "weaver-sdk",
-  "version": "5.1.2",
+  "version": "6.0.0-beta.0-WEAV-247",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
