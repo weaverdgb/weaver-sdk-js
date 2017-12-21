@@ -125,6 +125,9 @@ describe 'Weaver relation and WeaverRelationNode test', ->
     af = new Weaver.Node('a', 'relationWithGraph2')
 
     b.relation('test').add(a)
+# This relation can't be created here because of:
+#    http://jira.sysunite.com/browse/WEAV-251
+#
 #    b.relation('test').add(af)
 
     before ->
