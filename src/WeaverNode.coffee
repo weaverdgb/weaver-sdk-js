@@ -63,7 +63,7 @@ class WeaverNode
         else
           Constructor = Weaver.Node
 
-        instance = new Constructor(relation.target.nodeId)
+        instance = new Constructor(relation.target.nodeId, relation.target.graph)
         instance._loadFromQuery(relation.target, constructorFunction, fullyLoaded)
         @relation(key).add(instance, relation.nodeId, false)
 
