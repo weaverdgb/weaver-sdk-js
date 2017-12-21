@@ -434,6 +434,8 @@ class WeaverNode
   setACL: (acl) ->
     return
 
+  equals: (node) ->
+    node instanceof WeaverNode and node.id() is @id() and node.getGraph() is @getGraph()
 
 # Export
 module.exports = WeaverNode

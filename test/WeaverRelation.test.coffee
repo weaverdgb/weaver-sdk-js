@@ -29,12 +29,12 @@ describe 'Weaver relation and WeaverRelationNode test', ->
 
       Weaver.Node.load(foo.id())
     ).then((loadedNode) ->
-      assert.isDefined(loadedNode.relation('comesBefore').nodes[bar.id()])
+      assert.isDefined(loadedNode.relation('comesBefore').nodes.find((x) -> x.equals(bar)))
 
       assert(loadedNode._loaded)
       assert(loadedNode._stored)
-      expect(loadedNode.relation('comesBefore').nodes[bar.id()]).to.have.property('_loaded').equal(false)
-      assert(loadedNode.relation('comesBefore').nodes[bar.id()]._stored)
+      expect(loadedNode.relation('comesBefore').nodes.find((x) -> x.equals(bar))).to.have.property('_loaded').equal(false)
+      assert(loadedNode.relation('comesBefore').nodes.find((x) -> x.equals(bar))._stored)
 
       loadedNode.relation('comesBefore').to(bar)
     ).then((relation) ->
@@ -67,8 +67,8 @@ describe 'Weaver relation and WeaverRelationNode test', ->
     ).then(->
       Weaver.Node.load(foo.id())
     ).then((loadedNode) ->
-      expect(loadedNode.relation('comesBefore').nodes[ono.id()]).to.be.defined
-      expect(loadedNode.relation('comesBefore').nodes[bar.id()]).to.not.be.defined
+      expect(loadedNode.relation('comesBefore').nodes.find((x) -> x.equals(ono))).to.be.defined
+      expect(loadedNode.relation('comesBefore').nodes.find((x) -> x.equals(bar))).to.not.be.defined
     )
 
   it 'should remove a relation', ->
@@ -118,3 +118,28 @@ describe 'Weaver relation and WeaverRelationNode test', ->
     foo.relation('comesBefore').add(ono)
 
     assert.equal(foo.relation('comesBefore').first(), bar)
+
+  describe 'with graphs', ->
+    a  = new Weaver.Node('a', 'relationWithGraph1')
+    b  = new Weaver.Node('b', 'relationWithGraph1')
+    af = new Weaver.Node('a', 'relationWithGraph2')
+
+    b.relation('test').add(a)
+    b.relation('test').add(af)
+
+    before ->
+      Weaver.Node.batchSave([a, b, af])
+
+    it 'should allow relations to the same node id in different graphs', ->
+      expect(Weaver.Node.loadFromGraph('b', 'relationWithGraph1').then((node) ->
+        node.relation('test').all()
+      )).to.eventually.have.length.be(2)
+
+    it 'should be able to get the relation node for both relations', ->
+      Weaver.Node.loadFromGraph('b', 'relationWithGraph1').then((node) ->
+        rel = node.relation('test')
+        Promise.all([ rel.to(a), rel.to(af) ])
+      ).then((res) ->
+        expect(res[0].id()).to.not.equal(res[1].id())
+      )
+

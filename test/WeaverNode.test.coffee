@@ -974,3 +974,21 @@ describe 'WeaverNode test', ->
       expect(operations).to.have.length(2)
     finally
       Weaver.instance = instance
+
+  describe 'equals', ->
+    check = (node1id, node1graph, node2id, node2graph) ->
+      node1 = new Weaver.Node(node1id, node1graph)
+      node2 = new Weaver.Node(node2id, node2graph)
+      node1.equals(node2)
+
+    it 'should match same ids in default graph', ->
+      expect(check('test', undefined, 'test', undefined)).to.be.true
+
+    it 'should not match different ids in default graph', ->
+      expect(new Weaver.Node('test').equals(new Weaver.Node('test1'))).to.be.false
+
+    it 'should match same ids in same graph', ->
+      expect(new Weaver.Node('test', 'agraph').equals(new Weaver.Node('test', 'agraph'))).to.be.true
+
+    it 'should not match same ids in different graph', ->
+      expect(new Weaver.Node('test', 'agraph').equals(new Weaver.Node('test', 'agraph1'))).to.be.false
