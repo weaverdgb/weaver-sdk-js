@@ -125,10 +125,13 @@ describe 'Weaver relation and WeaverRelationNode test', ->
     af = new Weaver.Node('a', 'relationWithGraph2')
 
     b.relation('test').add(a)
-    b.relation('test').add(af)
+#    b.relation('test').add(af)
 
     before ->
-      Weaver.Node.batchSave([a, b, af])
+      Weaver.Node.batchSave([a, b, af]).then(->
+        b.relation('test').add(af)
+        b.save()
+      )
 
     it 'should allow relations to the same node id in different graphs', ->
       expect(Weaver.Node.loadFromGraph('b', 'relationWithGraph1').then((node) ->
