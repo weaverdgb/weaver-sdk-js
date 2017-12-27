@@ -147,6 +147,11 @@ describe 'WeaverModel test', ->
           assert.isDefined(node.relation('rdf:type').first())
         )
 
+      it 'should succeed save inherit relation', ->
+        Weaver.Node.load('test-model:AreaSection').then((node)->
+          assert.isDefined(node.relation('rdfs:subClassOf').first())
+        )
+
       it 'should succeed saving all instances', ->
         new Weaver.Query().hasRelationOut('rdf:type', 'test-model:City').find()
         .should.eventually.have.length.be(3)
