@@ -48,6 +48,9 @@ class WeaverModel
   @reload: (name, version) ->
     Weaver.getCoreManager().reloadModel(name, version)
 
+  getInheritKey: ->
+    @definition.inherit or '_inherit'
+
   bootstrap: ->
     new Weaver.Query()
     .contains('id', "#{@definition.name}:")
