@@ -278,47 +278,29 @@ class WeaverNode
     cm = Weaver.getCoreManager()
     cm.cloneNode(@nodeId, newId, relationTraversal, @graph, graph)
 
-  peekPendingWrites: (collected) ->
-
-    # Register to keep track which nodes have been collected to prevent recursive blowup
-    collected  = {} if not collected?
-    collected[@id()] = true
-    operations = @pendingWrites
-
-    for key, relation of @_relations
-      for id, node of relation.nodes
-        if not collected[node.id()]
-          collected[node.id()] = true
-          operations = operations.concat(node.peekPendingWrites(collected))
-
-      operations = operations.concat(relation.pendingWrites)
-
-    for operation in operations
-      delete operation[field] for field, value of operation when not value?
-
-    operations
-
-
+  peekPendingWrites: () ->
+    @_collectPendingWrites(undefined, false)
 
   # Go through each relation and recursively add all pendingWrites per relation AND that of the objects
-  _collectPendingWrites: (collected) ->
+  _collectPendingWrites: (collected = {}, cleanup=true) ->
     # Register to keep track which nodes have been collected to prevent recursive blowup
-    collected  = {} if not collected?
     collected[@id()] = true
     operations = @pendingWrites
-    @pendingWrites = []
 
-    i.__pendingOpNode = @ for i in operations
+    if cleanup
+      @pendingWrites = []
+      i.__pendingOpNode = @ for i in operations 
 
     for key, relation of @_relations
       for id, node of relation.nodes
         if node.id()? and not collected[node.id()]
           collected[node.id()] = true
-          operations = operations.concat(node._collectPendingWrites(collected))
+          operations = operations.concat(node._collectPendingWrites(collected, cleanup))
 
-      i.__pendingOpNode = relation for i in relation.pendingWrites
       operations = operations.concat(relation.pendingWrites)
-      relation.pendingWrites = []
+      if cleanup
+        i.__pendingOpNode = relation for i in relation.pendingWrites
+        relation.pendingWrites = []
     operations
 
 
