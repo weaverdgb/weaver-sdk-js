@@ -286,21 +286,42 @@ class WeaverQuery
       sortedNodes = _.sortBy(nodes, ['nodeId']);
       sortedResults = _.sortBy(results, ['nodeId']);
 
-      #First set all nodes to false, follow loops will only check for true values
-      for node in sortedNodes
-        map[nodeId(node)] = false
-
-      # Algorithm to find all existing nodes, twice as fast as nested for loop on 10000 nodes.
-      i = 0; j = 0
-      while i < sortedNodes.length && j < sortedResults.length
-        if nodeId(sortedNodes[i]) == nodeId(sortedResults[j])
-          map[nodeId(sortedNodes[i])] = true
-          i++; j++
-        else if nodeId(sortedNodes[i]) < nodeId(sortedResults[j])
-          i++
-        else j++
-      map
+      @compareSortedNodeLists(sortedNodes, sortedResults)
     )
+
+  findExistingNodesInGraph: (nodes, graph) ->
+    map = {}
+    @restrict(nodes)
+    @restrictGraphs(graph or @collectGraphs(nodes))
+
+    if Constructor?
+      @useConstructorFunction = -> Constructor
+    Weaver.getCoreManager().findExistingNodes(@).then((results) =>
+
+      sortedNodes   = _.sortBy(nodes, ['nodeId'])
+      sortedResults = [].slice.call(results).sort()
+
+      @compareSortedNodeLists(sortedNodes, sortedResults)
+    )
+
+  compareSortedNodeLists: (nodes, compare) ->
+    map = {}
+
+    #First set all nodes to false, follow loops will only check for true values
+    for node in nodes
+      map[nodeId(node)] = false
+
+    # Algorithm to find all existing nodes, twice as fast as nested for loop on 10000 nodes.
+    i = 0; j = 0
+    while i < nodes.length && j < compare.length
+      if nodeId(nodes[i]) == nodeId(compare[j])
+        map[nodeId(nodes[i])] = true
+        i++; j++
+      else if nodeId(nodes[i]) < nodeId(compare[j])
+        i++
+      else j++
+    map
+
 
   selectRecursiveOut: (relationKeys...) ->
     @_selectRecursiveOut = relationKeys

@@ -363,6 +363,7 @@ describe 'WeaverNode test', ->
     ).then((node) ->
       assert.isDefined(node.relation('to').nodes['cloned-a'])
     )
+
   it 'should clone a node to another graph while using loadFromGraph function', ->
     d = new Weaver.Node('original-d')
     e = new Weaver.Node('original-e')
