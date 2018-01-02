@@ -46,14 +46,27 @@ describe 'Weaver relation and WeaverRelationNode test', ->
   it 'should add a new relation with id', ->
     foo = new Weaver.Node()
     bar = new Weaver.Node()
-    foo.relation('comesBefore').add(bar, 'abc')
-
+    rel = foo.relation('comesBefore').add(bar, 'abc')
+    expect(rel).to.be.instanceOf(Weaver.RelationNode)
     foo.save().then(->
-
       Weaver.Node.load('abc', undefined, undefined, true)
     ).then((loadedNode) ->
-
       assert.isDefined(loadedNode)
+    )
+
+
+  it 'should save a new relation on relation on node save', ->
+    foo = new Weaver.Node()
+    bar = new Weaver.Node()
+    bass = new Weaver.Node()
+    rel = foo.relation('comesBefore').add(bar, 'abc')
+    expect(rel).to.be.instanceOf(Weaver.RelationNode)
+    rel.relation('item').add(bass)
+    foo.save().then(->
+      Weaver.Node.load(rel.id(), undefined, undefined, true)
+    ).then((loadedRelNode) ->
+      assert.isDefined(loadedRelNode)
+      expect(loadedRelNode.relation('item').all()).to.have.length.be(1)
     )
 
   it 'should update a relation', ->
