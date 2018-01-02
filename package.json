@@ -9,7 +9,7 @@
   },
   "com_weaverplatform": {
     "requiredConnectorVersion": "^4.0.3-SNAPSHOT-WEAV-216-existance-of-node ",
-    "requiredServerVersion": "^3.3.1"
+    "requiredServerVersion": "^3.3.2-beta.2"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",

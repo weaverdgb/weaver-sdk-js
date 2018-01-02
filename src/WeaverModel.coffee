@@ -57,15 +57,18 @@ class WeaverModel
 
   _bootstrapClasses: (existingNodes) ->
     promises = []
+    nodesToCreate = {}
 
     for modelClassName of @definition.classes when not existingNodes.includes("#{@definition.name}:#{modelClassName}")
-      promises.push(new Weaver.Node("#{@definition.name}:#{modelClassName}").save())
+      node = new Weaver.Node("#{@definition.name}:#{modelClassName}")
+      nodesToCreate[node.id()] = node
 
     for className, classObj of @definition.classes when classObj.init?
       ModelClass = @[className]
       for itemName in classObj.init when not existingNodes.includes("#{@definition.name}:#{itemName}")
-        node = new ModelClass("#{@definition.name}:#{itemName}")
-        promises.push(node.save())
+        nodesToCreate["#{@definition.name}:#{itemName}"] = new ModelClass("#{@definition.name}:#{itemName}")
+
+    promises.push(node.save()) for id, node of nodesToCreate
 
     Promise.all(promises)
 

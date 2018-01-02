@@ -37,8 +37,13 @@ describe 'WeaverQuery Test', ->
         checkNodeInResult(nodes, 'c')
       )
 
-    it 'should count', ->
+    it 'should find all nodes', ->
+      new Weaver.Query()
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(3)
+      )
 
+    it 'should count', ->
       new Weaver.Query()
       .restrict([a,c])
       .count().then((count) ->
@@ -1048,7 +1053,8 @@ describe 'WeaverQuery Test', ->
     wipeCurrentProject().then(->
       Weaver.Query.profile((qr) ->
         total = qr.totalTime
-        sum = qr.sdkToServer + qr.innerServerDelay + qr.serverToConn + qr.executionTime + qr.subqueryTime + qr.processingTime + qr.connToServer + qr.serverToSdk
+        sum = qr.times.sdkToServer + qr.times.innerServerDelay + qr.times.serverToConn + qr.times.executionTime + qr.times.processingTime + qr.times.connToServer + qr.times.serverToSdk
+        sum += qr.times.subQueryTime if qr.times.subQueryTime? # Sub query time is passed but never set
 
         Weaver.Query.clearProfilers()
 
@@ -1063,8 +1069,31 @@ describe 'WeaverQuery Test', ->
       node.save().then(->
         Weaver.Node.load('someNode')
       )
-    ).then(->
-      Weaver.Node.load('someNode')
+    )
+    return
+
+  it 'should not know any of the timestamps in the response object itself', (done) ->
+    wipeCurrentProject().then(->
+      Weaver.Query.profile((qr) ->
+
+        Weaver.Query.clearProfilers()
+
+        expect(qr.sdkToServer).to.be.undefined
+        expect(qr.innerServerDelay).to.be.undefined
+        expect(qr.serverToConn).to.be.undefined
+        expect(qr.executionTime).to.be.undefined
+        expect(qr.subQueryTime).to.be.undefined
+        expect(qr.processingTime).to.be.undefined
+        expect(qr.connToServer).to.be.undefined
+        expect(qr.serverToSdk).to.be.undefined
+
+        done()
+      )
+
+      node = new Weaver.Node('someNode')
+      node.save().then(->
+        Weaver.Node.load('someNode')
+      )
     )
     return
 
