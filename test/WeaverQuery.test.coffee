@@ -1068,17 +1068,22 @@ describe 'WeaverQuery Test', ->
     )
     return
 
-  it 'should be able to check existence on a list of Weaver nodes', ->
-    a = new Weaver.Node('a');    b = new Weaver.Node('b')
-    c = new Weaver.Node('c');    d = new Weaver.Node('d')
-    e = new Weaver.Node('e');    f = new Weaver.Node('f')
-    g = new Weaver.Node('g');    h = new Weaver.Node('h')
-    i = new Weaver.Node('i');    j = new Weaver.Node('j')
-    k = new Weaver.Node('k');    l = new Weaver.Node('l')
-    m = new Weaver.Node('m');
+  describe 'existence of nodes', ->
+    a = new Weaver.Node('a', 'graph');    b = new Weaver.Node('b', 'graph')
+    c = new Weaver.Node('c', 'graph');    d = new Weaver.Node('d', 'other-graph')
+    e = new Weaver.Node('e', 'graph');    f = new Weaver.Node('f', 'graph')
+    g = new Weaver.Node('g', 'graph');    h = new Weaver.Node('h', 'graph')
+    i = new Weaver.Node('i', 'graph');    j = new Weaver.Node('j', 'graph')
+    k = new Weaver.Node('k', 'graph');    l = new Weaver.Node('l', 'graph')
+    m = new Weaver.Node('m', 'graph');
     myNodes = [a,b,c,m,d,e,f,g,h,i,j,k,l]
-    Weaver.Node.batchSave([a,b,m,d,g,j,k,l])
-    .then(->
+
+    before ->
+      wipeCurrentProject().then( ->
+        Weaver.Node.batchSave([a,b,m,d,g,j,k,l])
+      )
+
+    it 'should be able to check existence on a list of Weaver nodes', ->
       new Weaver.Query().findExistingNodes(myNodes).then((result)->
         expect(result.a).to.be.true;        expect(result.b).to.be.true
         expect(result.c).to.be.false;       expect(result.d).to.be.true
@@ -1088,7 +1093,17 @@ describe 'WeaverQuery Test', ->
         expect(result.k).to.be.true;        expect(result.l).to.be.true
         expect(result.m).to.be.true
       )
-    )
+
+    it 'should be able to check existence on a list of Weaver nodes in a singular graph', ->
+      new Weaver.Query().findExistingNodesInGraph(myNodes, 'graph').then((result)->
+        expect(result.a).to.be.true;        expect(result.b).to.be.true
+        expect(result.c).to.be.false;       expect(result.d).to.be.false
+        expect(result.e).to.be.false;       expect(result.f).to.be.false
+        expect(result.g).to.be.true;        expect(result.h).to.be.false
+        expect(result.i).to.be.false;       expect(result.j).to.be.true
+        expect(result.k).to.be.true;        expect(result.l).to.be.true
+        expect(result.m).to.be.true
+      )
 
   it 'should not find relations and attributes when checking existence on a list of nodes', ->
     n = new Weaver.Node('n')
