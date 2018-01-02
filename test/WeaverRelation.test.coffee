@@ -59,7 +59,7 @@ describe 'Weaver relation and WeaverRelationNode test', ->
     foo = new Weaver.Node()
     bar = new Weaver.Node()
     bass = new Weaver.Node()
-    rel = foo.relation('comesBefore').add(bar, 'abc')
+    rel = foo.relation('comesBefore').add(bar)
     expect(rel).to.be.instanceOf(Weaver.RelationNode)
     rel.relation('item').add(bass)
     foo.save().then(->
