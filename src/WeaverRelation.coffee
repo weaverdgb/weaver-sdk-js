@@ -52,8 +52,8 @@ class WeaverRelation
   addInGraph: (node, graph) ->
     @add(node, undefined, true, graph)
 
-  _createRelationNode: (relId, targetNode) ->
-    result = Weaver.RelationNode.get(relId, Weaver.RelationNode)
+  _createRelationNode: (relId, targetNode, graph) ->
+    result = Weaver.RelationNode.get(relId, Weaver.RelationNode, graph)
     result.toNode = targetNode
     result
 
@@ -63,7 +63,7 @@ class WeaverRelation
 
     # Currently this assumes having one relation to the same node
     # it should change, but its here now for backwards compatibility
-    relationNode = @_createRelationNode(relId, node)
+    relationNode = @_createRelationNode(relId, node, graph)
     @relationNodes.push(relationNode)
 
     Weaver.publish("node.relation.add", {node: @parent, key: @key, target: node})
