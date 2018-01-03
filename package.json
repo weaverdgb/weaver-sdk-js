@@ -8,7 +8,7 @@
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "^4.1.1-SNAPSHOT-WEAV-216-existance-of-node ",
+    "requiredConnectorVersion": "^4.1.1-SNAPSHOT-existence-of-node",
     "requiredServerVersion": "^3.4.1-beta.1"
   },
   "main": "lib/Weaver.js",
