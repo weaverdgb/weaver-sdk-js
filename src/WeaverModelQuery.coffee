@@ -9,23 +9,29 @@ class WeaverModelQuery extends Weaver.Query
 
     # Define constructor function
     @useConstructor((node) =>
-      if node.relation('_proto').first()?
-        [modelName, className] = node.relation('_proto').first().id().split(":")
+      if node.relation(@getPrototypeKey()).first()?
+        [modelName, className] = node.relation(@getPrototypeKey()).first().id().split(":")
         @model[className]
       else
         Weaver.Node
     )
 
+  getPrototypeKey: ->
+    @model.definition.prototype or '_prototype'
+
   class: (modelClass) ->
-    @hasRelationOut("_proto", modelClass.classId())
+    @hasRelationOut(@getPrototypeKey(), modelClass.classId())
 
   # Key is composed of Class.modelAttribute
   _mapKeys: (keys, source) ->
     databaseKeys = []
     for key in keys
-      if ['_proto', '*'].includes(key)
+      if [@getPrototypeKey(), '*'].includes(key)
         databaseKeys.push(key)
       else
+        if key.indexOf(".") is -1
+          throw new Error("Key should be in the form of ModelClass.key")
+
         [className, modelKey] = key.split(".")
         modelClass = @model[className]
         defintion  = modelClass.classDefinition
@@ -37,8 +43,14 @@ class WeaverModelQuery extends Weaver.Query
   _mapKey: (key, source) ->
     @_mapKeys([key], source)[0]
 
-  _addCondition: (key, condition, value) ->
+  _addAttributeCondition: (key, condition, value) ->
     super(@_mapKey(key, "attributes"), condition, value)
+
+  _addRelationCondition: (key, condition, value) ->
+    super(@_mapKey(key, "relations"), condition, value)
+
+  _addRecursiveCondition: (op, relation, node, includeSelf) ->
+    super(op, @_mapKey(relation, "relations"), node, includeSelf)
 
   equalTo: (key, value) ->
     super(@_mapKey(key, "attributes"), value)
@@ -48,16 +60,21 @@ class WeaverModelQuery extends Weaver.Query
 
   select: (keys...) ->
     super(key) for key in @_mapKeys(keys, "attributes")
+    @
 
   selectOut: (keys...) ->
-    super(key) for key in @_mapKeys(keys, "relations")
+    # Note that calling selectOut(1, 2) differs from calling selectOut(1);
+    # selectOut(2). Arrayity matters
+    super(@_mapKeys(keys, "relations")...)
+    @
 
   selectRecursiveOut: (keys...) ->
     super(key) for key in @_mapKeys(keys, "relations")
+    @
 
   find: (Constructor) ->
-    # Always get the _proto relation to map to the correct modelclass
-    @alwaysLoadRelations('_proto')
+    # Always get the prototype relation to map to the correct modelclass
+    @alwaysLoadRelations(@getPrototypeKey())
 
     super(Constructor)
 

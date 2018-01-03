@@ -8,7 +8,7 @@ describe 'WeaverModelQuery test', ->
 
   before ->
     wipeCurrentProject().then(->
-      Weaver.Model.load("test-model", "1.0.0")
+      Weaver.Model.load("test-model", "1.1.0")
     ).then((m) ->
       model = m
       model.bootstrap()
@@ -55,7 +55,13 @@ describe 'WeaverModelQuery test', ->
         personB.relation("hasHead").add(head)
         personB.relation("comesFrom").add(spain)
 
-        Promise.map([head, spain, personA, personB], (n) -> n.save())
+        building = new model.Building()
+        area = new model.Area()
+        building.relation("placedIn").add(area)
+        building.relation("buildBy").add(personA)
+        personB.relation("livesIn").add(building)
+
+        Weaver.Node.batchSave([head, spain, personA, personB])
 
       it 'should do an equalTo WeaverModelQuery', ->
         new Weaver.ModelQuery()
@@ -70,3 +76,35 @@ describe 'WeaverModelQuery test', ->
           assert.equal(p.get('fullName'), 'Aby Delores')
           assert.equal(p.relation('hasHead').first().constructor, model.Head)  # <- this fails currently
         )
+
+      it 'should not error on livesInSomebuilding', ->
+        new Weaver.ModelQuery()
+        .equalTo("Person.fullName", "Gaby Baby")
+        .find()
+
+      it.skip 'handles selectOut correctly', ->
+        new Weaver.ModelQuery()
+          .restrict("personB")
+          .selectOut("Person.livesIn", "Building.placedBy")
+          .find()
+          # This needs a check to see that the area is loaded
+
+      it 'translates selectOut correctly (whitebox testing)', ->
+        q = new Weaver.ModelQuery()
+          .restrict("personB")
+          .selectOut("Person.livesIn", "Building.placedBy")
+
+        expect(q).to.have.property('_selectOut').to.have.length.be(1)
+        expect(q._selectOut[0]).to.have.length.be(2)
+
+      it 'should do a hasRelationIn WeaverModelQuery', ->
+        new Weaver.ModelQuery()
+        .hasRelationIn("Person.someRelation")
+        .find()
+        .then((instances) ->
+          assert.equal(instances.length, 0)
+        )
+
+      it 'should fail on wrong key', ->
+        q = new Weaver.ModelQuery()
+        assert.throws((-> q.hasRelationIn("someRelation")))

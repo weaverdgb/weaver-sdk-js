@@ -77,8 +77,9 @@ class CoreManager
 #  serverVersion: ->
 #    @POST('application.version')
 
-  cloneNode: (sourceId, targetId = cuid(), relationsToTraverse) ->
-    @POST('node.clone', { sourceId, targetId, relationsToTraverse})
+  cloneNode: (sourceId, targetId = cuid(), relationsToTraverse, sourceGraph, targetGraph) ->
+    targetGraph = sourceGraph if !targetGraph?
+    @POST('node.clone', { sourceId, sourceGraph, targetId, targetGraph, relationsToTraverse})
 
   serverVersion: ->
     @GET("application.version")
@@ -119,6 +120,11 @@ class CoreManager
 
   getModel: (name, version) ->
     @POST("model.read", {name, version}).then((model) ->
+      new Weaver.Model(model)
+    )
+
+  reloadModel: (name, version) ->
+    @POST("model.reload", {name, version}).then((model) ->
       new Weaver.Model(model)
     )
 
@@ -198,6 +204,12 @@ class CoreManager
 
   unfreezeProject: (id) ->
     @GET("project.unfreeze", {id}, id)
+
+  addApp: (id, app) ->
+    @GET("project.app.add", {id, app}, id)
+
+  removeApp: (id, app) ->
+    @GET("project.app.remove", {id, app}, id)
 
   cloneProject: (id, clone_id, name) ->
     @POST("project.clone", {id: clone_id, name}, id)

@@ -41,6 +41,7 @@ class WeaverQuery
     @_order              = []
     @_ascending          = true
     @_arrayCount         = 0
+    @_inGraph            = undefined
 
   find: (Constructor) ->
 
@@ -75,8 +76,9 @@ class WeaverQuery
         res[0]
     )
 
-  get: (node, Constructor) ->
+  get: (node, Constructor, graph) ->
     @restrict(node)
+    @restrictGraphs(graph)
     @first(Constructor)
 
   restrict: (nodes) ->
@@ -95,6 +97,27 @@ class WeaverQuery
 
     @
 
+  restrictGraphs: (graphs) ->
+    if graphs?
+      addRestrictGraph = (graph) =>
+        if util.isString(graph)
+          @_inGraph.push(graph)
+        else if graph instanceof Weaver.Graph
+          @_inGraph.push(graph.id())
+
+      @_inGraph = [] # Clear
+      if util.isArray(graphs)
+        addRestrictGraph(graph) for graph in graphs
+      else
+        addRestrictGraph(graphs)
+    @
+
+  _addAttributeCondition: (key, condition, value) ->
+    @_addCondition(key, condition, value)
+
+  _addRelationCondition: (key, condition, value) ->
+    @_addCondition(key, condition, value)
+
   _addCondition: (key, condition, value) ->
     delete @_equals[key]
     @_conditions[key] = @_conditions[key] or {}
@@ -107,52 +130,52 @@ class WeaverQuery
     @
 
   notEqualTo: (key, value) ->
-    @_addCondition(key, '$ne', value)
+    @_addAttributeCondition(key, '$ne', value)
 
   lessThan: (key, value) ->
-    @_addCondition(key, '$lt', value)
+    @_addAttributeCondition(key, '$lt', value)
 
   greaterThan: (key, value) ->
-    @_addCondition(key, '$gt', value)
+    @_addAttributeCondition(key, '$gt', value)
 
   lessThanOrEqualTo: (key, value) ->
-    @_addCondition(key, '$lte', value)
+    @_addAttributeCondition(key, '$lte', value)
 
   greaterThanOrEqualTo: (key, value) ->
-    @_addCondition(key, '$gte', value)
+    @_addAttributeCondition(key, '$gte', value)
 
   hasRelationIn: (key, node...) ->
     if _.isArray(key)
-      @_addCondition("$relationArray${@arrayCount++}", '$relIn', key)
+      @_addRelationCondition("$relationArray${@arrayCount++}", '$relIn', key)
     else if node.length is 1 and node[0] instanceof WeaverQuery
-      @_addCondition(key, '$relIn', node)
+      @_addRelationCondition(key, '$relIn', node)
     else
-      @_addCondition(key, '$relIn', if node.length > 0 then (nodeId(i) or i for i in node) else ['*'])
+      @_addRelationCondition(key, '$relIn', if node.length > 0 then (nodeId(i) or i for i in node) else ['*'])
 
   hasRelationOut: (key, node...) ->
     if _.isArray(key)
-      @_addCondition("$relationArray${@arrayCount++}", '$relOut', key)
+      @_addRelationCondition("$relationArray${@arrayCount++}", '$relOut', key)
     else if node.length is 1 and node[0] instanceof WeaverQuery
-      @_addCondition(key, '$relOut', node)
+      @_addRelationCondition(key, '$relOut', node)
     else
-      @_addCondition(key, '$relOut', if node.length > 0 then (nodeId(i) or i for i in node) else ['*'])
+      @_addRelationCondition(key, '$relOut', if node.length > 0 then (nodeId(i) or i for i in node) else ['*'])
     @
 
   hasNoRelationIn: (key, node...) ->
     if _.isArray(key)
-      @_addCondition("$relationArray${@arrayCount++}", '$noRelIn', key)
+      @_addRelationCondition("$relationArray${@arrayCount++}", '$noRelIn', key)
     else if node.length is 1 and node[0] instanceof WeaverQuery
-      @_addCondition(key, '$noRelIn', node)
+      @_addRelationCondition(key, '$noRelIn', node)
     else
-      @_addCondition(key, '$noRelIn', if node.length > 0 then (nodeId(i) or i for i in node) else ['*'])
+      @_addRelationCondition(key, '$noRelIn', if node.length > 0 then (nodeId(i) or i for i in node) else ['*'])
 
   hasNoRelationOut: (key, node...) ->
     if _.isArray(key)
-      @_addCondition("$relationArray${@arrayCount++}", '$noRelOut', key)
+      @_addRelationCondition("$relationArray${@arrayCount++}", '$noRelOut', key)
     else if node.length is 1 and node[0] instanceof WeaverQuery
-      @_addCondition(key, '$noRelOut', node)
+      @_addRelationCondition(key, '$noRelOut', node)
     else
-      @_addCondition(key, '$noRelOut', if node.length > 0 then (nodeId(i) or i for i in node) else ['*'])
+      @_addRelationCondition(key, '$noRelOut', if node.length > 0 then (nodeId(i) or i for i in node) else ['*'])
 
   _addRecursiveCondition: (op, relation, node, includeSelf) ->
     target = if node instanceof Weaver.Node
@@ -180,43 +203,31 @@ class WeaverQuery
     @_addRecursiveCondition('$relOut', key, node, includeSelf)
 
   containedIn: (key, values) ->
-    @_addCondition(key, '$in', values)
+    @_addAttributeCondition(key, '$in', values)
 
   notContainedIn: (key, values) ->
-    @_addCondition(key, '$nin', values)
+    @_addAttributeCondition(key, '$nin', values)
 
   containsAll: (key, values) ->
-    @_addCondition(key, '$all', values)
+    @_addAttributeCondition(key, '$all', values)
 
   exists: (key) ->
-    @_addCondition(key, '$exists', true)
+    @_addAttributeCondition(key, '$exists', true)
 
   doesNotExist: (key) ->
-    @_addCondition(key, '$exists', false)
+    @_addAttributeCondition(key, '$exists', false)
 
   matches: (key, value) ->
-    @_addCondition(key, '$regex', value)
+    @_addAttributeCondition(key, '$regex', value)
 
   contains: (key, value) ->
-    @_addCondition(key, '$contains', value)
+    @_addAttributeCondition(key, '$contains', value)
 
   startsWith: (key, value) ->
-    @_addCondition(key, '$regex', '^' + quote(value))
+    @_addAttributeCondition(key, '$regex', '^' + quote(value))
 
   endsWith: (key, value) ->
-    @_addCondition(key, '$regex', quote(value) + '$')
-
-  matchesQuery: (key, weaverQuery) ->
-    @_addCondition(key, '$inQuery', weaverQuery)
-
-  doesNotMatchQuery: (key, query) ->
-    @_addCondition(key, '$notInQuery', query)
-
-  matchesKeyQuery: (key, queryKey, query) ->
-    @_addCondition(key, '$select', {queryKey, query})
-
-  doesNotMatchKeyInQuery: (key, queryKey, query) ->
-    @_addCondition(key, '$dontSelect', {queryKey, query})
+    @_addAttributeCondition(key, '$regex', quote(value) + '$')
 
   withAttributes: ->
     @_noAttributes = false
