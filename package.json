@@ -8,7 +8,7 @@
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "^4.0.3-SNAPSHOT-weaver-query-attribute-criteria-features ",
+    "requiredConnectorVersion": "^4.1.1-SNAPSHOT-weaver-query-attribute-criteria-features",
     "requiredServerVersion": "^3.3.2"
   },
   "main": "lib/Weaver.js",

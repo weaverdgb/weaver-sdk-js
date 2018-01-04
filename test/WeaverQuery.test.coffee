@@ -1125,6 +1125,10 @@ describe 'WeaverQuery Test', ->
     b.set('age', 8)
     c.set('age', 12)
     a.set('name','Aaay')
+    date = new Date().toISOString().slice(0, 19).replace('T', ' ')
+    a.set('time', date)
+    b.set('myboolean', false)
+    c.set('greeting', "Hello")
 
     before ->
       wipeCurrentProject().then( ->
@@ -1220,4 +1224,43 @@ describe 'WeaverQuery Test', ->
         checkNodeInResult(nodes, 'a')
         checkNodeInResult(nodes, 'b')
         checkNodeInResult(nodes, 'c')
+      )
+
+    it 'should be able to compare timestamps from attributes with current time', ->
+      new Weaver.Query()
+      .equalTo('time', date)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+      )
+
+    it 'should be able to compare timestamps from attributes', ->
+      new Weaver.Query()
+      .notEqualTo('time', '2017-01-03 12:59:27')
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+      )
+
+    it 'should be able to compare Strings from attributes as lessThan', ->
+      new Weaver.Query()
+      .lessThan('greeting', "World")
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'c')
+      )
+
+    it 'should be able to compare Strings from attributes as greaterThan', ->
+      new Weaver.Query()
+      .greaterThan('greeting', "World")
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(0)
+      )
+
+    it 'should be able to compare Booleans from attributes', ->
+      new Weaver.Query()
+      .notEqualTo('myboolean', true)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'b')
       )

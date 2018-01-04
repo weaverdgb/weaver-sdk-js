@@ -6,7 +6,7 @@ services:
     - "5432"
 
   postgresql-connector:
-    image: sysunite/weaver-database-postgresql:4.0.3-weaver-query-attribute-criteria-features
+    image: sysunite/weaver-database-postgresql:4.1.1-SNAPSHOT-weaver-query-attribute-criteria-features
     links:
     - postgres
     expose:
@@ -30,7 +30,7 @@ services:
     - "9000:9000"
 
   weaver-server:
-    image: sysunite/weaver-server:3.3.2-beta.1
+    image: sysunite/weaver-server:3.4.0
     expose:
     - "9487"
     ports:
