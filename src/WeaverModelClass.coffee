@@ -11,6 +11,12 @@ class WeaverModelClass extends Weaver.Node
     # Add type definition to model class
     @relation(@getPrototypeKey()).add(Weaver.Node.getFromGraph(@classId(), @model.graphName))
 
+  getInheritKey: ->
+    @model.definition.inherit or '_inherit'
+
+  getInherit: ->
+    @relation(@getInheritKey()).first()
+
   getPrototypeKey: ->
     @model.definition.prototype or '_prototype'
 
