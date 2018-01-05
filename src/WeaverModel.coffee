@@ -62,11 +62,10 @@ class WeaverModel
     )
 
   _bootstrapClasses: (existingNodes) ->
-    promises = []
     nodesToCreate = {}
 
     for className of @definition.classes when not existingNodes.includes("#{@definition.name}:#{className}")
-      node = new Weaver.Node("#{@definition.name}:#{className}")
+      node = new Weaver.Node("#{@definition.name}:#{className}", @graphName)
       nodesToCreate[node.id()] = node
 
     for className, classObj of @definition.classes when classObj.init? and not existingNodes.includes("#{@definition.name}:#{className}")
@@ -76,12 +75,10 @@ class WeaverModel
 
     for className, classObj of @definition.classes when classObj.super? and not existingNodes.includes("#{@definition.name}:#{className}")
       modelClassNode = nodesToCreate["#{@definition.name}:#{className}"]
-      superClassNode = Weaver.Node.get("#{@definition.name}:#{classObj.super}")
+      superClassNode = Weaver.Node.getFromGraph("#{@definition.name}:#{classObj.super}", @graphName)
       modelClassNode.relation(@getInheritKey()).add(superClassNode)
 
-    promises.push(node.save()) for id, node of nodesToCreate
-
-    Promise.all(promises)
+    Weaver.Node.batchSave(node for id, node of nodesToCreate)
 
 
 module.exports = WeaverModel
