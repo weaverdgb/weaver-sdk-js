@@ -9,7 +9,7 @@ class WeaverModelClass extends Weaver.Node
     @totalClassDefinition = @_collectFromSupers()
 
     # Add type definition to model class
-    @relation(@getPrototypeKey()).addToGraph(Weaver.Node.get(@classId()), graph)
+    @relation(@getPrototypeKey()).addInGraph(Weaver.Node.get(@classId()), graph)
 
   getPrototypeKey: ->
     @model.definition.prototype or '_prototype'
