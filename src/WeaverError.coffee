@@ -249,6 +249,8 @@ WeaverError.WRITE_OPERATION_NOT_EXISTS = 344;
 # Some necessary fields in the write operation json is missing
 WeaverError.WRITE_OPERATION_INVALID = 345;
 
+# Failed executing batch, message given from connector, this should never occur though.
+WeaverError.WRITE_OPERATION_FAILED = 366;
 
 # Error code indicating that there were multiple errors. Aggregate errors
 # have an "errors" property, which is an array of error objects with more

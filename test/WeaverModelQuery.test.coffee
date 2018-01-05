@@ -77,7 +77,7 @@ describe 'WeaverModelQuery test', ->
           assert.equal(p.relation('hasHead').first().constructor, model.Head)  # <- this fails currently
         )
 
-      it.skip 'should not error on livesInSomebuilding', ->
+      it 'should not error on livesInSomebuilding', ->
         new Weaver.ModelQuery()
         .equalTo("Person.fullName", "Gaby Baby")
         .find()
