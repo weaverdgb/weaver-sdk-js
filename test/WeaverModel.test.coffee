@@ -138,9 +138,7 @@ describe 'WeaverModel test', ->
         Person = model.Person
         person = new Person()
         person.set("fullName", "Arild Askholmen")
-        person.save().catch((error) ->
-          assert.fail()
-        )
+        person.save()
 
       it 'should succeed save one instance', ->
         Weaver.Node.load('test-model:Leiden').then((node)->
