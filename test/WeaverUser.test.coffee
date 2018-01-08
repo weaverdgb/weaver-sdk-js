@@ -100,26 +100,23 @@ describe 'WeaverUser Test', ->
 
 
 
-  it 'should sign out a user', (done) ->
+  it 'should sign out a user', ->
     weaver.signOut().then( ->
       # Writing is now not permitted
       node = new Weaver.Node()
       node.save()
     ).catch((error) ->
-      # TODO: Assert error code
-      done()
+      assert.equal(error.code,Weaver.Error.OTHER_CAUSE)
     )
-    return
 
-
-  it 'should sign in the session if token is saved', ->
+  it.skip 'should sign in the session if token is saved', ->
     # TODO: Perhaps localforage is better for this instead of loki
     return
 
-  it 'should create a user without signing in', ->
+  it.skip 'should create a user without signing in', ->
     return
 
-  it 'should fail to login with incorrect username', (done) ->
+  it 'should fail to login with incorrect username', ->
     username = cuid()
     password = cuid()
     user     = new Weaver.User(username, password, "centaurus@univer.se")
@@ -132,14 +129,10 @@ describe 'WeaverUser Test', ->
       # Sign in
       weaver.signInWithUsername('username', password)
     ).catch((err) ->
-      # TODO: Assert error code
-      # assert.equal(err.code, Weaver.Error.USERNAME_NOT_FOUND)
-
-      done()
+      assert.equal(err.code, Weaver.Error.INVALID_USERNAME_PASSWORD)
     )
-    return
 
-  it 'should fail to login with incorrect password', (done) ->
+  it 'should fail to login with incorrect password', ->
     username = cuid()
     password = cuid()
     user     = new Weaver.User(username, password, "centaurus@univer.se")
@@ -152,10 +145,8 @@ describe 'WeaverUser Test', ->
       # Sign in
       weaver.signInWithUsername(username, 'password')
     ).catch((err) ->
-      # TODO: Assert error code
-      done()
+      assert.equal(err.code, Weaver.Error.INVALID_USERNAME_PASSWORD)
     )
-    return
 
   it 'should fail to login with non valid token', (done) ->
     weaver.signOut().then(->
@@ -167,25 +158,21 @@ describe 'WeaverUser Test', ->
     )
     return
 
-  it 'should fail to login with non existing user', (done) ->
+  it 'should fail to login with non existing user', ->
     weaver.signOut().then(->
       # Sign in
       weaver.signInWithUsername('username', 'password')
     ).catch((err) ->
-      # TODO: Assert error code
-      done()
+      assert.equal(err.code, Weaver.Error.INVALID_USERNAME_PASSWORD)
     )
-    return
 
-  it 'should fail to login with NoSQL injection', (done) ->
+  it 'should fail to login with NoSQL injection', ->
     weaver.signOut().then(->
       # Sign in
       weaver.signInWithUsername({"username": {"$regex": ["a?special-user","i"]}}, 'password')
     ).catch((err) ->
-      # TODO: Assert error code
-      done()
+      assert.equal(err.code, Weaver.Error.INVALID_USERNAME_PASSWORD)
     )
-    return
 
   it 'should sign in a user with valid alphanumeric characters and - _', ->
     username = 'fo_0-B4r'
@@ -203,14 +190,14 @@ describe 'WeaverUser Test', ->
       # Sign in
       weaver.signInWithUsername('', 'password')
     ).catch((err) ->
-      assert.isTrue(err.toString().startsWith("Error: Username not valid"))
+      assert.equal(err.code, Weaver.Error.INVALID_USERNAME_PASSWORD)
     )
 
   it 'should fail to login with blanck string as username', ->
     weaver.signOut().then(->
       weaver.signInWithUsername('        ', 'password')
     ).catch((err) ->
-      assert.isTrue(err.toString().startsWith("Error: Username not valid"))
+      assert.equal(err.code, Weaver.Error.INVALID_USERNAME_PASSWORD)
     )
 
   it 'should fail to login with non alphanumeric characters for username but - _', ->
@@ -218,7 +205,7 @@ describe 'WeaverUser Test', ->
       # Sign in
       weaver.signInWithUsername('foo*bar', 'password')
     ).catch((err) ->
-      assert.isTrue(err.toString().startsWith("Error: Username not valid"))
+      assert.equal(err.code, Weaver.Error.INVALID_USERNAME_PASSWORD)
     )
 
   it 'should fail to login with NoSQL injection', ->
@@ -226,7 +213,7 @@ describe 'WeaverUser Test', ->
       # Sign in
       weaver.signInWithUsername({"username": {"$regex": ["a?special-user","i"]}}, 'password')
     ).catch((err) ->
-      assert.isTrue(err.toString().startsWith("Error: Username not valid"))
+      assert.equal(err.code, Weaver.Error.INVALID_USERNAME_PASSWORD)
     )
 
   it 'should list all users', ->
