@@ -58,7 +58,7 @@ class WeaverModel
     .contains('id', "#{@definition.name}:")
     .restrictGraphs(@graphName)
     .find().then((nodes) =>
-      @_bootstrapClasses((i.id() for i in nodes), modelGraph)
+      @_bootstrapClasses((i.id() for i in nodes))
     )
 
   _bootstrapClasses: (existingNodes) ->
