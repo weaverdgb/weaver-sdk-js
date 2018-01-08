@@ -40,8 +40,10 @@ class WeaverModel
       @[className] = @[className] extends Weaver.ModelClass
       @[className].defineBy(@, @definition, className, classDefinition)
 
-    @graphName = "#{@definition.name}-#{@definition.version}"
+    @_graphName = "#{@definition.name}-#{@definition.version}"
 
+  getGraphName: ->
+    @_graphName
 
   # Load given model from server
   @load: (name, version) ->
@@ -56,7 +58,7 @@ class WeaverModel
   bootstrap: ->
     new Weaver.Query()
     .contains('id', "#{@definition.name}:")
-    .restrictGraphs(@graphName)
+    .restrictGraphs(@getGraphName())
     .find().then((nodes) =>
       @_bootstrapClasses((i.id() for i in nodes))
     )
@@ -65,7 +67,7 @@ class WeaverModel
     nodesToCreate = {}
 
     for className of @definition.classes when not existingNodes.includes("#{@definition.name}:#{className}")
-      node = new Weaver.Node("#{@definition.name}:#{className}", @graphName)
+      node = new Weaver.Node("#{@definition.name}:#{className}", @getGraphName())
       nodesToCreate[node.id()] = node
 
     for className, classObj of @definition.classes when classObj.init? and not existingNodes.includes("#{@definition.name}:#{className}")
@@ -75,7 +77,7 @@ class WeaverModel
 
     for className, classObj of @definition.classes when classObj.super? and not existingNodes.includes("#{@definition.name}:#{className}")
       modelClassNode = nodesToCreate["#{@definition.name}:#{className}"]
-      superClassNode = Weaver.Node.getFromGraph("#{@definition.name}:#{classObj.super}", @graphName)
+      superClassNode = Weaver.Node.getFromGraph("#{@definition.name}:#{classObj.super}", @getGraphName())
       modelClassNode.relation(@getInheritKey()).add(superClassNode)
 
     Weaver.Node.batchSave(node for id, node of nodesToCreate)
