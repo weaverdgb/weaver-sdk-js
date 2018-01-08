@@ -40,6 +40,8 @@ class WeaverModel
       @[className] = @[className] extends Weaver.ModelClass
       @[className].defineBy(@, @definition, className, classDefinition)
 
+    @graphName = "#{@definition.name}-#{@definition.version}"
+
 
   # Load given model from server
   @load: (name, version) ->
@@ -48,31 +50,35 @@ class WeaverModel
   @reload: (name, version) ->
     Weaver.getCoreManager().reloadModel(name, version)
 
-  bootstrap: (graph)->
-    modelGraph = if graph? then graph else @definition.name
+  getInheritKey: ->
+    @definition.inherit or '_inherit'
+
+  bootstrap: ->
     new Weaver.Query()
-    .restrictGraphs(modelGraph)
     .contains('id', "#{@definition.name}:")
+    .restrictGraphs(@graphName)
     .find().then((nodes) =>
       @_bootstrapClasses((i.id() for i in nodes), modelGraph)
     )
 
-  _bootstrapClasses: (existingNodes, graph) ->
-    promises = []
+  _bootstrapClasses: (existingNodes) ->
     nodesToCreate = {}
 
-    for modelClassName of @definition.classes when not existingNodes.includes("#{@definition.name}:#{modelClassName}")
-      node = new Weaver.Node("#{@definition.name}:#{modelClassName}", graph)
+    for className of @definition.classes when not existingNodes.includes("#{@definition.name}:#{className}")
+      node = new Weaver.Node("#{@definition.name}:#{className}", @graphName)
       nodesToCreate[node.id()] = node
 
-    for className, classObj of @definition.classes when classObj.init?
+    for className, classObj of @definition.classes when classObj.init? and not existingNodes.includes("#{@definition.name}:#{className}")
       ModelClass = @[className]
       for itemName in classObj.init when not existingNodes.includes("#{@definition.name}:#{itemName}")
         nodesToCreate["#{@definition.name}:#{itemName}"] = new ModelClass("#{@definition.name}:#{itemName}", graph)
 
-    promises.push(node.save()) for id, node of nodesToCreate
+    for className, classObj of @definition.classes when classObj.super? and not existingNodes.includes("#{@definition.name}:#{className}")
+      modelClassNode = nodesToCreate["#{@definition.name}:#{className}"]
+      superClassNode = Weaver.Node.getFromGraph("#{@definition.name}:#{classObj.super}", @graphName)
+      modelClassNode.relation(@getInheritKey()).add(superClassNode)
 
-    Promise.all(promises)
+    Weaver.Node.batchSave(node for id, node of nodesToCreate)
 
 
 module.exports = WeaverModel

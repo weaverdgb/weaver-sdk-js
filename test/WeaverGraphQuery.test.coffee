@@ -53,4 +53,3 @@ describe 'WeaverGraphQuery', ->
       .hasRecursiveRelationIn('test', node1)
       .find().then((nodes) -> (i.id() for i in nodes))
       .should.eventually.eql([ 'node2', 'node3' ])
-
