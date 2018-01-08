@@ -20,7 +20,7 @@ class WeaverModelQuery extends Weaver.Query
     @model.definition.prototype or '_prototype'
 
   class: (modelClass) ->
-    @hasRelationOut(@getPrototypeKey(), modelClass.classId())
+    @hasRelationOut(@getPrototypeKey(), Weaver.Node.getFromGraph(modelClass.classId(), @model.graphName))
 
   # Key is composed of Class.modelAttribute
   _mapKeys: (keys, source) ->

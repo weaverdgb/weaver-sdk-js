@@ -17,7 +17,7 @@ getNodeIdFromStringOrNode = (node) ->
       graph: node.getGraph()
     }
   else
-    throw new Error("Unsupported type")
+    throw new Error("Unsupported type: #{node}")
 
 nodeRelationArrayValue = (nodes) ->
   if nodes.length > 0
