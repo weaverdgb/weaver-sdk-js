@@ -151,7 +151,7 @@ describe 'WeaverModel test', ->
         )
 
       it 'should succeed saving all instances', ->
-        new Weaver.Query().restrictGraphs(model.graphName).hasRelationOut('rdf:type', Weaver.Node.getFromGraph('test-model:City', model.graphName))
+        new Weaver.Query().restrictGraphs(model.getGraphName()).hasRelationOut('rdf:type', Weaver.Node.getFromGraph('test-model:City', model.getGraphName()))
         .find()
         .should.eventually.have.length.be(3)
 
