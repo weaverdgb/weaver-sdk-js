@@ -34,9 +34,9 @@ class WeaverModelQuery extends Weaver.Query
 
         [className, modelKey] = key.split(".")
         modelClass = @model[className]
-        defintion  = modelClass.classDefinition
+        definition  = modelClass.classDefinition
 
-        databaseKeys.push(defintion[source]?[modelKey]?.key or modelKey)
+        databaseKeys.push(definition[source]?[modelKey]?.key or modelKey)
 
     databaseKeys
 
