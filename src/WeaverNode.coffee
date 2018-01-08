@@ -297,12 +297,13 @@ class WeaverNode
           collected[node.id()] = true
           operations = operations.concat(node._collectPendingWrites(collected, cleanup))
           
+      operations = operations.concat(relation.pendingWrites)
+      
       for node in relation.relationNodes
         if node.id()? and not collected[node.id()]
           collected[node.id()] = true
           operations = operations.concat(node._collectPendingWrites(collected, cleanup))
 
-      operations = operations.concat(relation.pendingWrites)
       if cleanup
         i.__pendingOpNode = relation for i in relation.pendingWrites
         relation.pendingWrites = []
