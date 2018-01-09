@@ -5,6 +5,8 @@ author:
   email: mohamad@sysunite.com
 
 prototype: 'rdf:type'
+inherit: 'rdfs:subClassOf'
+
 classes:
   Human:
   City:
