@@ -102040,6 +102040,8 @@ module.exports={
 
   WeaverError.MODEL_VERSION_NOT_FOUND = 207;
 
+  WeaverError.INVALID_USERNAME_PASSWORD = 212;
+
   module.exports = WeaverError;
 
 }).call(this);
