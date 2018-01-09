@@ -6,7 +6,7 @@ services:
     - "5432"
 
   postgresql-connector:
-    image: sysunite/weaver-database-postgresql:4.0.3-SNAPSHOT-cleanup-timestamps
+    image: sysunite/weaver-database-postgresql:4.1.0
     links:
     - postgres
     expose:
@@ -30,10 +30,11 @@ services:
     - "9000:9000"
 
   weaver-server:
-    image: sysunite/weaver-server:3.4.0-beta.1
+    image: sysunite/weaver-server:3.4.0
     expose:
     - "9487"
     ports:
     - "9487:9487"
     volumes:
     - "./weaver-server-config:/usr/src/app/config"
+    - "./weaver-server-models:/usr/src/app/models"
