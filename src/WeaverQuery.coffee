@@ -280,8 +280,6 @@ class WeaverQuery
     @
 
   findExistingNodes: (nodes) ->
-    map = {}
-    @restrict(nodes)
     @find().then((results) =>
       sortedNodes = _.sortBy(nodes, ['nodeId']);
       sortedResults = _.sortBy(results, ['nodeId']);
@@ -289,33 +287,46 @@ class WeaverQuery
       @compareSortedNodeLists(sortedNodes, sortedResults)
     )
 
-  findExistingNodesInGraph: (nodes, graph) ->
+  findExistingNodesInGraph: (nodes) ->
     map = {}
-    @restrict(nodes)
-    @restrictGraphs(graph or @collectGraphs(nodes))
 
     if Constructor?
       @useConstructorFunction = -> Constructor
-    Weaver.getCoreManager().findExistingNodes(@).then((results) =>
+    Weaver.getCoreManager().findExistingNodes(nodes).then((results) =>
 
-      sortedNodes   = _.sortBy(nodes, ['nodeId'])
-      sortedResults = [].slice.call(results).sort()
+      nodeResults = @resultsToNodes(results)
+
+      sortedNodes   = _.sortBy(nodes, ['nodeId', 'graph'])
+      sortedResults = _.sortBy(nodeResults, ['nodeId', 'graph'])
 
       @compareSortedNodeLists(sortedNodes, sortedResults)
     )
 
-  compareSortedNodeLists: (nodes, compare) ->
-    map = {}
+  resultsToNodes: (nodes) ->
+    newList = []
+    for n in nodes
+      n = n.slice(1, -1)
+      n = n.split(",")
+      if n[1] == ''
+        n[1] = undefined
+      newList.push(new Weaver.Node(n[0], n[1]))
+    newList
 
+
+  compareSortedNodeLists: (nodes, compare) =>
+    map = {}
     #First set all nodes to false, follow loops will only check for true values
     for node in nodes
-      map[nodeId(node)] = false
+      idAndGraph = nodeId(node) + "," + node.getGraph()
+      map[idAndGraph] = false
 
     # Algorithm to find all existing nodes, twice as fast as nested for loop on 10000 nodes.
     i = 0; j = 0
     while i < nodes.length && j < compare.length
-      if nodeId(nodes[i]) == nodeId(compare[j])
-        map[nodeId(nodes[i])] = true
+
+      if nodeId(nodes[i]) == nodeId(compare[j]) && nodes[i].getGraph() == compare[j].getGraph()
+        idAndGraph = nodeId(nodes[i]) + "," + nodes[i].getGraph()
+        map[idAndGraph] = true
         i++; j++
       else if nodeId(nodes[i]) < nodeId(compare[j])
         i++

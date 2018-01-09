@@ -81,10 +81,8 @@ class CoreManager
     targetGraph = sourceGraph if !targetGraph?
     @POST('node.clone', {sourceId, sourceGraph, targetId, targetGraph, relationsToTraverse})
 
-  findExistingNodes: (query) ->
-    nodeIds = query._restrict
-    graphs = query._inGraph
-    @POST('findExistingNodes', {nodeIds, graphs})
+  findExistingNodes: (nodes) ->
+    @POST('findExistingNodes', {nodes})
 
   serverVersion: ->
     @GET("application.version")

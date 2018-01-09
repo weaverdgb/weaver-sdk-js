@@ -1097,41 +1097,30 @@ describe 'WeaverQuery Test', ->
     )
     return
 
-  describe 'existence of nodes', ->
+  it 'should be able to check existence on a list of Weaver nodes in their graphs', ->
     a = new Weaver.Node('a', 'graph');    b = new Weaver.Node('b', 'graph')
     c = new Weaver.Node('c', 'graph');    d = new Weaver.Node('d', 'other-graph')
     e = new Weaver.Node('e', 'graph');    f = new Weaver.Node('f', 'graph')
     g = new Weaver.Node('g', 'graph');    h = new Weaver.Node('h', 'graph')
-    i = new Weaver.Node('i', 'graph');    j = new Weaver.Node('j', 'graph')
-    k = new Weaver.Node('k', 'graph');    l = new Weaver.Node('l', 'graph')
-    m = new Weaver.Node('m', 'graph');
-    myNodes = [a,b,c,m,d,e,f,g,h,i,j,k,l]
+    i = new Weaver.Node('i', 'graph');    j = new Weaver.Node('j')
+    k = new Weaver.Node('k', 'graph');    l = new Weaver.Node('l')
+    m = new Weaver.Node('m', 'graph');   a2 = new Weaver.Node('a', 'different-graph')
+    b2 = new Weaver.Node('b');           c2 = new Weaver.Node('c', 'different-graph')
+    myNodes = [a,b,c,m,d,e,f,g,h,i,j,k,l,a2,b2,c2]
+    Weaver.Node.batchSave([a,b,m,d,g,j,k,l,a2,c2])
+      .then( ->
+        new Weaver.Query().findExistingNodesInGraph(myNodes).then((result)->
+          trueNodes = [a,b,d,g,j,k,l,m,a2,c2]
+          falseNodes = [c,e,f,h,i,b2]
 
-    before ->
-      wipeCurrentProject().then( ->
-        Weaver.Node.batchSave([a,b,m,d,g,j,k,l])
-      )
+          for t in trueNodes
+            expect(result[t.id() + "," + t.getGraph()]).to.be.true
 
-    it 'should be able to check existence on a list of Weaver nodes', ->
-      new Weaver.Query().findExistingNodes(myNodes).then((result)->
-        expect(result.a).to.be.true;        expect(result.b).to.be.true
-        expect(result.c).to.be.false;       expect(result.d).to.be.true
-        expect(result.e).to.be.false;       expect(result.f).to.be.false
-        expect(result.g).to.be.true;        expect(result.h).to.be.false
-        expect(result.i).to.be.false;       expect(result.j).to.be.true
-        expect(result.k).to.be.true;        expect(result.l).to.be.true
-        expect(result.m).to.be.true
-      )
+          for f in falseNodes
+            expect(result[f.id() + "," + f.getGraph()]).to.be.false
 
-    it 'should be able to check existence on a list of Weaver nodes in a singular graph', ->
-      new Weaver.Query().findExistingNodesInGraph(myNodes, 'graph').then((result)->
-        expect(result.a).to.be.true;        expect(result.b).to.be.true
-        expect(result.c).to.be.false;       expect(result.d).to.be.false
-        expect(result.e).to.be.false;       expect(result.f).to.be.false
-        expect(result.g).to.be.true;        expect(result.h).to.be.false
-        expect(result.i).to.be.false;       expect(result.j).to.be.true
-        expect(result.k).to.be.true;        expect(result.l).to.be.true
-        expect(result.m).to.be.true
+          expect(Object.keys(result).length).to.equal(16)
+        )
       )
 
   it 'should not find relations and attributes when checking existence on a list of nodes', ->
@@ -1145,21 +1134,8 @@ describe 'WeaverQuery Test', ->
       .then(->
         new Weaver.Query().findExistingNodes(myNodes).then((result) ->
           expect(Object.keys(result).length).to.equal(2)
-          expect(result.n).to.be.true
-          expect(result.o).to.be.true
-        )
-      )
-
-  it 'should allow a node id to be found aswell as a node', ->
-    r = new Weaver.Node('r')
-    s = new Weaver.Node('s')
-    myNodes = [r,'s']
-    Weaver.Node.batchSave([r,s])
-      .then(->
-        new Weaver.Query().findExistingNodes(myNodes).then((result) ->
-          expect(Object.keys(result).length).to.equal(2)
-          expect(result.r).to.be.true
-          expect(result.s).to.be.true
+          expect(result[n.id() + "," + n.getGraph()]).to.be.true
+          expect(result[o.id() + "," + o.getGraph()]).to.be.true
         )
       )
 
