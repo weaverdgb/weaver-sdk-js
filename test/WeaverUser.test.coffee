@@ -105,9 +105,7 @@ describe 'WeaverUser Test', ->
       # Writing is now not permitted
       node = new Weaver.Node()
       node.save()
-    ).catch((error) ->
-      assert.equal(error.code,Weaver.Error.OTHER_CAUSE)
-    )
+    ).should.be.rejectedWith(Weaver.Error.OTHER_CAUSE)
 
   it.skip 'should sign in the session if token is saved', ->
     # TODO: Perhaps localforage is better for this instead of loki
@@ -128,9 +126,7 @@ describe 'WeaverUser Test', ->
     ).then(->
       # Sign in
       weaver.signInWithUsername('username', password)
-    ).catch((err) ->
-      assert.equal(err.code, Weaver.Error.INVALID_USERNAME_PASSWORD)
-    )
+    ).should.be.rejectedWith(Weaver.Error.INVALID_USERNAME_PASSWORD)
 
   it 'should fail to login with incorrect password', ->
     username = cuid()
@@ -144,35 +140,24 @@ describe 'WeaverUser Test', ->
     ).then(->
       # Sign in
       weaver.signInWithUsername(username, 'password')
-    ).catch((err) ->
-      assert.equal(err.code, Weaver.Error.INVALID_USERNAME_PASSWORD)
-    )
+    ).should.be.rejectedWith(Weaver.Error.INVALID_USERNAME_PASSWORD)
 
-  it 'should fail to login with non valid token', (done) ->
+  it 'should fail to login with non valid token', ->
     weaver.signOut().then(->
       weaver.signInWithToken('some invalid token')
-    ).then((user) ->
-      assert(false)
-    ).catch((err) ->
-      done()
-    )
-    return
+    ).should.be.rejectedWith(Weaver.Error.INVALID_SESSION_TOKEN)
 
   it 'should fail to login with non existing user', ->
     weaver.signOut().then(->
       # Sign in
       weaver.signInWithUsername('username', 'password')
-    ).catch((err) ->
-      assert.equal(err.code, Weaver.Error.INVALID_USERNAME_PASSWORD)
-    )
+    ).should.be.rejectedWith(Weaver.Error.INVALID_USERNAME_PASSWORD)
 
   it 'should fail to login with NoSQL injection', ->
     weaver.signOut().then(->
       # Sign in
       weaver.signInWithUsername({"username": {"$regex": ["a?special-user","i"]}}, 'password')
-    ).catch((err) ->
-      assert.equal(err.code, Weaver.Error.INVALID_USERNAME_PASSWORD)
-    )
+    ).should.be.rejectedWith(Weaver.Error.INVALID_USERNAME_PASSWORD)
 
   it 'should sign in a user with valid alphanumeric characters and - _', ->
     username = 'fo_0-B4r'
@@ -189,32 +174,24 @@ describe 'WeaverUser Test', ->
     weaver.signOut().then(->
       # Sign in
       weaver.signInWithUsername('', 'password')
-    ).catch((err) ->
-      assert.equal(err.code, Weaver.Error.INVALID_USERNAME_PASSWORD)
-    )
+    ).should.be.rejectedWith(Weaver.Error.INVALID_USERNAME_PASSWORD)
 
   it 'should fail to login with blanck string as username', ->
     weaver.signOut().then(->
       weaver.signInWithUsername('        ', 'password')
-    ).catch((err) ->
-      assert.equal(err.code, Weaver.Error.INVALID_USERNAME_PASSWORD)
-    )
+    ).should.be.rejectedWith(Weaver.Error.INVALID_USERNAME_PASSWORD)
 
   it 'should fail to login with non alphanumeric characters for username but - _', ->
     weaver.signOut().then(->
       # Sign in
       weaver.signInWithUsername('foo*bar', 'password')
-    ).catch((err) ->
-      assert.equal(err.code, Weaver.Error.INVALID_USERNAME_PASSWORD)
-    )
+    ).should.be.rejectedWith(Weaver.Error.INVALID_USERNAME_PASSWORD)
 
   it 'should fail to login with NoSQL injection', ->
     weaver.signOut().then(->
       # Sign in
       weaver.signInWithUsername({"username": {"$regex": ["a?special-user","i"]}}, 'password')
-    ).catch((err) ->
-      assert.equal(err.code, Weaver.Error.INVALID_USERNAME_PASSWORD)
-    )
+    ).should.be.rejectedWith(Weaver.Error.INVALID_USERNAME_PASSWORD)
 
   it 'should list all users', ->
     Promise.map([
