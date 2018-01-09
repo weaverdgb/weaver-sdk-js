@@ -1,0 +1,60 @@
+name: test-model
+version: 1.1.0
+author:
+  name: Mohamad Alamili
+  email: mohamad@sysunite.com
+
+prototype: 'rdf:type'
+classes:
+  Human:
+  City:
+    init: [Delft, Rotterdam, Leiden]
+  Area:
+    attributes:
+      squareMeter:
+        datatype: integer
+    relations:
+      intersection:
+        range: [Area]
+  AreaSection:
+    super: Area
+    attributes:
+      areaName:
+        datatype: string
+  Country:
+    super: AreaSection
+  Construction:
+    attributes:
+      yearOfConstruction:
+        datatype: integer
+    relations:
+      buildBy:
+        range: [Person]
+        card:  [1,2]
+  Building:
+    super: Construction
+    relations:
+      placedIn:
+        range: [Area]
+  Head:
+  Person:
+    super: Human
+    attributes:
+      fullName:
+        key: 'hasFullName'
+        required: true
+        datatype: string
+      age:
+        datatype: integer
+    relations:
+      livesIn:
+        key: 'livesInSomeBuilding'
+        range: [Building]
+      hasFriend:
+        range: [Person]
+      comesFrom:
+        range: [Country, City]
+        card: [0,1]
+      hasHead:
+        range: [Head]
+      hasRelation:

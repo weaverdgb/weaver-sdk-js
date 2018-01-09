@@ -37,3 +37,4 @@ services:
     - "9487:9487"
     volumes:
     - "./weaver-server-config:/usr/src/app/config"
+    - "./weaver-server-models:/usr/src/app/models"
