@@ -843,28 +843,6 @@ describe 'WeaverQuery Test', ->
         )
       )
 
-  it 'shoud support recursive selectOut', ->
-    a = new Weaver.Node('a')
-    b = new Weaver.Node('b')
-    c = new Weaver.Node('c')
-    d = new Weaver.Node('d')
-    e = new Weaver.Node('e')
-    a.relation('selector').add(b)
-    a.relation('rec').add(b)
-    b.relation('rec').add(c)
-    c.relation('rec').add(d)
-    d.relation('rec').add(e)
-    e.set('name', 'toprec')
-    a.save().then( ->
-      new Weaver.Query()
-      .hasRelationOut('selector')
-      .selectRecursiveOut('rec')
-      .find()
-    ).then((nodes) ->
-      expect(nodes.length).to.equal(1)
-      expect(nodes[0].relation('rec').nodes['b'].relation('rec').nodes['c'].relation('rec').nodes['d'].relation('rec').nodes['e'].get('name')).to.equal("toprec")
-    )
-
   it 'should deny any other user than root to execute a native query', ->
     query = "select * where { ?s ?p ?o }"
     q = new Weaver.Query()
