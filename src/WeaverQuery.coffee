@@ -303,29 +303,18 @@ class WeaverQuery
     @
 
   findExistingNodes: (nodes) ->
-    @find().then((results) =>
-      sortedNodes = _.sortBy(nodes, ['nodeId']);
-      sortedResults = _.sortBy(results, ['nodeId']);
-
-      @compareSortedNodeLists(sortedNodes, sortedResults)
-    )
-
-  findExistingNodesInGraph: (nodes) ->
     map = {}
 
-    if Constructor?
-      @useConstructorFunction = -> Constructor
     Weaver.getCoreManager().findExistingNodes(nodes).then((results) =>
-
-      nodeResults = @resultsToNodes(results)
+      nodeResults = resultsToNodes(results)
 
       sortedNodes   = _.sortBy(nodes, ['nodeId', 'graph'])
       sortedResults = _.sortBy(nodeResults, ['nodeId', 'graph'])
 
-      @compareSortedNodeLists(sortedNodes, sortedResults)
+      compareSortedNodeLists(sortedNodes, sortedResults)
     )
 
-  resultsToNodes: (nodes) ->
+  resultsToNodes = (nodes) ->
     newList = []
     for n in nodes
       n = n.slice(1, -1)

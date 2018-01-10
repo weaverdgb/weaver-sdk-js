@@ -1109,7 +1109,7 @@ describe 'WeaverQuery Test', ->
     myNodes = [a,b,c,m,d,e,f,g,h,i,j,k,l,a2,b2,c2]
     Weaver.Node.batchSave([a,b,m,d,g,j,k,l,a2,c2])
       .then( ->
-        new Weaver.Query().findExistingNodesInGraph(myNodes).then((result)->
+        new Weaver.Query().findExistingNodes(myNodes).then((result)->
           trueNodes = [a,b,d,g,j,k,l,m,a2,c2]
           falseNodes = [c,e,f,h,i,b2]
 
@@ -1123,19 +1123,17 @@ describe 'WeaverQuery Test', ->
         )
       )
 
-  it 'should not find relations and attributes when checking existence on a list of nodes', ->
+  it 'should not find attributes when checking existence on a list of nodes', ->
     n = new Weaver.Node('n')
     o = new Weaver.Node('o')
-    p = new Weaver.Node('p')
     n.set('name', 'Mathieu')
-    o.relation("to").add(p, "q")
     myNodes = [n,o]
-    Weaver.Node.batchSave([n,o,p])
+    Weaver.Node.batchSave([n,o])
       .then(->
         new Weaver.Query().findExistingNodes(myNodes).then((result) ->
-          expect(Object.keys(result).length).to.equal(2)
           expect(result[n.id() + "," + n.getGraph()]).to.be.true
           expect(result[o.id() + "," + o.getGraph()]).to.be.true
+          expect(Object.keys(result).length).to.equal(2)
         )
       )
 
