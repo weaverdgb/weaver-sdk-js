@@ -63,7 +63,7 @@ class WeaverNode
         else
           Constructor = Weaver.Node
 
-        instance = new Constructor(relation.target.nodeId)
+        instance = new Constructor(relation.target.nodeId, relation.target.graph)
         instance._loadFromQuery(relation.target, constructorFunction, fullyLoaded)
         @relation(key).add(instance, relation.nodeId, false)
 
@@ -79,19 +79,25 @@ class WeaverNode
     )
 
   # Node creating for in queries
-  @get: (nodeId, Constructor) ->
+  @get: (nodeId, Constructor, graph) ->
     Constructor = WeaverNode if not Constructor?
-    node = new Constructor(nodeId, @graph)
+    node = new Constructor(nodeId, graph)
     node._clearPendingWrites()
     node
 
-  @firstOrCreate: (nodeId, Constructor) ->
+  @getFromGraph: (nodeId, graph) ->
+    @get(nodeId, undefined, graph)
+
+  @firstOrCreate: (nodeId, Constructor, graph) ->
     new Weaver.Query()
-      .get(nodeId, Constructor)
+      .get(nodeId, Constructor, graph)
       .catch(->
         Constructor = WeaverNode if not Constructor?
-        new Constructor(nodeId, @graph).save()
+        new Constructor(nodeId, graph).save()
       )
+
+  @firstOrCreateInGraph: (nodeId, graph) ->
+    @firstOrCreate(nodeId, undefined, graph)
 
   # Return id
   id: ->
@@ -124,12 +130,8 @@ class WeaverNode
     else
       return fieldArray
 
-  setGraph: (value) ->
-    @graph = value
-
   getGraph: ->
     @graph
-
 
   set: (field, value, dataType, options, graph) ->
     if field is 'id'
@@ -276,47 +278,38 @@ class WeaverNode
     cm = Weaver.getCoreManager()
     cm.cloneNode(@nodeId, newId, relationTraversal, @graph, graph)
 
-  peekPendingWrites: (collected) ->
-
-    # Register to keep track which nodes have been collected to prevent recursive blowup
-    collected  = {} if not collected?
-    collected[@id()] = true
-    operations = @pendingWrites
-
-    for key, relation of @_relations
-      for id, node of relation.nodes
-        if not collected[node.id()]
-          collected[node.id()] = true
-          operations = operations.concat(node.peekPendingWrites(collected))
-
-      operations = operations.concat(relation.pendingWrites)
-
-    for operation in operations
-      delete operation[field] for field, value of operation when not value?
-
-    operations
-
-
+  peekPendingWrites: () ->
+    @_collectPendingWrites(undefined, false)
 
   # Go through each relation and recursively add all pendingWrites per relation AND that of the objects
-  _collectPendingWrites: (collected) ->
+  _collectPendingWrites: (collected = {}, cleanup=true) ->
     # Register to keep track which nodes have been collected to prevent recursive blowup
-    collected  = {} if not collected?
     collected[@id()] = true
     operations = @pendingWrites
-    @pendingWrites = []
 
-    i.__pendingOpNode = @ for i in operations
+    if cleanup
+      @pendingWrites = []
+      i.__pendingOpNode = @ for i in operations 
 
     for key, relation of @_relations
-      for id, node of relation.nodes
+      for node in relation.nodes
         if node.id()? and not collected[node.id()]
           collected[node.id()] = true
-          operations = operations.concat(node._collectPendingWrites(collected))
-
-      i.__pendingOpNode = relation for i in relation.pendingWrites
+          operations = operations.concat(node._collectPendingWrites(collected, cleanup))
+          
       operations = operations.concat(relation.pendingWrites)
-      relation.pendingWrites = []
+      
+      for node in relation.relationNodes
+        if node.id()? and not collected[node.id()]
+          collected[node.id()] = true
+          operations = operations.concat(node._collectPendingWrites(collected, cleanup))
+
+      if cleanup
+        i.__pendingOpNode = relation for i in relation.pendingWrites
+        relation.pendingWrites = []
+
+
+
     operations
 
 
@@ -432,6 +425,8 @@ class WeaverNode
   setACL: (acl) ->
     return
 
+  equals: (node) ->
+    node instanceof WeaverNode and node.id() is @id() and node.getGraph() is @getGraph()
 
 # Export
 module.exports = WeaverNode
