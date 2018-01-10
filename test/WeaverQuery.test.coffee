@@ -37,8 +37,13 @@ describe 'WeaverQuery Test', ->
         checkNodeInResult(nodes, 'c')
       )
 
-    it 'should count', ->
+    it 'should find all nodes', ->
+      new Weaver.Query()
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(3)
+      )
 
+    it 'should count', ->
       new Weaver.Query()
       .restrict([a,c])
       .count().then((count) ->
@@ -557,7 +562,7 @@ describe 'WeaverQuery Test', ->
         .find().then((nodes)->
           expect(nodes.length).to.equal(1)
           checkNodeInResult(nodes, 'a')
-          expect(nodes[0].relation('test').nodes['c'].get('name')).to.equal('bravo')
+          expect(nodes[0].relation('test').nodes[0].get('name')).to.equal('bravo')
         )
       )
 
@@ -576,9 +581,9 @@ describe 'WeaverQuery Test', ->
         .find().then((nodes)->
           expect(nodes.length).to.equal(1)
           checkNodeInResult(nodes, 'a')
-          loadedB = nodes[0].relation('link').nodes['b']
+          loadedB = nodes[0].relation('link').nodes[0]
           expect(loadedB).to.exist
-          expect(loadedB.relation('test').nodes['c'].get('name')).to.equal('grazitutti')
+          expect(loadedB.relation('test').nodes[0].get('name')).to.equal('grazitutti')
         )
       )
 
@@ -612,8 +617,8 @@ describe 'WeaverQuery Test', ->
           expect(nodes.length).to.equal(1)
 
           loadedA = nodes[0]
-          loadedB = nodes[0].relation('link').nodes['b']
-          loadedC = loadedB.relation('test').nodes['c']
+          loadedB = nodes[0].relation('link').nodes[0]
+          loadedC = loadedB.relation('test').nodes[0]
 
           assert.isTrue(loadedA instanceof SpecialNodeA)
           assert.isTrue(loadedB instanceof Weaver.Node)
@@ -641,8 +646,8 @@ describe 'WeaverQuery Test', ->
       ).then((nodes) ->
         expect(nodes).to.have.length.be(1)
         checkNodeInResult(nodes, 'a')
-        expect(nodes[0].relation('beats').nodes['b'].get('name')).to.equal('Seb')
-        expect(nodes[0].relation('beatenBy').nodes['c'].get('name')).to.equal('Lewis')
+        expect(nodes[0].relation('beats').nodes[0].get('name')).to.equal('Seb')
+        expect(nodes[0].relation('beatenBy').nodes[0].get('name')).to.equal('Lewis')
       )
 
     it 'should not 503 on selectOut for no nodes', ->
@@ -689,8 +694,8 @@ describe 'WeaverQuery Test', ->
         .find().then((nodes)->
           expect(nodes.length).to.equal(1)
           checkNodeInResult(nodes, 'a')
-          expect(nodes[0].relation('test').nodes['c'].get('name')).to.equal('foxtrot')
-          expect(nodes[0].relation('link').nodes['b'].get('name')).to.equal('tango')
+          expect(nodes[0].relation('test').nodes[0].get('name')).to.equal('foxtrot')
+          expect(nodes[0].relation('link').nodes[0].get('name')).to.equal('tango')
         )
       )
 
@@ -713,7 +718,7 @@ describe 'WeaverQuery Test', ->
         .find()
       ).then((nodes) ->
         expect(nodes.length).to.equal(1)
-        expect(nodes[0].relation('rec').nodes['b'].relation('rec').nodes['c'].relation('rec').nodes['d'].relation('rec').nodes['e'].get('name')).to.equal("toprec")
+        expect(nodes[0].relation('rec').nodes[0].relation('rec').nodes[0].relation('rec').nodes[0].relation('rec').nodes[0].get('name')).to.equal("toprec")
       )
 
     it 'should support multiple recursive selectOut relations', ->
@@ -730,7 +735,7 @@ describe 'WeaverQuery Test', ->
         .find()
       ).then((nodes) ->
         expect(nodes.length).to.equal(1)
-        expect(nodes[0].relation('rec').nodes['b'].relation('test').nodes['c']).to.exist
+        expect(nodes[0].relation('rec').nodes[0].relation('test').nodes[0]).to.exist
       )
 
     it 'should not break on loops with recursive selectOut', ->
@@ -746,7 +751,7 @@ describe 'WeaverQuery Test', ->
         .find()
       ).then((nodes) ->
         expect(nodes.length).to.equal(1)
-        expect(nodes[0].relation('rec').nodes['b'].relation('rec').nodes['a']).to.exist
+        expect(nodes[0].relation('rec').nodes[0].relation('rec').nodes[0]).to.exist
       )
 
     it 'should be able to combine hasRelationIn queries with hasRelationOut', ->
@@ -803,7 +808,7 @@ describe 'WeaverQuery Test', ->
         .hasRelationOut('link',
           new Weaver.Query().hasRelationOut('link')
         ).find().then((nodes)->
-          expect(nodes[0].relation('link').nodes['b'].get('name')).to.be.undefined
+          expect(nodes[0].relation('link').nodes[0].get('name')).to.be.undefined
         )
       )
 
@@ -1056,7 +1061,8 @@ describe 'WeaverQuery Test', ->
     wipeCurrentProject().then(->
       Weaver.Query.profile((qr) ->
         total = qr.totalTime
-        sum = qr.sdkToServer + qr.innerServerDelay + qr.serverToConn + qr.executionTime + qr.subqueryTime + qr.processingTime + qr.connToServer + qr.serverToSdk
+        sum = qr.times.sdkToServer + qr.times.innerServerDelay + qr.times.serverToConn + qr.times.executionTime + qr.times.processingTime + qr.times.connToServer + qr.times.serverToSdk
+        sum += qr.times.subQueryTime if qr.times.subQueryTime? # Sub query time is passed but never set
 
         Weaver.Query.clearProfilers()
 
@@ -1071,7 +1077,30 @@ describe 'WeaverQuery Test', ->
       node.save().then(->
         Weaver.Node.load('someNode')
       )
-    ).then(->
-      Weaver.Node.load('someNode')
+    )
+    return
+
+  it 'should not know any of the timestamps in the response object itself', (done) ->
+    wipeCurrentProject().then(->
+      Weaver.Query.profile((qr) ->
+
+        Weaver.Query.clearProfilers()
+
+        expect(qr.sdkToServer).to.be.undefined
+        expect(qr.innerServerDelay).to.be.undefined
+        expect(qr.serverToConn).to.be.undefined
+        expect(qr.executionTime).to.be.undefined
+        expect(qr.subQueryTime).to.be.undefined
+        expect(qr.processingTime).to.be.undefined
+        expect(qr.connToServer).to.be.undefined
+        expect(qr.serverToSdk).to.be.undefined
+
+        done()
+      )
+
+      node = new Weaver.Node('someNode')
+      node.save().then(->
+        Weaver.Node.load('someNode')
+      )
     )
     return

@@ -284,4 +284,7 @@ WeaverError.MODEL_NOT_FOUND = 206
 
 WeaverError.MODEL_VERSION_NOT_FOUND = 207
 
+# Invalid Username or Password
+WeaverError.INVALID_USERNAME_PASSWORD = 212
+
 module.exports = WeaverError
