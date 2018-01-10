@@ -8,13 +8,22 @@ _           = require('lodash')
 quote = (s) ->
   '\\Q' + s.replace('\\E', '\\E\\\\E\\Q') + '\\E'
 
-nodeId = (node) ->
+getNodeIdFromStringOrNode = (node) ->
   if _.isString(node)
     node
   else if node instanceof Weaver.Node
-    node.id()
+    {
+      id: node.id()
+      graph: node.getGraph()
+    }
   else
-    throw new Error("Unsupported type")
+    throw new Error("Unsupported type: #{node}")
+
+nodeRelationArrayValue = (nodes) ->
+  if nodes.length > 0
+    (getNodeIdFromStringOrNode(i) for i in nodes)
+  else
+    ["*"]
 
 
 class WeaverQuery
@@ -84,7 +93,10 @@ class WeaverQuery
   restrict: (nodes) ->
 
     addRestrict = (node) =>
-        @_restrict.push(nodeId(node))
+      if util.isString(node)
+        @_restrict.push(node)
+      else if node instanceof Weaver.Node
+        @_restrict.push(node.id())
 
     if util.isArray(nodes)
       @_restrict = [] # Clear
@@ -94,19 +106,26 @@ class WeaverQuery
 
     @
 
+  _addRestrictGraph: (graph) ->
+    if !@_inGraph?
+      @_inGraph = []
+
+    if util.isString(graph)
+      @_inGraph.push(graph)
+    else if graph instanceof Weaver.Graph
+      @_inGraph.push(graph.id())
+
+  inGraph: (graphs...) ->
+    @_addRestrictGraph(i) for i in graphs
+    @
+
   restrictGraphs: (graphs) ->
     if graphs?
-      addRestrictGraph = (graph) =>
-        if util.isString(graph)
-          @_inGraph.push(graph)
-        else if graph instanceof Weaver.Graph
-          @_inGraph.push(graph.id())
-
       @_inGraph = [] # Clear
       if util.isArray(graphs)
-        addRestrictGraph(graph) for graph in graphs
+        @_addRestrictGraph(graph) for graph in graphs
       else
-        addRestrictGraph(graphs)
+        @_addRestrictGraph(graphs)
     @
 
   _addAttributeCondition: (key, condition, value) ->
@@ -147,7 +166,7 @@ class WeaverQuery
     else if node.length is 1 and node[0] instanceof WeaverQuery
       @_addRelationCondition(key, '$relIn', node)
     else
-      @_addRelationCondition(key, '$relIn', if node.length > 0 then (nodeId(i) or i for i in node) else ['*'])
+      @_addRelationCondition(key, '$relIn', nodeRelationArrayValue(node))
 
   hasRelationOut: (key, node...) ->
     if _.isArray(key)
@@ -155,7 +174,7 @@ class WeaverQuery
     else if node.length is 1 and node[0] instanceof WeaverQuery
       @_addRelationCondition(key, '$relOut', node)
     else
-      @_addRelationCondition(key, '$relOut', if node.length > 0 then (nodeId(i) or i for i in node) else ['*'])
+      @_addRelationCondition(key, '$relOut', nodeRelationArrayValue(node))
     @
 
   hasNoRelationIn: (key, node...) ->
@@ -164,7 +183,7 @@ class WeaverQuery
     else if node.length is 1 and node[0] instanceof WeaverQuery
       @_addRelationCondition(key, '$noRelIn', node)
     else
-      @_addRelationCondition(key, '$noRelIn', if node.length > 0 then (nodeId(i) or i for i in node) else ['*'])
+      @_addRelationCondition(key, '$noRelIn', nodeRelationArrayValue(node))
 
   hasNoRelationOut: (key, node...) ->
     if _.isArray(key)
@@ -172,17 +191,21 @@ class WeaverQuery
     else if node.length is 1 and node[0] instanceof WeaverQuery
       @_addRelationCondition(key, '$noRelOut', node)
     else
-      @_addRelationCondition(key, '$noRelOut', if node.length > 0 then (nodeId(i) or i for i in node) else ['*'])
+      @_addRelationCondition(key, '$noRelOut', nodeRelationArrayValue(node))
 
   _addRecursiveCondition: (op, relation, node, includeSelf) ->
-    target = if node instanceof Weaver.Node
-      node.id()
+    nodeId = ''
+    graph = undefined
+    if node instanceof Weaver.Node
+      nodeId = node.id()
+      graph  = node.getGraph()
     else
-      node
+      nodeId = node
     @_recursiveConditions.push({
       operation: op
       relation
-      nodeId: target
+      nodeId
+      nodeGraph: graph
       includeSelf
     })
     @
@@ -312,27 +335,24 @@ class WeaverQuery
       newList.push(new Weaver.Node(n[0], n[1]))
     newList
 
-
-  compareSortedNodeLists: (nodes, compare) =>
+  compareSortedNodeLists = (nodes, compare) =>
     map = {}
     #First set all nodes to false, follow loops will only check for true values
     for node in nodes
-      idAndGraph = nodeId(node) + "," + node.getGraph()
+      idAndGraph = node.id() + "," + node.getGraph()
       map[idAndGraph] = false
 
     # Algorithm to find all existing nodes, twice as fast as nested for loop on 10000 nodes.
     i = 0; j = 0
     while i < nodes.length && j < compare.length
-
-      if nodeId(nodes[i]) == nodeId(compare[j]) && nodes[i].getGraph() == compare[j].getGraph()
-        idAndGraph = nodeId(nodes[i]) + "," + nodes[i].getGraph()
+      if nodes[i].id() == compare[j].id() && nodes[i].getGraph() == compare[j].getGraph()
+        idAndGraph = nodes[i].id() + "," + nodes[i].getGraph()
         map[idAndGraph] = true
         i++; j++
-      else if nodeId(nodes[i]) < nodeId(compare[j])
+      else if nodes[i].id() < compare[j].id()
         i++
       else j++
     map
-
 
   selectRecursiveOut: (relationKeys...) ->
     @_selectRecursiveOut = relationKeys

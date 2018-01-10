@@ -357,11 +357,11 @@ describe 'WeaverNode test', ->
       assert.notEqual(cloned.id(), a.id())
       assert.equal(cloned.get('name'), 'Foo')
       assert.equal(cloned.getGraph(), 'my-graph')
-      to = value for key, value of cloned.relation('to').nodes
+      to = value for value in cloned.relation('to').nodes
       assert.equal(to.id(), b.id())
       Weaver.Node.load(c.id())
     ).then((node) ->
-      assert.isDefined(node.relation('to').nodes['cloned-a'])
+      assert.isDefined(node.relation('to').nodes.find((x) -> x.equals(Weaver.Node.getFromGraph('cloned-a', 'my-graph'))))
     )
 
   it 'should clone a node to another graph while using loadFromGraph function', ->
@@ -387,11 +387,11 @@ describe 'WeaverNode test', ->
       assert.notEqual(cloned.id(), d.id())
       assert.equal(cloned.get('name'), 'Foo')
       assert.equal(cloned.getGraph(), 'my-graph')
-      to = value for key, value of cloned.relation('to').nodes
+      to = value for value in cloned.relation('to').nodes
       assert.equal(to.id(), e.id())
       Weaver.Node.load(f.id())
     ).then((node) ->
-      assert.isDefined(node.relation('to').nodes['cloned-d'])
+      assert.isDefined(node.relation('to').nodes.find((x) -> x.equals(Weaver.Node.getFromGraph('cloned-d', 'my-graph'))))
     )
 
   it 'should clone a node', ->
@@ -416,11 +416,11 @@ describe 'WeaverNode test', ->
     ).then((cloned) ->
       assert.notEqual(cloned.id(), a.id())
       assert.equal(cloned.get('name'), 'Foo')
-      to = value for key, value of cloned.relation('to').nodes
+      to = value for value in cloned.relation('to').nodes
       assert.equal(to.id(), b.id())
       Weaver.Node.load(c.id())
     ).then((node) ->
-      assert.isDefined(node.relation('to').nodes['cloned a'])
+      assert.isDefined(node.relation('to').nodes.find((x) -> x.equals(Weaver.Node.get('cloned a'))))
     )
 
   it 'should recursively clone a node', ->
@@ -468,7 +468,7 @@ describe 'WeaverNode test', ->
       Weaver.Node.load('2player')
     ).then((pl) ->
       expect(pl.relation('chooses').all()).to.have.length.be(2)
-      expect(pl.relation('chooses').nodes).to.have.property('2sissors')
+      expect(pl.relation('chooses').nodes.find((x) -> x.equals(Weaver.Node.get('2sissors')))).to.be.defined
     )
 
   it 'should load an incomplete node', ->
@@ -765,11 +765,11 @@ describe 'WeaverNode test', ->
     ).then((cloned) ->
       assert.notEqual(cloned.id(), a.id())
       assert.equal(cloned.get('name'), 'Foo')
-      to = value for key, value of cloned.relation('to').nodes
+      to = value for value in cloned.relation('to').nodes
       assert.equal(to.id(), b.id())
       Weaver.Node.load(c.id())
     ).then((node) ->
-      assert.isDefined(node.relation('to').nodes['cloned-a2'])
+      assert.isDefined(node.relation('to').nodes.find((x) -> x.equals(Weaver.Node.get('cloned-a2'))))
     )
 
   it 'should batch delete nodes', ->
@@ -975,3 +975,21 @@ describe 'WeaverNode test', ->
       expect(operations).to.have.length(2)
     finally
       Weaver.instance = instance
+
+  describe 'equals', ->
+    check = (node1id, node1graph, node2id, node2graph) ->
+      node1 = new Weaver.Node(node1id, node1graph)
+      node2 = new Weaver.Node(node2id, node2graph)
+      node1.equals(node2)
+
+    it 'should match same ids in default graph', ->
+      expect(check('test', undefined, 'test', undefined)).to.be.true
+
+    it 'should not match different ids in default graph', ->
+      expect(new Weaver.Node('test').equals(new Weaver.Node('test1'))).to.be.false
+
+    it 'should match same ids in same graph', ->
+      expect(new Weaver.Node('test', 'agraph').equals(new Weaver.Node('test', 'agraph'))).to.be.true
+
+    it 'should not match same ids in different graph', ->
+      expect(new Weaver.Node('test', 'agraph').equals(new Weaver.Node('test', 'agraph1'))).to.be.false

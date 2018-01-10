@@ -18,13 +18,12 @@ describe 'WeaverModelQuery test', ->
       person.save()
     )
 
-
   it 'should do Weaver.Query on models', ->
     new Weaver.ModelQuery(model)
     .class(model.Person)
     .find()
     .then((instances) ->
-      assert.equal(instances.length, 1)
+      expect(instances).to.have.length.be(1)
       assert.equal(instances[0].constructor, model.Person)
       assert.equal(instances[0].get('fullName'), 'John Doe')
     )
