@@ -843,8 +843,6 @@ describe 'WeaverQuery Test', ->
         )
       )
 
-  # From this point on, no more beforeEach
-
   it 'should deny any other user than root to execute a native query', ->
     query = "select * where { ?s ?p ?o }"
     q = new Weaver.Query()
@@ -1096,3 +1094,151 @@ describe 'WeaverQuery Test', ->
       )
     )
     return
+
+  describe 'simple nodes, with age', ->
+    a = new Weaver.Node("a")
+    b = new Weaver.Node("b")
+    c = new Weaver.Node("c")
+    a.set('age', 4)
+    b.set('age', 8)
+    c.set('age', 12)
+    a.set('name','Aaay')
+    date = new Date().toISOString().slice(0, 19).replace('T', ' ')
+    a.set('time', date)
+    b.set('myboolean', false)
+    c.set('greeting', "Hello")
+
+    before ->
+      wipeCurrentProject().then( ->
+        Promise.all([a.save(), b.save(), c.save()])
+      )
+
+    it 'should do equalTo a wildcard', ->
+      new Weaver.Query()
+      .equalTo("name", '*')
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+      )
+
+    it 'should do notEqualTo', ->
+      new Weaver.Query()
+      .notEqualTo("age", 8)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(2)
+        checkNodeInResult(nodes, 'a')
+        checkNodeInResult(nodes, 'c')
+      )
+
+    it 'should do greaterThan', ->
+      new Weaver.Query()
+      .greaterThan("age", 8)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'c')
+      )
+
+    it 'should do lessThan', ->
+      new Weaver.Query()
+      .lessThan("age", 8)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+      )
+
+    it 'should do greaterThanOrEqualTo', ->
+      new Weaver.Query()
+      .greaterThanOrEqualTo("age", 8)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(2)
+        checkNodeInResult(nodes, 'b')
+        checkNodeInResult(nodes, 'c')
+      )
+
+    it 'should do lessThanOrEqualTo', ->
+      new Weaver.Query()
+      .lessThanOrEqualTo("age", 8)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(2)
+        checkNodeInResult(nodes, 'a')
+        checkNodeInResult(nodes, 'b')
+      )
+
+    it 'should be able to combine greaterThan and lessThan', ->
+      new Weaver.Query()
+      .lessThan("age", 12)
+      .greaterThan("age", 4)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'b')
+      )
+
+    it 'should be able to combine greaterThanOrEqualTo and lessThan', ->
+      new Weaver.Query()
+      .lessThanOrEqualTo("age", 12)
+      .greaterThan("age", 4)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(2)
+        checkNodeInResult(nodes, 'b')
+        checkNodeInResult(nodes, 'c')
+      )
+
+    it 'should be able to combine greaterThan and lessThanOrEqualTo', ->
+      new Weaver.Query()
+      .lessThan("age", 12)
+      .greaterThanOrEqualTo("age", 4)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(2)
+        checkNodeInResult(nodes, 'a')
+        checkNodeInResult(nodes, 'b')
+      )
+
+    it 'should be able to combine greaterThanOrEqualTo and lessThanOrEqualTo', ->
+      new Weaver.Query()
+      .lessThanOrEqualTo("age", 12)
+      .greaterThanOrEqualTo("age", 4)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(3)
+        checkNodeInResult(nodes, 'a')
+        checkNodeInResult(nodes, 'b')
+        checkNodeInResult(nodes, 'c')
+      )
+
+    it 'should be able to compare timestamps from attributes with current time', ->
+      new Weaver.Query()
+      .equalTo('time', date)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+      )
+
+    it 'should be able to compare timestamps from attributes', ->
+      new Weaver.Query()
+      .notEqualTo('time', '2017-01-03 12:59:27')
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+      )
+
+    it 'should be able to compare Strings from attributes as lessThan', ->
+      new Weaver.Query()
+      .lessThan('greeting', "World")
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'c')
+      )
+
+    it 'should be able to compare Strings from attributes as greaterThan', ->
+      new Weaver.Query()
+      .greaterThan('greeting', "World")
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(0)
+      )
+
+    it 'should be able to compare Booleans from attributes', ->
+      new Weaver.Query()
+      .notEqualTo('myboolean', true)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'b')
+      )
