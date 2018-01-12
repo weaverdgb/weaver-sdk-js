@@ -37,8 +37,13 @@ describe 'WeaverQuery Test', ->
         checkNodeInResult(nodes, 'c')
       )
 
-    it 'should count', ->
+    it 'should find all nodes', ->
+      new Weaver.Query()
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(3)
+      )
 
+    it 'should count', ->
       new Weaver.Query()
       .restrict([a,c])
       .count().then((count) ->
@@ -549,7 +554,7 @@ describe 'WeaverQuery Test', ->
         .find().then((nodes)->
           expect(nodes.length).to.equal(1)
           checkNodeInResult(nodes, 'a')
-          expect(nodes[0].relation('test').nodes['c'].get('name')).to.equal('bravo')
+          expect(nodes[0].relation('test').nodes[0].get('name')).to.equal('bravo')
         )
       )
 
@@ -568,9 +573,9 @@ describe 'WeaverQuery Test', ->
         .find().then((nodes)->
           expect(nodes.length).to.equal(1)
           checkNodeInResult(nodes, 'a')
-          loadedB = nodes[0].relation('link').nodes['b']
+          loadedB = nodes[0].relation('link').nodes[0]
           expect(loadedB).to.exist
-          expect(loadedB.relation('test').nodes['c'].get('name')).to.equal('grazitutti')
+          expect(loadedB.relation('test').nodes[0].get('name')).to.equal('grazitutti')
         )
       )
 
@@ -604,8 +609,8 @@ describe 'WeaverQuery Test', ->
           expect(nodes.length).to.equal(1)
 
           loadedA = nodes[0]
-          loadedB = nodes[0].relation('link').nodes['b']
-          loadedC = loadedB.relation('test').nodes['c']
+          loadedB = nodes[0].relation('link').nodes[0]
+          loadedC = loadedB.relation('test').nodes[0]
 
           assert.isTrue(loadedA instanceof SpecialNodeA)
           assert.isTrue(loadedB instanceof Weaver.Node)
@@ -633,8 +638,8 @@ describe 'WeaverQuery Test', ->
       ).then((nodes) ->
         expect(nodes).to.have.length.be(1)
         checkNodeInResult(nodes, 'a')
-        expect(nodes[0].relation('beats').nodes['b'].get('name')).to.equal('Seb')
-        expect(nodes[0].relation('beatenBy').nodes['c'].get('name')).to.equal('Lewis')
+        expect(nodes[0].relation('beats').nodes[0].get('name')).to.equal('Seb')
+        expect(nodes[0].relation('beatenBy').nodes[0].get('name')).to.equal('Lewis')
       )
 
     it 'should not 503 on selectOut for no nodes', ->
@@ -681,8 +686,8 @@ describe 'WeaverQuery Test', ->
         .find().then((nodes)->
           expect(nodes.length).to.equal(1)
           checkNodeInResult(nodes, 'a')
-          expect(nodes[0].relation('test').nodes['c'].get('name')).to.equal('foxtrot')
-          expect(nodes[0].relation('link').nodes['b'].get('name')).to.equal('tango')
+          expect(nodes[0].relation('test').nodes[0].get('name')).to.equal('foxtrot')
+          expect(nodes[0].relation('link').nodes[0].get('name')).to.equal('tango')
         )
       )
 
@@ -705,7 +710,7 @@ describe 'WeaverQuery Test', ->
         .find()
       ).then((nodes) ->
         expect(nodes.length).to.equal(1)
-        expect(nodes[0].relation('rec').nodes['b'].relation('rec').nodes['c'].relation('rec').nodes['d'].relation('rec').nodes['e'].get('name')).to.equal("toprec")
+        expect(nodes[0].relation('rec').nodes[0].relation('rec').nodes[0].relation('rec').nodes[0].relation('rec').nodes[0].get('name')).to.equal("toprec")
       )
 
     it 'should support multiple recursive selectOut relations', ->
@@ -722,7 +727,7 @@ describe 'WeaverQuery Test', ->
         .find()
       ).then((nodes) ->
         expect(nodes.length).to.equal(1)
-        expect(nodes[0].relation('rec').nodes['b'].relation('test').nodes['c']).to.exist
+        expect(nodes[0].relation('rec').nodes[0].relation('test').nodes[0]).to.exist
       )
 
     it 'should not break on loops with recursive selectOut', ->
@@ -738,7 +743,7 @@ describe 'WeaverQuery Test', ->
         .find()
       ).then((nodes) ->
         expect(nodes.length).to.equal(1)
-        expect(nodes[0].relation('rec').nodes['b'].relation('rec').nodes['a']).to.exist
+        expect(nodes[0].relation('rec').nodes[0].relation('rec').nodes[0]).to.exist
       )
 
     it 'should be able to combine hasRelationIn queries with hasRelationOut', ->
@@ -795,7 +800,7 @@ describe 'WeaverQuery Test', ->
         .hasRelationOut('link',
           new Weaver.Query().hasRelationOut('link')
         ).find().then((nodes)->
-          expect(nodes[0].relation('link').nodes['b'].get('name')).to.be.undefined
+          expect(nodes[0].relation('link').nodes[0].get('name')).to.be.undefined
         )
       )
 
@@ -837,8 +842,6 @@ describe 'WeaverQuery Test', ->
           expect(attrs).to.not.have.property('skip')
         )
       )
-
-  # From this point on, no more beforeEach
 
   it 'should deny any other user than root to execute a native query', ->
     query = "select * where { ?s ?p ?o }"
@@ -1048,7 +1051,8 @@ describe 'WeaverQuery Test', ->
     wipeCurrentProject().then(->
       Weaver.Query.profile((qr) ->
         total = qr.totalTime
-        sum = qr.sdkToServer + qr.innerServerDelay + qr.serverToConn + qr.executionTime + qr.subqueryTime + qr.processingTime + qr.connToServer + qr.serverToSdk
+        sum = qr.times.sdkToServer + qr.times.innerServerDelay + qr.times.serverToConn + qr.times.executionTime + qr.times.processingTime + qr.times.connToServer + qr.times.serverToSdk
+        sum += qr.times.subQueryTime if qr.times.subQueryTime? # Sub query time is passed but never set
 
         Weaver.Query.clearProfilers()
 
@@ -1063,7 +1067,178 @@ describe 'WeaverQuery Test', ->
       node.save().then(->
         Weaver.Node.load('someNode')
       )
-    ).then(->
-      Weaver.Node.load('someNode')
     )
     return
+
+  it 'should not know any of the timestamps in the response object itself', (done) ->
+    wipeCurrentProject().then(->
+      Weaver.Query.profile((qr) ->
+
+        Weaver.Query.clearProfilers()
+
+        expect(qr.sdkToServer).to.be.undefined
+        expect(qr.innerServerDelay).to.be.undefined
+        expect(qr.serverToConn).to.be.undefined
+        expect(qr.executionTime).to.be.undefined
+        expect(qr.subQueryTime).to.be.undefined
+        expect(qr.processingTime).to.be.undefined
+        expect(qr.connToServer).to.be.undefined
+        expect(qr.serverToSdk).to.be.undefined
+
+        done()
+      )
+
+      node = new Weaver.Node('someNode')
+      node.save().then(->
+        Weaver.Node.load('someNode')
+      )
+    )
+    return
+
+  describe 'simple nodes, with age', ->
+    a = new Weaver.Node("a")
+    b = new Weaver.Node("b")
+    c = new Weaver.Node("c")
+    a.set('age', 4)
+    b.set('age', 8)
+    c.set('age', 12)
+    a.set('name','Aaay')
+    date = new Date().toISOString().slice(0, 19).replace('T', ' ')
+    a.set('time', date)
+    b.set('myboolean', false)
+    c.set('greeting', "Hello")
+
+    before ->
+      wipeCurrentProject().then( ->
+        Promise.all([a.save(), b.save(), c.save()])
+      )
+
+    it 'should do equalTo a wildcard', ->
+      new Weaver.Query()
+      .equalTo("name", '*')
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+      )
+
+    it 'should do notEqualTo', ->
+      new Weaver.Query()
+      .notEqualTo("age", 8)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(2)
+        checkNodeInResult(nodes, 'a')
+        checkNodeInResult(nodes, 'c')
+      )
+
+    it 'should do greaterThan', ->
+      new Weaver.Query()
+      .greaterThan("age", 8)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'c')
+      )
+
+    it 'should do lessThan', ->
+      new Weaver.Query()
+      .lessThan("age", 8)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+      )
+
+    it 'should do greaterThanOrEqualTo', ->
+      new Weaver.Query()
+      .greaterThanOrEqualTo("age", 8)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(2)
+        checkNodeInResult(nodes, 'b')
+        checkNodeInResult(nodes, 'c')
+      )
+
+    it 'should do lessThanOrEqualTo', ->
+      new Weaver.Query()
+      .lessThanOrEqualTo("age", 8)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(2)
+        checkNodeInResult(nodes, 'a')
+        checkNodeInResult(nodes, 'b')
+      )
+
+    it 'should be able to combine greaterThan and lessThan', ->
+      new Weaver.Query()
+      .lessThan("age", 12)
+      .greaterThan("age", 4)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'b')
+      )
+
+    it 'should be able to combine greaterThanOrEqualTo and lessThan', ->
+      new Weaver.Query()
+      .lessThanOrEqualTo("age", 12)
+      .greaterThan("age", 4)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(2)
+        checkNodeInResult(nodes, 'b')
+        checkNodeInResult(nodes, 'c')
+      )
+
+    it 'should be able to combine greaterThan and lessThanOrEqualTo', ->
+      new Weaver.Query()
+      .lessThan("age", 12)
+      .greaterThanOrEqualTo("age", 4)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(2)
+        checkNodeInResult(nodes, 'a')
+        checkNodeInResult(nodes, 'b')
+      )
+
+    it 'should be able to combine greaterThanOrEqualTo and lessThanOrEqualTo', ->
+      new Weaver.Query()
+      .lessThanOrEqualTo("age", 12)
+      .greaterThanOrEqualTo("age", 4)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(3)
+        checkNodeInResult(nodes, 'a')
+        checkNodeInResult(nodes, 'b')
+        checkNodeInResult(nodes, 'c')
+      )
+
+    it 'should be able to compare timestamps from attributes with current time', ->
+      new Weaver.Query()
+      .equalTo('time', date)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+      )
+
+    it 'should be able to compare timestamps from attributes', ->
+      new Weaver.Query()
+      .notEqualTo('time', '2017-01-03 12:59:27')
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+      )
+
+    it 'should be able to compare Strings from attributes as lessThan', ->
+      new Weaver.Query()
+      .lessThan('greeting', "World")
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'c')
+      )
+
+    it 'should be able to compare Strings from attributes as greaterThan', ->
+      new Weaver.Query()
+      .greaterThan('greeting', "World")
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(0)
+      )
+
+    it 'should be able to compare Booleans from attributes', ->
+      new Weaver.Query()
+      .notEqualTo('myboolean', true)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'b')
+      )

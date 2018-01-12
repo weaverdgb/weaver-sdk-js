@@ -57,6 +57,13 @@ describe 'WeaverQuery with single Network', ->
       Promise.all([vettel.save(), garden.save()])
     )
 
+  it 'should do hasRelationOut correctly', ->
+    new Weaver.Query()
+    .hasRelationOut('is-a', car)
+    .find().then((nodes) ->
+      expect(i.id() for i in nodes).to.eql([ ferrari.id() ])
+    )
+
   it 'should support wildcard with nested Weaver.Query values', ->
     # Get all nodes which have any relation in from a node that is-a car
     new Weaver.Query()
