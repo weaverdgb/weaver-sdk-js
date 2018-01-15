@@ -8,8 +8,8 @@
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "^4.2.0",
-    "requiredServerVersion": "^3.5.0"
+    "requiredConnectorVersion": "^4.2.1-SNAPSHOT-cleanup-database.1",
+    "requiredServerVersion": "^3.5.2-beta.1"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
