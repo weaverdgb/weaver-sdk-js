@@ -7,8 +7,7 @@ describe 'Database Test', ->
   # and get all 'clean nodes (select * from live_nodes)', comparing these should give a true
   it 'should clean the database', ->
     cm = Weaver.getCoreManager()
-    r1 = []
-    r2 = []
+    allNodes = []
     q = new Weaver.Query()
 
     a = new Weaver.Node("a")
