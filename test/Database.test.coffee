@@ -3,6 +3,8 @@ Weaver = require('../src/Weaver')
 
 describe 'Database Test', ->
 
+  # Native query usage in this query can be replaced with a get all 'dirty nodes (select * from nodes)'
+  # and get all 'clean nodes (select * from live_nodes)', comparing these should give a true
   it 'should clean the database', ->
     cm = Weaver.getCoreManager()
     r1 = []
@@ -32,8 +34,8 @@ describe 'Database Test', ->
       cm.cleanup()
     ).then(->
       q.nativeQuery("SELECT * FROM nodes")
-    ).then((results)->
-      r1 = results
+    ).then((nodes)->
+      allNodes = nodes
     ).then(->
       q.nativeQuery(
         "SELECT * FROM nodes n
@@ -42,34 +44,6 @@ describe 'Database Test', ->
          AND NOT (EXISTS (SELECT 1 FROM replaced_attributes WHERE replaced_attributes.node = n.id LIMIT 1))
          AND NOT (EXISTS (SELECT 1 FROM replaced_relations WHERE replaced_relations.node = n.id LIMIT 1))"
       )
-    ).then((results)->
-      r2 = results
-
-      i = 0
-      j = 0
-
-      while i < r2.length && j < r1.length
-        console.log r2[i]
-        console.log r1[j]
-        console.log ""
-
-        if r2[i].id == r1[j].id
-          j++
-          i++
-        else if r2[i].id > r1[j].id
-          j++
-        else
-          i++
-
-      while j < r1.length
-        console.log r1[j]
-        j++
-
-      while i < r2.length
-        console.log r2[i]
-        i++
-
-    ).then(->
-      # expect(r1).to.equal(r2)
-      expect(r1.length).to.equal(r2.length)
+    ).then((cleanNodes)->
+      expect(allNodes).to.deep.equal(cleanNodes)
     )
