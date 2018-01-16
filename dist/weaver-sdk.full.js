@@ -101243,8 +101243,8 @@ module.exports={
       })(this));
     }
 
-    LocalController.prototype.GET = function(path) {
-      return $.handler[path]();
+    LocalController.prototype.GET = function(path, body) {
+      return $.handler[path](body);
     };
 
     LocalController.prototype.POST = function(path, body) {
