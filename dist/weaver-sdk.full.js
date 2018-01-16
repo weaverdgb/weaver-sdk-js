@@ -99782,13 +99782,8 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-<<<<<<< HEAD
-    "requiredConnectorVersion": "^4.1.0-SNAPSHOT-count-per-graph",
-    "requiredServerVersion": "^3.4.1-beta.1"
-=======
-    "requiredConnectorVersion": "^4.2.0",
-    "requiredServerVersion": "^3.5.0"
->>>>>>> develop
+    "requiredConnectorVersion": "^4.2.1-SNAPSHOT-count-per-graph",
+    "requiredServerVersion": "^3.5.1-beta.1"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",

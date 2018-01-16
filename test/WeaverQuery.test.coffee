@@ -12,10 +12,11 @@ describe 'WeaverQuery Test', ->
     a = new Weaver.Node("a")
     b = new Weaver.Node("b")
     c = new Weaver.Node("c")
+    d = new Weaver.Node("d", "d-graph")
 
     before ->
       wipeCurrentProject().then( ->
-        Promise.all([a.save(), b.save(), c.save()])
+        Promise.all([a.save(), b.save(), c.save(), d.save()])
       )
 
     it 'should restrict to a single node', ->
@@ -53,9 +54,24 @@ describe 'WeaverQuery Test', ->
     it 'should count per graph', ->
 
       new Weaver.Query()
+      .countPerGraph().then((res) ->
+        expect(res.count).to.equal(4)
+        expect(res.defaultGraph).to.equal(3)
+        expect(res.graphs['d-graph']).to.equal(1)
+      )
+
+      new Weaver.Query()
       .restrict([a,c])
-      .countPerGraph().then((count) ->
-        expect(count).to.equal(2)
+      .countPerGraph().then((res) ->
+        expect(res.count).to.equal(2)
+        expect(res.defaultGraph).to.equal(2)
+      )
+
+      new Weaver.Query()
+      .hasRelationOut('link')
+      .countPerGraph().then((res) ->
+        expect(res.count).to.equal(0)
+        expect(res.defaultGraph).to.equal(0)
       )
 
     it 'should return relations', ->
