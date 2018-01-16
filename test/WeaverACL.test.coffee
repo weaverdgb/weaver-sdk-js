@@ -42,3 +42,30 @@ describe 'WeaverACL test', ->
       assert.equal((key for key of loadedACL._userWriteMap).length, 3)
     )
 
+  # Test written to solve the following error, currently only produces debug data and doesnt error
+  # ~ Role [uid] users requested, but no longer present in the RoleService
+  # Written for WEAV-245 to check for role reference loading issues
+  it 'ACL should not throw a role from user requested warning when its no longer present in the RoleService', ->
+    acl = new Weaver.ACL()
+    role1 = new Weaver.Role("R1")
+    role2 = new Weaver.Role("R2")
+    user = new Weaver.User('user', 'password', 'email')
+    acl.setUserReadAccess(user, true)
+    acl.setRoleReadAccess(role1, true)
+    acl.setRoleReadAccess(role2, true)
+
+    user.create().then(->
+      role1.addUser(user)
+      role2.addUser(user)
+      Promise.map([role1,role2,acl], (r) -> r.save())
+    ).then(->
+      role1.destroy()
+    ).then(->
+      Weaver.ACL.load(acl.id())
+    ).then((list) ->
+      console.log list
+    ).then(->
+      user.getRoles()
+    ).then((roles) ->
+      expect(roles.length).to.equal(1)
+    )

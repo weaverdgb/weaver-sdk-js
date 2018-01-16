@@ -322,6 +322,26 @@ describe 'WeaverUser Test', ->
       expect(err).to.have.property('message').match(/Permission denied/)
     )
 
+  it 'should not load a role which doesnt exist', ->
+    r1 = new Weaver.Role('role1')
+    r2 = new Weaver.Role('role2')
+    r3 = new Weaver.Role('role3')
+
+    u = new Weaver.User('abcdef', '123456', 'ghe')
+    u.create().then(->
+
+      r1.addUser(u)
+      r2.addUser(u)
+
+      Promise.map([r1,r2,r3], (r) -> r.save())
+    ).then(->
+      r1.destroy()
+      u.getRoles()
+    ).then((roles) ->
+      assert.equal(roles.length, 1)
+      assert.equal(roles[0].roleId, r2.id())
+    )
+
   it.skip 'should create a new project by default on private ACL', (done) ->
 
   it.skip 'should deny other users from reading project nodes on private ACL', (done) ->
