@@ -19,7 +19,6 @@ describe 'WeaverQuery Test', ->
       )
 
     it 'should restrict to a single node', ->
-
       new Weaver.Query()
       .restrict(a)
       .find().then((nodes) ->
@@ -28,7 +27,6 @@ describe 'WeaverQuery Test', ->
       )
 
     it 'should restrict to multiple nodes', ->
-
       new Weaver.Query()
       .restrict([a,c])
       .find().then((nodes) ->
@@ -316,6 +314,18 @@ describe 'WeaverQuery Test', ->
         b.relation('redundant').add(c)
         a.save()
       )
+
+    it 'should support hasRelationOut hasNoRelationIn on same key', ->
+      expect(new Weaver.Query()
+      .hasRelationOut('link')
+      .hasNoRelationIn('link')
+      .find()).to.eventually.have.length.be(1)
+
+    it 'should support hasNoRelationOut hasRelationIn on same key', ->
+      expect(new Weaver.Query()
+      .hasNoRelationOut('link')
+      .hasRelationIn('link')
+      .find()).to.eventually.have.length.be(1)
 
     it 'should combine hasNoRelationOut seperate clauses correctly', ->
       new Weaver.Query()
