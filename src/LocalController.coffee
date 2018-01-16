@@ -22,8 +22,8 @@ class LocalController
       )
     )
 
-  GET: (path) ->
-    $.handler[path]()
+  GET: (path, body) ->
+    $.handler[path](body)
 
   POST: (path, body) ->
     $.handler[path](body)
