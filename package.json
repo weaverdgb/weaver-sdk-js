@@ -1,6 +1,6 @@
 {
   "name": "weaver-sdk",
-  "version": "6.0.0",
+  "version": "6.1.0-alpha.0-multiple-conditions-on-relations",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
