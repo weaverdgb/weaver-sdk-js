@@ -162,3 +162,18 @@ describe 'Weaver relation and WeaverRelationNode test', ->
         expect(res[0].id()).to.not.equal(res[1].id())
       )
 
+  describe 'with relation in graphs', ->
+    a = new Weaver.Node()
+    b = new Weaver.Node()
+    a.relation('test').addInGraph(b, 'relation-graph')
+
+    before ->
+      a.save()
+
+    it 'should return the relation node with its graph', ->
+      a.relation('test').to(b).then((node) ->
+        node.getGraph()
+      ).should.eventually.equal("relation-graph")
+
+
+
