@@ -174,6 +174,3 @@ describe 'Weaver relation and WeaverRelationNode test', ->
       a.relation('test').to(b).then((node) ->
         node.getGraph()
       ).should.eventually.equal("relation-graph")
-
-
-
