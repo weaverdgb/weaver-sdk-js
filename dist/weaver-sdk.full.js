@@ -100579,7 +100579,7 @@ module.exports = yeast;
 },{}],402:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "6.0.0",
+  "version": "6.0.1",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
