@@ -39,7 +39,7 @@ describe 'WeaverQuery Test', ->
     it 'should find all nodes', ->
       new Weaver.Query()
       .find().then((nodes) ->
-        expect(nodes.length).to.equal(3)
+        expect(nodes.length).to.equal(4)
       )
 
     it 'should count', ->
@@ -78,10 +78,11 @@ describe 'WeaverQuery Test', ->
       new Weaver.Query()
       .withRelations()
       .find().then((nodes) ->
-        expect(nodes.length).to.equal(3)
+        expect(nodes.length).to.equal(4)
         checkNodeInResult(nodes, 'a')
         checkNodeInResult(nodes, 'b')
         checkNodeInResult(nodes, 'c')
+        checkNodeInResult(nodes, 'd')
       )
 
     it 'should take an array of nodeIds or nodes, or single nodeId or node into restrict', ->
