@@ -100579,7 +100579,7 @@ module.exports = yeast;
 },{}],402:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "6.0.0",
+  "version": "6.0.1",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -101243,8 +101243,8 @@ module.exports={
       })(this));
     }
 
-    LocalController.prototype.GET = function(path) {
-      return $.handler[path]();
+    LocalController.prototype.GET = function(path, body) {
+      return $.handler[path](body);
     };
 
     LocalController.prototype.POST = function(path, body) {
