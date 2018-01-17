@@ -44,7 +44,7 @@ class WeaverRelation
     Weaver.RelationNode.load(relNode.id(), null, Weaver.RelationNode, true, relNode.getGraph())
 
   all: ->
-    (node for key, node of @nodes)
+    nodes
 
   first: ->
     @.all()[0]
