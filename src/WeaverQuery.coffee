@@ -120,22 +120,18 @@ class WeaverQuery
     if !@_inGraph?
       @_inGraph = []
 
-    if util.isString(graph)
-      @_inGraph.push(graph)
-    else if graph instanceof Weaver.Graph
-      @_inGraph.push(graph.id())
+    @_inGraph.push(graph)
 
   inGraph: (graphs...) ->
     @_addRestrictGraph(i) for i in graphs
     @
 
   restrictGraphs: (graphs) ->
-    if graphs?
-      @_inGraph = [] # Clear
-      if util.isArray(graphs)
-        @_addRestrictGraph(graph) for graph in graphs
-      else
-        @_addRestrictGraph(graphs)
+    @_inGraph = [] # Clear
+    if util.isArray(graphs)
+      @_addRestrictGraph(graph) for graph in graphs
+    else
+      @_addRestrictGraph(graphs)
     @
 
   _addAttributeCondition: (key, condition, value) ->

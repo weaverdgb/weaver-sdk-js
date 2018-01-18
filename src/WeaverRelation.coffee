@@ -41,10 +41,10 @@ class WeaverRelation
   to: (node)->
     relNode = @_getRelationNodeForTarget(node)
     throw new Error("No relation to a node with this id: #{node.id()}") if not relNode?
-    Weaver.RelationNode.load(relNode.id(), null, Weaver.RelationNode, true)
+    Weaver.RelationNode.load(relNode.id(), null, Weaver.RelationNode, true, relNode.getGraph())
 
   all: ->
-    (node for key, node of @nodes)
+    @nodes
 
   first: ->
     @.all()[0]
