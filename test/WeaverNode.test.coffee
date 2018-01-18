@@ -958,7 +958,7 @@ describe 'WeaverNode test', ->
     node.relation('link').add(target)
     node.set('age', 41, 'double', null, 'second-graph')
     node.save().then( ->
-      Weaver.Node.load(node.id())
+      Weaver.Node.loadFromGraph(node.id(), 'first-graph')
     ).then((result) ->
       expect(result.graph).to.equal('first-graph')
     )

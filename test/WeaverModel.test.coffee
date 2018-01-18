@@ -141,12 +141,12 @@ describe 'WeaverModel test', ->
         person.save()
 
       it 'should succeed save one instance', ->
-        Weaver.Node.load('test-model:Leiden').then((node)->
+        Weaver.Node.loadFromGraph('test-model:Leiden', model.getGraphName()).then((node)->
           assert.isDefined(node.relation('rdf:type').first())
         )
 
       it 'should succeed save inherit relation', ->
-        Weaver.Node.load('test-model:AreaSection').then((node)->
+        Weaver.Node.loadFromGraph('test-model:AreaSection', model.getGraphName()).then((node)->
           assert.isDefined(node.relation('rdfs:subClassOf').first())
         )
 

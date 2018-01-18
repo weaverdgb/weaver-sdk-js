@@ -6,7 +6,7 @@ services:
     - "5432"
 
   postgresql-connector:
-    image: sysunite/weaver-database-postgresql:4.3.1-SNAPSHOT-count-per-graph
+    image: sysunite/weaver-database-postgresql:4.3.1-SNAPSHOT-fix-graph-load
     links:
     - postgres
     expose:
