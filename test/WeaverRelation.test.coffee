@@ -132,6 +132,18 @@ describe 'Weaver relation and WeaverRelationNode test', ->
 
     assert.equal(foo.relation('comesBefore').first(), bar)
 
+  it 'should support relations on relations', ->
+    a = new Weaver.Node()
+    b = new Weaver.Node()
+    c = new Weaver.Node()
+    relationNode = a.relation('test').add(b)
+    relationNode.relation('relationRelation').add(c)
+    a.save().then(->
+      Weaver.Node.load(relationNode.id(), undefined, undefined, true)
+    ).then((node) ->
+      expect(node.relation('relationRelation')).to.have.property('nodes').to.have.length.be(1)
+    )
+
   describe 'with graphs', ->
     a  = new Weaver.Node('a', 'relationWithGraph1')
     b  = new Weaver.Node('b', 'relationWithGraph1')
@@ -160,5 +172,17 @@ describe 'Weaver relation and WeaverRelationNode test', ->
         Promise.all([ rel.to(a), rel.to(af) ])
       ).then((res) ->
         expect(res[0].id()).to.not.equal(res[1].id())
+      )
+
+    it 'should support relations on relations in graph', ->
+      a = new Weaver.Node(undefined, 'graph1')
+      b = new Weaver.Node(undefined, 'graph1')
+      c = new Weaver.Node(undefined, 'graph1')
+      relationNode = a.relation('test').addInGraph(b, 'graph2')
+      relationNode.relation('relationRelation').addInGraph(c, 'graph3')
+      a.save().then(->
+        Weaver.Node.load(relationNode.id(), undefined, undefined, true, false, 'graph2')
+      ).then((node) ->
+        expect(node.relation('relationRelation')).to.have.property('nodes').to.have.length.be(1)
       )
 
