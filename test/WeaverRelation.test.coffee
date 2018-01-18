@@ -184,5 +184,6 @@ describe 'Weaver relation and WeaverRelationNode test', ->
         Weaver.Node.load(relationNode.id(), undefined, undefined, true, false, 'graph2')
       ).then((node) ->
         expect(node.relation('relationRelation')).to.have.property('nodes').to.have.length.be(1)
+        expect(node.relation('relationRelation').nodes[0]).to.have.property('graph').be.equal('graph1')
+        node.relation('relationRelation').to(Weaver.Node.getFromGraph(c.id(), 'graph1')).should.eventually.have.property('graph').be.equal('graph3')
       )
-
