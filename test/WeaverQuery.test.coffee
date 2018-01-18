@@ -12,14 +12,14 @@ describe 'WeaverQuery Test', ->
     a = new Weaver.Node("a")
     b = new Weaver.Node("b")
     c = new Weaver.Node("c")
+    d = new Weaver.Node("d", "d-graph")
 
     before ->
       wipeCurrentProject().then( ->
-        Promise.all([a.save(), b.save(), c.save()])
+        Promise.all([a.save(), b.save(), c.save(), d.save()])
       )
 
     it 'should restrict to a single node', ->
-
       new Weaver.Query()
       .restrict(a)
       .find().then((nodes) ->
@@ -28,7 +28,6 @@ describe 'WeaverQuery Test', ->
       )
 
     it 'should restrict to multiple nodes', ->
-
       new Weaver.Query()
       .restrict([a,c])
       .find().then((nodes) ->
@@ -40,7 +39,7 @@ describe 'WeaverQuery Test', ->
     it 'should find all nodes', ->
       new Weaver.Query()
       .find().then((nodes) ->
-        expect(nodes.length).to.equal(3)
+        expect(nodes.length).to.equal(4)
       )
 
     it 'should count', ->
@@ -50,16 +49,40 @@ describe 'WeaverQuery Test', ->
         expect(count).to.equal(2)
       )
 
+    it 'should count per graph', ->
+
+      new Weaver.Query()
+      .countPerGraph().then((res) ->
+        expect(res.count).to.equal(4)
+        expect(res.defaultGraph).to.equal(3)
+        expect(res.graphs['d-graph']).to.equal(1)
+      )
+
+      new Weaver.Query()
+      .restrict([a,c])
+      .countPerGraph().then((res) ->
+        expect(res.count).to.equal(2)
+        expect(res.defaultGraph).to.equal(2)
+      )
+
+      new Weaver.Query()
+      .hasRelationOut('link')
+      .countPerGraph().then((res) ->
+        expect(res.count).to.equal(0)
+        expect(res.defaultGraph).to.equal(0)
+      )
+
     it 'should return relations', ->
       a.relation("to").add(b, "c")
 
       new Weaver.Query()
       .withRelations()
       .find().then((nodes) ->
-        expect(nodes.length).to.equal(3)
+        expect(nodes.length).to.equal(4)
         checkNodeInResult(nodes, 'a')
         checkNodeInResult(nodes, 'b')
         checkNodeInResult(nodes, 'c')
+        checkNodeInResult(nodes, 'd')
       )
 
     it 'should take an array of nodeIds or nodes, or single nodeId or node into restrict', ->
@@ -316,6 +339,18 @@ describe 'WeaverQuery Test', ->
         b.relation('redundant').add(c)
         a.save()
       )
+
+    it 'should support hasRelationOut hasNoRelationIn on same key', ->
+      expect(new Weaver.Query()
+      .hasRelationOut('link')
+      .hasNoRelationIn('link')
+      .find()).to.eventually.have.length.be(1)
+
+    it 'should support hasNoRelationOut hasRelationIn on same key', ->
+      expect(new Weaver.Query()
+      .hasNoRelationOut('link')
+      .hasRelationIn('link')
+      .find()).to.eventually.have.length.be(1)
 
     it 'should combine hasNoRelationOut seperate clauses correctly', ->
       new Weaver.Query()

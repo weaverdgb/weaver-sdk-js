@@ -44,6 +44,7 @@ class WeaverQuery
     @_noRelations        = true
     @_noAttributes       = true
     @_count              = false
+    @_countPerGraph      = false
     @_hollow             = false
     @_limit              = 99999
     @_skip               = 0
@@ -74,6 +75,15 @@ class WeaverQuery
       result.count
     ).finally(=>
       @_count = false
+    )
+
+  countPerGraph: ->
+    @_countPerGraph = true
+    Weaver.getCoreManager().query(@).then((result) ->
+      Weaver.Query.notify(result)
+      result
+    ).finally(=>
+      @_countPerGraph = false
     )
 
   first: (Constructor) ->
