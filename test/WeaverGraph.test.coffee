@@ -23,7 +23,7 @@ describe 'WeaverGraph support', ->
       Weaver.Node.load(b.id(), aInGraph.getGraph()).should.be.rejected
 
     it 'should load nodes in a graph', ->
-      Weaver.Node.loadFromGraph(aInGraph.getGraph(), aInGraph.getGraph()).should.not.be.rejected
+      Weaver.Node.loadFromGraph(aInGraph.id(), aInGraph.getGraph()).should.not.be.rejected
 
   describe 'in WeaverNode getFromGraph', ->
     it 'should support graphs', ->
