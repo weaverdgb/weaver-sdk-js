@@ -5,10 +5,10 @@ WeaverNode  = require('./WeaverNode')
 
 class WeaverRelationNode extends WeaverNode
 
-  constructor: (@nodeId, @graphId) ->
-    throw new Error("Please always supply a relId when constructing WeaverRelationNode") if not @nodeId?
+  constructor: (nodeId, graphId) ->
+    throw new Error("Please always supply a relId when constructing WeaverRelationNode") if not nodeId?
 
-    super(@nodeId, @graphId)
+    super(nodeId, graphId)
 
     @toNode = null        # Wip, this is fairly impossible to query this from the server currently
     @fromNode = null      # Wip, this is fairly impossible to query this from the server currently

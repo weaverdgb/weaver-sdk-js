@@ -41,7 +41,7 @@ class WeaverRelation
   to: (node)->
     relNode = @_getRelationNodeForTarget(node)
     throw new Error("No relation to a node with this id: #{node.id()}") if not relNode?
-    Weaver.RelationNode.load(relNode.id(), null, Weaver.RelationNode, true, relNode.getGraph())
+    Weaver.RelationNode.load(relNode.id(), null, Weaver.RelationNode, true, false, relNode.getGraph())
 
   all: ->
     @nodes
@@ -58,7 +58,8 @@ class WeaverRelation
     result
 
   add: (node, relId, addToPendingWrites = true, graph) ->
-    relId = cuid() if not relId?
+    relId ?= cuid()
+    graph ?= @parent.getGraph()
     @_addNodes(node)
 
     # Currently this assumes having one relation to the same node
