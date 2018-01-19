@@ -28,6 +28,36 @@ describe 'WeaverUser Test', ->
       (i.username for i in users)
     ).should.eventually.eql(['in-project', 'in-project2'])
 
+  it 'should be able to change a users password as the user', ->
+    testUser = new Weaver.User('passwordChangeUser1', 'tests123', 'test@example.com')
+    testUser.create().then( ->
+      weaver.signInWithUsername('passwordChangeUser1', 'tests123')
+    ).then( ->
+      testUser.changePassword('newpassword')
+    )
+
+  it 'should be able to change a users password as admin', ->
+    testUser = new Weaver.User('passwordChangeUser', 'tests123', 'test@example.com')
+    testUser.create().then( ->
+      testUser.changePassword('newpassword')
+    )
+
+  it 'should be able to update a user as the user', ->
+    testUser = new Weaver.User('updateUser2', 'tests123', 'test@example.com')
+    testUser.create().then( ->
+      weaver.signInWithUsername('updateUser2', 'tests123')
+    ).then( ->
+      testUser.email = 'test@yup.com'
+      testUser.save()
+    )
+
+
+  it 'should be able to update a user as admin', ->
+    testUser = new Weaver.User('updateUser', 'tests123', 'test@example.com')
+    testUser.create().then( ->
+      testUser.email = 'test@yup.com'
+      testUser.save()
+    )
 
   it 'should sign up a user', (done) ->
     username = cuid()
@@ -290,6 +320,26 @@ describe 'WeaverUser Test', ->
       assert.fail()
     ).catch((err) ->
       expect(err).to.have.property('message').match(/Permission denied/)
+    )
+
+  it 'should not load a role which doesnt exist', ->
+    r1 = new Weaver.Role('role1')
+    r2 = new Weaver.Role('role2')
+    r3 = new Weaver.Role('role3')
+
+    u = new Weaver.User('abcdef', '123456', 'ghe')
+    u.create().then(->
+
+      r1.addUser(u)
+      r2.addUser(u)
+
+      Promise.map([r1,r2,r3], (r) -> r.save())
+    ).then(->
+      r1.destroy()
+      u.getRoles()
+    ).then((roles) ->
+      assert.equal(roles.length, 1)
+      assert.equal(roles[0].roleId, r2.id())
     )
 
   it.skip 'should create a new project by default on private ACL', (done) ->

@@ -100579,7 +100579,7 @@ module.exports = yeast;
 },{}],402:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "6.0.0-beta.2",
+  "version": "6.1.0-alpha.0-multiple-conditions-on-relations",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -100587,8 +100587,8 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "^4.1.0",
-    "requiredServerVersion": "^3.4.1-beta.1"
+    "requiredConnectorVersion": "^4.3.1-SNAPSHOT-fix-old-template-graph-restrict",
+    "requiredServerVersion": "^3.5.1"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -101243,8 +101243,8 @@ module.exports={
       })(this));
     }
 
-    LocalController.prototype.GET = function(path) {
-      return $.handler[path]();
+    LocalController.prototype.GET = function(path, body) {
+      return $.handler[path](body);
     };
 
     LocalController.prototype.POST = function(path, body) {
@@ -103949,6 +103949,7 @@ module.exports={
       this._noRelations = true;
       this._noAttributes = true;
       this._count = false;
+      this._countPerGraph = false;
       this._hollow = false;
       this._limit = 99999;
       this._skip = 0;
@@ -103988,6 +103989,18 @@ module.exports={
       })["finally"]((function(_this) {
         return function() {
           return _this._count = false;
+        };
+      })(this));
+    };
+
+    WeaverQuery.prototype.countPerGraph = function() {
+      this._countPerGraph = true;
+      return Weaver.getCoreManager().query(this).then(function(result) {
+        Weaver.Query.notify(result);
+        return result;
+      })["finally"]((function(_this) {
+        return function() {
+          return _this._countPerGraph = false;
         };
       })(this));
     };
@@ -104039,11 +104052,7 @@ module.exports={
       if (this._inGraph == null) {
         this._inGraph = [];
       }
-      if (util.isString(graph)) {
-        return this._inGraph.push(graph);
-      } else if (graph instanceof Weaver.Graph) {
-        return this._inGraph.push(graph.id());
-      }
+      return this._inGraph.push(graph);
     };
 
     WeaverQuery.prototype.inGraph = function() {
@@ -104058,16 +104067,14 @@ module.exports={
 
     WeaverQuery.prototype.restrictGraphs = function(graphs) {
       var graph, j, len;
-      if (graphs != null) {
-        this._inGraph = [];
-        if (util.isArray(graphs)) {
-          for (j = 0, len = graphs.length; j < len; j++) {
-            graph = graphs[j];
-            this._addRestrictGraph(graph);
-          }
-        } else {
-          this._addRestrictGraph(graphs);
+      this._inGraph = [];
+      if (util.isArray(graphs)) {
+        for (j = 0, len = graphs.length; j < len; j++) {
+          graph = graphs[j];
+          this._addRestrictGraph(graph);
         }
+      } else {
+        this._addRestrictGraph(graphs);
       }
       return this;
     };
@@ -104401,9 +104408,9 @@ module.exports={
   Weaver = require('./Weaver');
 
   WeaverRelation = (function() {
-    function WeaverRelation(parent, key1) {
+    function WeaverRelation(parent, key) {
       this.parent = parent;
-      this.key = key1;
+      this.key = key;
       this.pendingWrites = [];
       this.nodes = [];
       this.relationNodes = [];
@@ -104477,18 +104484,11 @@ module.exports={
       if (relNode == null) {
         throw new Error("No relation to a node with this id: " + (node.id()));
       }
-      return Weaver.RelationNode.load(relNode.id(), null, Weaver.RelationNode, true);
+      return Weaver.RelationNode.load(relNode.id(), null, Weaver.RelationNode, true, relNode.getGraph());
     };
 
     WeaverRelation.prototype.all = function() {
-      var key, node, ref, results;
-      ref = this.nodes;
-      results = [];
-      for (key in ref) {
-        node = ref[key];
-        results.push(node);
-      }
-      return results;
+      return this.nodes;
     };
 
     WeaverRelation.prototype.first = function() {
