@@ -8,7 +8,7 @@
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "^4.3.1-SNAPSHOT-fix-old-template-graph-restrict",
+    "requiredConnectorVersion": "^4.3.0-SNAPSHOT-exists",
     "requiredServerVersion": "^3.5.1"
   },
   "main": "lib/Weaver.js",
