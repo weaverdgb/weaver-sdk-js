@@ -327,8 +327,6 @@ class WeaverQuery
 
   compareSortedNodeLists = (nodes, compare) =>
     graphMap = {}
-    # nodes = cleanNodes(nodes)
-    # compare = cleanNodes(compare)
 
     #First set all nodes to false, follow loops will only check for true values
     for node in nodes
@@ -346,13 +344,6 @@ class WeaverQuery
         i++
       else j++
     graphMap
-
-  cleanNodes = (nodes) =>
-    for n in nodes
-      delete n._loaded
-      delete n._stored
-      delete n.pendingWrites
-    nodes
 
   selectRecursiveOut: (relationKeys...) ->
     @_selectRecursiveOut = relationKeys
