@@ -1113,13 +1113,19 @@ describe 'WeaverQuery Test', ->
           trueNodes = [a,b,d,g,j,k,l,m,a2,c2]
           falseNodes = [c,e,f,h,i,b2]
 
+          # console.log result
+
           for t in trueNodes
-            expect(result[t.id() + "," + t.getGraph()]).to.be.true
+            expect(result[t.getGraph()][t.id()]).to.be.true
 
           for f in falseNodes
-            expect(result[f.id() + "," + f.getGraph()]).to.be.false
+            expect(result[f.getGraph()][f.id()]).to.be.false
 
-          expect(Object.keys(result).length).to.equal(16)
+          expect(Object.keys(result['different-graph']).length).to.equal(2)
+          expect(Object.keys(result['graph']).length).to.equal(10)
+          expect(Object.keys(result['undefined']).length).to.equal(3)
+          expect(Object.keys(result['other-graph']).length).to.equal(1)
+          expect(Object.keys(result).length).to.equal(4)
         )
       )
 
@@ -1131,12 +1137,28 @@ describe 'WeaverQuery Test', ->
     Weaver.Node.batchSave([n,o])
       .then(->
         new Weaver.Query().findExistingNodes(myNodes).then((result) ->
-          expect(result[n.id() + "," + n.getGraph()]).to.be.true
-          expect(result[o.id() + "," + o.getGraph()]).to.be.true
-          expect(Object.keys(result).length).to.equal(2)
+          expect(result[n.getGraph()][n.id()]).to.be.true
+          expect(result[o.getGraph()][o.id()]).to.be.true
+          expect(Object.keys(result['undefined']).length).to.equal(2)
         )
       )
 
+  it 'should not crash on weird characters when checking the existence of a node', ->
+    p = new Weaver.Node("I'm annoying, do you know why?","my,annoying,graph")
+    q = new Weaver.Node('q s',"graph,2")
+    r = new Weaver.Node('Do,you,think,Im,annoying')
+    myNodes = [p,q,r]
+    Weaver.Node.batchSave([p,q,r])
+      .then(->
+        new Weaver.Query().findExistingNodes(myNodes).then((result) ->
+          expect(result[p.getGraph()][p.id()]).to.be.true
+          expect(result[q.getGraph()][q.id()]).to.be.true
+          expect(result[r.getGraph()][r.id()]).to.be.true
+          expect(Object.keys(result['my,annoying,graph']).length).to.equal(1)
+          expect(Object.keys(result['graph,2']).length).to.equal(1)
+          expect(Object.keys(result['undefined']).length).to.equal(1)
+        )
+      )
 
   # This test should only exist in a performance testing set
   it.skip 'should be able to check existence on a list of many Weaver nodes', ->

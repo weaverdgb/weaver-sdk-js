@@ -317,31 +317,42 @@ class WeaverQuery
   resultsToNodes = (nodes) ->
     newList = []
     for n in nodes
-      n = n.slice(1, -1)
-      n = n.split(",")
-      if n[1] == ''
-        n[1] = undefined
-      newList.push(new Weaver.Node(n[0], n[1]))
+      id = Object.keys(n)[0]
+      graph = n[id]
+      if graph == 'undefined'
+        graph = undefined
+      node = new Weaver.Node(id, graph)
+      newList.push(node)
     newList
 
   compareSortedNodeLists = (nodes, compare) =>
-    map = {}
+    graphMap = {}
+    # nodes = cleanNodes(nodes)
+    # compare = cleanNodes(compare)
+
     #First set all nodes to false, follow loops will only check for true values
     for node in nodes
-      idAndGraph = node.id() + "," + node.getGraph()
-      map[idAndGraph] = false
+      if !graphMap[node.getGraph()]?
+        graphMap[node.getGraph()] = {}
+      graphMap[node.getGraph()][node.id()] = false
 
     # Algorithm to find all existing nodes, twice as fast as nested for loop on 10000 nodes.
     i = 0; j = 0
     while i < nodes.length && j < compare.length
       if nodes[i].id() == compare[j].id() && nodes[i].getGraph() == compare[j].getGraph()
-        idAndGraph = nodes[i].id() + "," + nodes[i].getGraph()
-        map[idAndGraph] = true
+        graphMap[nodes[i].getGraph()][nodes[i].id()] = true
         i++; j++
       else if nodes[i].id() < compare[j].id()
         i++
       else j++
-    map
+    graphMap
+
+  cleanNodes = (nodes) =>
+    for n in nodes
+      delete n._loaded
+      delete n._stored
+      delete n.pendingWrites
+    nodes
 
   selectRecursiveOut: (relationKeys...) ->
     @_selectRecursiveOut = relationKeys
