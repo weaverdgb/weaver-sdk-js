@@ -259,3 +259,19 @@ describe 'WeaverQuery with single Network', ->
     .find().then((nodes) ->
       expect(i.id() for i in nodes).to.not.have.members([ motorizedVehicle.id(), ferrari.id(), car.id() ])
     )
+
+  it 'should support exists queries', ->
+    new Weaver.Query()
+      .equalTo('testset', '2')
+      .exists('objectiveValue')
+      .find().then((nodes) ->
+        expect(i.id() for i in nodes).to.eql([ car.id() ])
+      )
+
+  it 'should support not exists queries', ->
+    new Weaver.Query()
+      .equalTo('testset', '1')
+      .doesNotExist('theme')
+      .find().then((nodes) ->
+        expect(i.id() for i in nodes).to.eql([ tree.id() ])
+      )
