@@ -1093,8 +1093,7 @@ describe 'WeaverQuery Test', ->
 
         # Because of the posibility of skipping 1 ms between start and stop times
         # on operations we add an offset to the total value compared to the sum of timestamps
-        closeEnough = true if (total + 1 >= sum && total - 1 <= sum)
-        expect(closeEnough).to.be.true
+        expect(total).to.be.within(sum - 3, sum + 3)
         done()
       )
 
