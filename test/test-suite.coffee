@@ -24,7 +24,7 @@ signInAsAdmin = ->
 
 beforeEach ->
   signInAsAdmin()
-    
+
 after ->
   signInAsAdmin()
   .then(->

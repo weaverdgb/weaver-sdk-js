@@ -44,6 +44,7 @@ class WeaverQuery
     @_noRelations        = true
     @_noAttributes       = true
     @_count              = false
+    @_countPerGraph      = false
     @_hollow             = false
     @_limit              = 99999
     @_skip               = 0
@@ -74,6 +75,15 @@ class WeaverQuery
       result.count
     ).finally(=>
       @_count = false
+    )
+
+  countPerGraph: ->
+    @_countPerGraph = true
+    Weaver.getCoreManager().query(@).then((result) ->
+      Weaver.Query.notify(result)
+      result
+    ).finally(=>
+      @_countPerGraph = false
     )
 
   first: (Constructor) ->
@@ -110,22 +120,18 @@ class WeaverQuery
     if !@_inGraph?
       @_inGraph = []
 
-    if util.isString(graph)
-      @_inGraph.push(graph)
-    else if graph instanceof Weaver.Graph
-      @_inGraph.push(graph.id())
+    @_inGraph.push(graph)
 
   inGraph: (graphs...) ->
     @_addRestrictGraph(i) for i in graphs
     @
 
   restrictGraphs: (graphs) ->
-    if graphs?
-      @_inGraph = [] # Clear
-      if util.isArray(graphs)
-        @_addRestrictGraph(graph) for graph in graphs
-      else
-        @_addRestrictGraph(graphs)
+    @_inGraph = [] # Clear
+    if util.isArray(graphs)
+      @_addRestrictGraph(graph) for graph in graphs
+    else
+      @_addRestrictGraph(graphs)
     @
 
   _addAttributeCondition: (key, condition, value) ->
@@ -301,6 +307,49 @@ class WeaverQuery
   selectOut: (relationKeys...) ->
     @_selectOut.push(relationKeys)
     @
+
+  findExistingNodes: (nodes) ->
+    map = {}
+
+    Weaver.getCoreManager().findExistingNodes(nodes).then((results) =>
+      nodeResults = resultsToNodes(results)
+
+      sortedNodes   = _.sortBy(nodes, ['nodeId', 'graph'])
+      sortedResults = _.sortBy(nodeResults, ['nodeId', 'graph'])
+
+      compareSortedNodeLists(sortedNodes, sortedResults)
+    )
+
+  resultsToNodes = (nodes) ->
+    newList = []
+    for n in nodes
+      id = Object.keys(n)[0]
+      graph = n[id]
+      if graph == 'undefined'
+        graph = undefined
+      node = new Weaver.Node(id, graph)
+      newList.push(node)
+    newList
+
+  compareSortedNodeLists = (nodes, compare) =>
+    graphMap = {}
+
+    #First set all nodes to false, follow loops will only check for true values
+    for node in nodes
+      if !graphMap[node.getGraph()]?
+        graphMap[node.getGraph()] = {}
+      graphMap[node.getGraph()][node.id()] = false
+
+    # Algorithm to find all existing nodes, twice as fast as nested for loop on 10000 nodes.
+    i = 0; j = 0
+    while i < nodes.length && j < compare.length
+      if nodes[i].id() == compare[j].id() && nodes[i].getGraph() == compare[j].getGraph()
+        graphMap[nodes[i].getGraph()][nodes[i].id()] = true
+        i++; j++
+      else if nodes[i].id() < compare[j].id()
+        i++
+      else j++
+    graphMap
 
   selectRecursiveOut: (relationKeys...) ->
     @_selectRecursiveOut = relationKeys

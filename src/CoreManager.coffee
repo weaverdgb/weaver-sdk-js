@@ -79,7 +79,10 @@ class CoreManager
 
   cloneNode: (sourceId, targetId = cuid(), relationsToTraverse, sourceGraph, targetGraph) ->
     targetGraph = sourceGraph if !targetGraph?
-    @POST('node.clone', { sourceId, sourceGraph, targetId, targetGraph, relationsToTraverse})
+    @POST('node.clone', {sourceId, sourceGraph, targetId, targetGraph, relationsToTraverse})
+
+  findExistingNodes: (nodes) ->
+    @POST('findExistingNodes', {nodes})
 
   serverVersion: ->
     @GET("application.version")

@@ -12,14 +12,14 @@ describe 'WeaverQuery Test', ->
     a = new Weaver.Node("a")
     b = new Weaver.Node("b")
     c = new Weaver.Node("c")
+    d = new Weaver.Node("d", "d-graph")
 
     before ->
       wipeCurrentProject().then( ->
-        Promise.all([a.save(), b.save(), c.save()])
+        Promise.all([a.save(), b.save(), c.save(), d.save()])
       )
 
     it 'should restrict to a single node', ->
-
       new Weaver.Query()
       .restrict(a)
       .find().then((nodes) ->
@@ -28,7 +28,6 @@ describe 'WeaverQuery Test', ->
       )
 
     it 'should restrict to multiple nodes', ->
-
       new Weaver.Query()
       .restrict([a,c])
       .find().then((nodes) ->
@@ -40,7 +39,7 @@ describe 'WeaverQuery Test', ->
     it 'should find all nodes', ->
       new Weaver.Query()
       .find().then((nodes) ->
-        expect(nodes.length).to.equal(3)
+        expect(nodes.length).to.equal(4)
       )
 
     it 'should count', ->
@@ -50,16 +49,40 @@ describe 'WeaverQuery Test', ->
         expect(count).to.equal(2)
       )
 
+    it 'should count per graph', ->
+
+      new Weaver.Query()
+      .countPerGraph().then((res) ->
+        expect(res.count).to.equal(4)
+        expect(res.defaultGraph).to.equal(3)
+        expect(res.graphs['d-graph']).to.equal(1)
+      )
+
+      new Weaver.Query()
+      .restrict([a,c])
+      .countPerGraph().then((res) ->
+        expect(res.count).to.equal(2)
+        expect(res.defaultGraph).to.equal(2)
+      )
+
+      new Weaver.Query()
+      .hasRelationOut('link')
+      .countPerGraph().then((res) ->
+        expect(res.count).to.equal(0)
+        expect(res.defaultGraph).to.equal(0)
+      )
+
     it 'should return relations', ->
       a.relation("to").add(b, "c")
 
       new Weaver.Query()
       .withRelations()
       .find().then((nodes) ->
-        expect(nodes.length).to.equal(3)
+        expect(nodes.length).to.equal(4)
         checkNodeInResult(nodes, 'a')
         checkNodeInResult(nodes, 'b')
         checkNodeInResult(nodes, 'c')
+        checkNodeInResult(nodes, 'd')
       )
 
     it 'should take an array of nodeIds or nodes, or single nodeId or node into restrict', ->
@@ -316,6 +339,18 @@ describe 'WeaverQuery Test', ->
         b.relation('redundant').add(c)
         a.save()
       )
+
+    it 'should support hasRelationOut hasNoRelationIn on same key', ->
+      expect(new Weaver.Query()
+      .hasRelationOut('link')
+      .hasNoRelationIn('link')
+      .find()).to.eventually.have.length.be(1)
+
+    it 'should support hasNoRelationOut hasRelationIn on same key', ->
+      expect(new Weaver.Query()
+      .hasNoRelationOut('link')
+      .hasRelationIn('link')
+      .find()).to.eventually.have.length.be(1)
 
     it 'should combine hasNoRelationOut seperate clauses correctly', ->
       new Weaver.Query()
@@ -1058,8 +1093,7 @@ describe 'WeaverQuery Test', ->
 
         # Because of the posibility of skipping 1 ms between start and stop times
         # on operations we add an offset to the total value compared to the sum of timestamps
-        closeEnough = true if (total + 1 >= sum && total - 1 <= sum)
-        expect(closeEnough).to.be.true
+        expect(total).to.be.within(sum - 3, sum + 3)
         done()
       )
 
@@ -1095,6 +1129,92 @@ describe 'WeaverQuery Test', ->
     )
     return
 
+  it 'should be able to check existence on a list of Weaver nodes in their graphs', ->
+    a = new Weaver.Node('a', 'graph');    b = new Weaver.Node('b', 'graph')
+    c = new Weaver.Node('c', 'graph');    d = new Weaver.Node('d', 'other-graph')
+    e = new Weaver.Node('e', 'graph');    f = new Weaver.Node('f', 'graph')
+    g = new Weaver.Node('g', 'graph');    h = new Weaver.Node('h', 'graph')
+    i = new Weaver.Node('i', 'graph');    j = new Weaver.Node('j')
+    k = new Weaver.Node('k', 'graph');    l = new Weaver.Node('l')
+    m = new Weaver.Node('m', 'graph');   a2 = new Weaver.Node('a', 'different-graph')
+    b2 = new Weaver.Node('b');           c2 = new Weaver.Node('c', 'different-graph')
+    myNodes = [a,b,c,m,d,e,f,g,h,i,j,k,l,a2,b2,c2]
+    Weaver.Node.batchSave([a,b,m,d,g,j,k,l,a2,c2])
+      .then( ->
+        new Weaver.Query().findExistingNodes(myNodes).then((result)->
+          trueNodes = [a,b,d,g,j,k,l,m,a2,c2]
+          falseNodes = [c,e,f,h,i,b2]
+
+          # console.log result
+
+          for t in trueNodes
+            expect(result[t.getGraph()][t.id()]).to.be.true
+
+          for f in falseNodes
+            expect(result[f.getGraph()][f.id()]).to.be.false
+
+          expect(Object.keys(result['different-graph']).length).to.equal(2)
+          expect(Object.keys(result['graph']).length).to.equal(10)
+          expect(Object.keys(result['undefined']).length).to.equal(3)
+          expect(Object.keys(result['other-graph']).length).to.equal(1)
+          expect(Object.keys(result).length).to.equal(4)
+        )
+      )
+
+  it 'should not find attributes when checking existence on a list of nodes', ->
+    n = new Weaver.Node('n')
+    o = new Weaver.Node('o')
+    n.set('name', 'Mathieu')
+    myNodes = [n,o]
+    Weaver.Node.batchSave([n,o])
+      .then(->
+        new Weaver.Query().findExistingNodes(myNodes).then((result) ->
+          expect(result[n.getGraph()][n.id()]).to.be.true
+          expect(result[o.getGraph()][o.id()]).to.be.true
+          expect(Object.keys(result['undefined']).length).to.equal(2)
+        )
+      )
+
+  it 'should not crash on weird characters when checking the existence of a node', ->
+    p = new Weaver.Node("I'm annoying, do you know why?","my,annoying,graph")
+    q = new Weaver.Node('q s',"graph,2")
+    r = new Weaver.Node('Do,you,think,Im,annoying')
+    myNodes = [p,q,r]
+    Weaver.Node.batchSave([p,q,r])
+      .then(->
+        new Weaver.Query().findExistingNodes(myNodes).then((result) ->
+          expect(result[p.getGraph()][p.id()]).to.be.true
+          expect(result[q.getGraph()][q.id()]).to.be.true
+          expect(result[r.getGraph()][r.id()]).to.be.true
+          expect(Object.keys(result['my,annoying,graph']).length).to.equal(1)
+          expect(Object.keys(result['graph,2']).length).to.equal(1)
+          expect(Object.keys(result['undefined']).length).to.equal(1)
+        )
+      )
+
+  # This test should only exist in a performance testing set
+  it.skip 'should be able to check existence on a list of many Weaver nodes', ->
+    myNodes = []
+    savedNodes = []
+    i = 0
+    while i < 5000
+      n = new Weaver.Node()
+      myNodes.push(n)
+      if i % 10 == 0
+        savedNodes.push(n)
+      i++
+    Weaver.Node.batchSave(savedNodes)
+    .then(->
+      new Weaver.Query().findExistingNodes(myNodes).then((result)->
+        countTrue = 0
+        countTrue += 1 for key, value of result when value is true
+        countFalse = 0
+        countFalse += 1 for key, value of result when value is false
+        expect(countTrue).to.equal(500)
+        expect(countFalse).to.equal(4500)
+        expect(Object.keys(result).length).to.equal(5000)
+      )
+    )
   describe 'simple nodes, with age', ->
     a = new Weaver.Node("a")
     b = new Weaver.Node("b")
