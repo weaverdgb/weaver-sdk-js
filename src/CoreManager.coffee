@@ -300,6 +300,9 @@ class CoreManager
   deleteFile: (fileId) ->
     @POST("file.delete", {fileId})
 
+  cleanup: ->
+    @GET("cleanup")
+
   enqueue: (functionToEnqueue) ->
     op = @operationsQueue.then(->
       functionToEnqueue()
