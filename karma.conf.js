@@ -17,7 +17,7 @@ module.exports = function(config) {
     },
 
     files: [
-      'test/WeaverFile.test.coffee'
+      'test/*.test.coffee'
     ],
 
     exclude: [
