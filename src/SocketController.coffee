@@ -26,8 +26,8 @@ class SocketController
 
       @io.on('connect', =>
         resolve()
-      ).on('connect_error', ->
-        reject('connect_error')
+      ).on('connect_error', (err) ->
+        reject(err or 'connect_error')
       ).on('connect_timeout', ->
         reject('connect_timeout')
       ).on('error', (err) ->

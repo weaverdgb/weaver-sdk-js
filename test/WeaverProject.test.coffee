@@ -213,6 +213,7 @@ describe 'WeaverProject Test', ->
     )
 
   it 'should upload and execute a zip with writeoperations', ->
+    @skip() if window?
     weaverFile = new Weaver.File(path.join(__dirname,'../test-write-operations.gz'))
     weaverFile.upload().then((file)->
       p = weaver.currentProject()

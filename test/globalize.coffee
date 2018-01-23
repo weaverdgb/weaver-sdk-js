@@ -17,5 +17,5 @@ global.should  = chai.should
 global.sinon   = sinon
 
 # Configuration
-global.WEAVER_ENDPOINT = config.get("weaver.endpoint")
-global.WEAVER_REJECT_UNAUTHORIZED = config.get("weaver.rejectUnauthorized")
+global.WEAVER_ENDPOINT = if config.has('weaver.endpoint') then config.get("weaver.endpoint") else 'http://localhost:9487'
+global.WEAVER_REJECT_UNAUTHORIZED = if config.has('weaver.rejectUnauthorized') then config.get("weaver.rejectUnauthorized") else false
