@@ -76,6 +76,14 @@ describe 'WeaverModelQuery test', ->
           assert.equal(p.relation('hasHead').first().constructor, model.Head)  # <- this fails currently
         )
 
+      it 'should load model instances', ->
+        new Weaver.ModelQuery()
+          .restrict("personB")
+          .first().should.eventually.be.instanceOf(model.Person)
+
+      it 'should load model instances even easier', ->
+        model.Person.load("personB").should.eventually.be.instanceOf(model.Person)
+
       it 'should not error on livesInSomebuilding', ->
         new Weaver.ModelQuery()
         .equalTo("Person.fullName", "Gaby Baby")

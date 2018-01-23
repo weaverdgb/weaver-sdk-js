@@ -39,6 +39,12 @@ class WeaverModel
       @[className] = eval(js)
       @[className] = @[className] extends Weaver.ModelClass
       @[className].defineBy(@, @definition, className, classDefinition)
+      @[className].load = (nodeId) =>
+        new Weaver.ModelQuery()
+          .class(@[className])
+          .restrict(nodeId)
+          .inGraph(@getGraphName())
+          .first()
 
     @_graphName = "#{@definition.name}-#{@definition.version}"
 

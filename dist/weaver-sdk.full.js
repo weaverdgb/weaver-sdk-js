@@ -105773,7 +105773,7 @@ module.exports = yeast;
 },{}],458:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "6.1.0-beta.2",
+  "version": "6.1.0-beta.3-model-load",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -107653,6 +107653,11 @@ module.exports={
         this[className] = eval(js);
         this[className] = extend(this[className], Weaver.ModelClass);
         this[className].defineBy(this, this.definition, className, classDefinition);
+        this[className].load = (function(_this) {
+          return function(nodeId) {
+            return new Weaver.ModelQuery()["class"](_this[className]).restrict(nodeId).inGraph(_this.getGraphName()).first();
+          };
+        })(this);
       }
       this._graphName = this.definition.name + "-" + this.definition.version;
     }
