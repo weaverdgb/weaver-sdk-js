@@ -1,7 +1,7 @@
 {
   "name": "weaver-sdk",
   "main": "dist/weaver-sdk.full.js",
-  "version": "6.1.0-beta.3-model-load",
+  "version": "6.1.0-beta.3",
   "homepage": "https://github.com/weaverplatform/weaver-sdk-js",
   "authors": [
     "Mohamad Alamili <mohamad@sysunite.com>"
