@@ -10,7 +10,7 @@ describe 'Application test', ->
 
   it 'should return server time', ->
     weaver.getCoreManager().updateLocalTimeOffset()
-    .then(
+    .then(->
       time = weaver.getCoreManager().serverTime()
     )
 

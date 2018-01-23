@@ -6,10 +6,9 @@ Promise = require('bluebird')
 path    = require('path')
 supertest = require('supertest')
 
-
-weaverServer = supertest.agent(WEAVER_ENDPOINT)
-
 describe 'Weaver Tests dealing with REST API', ->
+  weaverServer = supertest.agent(WEAVER_ENDPOINT)
+
   beforeEach ->
     wipeCurrentProject()
 
