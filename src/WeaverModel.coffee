@@ -40,7 +40,7 @@ class WeaverModel
       @[className] = @[className] extends Weaver.ModelClass
       @[className].defineBy(@, @definition, className, classDefinition)
       @[className].load = (nodeId) =>
-        new Weaver.ModelQuery()
+        new Weaver.ModelQuery(@)
           .class(@[className])
           .restrict(nodeId)
           .inGraph(@getGraphName())
