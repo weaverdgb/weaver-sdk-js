@@ -119,6 +119,8 @@ describe 'WeaverModelQuery test', ->
       it 'should allow relations to a model instance', ->
         new Weaver.ModelQuery().hasRelationOut('Person.comesFrom', spain).find().should.eventually.have.length.be(1)
 
-      it 'should allow relations to a model init class', ->
+      it 'should allow relations to a model class instance', ->
         new Weaver.ModelQuery().hasRelationOut('Person.comesFrom', model.City.Rotterdam).find().should.eventually.have.length.be(1)
 
+      it 'should allow relations to a model class instance that is also a class', ->
+        new Weaver.ModelQuery().hasRelationOut('Person.comesFrom', model.City.CityState).find()

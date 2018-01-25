@@ -153,10 +153,17 @@ describe 'WeaverModel test', ->
       it 'should succeed saving all instances', ->
         new Weaver.Query().restrictGraphs(model.getGraphName()).hasRelationOut('rdf:type', Weaver.Node.getFromGraph('test-model:City', model.getGraphName()))
         .find().then((nodes) -> i.id() for i in nodes)
-        .should.eventually.be.eql(["test-model:Delft", "test-model:Rotterdam", "test-model:Leiden"])
+        .should.eventually.be.eql(["test-model:CityState", "test-model:Delft", "test-model:Rotterdam", "test-model:Leiden"])
 
-      it 'should have the init instances as members of the model', ->
-        expect(model).to.have.property('City').to.have.property('Rotterdam').be.instanceof(model.City)
+      it 'should have the init instances as members of the model class', ->
+        expect(model).to.have.property('City').to.have.property('Rotterdam')
+
+      it 'should have the init instances as members of the model class and model if they are also a class', ->
+        expect(model).to.have.property('City').to.have.property('CityState')
+        expect(model).to.have.property('CityState')
+        constructor = model.CityState
+        classMember = model.City.CityState
+        expect("#{model.definition.name}:#{constructor.className}").to.equal(classMember.id())
 
       it 'should throw an error when saving without setting required attributes', ->
         Person = model.Person
