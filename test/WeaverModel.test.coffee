@@ -211,3 +211,24 @@ describe 'WeaverModel test', ->
         b.relation("buildBy").add(p)
 
         assert.equal(b.relations()['buildBy'].first().id(), 'personId')
+
+      it 'should load model instances', ->
+        p = new model.Person()
+        p.set('fullName', 'A testy user')
+        p.save().then(->
+          model.Person.load(p.id())
+        ).then((person) ->
+          person.should.be.instanceOf(model.Person)
+          expect(person.get('fullName')).to.equal('A testy user')
+
+        )
+
+      it 'should load model instances that are not of the last item', ->
+        c = new model.Country()
+        c.set('areaName', 'testland')
+        c.set('squareMeter', 12)
+        c.save().then(->
+          model.Country.load(c.id())
+        ).then((country) ->
+          country.should.be.instanceOf(model.Country)
+        )
