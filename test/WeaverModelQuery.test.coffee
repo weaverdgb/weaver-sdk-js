@@ -43,11 +43,14 @@ describe 'WeaverModelQuery test', ->
       )
 
     describe 'and test data', ->
+      spain = {}
+
       before ->
         head    = new model.Head("headA")
         spain   = new model.Country("Spain")
         personA = new model.Person("personA")
         personA.set('fullName', "Aby Delores")
+        personA.relation('comesFrom').add(model.Rotterdam)
         personB = new model.Person("personB")
         personB.set('fullName', "Gaby Baby")
         personA.relation("hasHead").add(head)
@@ -112,3 +115,10 @@ describe 'WeaverModelQuery test', ->
       it 'should fail on wrong key', ->
         q = new Weaver.ModelQuery()
         assert.throws((-> q.hasRelationIn("someRelation")))
+
+      it 'should allow relations to a model instance', ->
+        new Weaver.ModelQuery().hasRelationOut('Person.comesFrom', spain).find().should.eventually.have.length.be(1)
+
+      it 'should allow relations to a model init class', ->
+        new Weaver.ModelQuery().hasRelationOut('Person.comesFrom', model.Rotterdam).find().should.eventually.have.length.be(1)
+
