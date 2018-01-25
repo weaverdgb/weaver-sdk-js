@@ -62,8 +62,6 @@ describe 'WeaverACL test', ->
       role1.destroy()
     ).then(->
       Weaver.ACL.load(acl.id())
-    ).then((list) ->
-      console.log list
     ).then(->
       user.getRoles()
     ).then((roles) ->
