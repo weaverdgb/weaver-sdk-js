@@ -155,6 +155,9 @@ describe 'WeaverModel test', ->
         .find()
         .should.eventually.have.length.be(3)
 
+      it 'should have the init instances as members of the model', ->
+        expect(model).to.have.property('Rotterdam').be.instanceof(model.City)
+
       it 'should throw an error when saving without setting required attributes', ->
         Person = model.Person
         person = new Person()
