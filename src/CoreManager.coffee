@@ -248,9 +248,8 @@ class CoreManager
     @POST('users.wipe', {}, target)
 
   query: (query) ->
-    # Remove target
     target = query.target
-    query  = _.omit(query, ['target', 'useConstructorFunction'])
+    query  = _.omit(query, ['model', 'target', 'useConstructorFunction'])
 
     @POST("query", {query}, target)
 
