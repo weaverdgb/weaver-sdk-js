@@ -6,3 +6,6 @@
 
 ## 6.1.0-beta
 - Add support for Check existence of nodes
+- Adds support to query for WeaverModel init members using model.InitMember, so
+  `model.Rotterdam` is now supported instead of first having to look up the
+  `model.City` instance.
