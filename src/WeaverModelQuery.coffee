@@ -16,6 +16,18 @@ class WeaverModelQuery extends Weaver.Query
         Weaver.Node
     )
 
+  getNodeIdFromStringOrNode: (node) ->
+    try
+      super(node)
+    catch err
+      if node.model?
+        {
+          id: "#{node.model.definition.name}:#{node.className}"
+          graph: node.model.getGraphName()
+        }
+      else
+        throw err
+
   getPrototypeKey: ->
     @model.definition.prototype or '_prototype'
 
