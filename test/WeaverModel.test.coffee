@@ -158,6 +158,9 @@ describe 'WeaverModel test', ->
       it 'should have the init instances as members of the model class', ->
         expect(model).to.have.property('City').to.have.property('Rotterdam')
 
+      it 'should not have the init instances as members of the model', ->
+        expect(model).to.not.have.property('Rotterdam')
+
       it 'should have the init instances as members of the model class and model if they are also a class', ->
         expect(model).to.have.property('City').to.have.property('CityState')
         expect(model).to.have.property('CityState')

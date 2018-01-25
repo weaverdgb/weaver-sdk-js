@@ -53,6 +53,8 @@ describe 'WeaverModelQuery test', ->
         personA.relation('comesFrom').add(model.City.Rotterdam)
         personB = new model.Person("personB")
         personB.set('fullName', "Gaby Baby")
+        personC = new model.Person()
+        personC.set('fullName', "#1")
         personA.relation("hasHead").add(head)
         personB.relation("hasHead").add(head)
         personB.relation("comesFrom").add(spain)
@@ -62,8 +64,9 @@ describe 'WeaverModelQuery test', ->
         building.relation("placedIn").add(area)
         building.relation("buildBy").add(personA)
         personB.relation("livesIn").add(building)
+        personC.relation('comesFrom').add(model.City.CityState)
 
-        Weaver.Node.batchSave([head, spain, personA, personB])
+        Weaver.Node.batchSave([head, spain, personA, personB, personC])
 
       it 'should do an equalTo WeaverModelQuery', ->
         new Weaver.ModelQuery()
@@ -123,4 +126,7 @@ describe 'WeaverModelQuery test', ->
         new Weaver.ModelQuery().hasRelationOut('Person.comesFrom', model.City.Rotterdam).find().should.eventually.have.length.be(1)
 
       it 'should allow relations to a model class instance that is also a class', ->
-        new Weaver.ModelQuery().hasRelationOut('Person.comesFrom', model.City.CityState).find()
+        new Weaver.ModelQuery().hasRelationOut('Person.comesFrom', model.City.CityState).find().should.eventually.have.length.be(1)
+
+      it 'should allow relations to a model class', ->
+        new Weaver.ModelQuery().hasRelationOut('Person.comesFrom', model.CityState).find().should.eventually.have.length.be(1)

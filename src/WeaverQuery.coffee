@@ -16,6 +16,11 @@ getNodeIdFromStringOrNode = (node) ->
       id: node.id()
       graph: node.getGraph()
     }
+  else if node.model?
+    {
+      id: "#{node.model.definition.name}:#{node.className}"
+      graph: node.model.getGraphName()
+    }
   else
     throw new Error("Unsupported type: #{node}")
 
