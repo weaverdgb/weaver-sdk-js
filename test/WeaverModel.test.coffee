@@ -223,7 +223,6 @@ describe 'WeaverModel test', ->
         ).then((person) ->
           person.should.be.instanceOf(model.Person)
           expect(person.get('fullName')).to.equal('A testy user')
-
         )
 
       it 'should load model instances that are not of the last item', ->

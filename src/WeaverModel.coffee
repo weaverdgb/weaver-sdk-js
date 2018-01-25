@@ -82,7 +82,7 @@ class WeaverModel
       ModelClass = @[className]
       for itemName in classObj.init when not existingNodes.includes("#{@definition.name}:#{itemName}")
         node = new ModelClass("#{@definition.name}:#{itemName}")
-        @[itemName] = node
+        @[className][itemName] = node
         nodesToCreate["#{@definition.name}:#{itemName}"] = node
 
     for className, classObj of @definition.classes when classObj.super? and not existingNodes.includes("#{@definition.name}:#{className}")

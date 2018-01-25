@@ -50,7 +50,7 @@ describe 'WeaverModelQuery test', ->
         spain   = new model.Country("Spain")
         personA = new model.Person("personA")
         personA.set('fullName', "Aby Delores")
-        personA.relation('comesFrom').add(model.Rotterdam)
+        personA.relation('comesFrom').add(model.City.Rotterdam)
         personB = new model.Person("personB")
         personB.set('fullName', "Gaby Baby")
         personA.relation("hasHead").add(head)
@@ -120,5 +120,5 @@ describe 'WeaverModelQuery test', ->
         new Weaver.ModelQuery().hasRelationOut('Person.comesFrom', spain).find().should.eventually.have.length.be(1)
 
       it 'should allow relations to a model init class', ->
-        new Weaver.ModelQuery().hasRelationOut('Person.comesFrom', model.Rotterdam).find().should.eventually.have.length.be(1)
+        new Weaver.ModelQuery().hasRelationOut('Person.comesFrom', model.City.Rotterdam).find().should.eventually.have.length.be(1)
 
