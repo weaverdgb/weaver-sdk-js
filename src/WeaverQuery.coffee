@@ -8,22 +8,6 @@ _           = require('lodash')
 quote = (s) ->
   '\\Q' + s.replace('\\E', '\\E\\\\E\\Q') + '\\E'
 
-getNodeIdFromStringOrNode = (node) ->
-  if _.isString(node)
-    node
-  else if node instanceof Weaver.Node
-    {
-      id: node.id()
-      graph: node.getGraph()
-    }
-  else
-    throw new Error("Unsupported type: #{node}")
-
-nodeRelationArrayValue = (nodes) ->
-  if nodes.length > 0
-    (getNodeIdFromStringOrNode(i) for i in nodes)
-  else
-    ["*"]
 
 
 class WeaverQuery
@@ -52,6 +36,23 @@ class WeaverQuery
     @_ascending          = true
     @_arrayCount         = 0
     @_inGraph            = undefined
+
+  getNodeIdFromStringOrNode: (node) ->
+    if _.isString(node)
+      node
+    else if node instanceof Weaver.Node
+      {
+        id: node.id()
+        graph: node.getGraph()
+      }
+    else
+      throw new Error("Unsupported type: #{node}")
+
+  nodeRelationArrayValue: (nodes) ->
+    if nodes.length > 0
+      (@getNodeIdFromStringOrNode(i) for i in nodes)
+    else
+      ["*"]
 
   find: (Constructor) ->
 
@@ -172,7 +173,7 @@ class WeaverQuery
     else if node.length is 1 and node[0] instanceof WeaverQuery
       @_addRelationCondition(key, '$relIn', node)
     else
-      @_addRelationCondition(key, '$relIn', nodeRelationArrayValue(node))
+      @_addRelationCondition(key, '$relIn', @nodeRelationArrayValue(node))
 
   hasRelationOut: (key, node...) ->
     if _.isArray(key)
@@ -180,7 +181,7 @@ class WeaverQuery
     else if node.length is 1 and node[0] instanceof WeaverQuery
       @_addRelationCondition(key, '$relOut', node)
     else
-      @_addRelationCondition(key, '$relOut', nodeRelationArrayValue(node))
+      @_addRelationCondition(key, '$relOut', @nodeRelationArrayValue(node))
     @
 
   hasNoRelationIn: (key, node...) ->
@@ -189,7 +190,7 @@ class WeaverQuery
     else if node.length is 1 and node[0] instanceof WeaverQuery
       @_addRelationCondition(key, '$noRelIn', node)
     else
-      @_addRelationCondition(key, '$noRelIn', nodeRelationArrayValue(node))
+      @_addRelationCondition(key, '$noRelIn', @nodeRelationArrayValue(node))
 
   hasNoRelationOut: (key, node...) ->
     if _.isArray(key)
@@ -197,7 +198,7 @@ class WeaverQuery
     else if node.length is 1 and node[0] instanceof WeaverQuery
       @_addRelationCondition(key, '$noRelOut', node)
     else
-      @_addRelationCondition(key, '$noRelOut', nodeRelationArrayValue(node))
+      @_addRelationCondition(key, '$noRelOut', @nodeRelationArrayValue(node))
 
   _addRecursiveCondition: (op, relation, node, includeSelf) ->
     nodeId = ''

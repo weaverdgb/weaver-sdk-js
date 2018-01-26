@@ -10,7 +10,8 @@ inherit: 'rdfs:subClassOf'
 classes:
   Human:
   City:
-    init: [Delft, Rotterdam, Leiden]
+    init: [Delft, Rotterdam, Leiden, CityState]
+  CityState:
   Area:
     attributes:
       squareMeter:

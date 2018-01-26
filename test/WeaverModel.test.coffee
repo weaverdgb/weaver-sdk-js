@@ -152,8 +152,21 @@ describe 'WeaverModel test', ->
 
       it 'should succeed saving all instances', ->
         new Weaver.Query().restrictGraphs(model.getGraphName()).hasRelationOut('rdf:type', Weaver.Node.getFromGraph('test-model:City', model.getGraphName()))
-        .find()
-        .should.eventually.have.length.be(3)
+        .find().then((nodes) -> i.id() for i in nodes)
+        .should.eventually.be.eql(["test-model:CityState", "test-model:Delft", "test-model:Rotterdam", "test-model:Leiden"])
+
+      it 'should have the init instances as members of the model class', ->
+        expect(model).to.have.property('City').to.have.property('Rotterdam')
+
+      it 'should not have the init instances as members of the model', ->
+        expect(model).to.not.have.property('Rotterdam')
+
+      it 'should have the init instances as members of the model class and model if they are also a class', ->
+        expect(model).to.have.property('City').to.have.property('CityState')
+        expect(model).to.have.property('CityState')
+        constructor = model.CityState
+        classMember = model.City.CityState
+        expect("#{model.definition.name}:#{constructor.className}").to.equal(classMember.id())
 
       it 'should throw an error when saving without setting required attributes', ->
         Person = model.Person
@@ -220,7 +233,6 @@ describe 'WeaverModel test', ->
         ).then((person) ->
           person.should.be.instanceOf(model.Person)
           expect(person.get('fullName')).to.equal('A testy user')
-
         )
 
       it 'should load model instances that are not of the last item', ->

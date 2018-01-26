@@ -81,7 +81,16 @@ class WeaverModel
     for className, classObj of @definition.classes when classObj.init? and not existingNodes.includes("#{@definition.name}:#{className}")
       ModelClass = @[className]
       for itemName in classObj.init when not existingNodes.includes("#{@definition.name}:#{itemName}")
-        nodesToCreate["#{@definition.name}:#{itemName}"] = new ModelClass("#{@definition.name}:#{itemName}")
+        if @[itemName]?
+          # This is a member that is also a class
+          itemNode = nodesToCreate["#{@definition.name}:#{itemName}"]
+          # So add the prototype definition
+          itemNode.relation(@definition.prototype).addInGraph(nodesToCreate["#{@definition.name}:#{className}"], @getGraphName)
+          @[className][itemName] = itemNode
+        else
+          node = new ModelClass("#{@definition.name}:#{itemName}")
+          @[className][itemName] = node
+          nodesToCreate["#{@definition.name}:#{itemName}"] = node
 
     for className, classObj of @definition.classes when classObj.super? and not existingNodes.includes("#{@definition.name}:#{className}")
       modelClassNode = nodesToCreate["#{@definition.name}:#{className}"]

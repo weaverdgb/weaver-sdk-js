@@ -43,13 +43,18 @@ describe 'WeaverModelQuery test', ->
       )
 
     describe 'and test data', ->
+      spain = {}
+
       before ->
         head    = new model.Head("headA")
         spain   = new model.Country("Spain")
         personA = new model.Person("personA")
         personA.set('fullName', "Aby Delores")
+        personA.relation('comesFrom').add(model.City.Rotterdam)
         personB = new model.Person("personB")
         personB.set('fullName', "Gaby Baby")
+        personC = new model.Person()
+        personC.set('fullName', "#1")
         personA.relation("hasHead").add(head)
         personB.relation("hasHead").add(head)
         personB.relation("comesFrom").add(spain)
@@ -59,8 +64,9 @@ describe 'WeaverModelQuery test', ->
         building.relation("placedIn").add(area)
         building.relation("buildBy").add(personA)
         personB.relation("livesIn").add(building)
+        personC.relation('comesFrom').add(model.City.CityState)
 
-        Weaver.Node.batchSave([head, spain, personA, personB])
+        Weaver.Node.batchSave([head, spain, personA, personB, personC])
 
       it 'should do an equalTo WeaverModelQuery', ->
         new Weaver.ModelQuery()
@@ -112,3 +118,15 @@ describe 'WeaverModelQuery test', ->
       it 'should fail on wrong key', ->
         q = new Weaver.ModelQuery()
         assert.throws((-> q.hasRelationIn("someRelation")))
+
+      it 'should allow relations to a model instance', ->
+        new Weaver.ModelQuery().hasRelationOut('Person.comesFrom', spain).find().should.eventually.have.length.be(1)
+
+      it 'should allow relations to a model class instance', ->
+        new Weaver.ModelQuery().hasRelationOut('Person.comesFrom', model.City.Rotterdam).find().should.eventually.have.length.be(1)
+
+      it 'should allow relations to a model class instance that is also a class', ->
+        new Weaver.ModelQuery().hasRelationOut('Person.comesFrom', model.City.CityState).find().should.eventually.have.length.be(1)
+
+      it 'should allow relations to a model class', ->
+        new Weaver.ModelQuery().hasRelationOut('Person.comesFrom', model.CityState).find().should.eventually.have.length.be(1)

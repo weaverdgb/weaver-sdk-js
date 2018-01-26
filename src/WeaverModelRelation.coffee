@@ -35,11 +35,17 @@ class WeaverModelRelation extends Weaver.Relation
 
     totalRanges
 
+  _getClassName: (node) ->
+    node.className or
+      # This is a node, check its prototype name
+      node.relation(@model.definition.prototype).first().id().replace(/^[^:]*:/, '')
+
   # Check if relation is allowed according to definition
   _checkCorrectClass: (node) ->
     range = @_getAllRanges()
-    if range? and not range.includes(node.className)
-      throw new Error("Model #{@className} is not allowed to have relation #{@modelKey} to #{node.className or 'an unspecified class'}")
+    className = @_getClassName(node)
+    if range? and not range.includes(className)
+      throw new Error("Model #{@className} is not allowed to have relation #{@modelKey} to #{className or 'an unspecified class'}")
 
   add: (node, relId, addToPendingWrites = true) ->
     @_checkCorrectClass(node)
