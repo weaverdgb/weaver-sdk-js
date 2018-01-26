@@ -320,6 +320,16 @@ describe 'WeaverNode test', ->
     assert.equal(a.isRelationPresent('rel', 'null'), false)
     assert.equal(a.isRelationPresent('null', b.id()), false)
 
+  it 'should return the relation nodes', ->
+    a = new Weaver.Node('a')
+    b = new Weaver.Node('b')
+
+    rel = a.relation('rel').add(b)
+
+    assert.equal(a.relationNodes('rel').length, 1)
+    assert.equal(a.relationNodes('rel')[0].id(), rel.id())
+    assert.equal(a.relationNodes('null').length, 0)
+
   it 'should not blow up when saving in circular chain', ->
     a = new Weaver.Node()
     b = new Weaver.Node()

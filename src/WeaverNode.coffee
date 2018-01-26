@@ -113,6 +113,9 @@ class WeaverNode
   relations: ->
     @_relations
 
+  relationNodes: (key)->
+    @relation(key).relationNodes
+
   isRelationPresent: (key, objId)->
     for node in @relation(key).all()
       return true if node.id() is objId
