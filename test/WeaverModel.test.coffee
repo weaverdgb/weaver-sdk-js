@@ -244,3 +244,13 @@ describe 'WeaverModel test', ->
         ).then((country) ->
           country.should.be.instanceOf(model.Country)
         )
+
+      it 'should add an existing node to a model', ->
+        tree = new Weaver.Node('t1')
+        tree.relation('hasLeaf').add(new Weaver.Node('l1'))
+
+        tree.save().then(->
+          model.Country.addMember(tree)
+        ).then((country) ->
+          country.should.be.instanceOf(model.Country)
+        )

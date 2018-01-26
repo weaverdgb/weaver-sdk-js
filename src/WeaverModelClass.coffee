@@ -9,7 +9,10 @@ class WeaverModelClass extends Weaver.Node
     @totalClassDefinition = @_collectFromSupers()
 
     # Add type definition to model class
-    @relation(@getPrototypeKey()).addInGraph(Weaver.Node.getFromGraph(@classId(), @model.getGraphName()), @model.getGraphName())
+    @relation(@getPrototypeKey()).addInGraph(@class.asNode(), @model.getGraphName())
+
+  getClass: ->
+    
 
   getInheritKey: ->
     @model.definition.inherit or '_inherit'
@@ -23,8 +26,17 @@ class WeaverModelClass extends Weaver.Node
   getPrototype: ->
     @relation(@getPrototypeKey()).first()
 
-  classId: ->
+  @classId: ->
     "#{@definition.name}:#{@className}"
+
+  @addMember: (node)->
+    node.relation(@model.definition.prototype).addInGraph(@asNode(), node.getGraph())
+    node.save().then(=>
+      new @(node.id())
+    )
+
+  @asNode: ()->
+    Weaver.Node.getFromGraph(@classId(), @model.getGraphName())
 
   # Returns a definition where all super definitions are collected into
   _collectFromSupers: ->
