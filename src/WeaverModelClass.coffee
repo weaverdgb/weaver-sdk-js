@@ -9,28 +9,19 @@ class WeaverModelClass extends Weaver.Node
     @totalClassDefinition = @_collectFromSupers()
 
     # Add type definition to model class
-    @relation(@getPrototypeKey()).addInGraph(@class.asNode(), @model.getGraphName())
-
-  getClass: ->
-    
-
-  getInheritKey: ->
-    @model.definition.inherit or '_inherit'
+    @relation(@model.getMemberKey()).addInGraph(@class.asNode(), @model.getGraphName())    
 
   getInherit: ->
-    @relation(@getInheritKey()).first()
+    @relation(@model.getInheritKey()).first()
 
-  getPrototypeKey: ->
-    @model.definition.prototype or '_prototype'
-
-  getPrototype: ->
-    @relation(@getPrototypeKey()).first()
+  getMember: ->
+    @relation(@model.getMemberKey()).first()
 
   @classId: ->
     "#{@definition.name}:#{@className}"
 
   @addMember: (node)->
-    node.relation(@model.definition.prototype).addInGraph(@asNode(), node.getGraph())
+    node.relation(@model.definition.member).addInGraph(@asNode(), node.getGraph())
     node.save().then(=>
       new @(node.id())
     )
@@ -112,8 +103,8 @@ class WeaverModelClass extends Weaver.Node
     super(@_getAttributeKey(field), value)
 
   relation: (key) ->
-    # Return when using a special relation like the prototype relation
-    return super(key) if [@getPrototypeKey()].includes(key)
+    # Return when using a special relation like the member relation
+    return super(key) if [@model.getMemberKey()].includes(key)
 
     relationKeys = @_getRelationKeys(key)
     databaseKey = relationKeys.database

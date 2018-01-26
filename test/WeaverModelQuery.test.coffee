@@ -8,7 +8,7 @@ describe 'WeaverModelQuery test', ->
 
   before ->
     wipeCurrentProject().then(->
-      Weaver.Model.load("test-model", "1.1.0")
+      Weaver.Model.load("test-model", "1.1.1")
     ).then((m) ->
       model = m
       model.bootstrap()

@@ -5,26 +5,26 @@ cuid   = require('cuid')
 describe 'WeaverModel test', ->
 
   it 'should load in a model from the server', ->
-    Weaver.Model.load("test-model", "1.1.0").then((Model) ->
+    Weaver.Model.load("test-model", "1.1.1").then((Model) ->
       assert.equal(Model.definition.name,    "test-model")
-      assert.equal(Model.definition.version, "1.1.0")
+      assert.equal(Model.definition.version, "1.1.1")
     )
 
   it 'should reload a model from the server', ->
-    Weaver.Model.reload("test-model", "1.1.0").then((Model) ->
+    Weaver.Model.reload("test-model", "1.1.1").then((Model) ->
       assert.equal(Model.definition.name,    "test-model")
-      assert.equal(Model.definition.version, "1.1.0")
+      assert.equal(Model.definition.version, "1.1.1")
     )
 
   it 'should fail on a not existing model', ->
-    Weaver.Model.load("ghost-model", "1.1.0").then((Model) ->
+    Weaver.Model.load("ghost-model", "1.1.1").then((Model) ->
       assert(false)
     ).catch((error)->
       assert.equal(error.code, Weaver.Error.MODEL_NOT_FOUND)
     )
 
   it 'should fail on a not existing version of an existing model', ->
-    Weaver.Model.load("test-model", "1.1.1").then((Model) ->
+    Weaver.Model.load("test-model", "1.99.1").then((Model) ->
       assert(false)
     ).catch((error)->
       assert.equal(error.code, Weaver.Error.MODEL_VERSION_NOT_FOUND)
@@ -34,31 +34,31 @@ describe 'WeaverModel test', ->
     model = {}
 
     before ->
-      Weaver.Model.load("test-model", "1.1.0").then((m) ->
+      Weaver.Model.load("test-model", "1.1.1").then((m) ->
         model = m
       )
 
     it 'should set the type definition to the model class', ->
       Person = model.Person
       person = new Person()
-      assert.equal(person.relation(person.getPrototypeKey()).first().id(), "#{model.definition.name}:#{person.className}")
-      assert.equal(person.getPrototype().id(), "#{model.definition.name}:#{person.className}")
+      assert.equal(person.relation(person.model.getMemberKey()).first().id(), "#{model.definition.name}:#{person.className}")
+      assert.equal(person.getMember().id(), "#{model.definition.name}:#{person.className}")
 
-    it 'should be able to configure the prototype relation', ->
-      originalprototype = model.definition.prototype
-      model.definition.prototype = "prototype:rel"
+    it 'should be able to configure the member relation', ->
+      originalmember = model.definition.member
+      model.definition.member = "member:rel"
       Person = model.Person
       person = new Person()
-      assert.equal(person.relation("prototype:rel").first().id(), "#{model.definition.name}:#{person.className}")
-      model.definition.prototype = originalprototype
+      assert.equal(person.relation("member:rel").first().id(), "#{model.definition.name}:#{person.className}")
+      model.definition.member = originalmember
 
-    it 'should fallback to the default _prototype relation', ->
-      originalprototype = model.definition.prototype
-      delete model.definition.prototype
+    it 'should fallback to the default _member relation', ->
+      originalmember = model.definition.member
+      delete model.definition.member
       Person = model.Person
       person = new Person()
-      assert.equal(person.relation("_prototype").first().id(), "#{model.definition.name}:#{person.className}")
-      model.definition.prototype = originalprototype
+      assert.equal(person.relation("_member").first().id(), "#{model.definition.name}:#{person.className}")
+      model.definition.member = originalmember
 
     it 'should set attributes on model instances', ->
       Person = model.Person

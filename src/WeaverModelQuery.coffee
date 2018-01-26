@@ -9,8 +9,8 @@ class WeaverModelQuery extends Weaver.Query
 
     # Define constructor function
     @useConstructor((node) =>
-      if node.relation(@getPrototypeKey()).first()?
-        [modelName, className] = node.relation(@getPrototypeKey()).first().id().split(":")
+      if node.relation(@model.getMemberKey()).first()?
+        [modelName, className] = node.relation(@model.getMemberKey()).first().id().split(":")
         @model[className]
       else
         Weaver.Node
@@ -28,17 +28,15 @@ class WeaverModelQuery extends Weaver.Query
       else
         throw err
 
-  getPrototypeKey: ->
-    @model.definition.prototype or '_prototype'
 
   class: (modelClass) ->
-    @hasRelationOut(@getPrototypeKey(), Weaver.Node.getFromGraph(modelClass.classId(), @model.getGraphName()))
+    @hasRelationOut(@model.getMemberKey(), Weaver.Node.getFromGraph(modelClass.classId(), @model.getGraphName()))
 
   # Key is composed of Class.modelAttribute
   _mapKeys: (keys, source) ->
     databaseKeys = []
     for key in keys
-      if [@getPrototypeKey(), '*'].includes(key)
+      if [@model.getMemberKey(), '*'].includes(key)
         databaseKeys.push(key)
       else
         if key.indexOf(".") is -1
@@ -85,8 +83,8 @@ class WeaverModelQuery extends Weaver.Query
     @
 
   find: (Constructor) ->
-    # Always get the prototype relation to map to the correct modelclass
-    @alwaysLoadRelations(@getPrototypeKey())
+    # Always get the member relation to map to the correct modelclass
+    @alwaysLoadRelations(@model.getMemberKey())
 
     super(Constructor)
 

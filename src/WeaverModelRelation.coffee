@@ -37,8 +37,8 @@ class WeaverModelRelation extends Weaver.Relation
 
   _getClassName: (node) ->
     node.className or
-      # This is a node, check its prototype name
-      node.relation(@model.definition.prototype).first().id().replace(/^[^:]*:/, '')
+      # This is a node, check its member name
+      node.relation(@model.definition.member).first().id().replace(/^[^:]*:/, '')
 
   # Check if relation is allowed according to definition
   _checkCorrectClass: (node) ->

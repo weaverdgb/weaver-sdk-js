@@ -64,6 +64,9 @@ class WeaverModel
   getInheritKey: ->
     @definition.inherit or '_inherit'
 
+  getMemberKey: ->
+    @definition.member or '_member'
+
   bootstrap: ->
     new Weaver.Query()
     .contains('id', "#{@definition.name}:")
@@ -85,8 +88,8 @@ class WeaverModel
         if @[itemName]?
           # This is a member that is also a class
           itemNode = nodesToCreate["#{@definition.name}:#{itemName}"]
-          # So add the prototype definition
-          itemNode.relation(@definition.prototype).addInGraph(nodesToCreate["#{@definition.name}:#{className}"], @getGraphName)
+          # So add the member definition
+          itemNode.relation(@definition.member).addInGraph(nodesToCreate["#{@definition.name}:#{className}"], @getGraphName)
           @[className][itemName] = itemNode
         else
           node = new ModelClass("#{@definition.name}:#{itemName}")
