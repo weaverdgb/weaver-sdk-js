@@ -22,9 +22,7 @@ class WeaverModelClass extends Weaver.Node
 
   @addMember: (node)->
     node.relation(@model.definition.member).addInGraph(@asNode(), node.getGraph())
-    node.save().then(=>
-      new @(node.id())
-    )
+    node.save()
 
   @asNode: ()->
     Weaver.Node.getFromGraph(@classId(), @model.getGraphName())
