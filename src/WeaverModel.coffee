@@ -18,7 +18,6 @@ class WeaverModel
             this.definition      = #{className}.definition;
             this.className       = "#{className}";
             this.classDefinition = #{className}.classDefinition;
-            this.class           = #{className};
             #{className}.__super__.constructor.call(this, nodeId);
           };
 

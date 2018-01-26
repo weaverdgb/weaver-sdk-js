@@ -9,7 +9,7 @@ class WeaverModelClass extends Weaver.Node
     @totalClassDefinition = @_collectFromSupers()
 
     # Add type definition to model class
-    @relation(@model.getMemberKey()).addInGraph(@class.asNode(), @model.getGraphName())    
+    @relation(@model.getMemberKey()).addInGraph(Object.getPrototypeOf(@).asNode(), @model.getGraphName())    
 
   getInherit: ->
     @relation(@model.getInheritKey()).first()
