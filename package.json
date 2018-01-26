@@ -58,7 +58,7 @@
     "mocha": "^3.4.1",
     "sinon": "^2.2.0",
     "supertest": "^3.0.0",
-    "vinyl-buffer": "^1.0.0",
+    "vinyl-buffer": "^1.0.1",
     "vinyl-source-stream": "^2.0.0",
     "watchify": "^3.9.0"
   },
