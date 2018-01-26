@@ -113,6 +113,15 @@ class WeaverNode
   relations: ->
     @_relations
 
+  isRelationPresent: (key, objId)->
+    for node in @relation(key).all()
+      return true if node.id() is objId
+    false
+
+  getRelation: (key, objId)->
+    for node in @relation(key).all()
+      return node if node.id() is objId
+
   _getAttributeValue: (attribute) ->
     if attribute.dataType is 'date'
       return new Date(attribute.value)
