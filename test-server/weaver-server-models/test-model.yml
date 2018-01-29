@@ -57,10 +57,8 @@ classes:
         range: [Person]
       comesFrom:
         range:
-          Country:
-            card: [0,1]
-          City:
-            card: [0,2]
+          Country: [0,1]
+          City: [0,2]
       hasHead:
         range: [Head]
       hasRelation:
