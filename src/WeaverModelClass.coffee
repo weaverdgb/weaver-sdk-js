@@ -59,34 +59,23 @@ class WeaverModelClass extends Weaver.Node
     addFromSuper(@classDefinition)
 
   _getAttributeKey: (field) ->
+
     if not @totalClassDefinition.attributes?
       throw new Error("#{@className} model is not allowed to have attributes")
-
     if not @totalClassDefinition.attributes[field]?
-      throw new Error("Field #{field} is not valid on this #{@className} model")
+      throw new Error("#{@className} model is not allowed to have the #{field} attribute")
 
     @totalClassDefinition.attributes[field].key or field
 
-  _getRelationKeys: (key) ->
+  # Returns null if the model did not define this
+  _getRelationKey: (key) ->
+
     if not @totalClassDefinition.relations?
       throw new Error("#{@className} model is not allowed to have relations")
+    if not @totalClassDefinition.relations[key]?
+      throw new Error("#{@className} model is not allowed to have the #{key} relation")
 
-    if @totalClassDefinition.relations[key]?
-      {
-        model: key
-        database: @totalClassDefinition.relations[key].key or key
-      }
-    else
-      # May be a database relation
-      modelKey = (j for j, i of @totalClassDefinition.relations when i? and i.key is key)
-
-      if modelKey.length is 1
-        {
-          model: modelKey
-          database: key
-        }
-      else
-        throw new Error("Relation #{key} is not valid on this #{@className} model")
+    @totalClassDefinition.relations[key].key or key
 
   attributes: ->
     return {} if not @totalClassDefinition.attributes?
@@ -106,23 +95,34 @@ class WeaverModelClass extends Weaver.Node
 
     relations
 
+  nodeGet: (args...)->
+    super.get(args...)
+
   get: (field) ->
+    key = @_getAttributeKey(field)
+    return null if not key?
     super(@_getAttributeKey(field))
 
+  nodeSet: (args...)->
+    super.set(args...)
+
   set: (field, value) ->
-    super(@_getAttributeKey(field), value)
+    key = @_getAttributeKey(field)
+    return null if not key?
+    super(key, value)
+
+  nodeRelation: (args...)->
+    Weaver.Node.prototype.relation.call(@, args...)
 
   relation: (key) ->
-    # Return when using a special relation like the member relation
-    return super(key) if [@model.getMemberKey()].includes(key)
 
-    relationKeys = @_getRelationKeys(key)
-    databaseKey = relationKeys.database
+    relationKey = @_getRelationKey(key)
+    return null if not relationKey?
 
     # Based on the key, construct a specific Weaver.ModelRelation
-    modelKey             = relationKeys.model
+    modelKey             = relationKey
     model                = @model
-    relationDefinition   = @totalClassDefinition.relations[relationKeys.model]
+    relationDefinition   = @totalClassDefinition.relations[key]
     className            = @className
     definition           = @definition
     totalClassDefinition = @totalClassDefinition
@@ -136,7 +136,7 @@ class WeaverModelClass extends Weaver.Node
         @definition         = totalClassDefinition
         @relationDefinition = relationDefinition
 
-    super(databaseKey, classRelation)
+    super(relationKey, classRelation)
 
   save: (project) ->
     # Check required attributes
