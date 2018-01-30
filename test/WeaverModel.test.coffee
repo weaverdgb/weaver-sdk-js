@@ -41,15 +41,15 @@ describe 'WeaverModel test', ->
     it 'should set the type definition to the model class', ->
       Person = model.Person
       person = new Person()
-      assert.equal(person.relation(person.model.getMemberKey()).first().id(), "#{model.definition.name}:#{person.className}")
-      assert.equal(person.getMember().id(), "#{model.definition.name}:#{person.className}")
+      assert.equal(person.nodeRelation(person.model.getMemberKey()).first().id(), "#{model.definition.name}:#{person.className}")
+      assert.equal(person.getMember()[0].id(), "#{model.definition.name}:#{person.className}")
 
     it 'should be able to configure the member relation', ->
       originalmember = model.definition.member
       model.definition.member = "member:rel"
       Person = model.Person
       person = new Person()
-      assert.equal(person.relation("member:rel").first().id(), "#{model.definition.name}:#{person.className}")
+      assert.equal(person.nodeRelation("member:rel").first().id(), "#{model.definition.name}:#{person.className}")
       model.definition.member = originalmember
 
     it 'should fallback to the default _member relation', ->
@@ -57,7 +57,7 @@ describe 'WeaverModel test', ->
       delete model.definition.member
       Person = model.Person
       person = new Person()
-      assert.equal(person.relation("_member").first().id(), "#{model.definition.name}:#{person.className}")
+      assert.equal(person.nodeRelation("_member").first().id(), "#{model.definition.name}:#{person.className}")
       model.definition.member = originalmember
 
     it 'should set attributes on model instances', ->
@@ -141,17 +141,17 @@ describe 'WeaverModel test', ->
         person.save()
 
       it 'should succeed save one instance', ->
-        Weaver.Node.loadFromGraph('test-model:Leiden', model.getGraphName()).then((node)->
+        Weaver.Node.loadFromGraph('test-model:Leiden', model.getGraph()).then((node)->
           assert.isDefined(node.relation('rdf:type').first())
         )
 
       it 'should succeed save inherit relation', ->
-        Weaver.Node.loadFromGraph('test-model:AreaSection', model.getGraphName()).then((node)->
+        Weaver.Node.loadFromGraph('test-model:AreaSection', model.getGraph()).then((node)->
           assert.isDefined(node.relation('rdfs:subClassOf').first())
         )
 
       it 'should succeed saving all instances', ->
-        new Weaver.Query().restrictGraphs(model.getGraphName()).hasRelationOut('rdf:type', Weaver.Node.getFromGraph('test-model:City', model.getGraphName()))
+        new Weaver.Query().restrictGraphs(model.getGraph()).hasRelationOut('rdf:type', Weaver.Node.getFromGraph('test-model:City', model.getGraph()))
         .find().then((nodes) -> i.id() for i in nodes)
         .should.eventually.be.eql(["test-model:CityState", "test-model:Delft", "test-model:Rotterdam", "test-model:Leiden"])
 
@@ -246,11 +246,42 @@ describe 'WeaverModel test', ->
         )
 
       it 'should add an existing node to a model', ->
-        tree = new Weaver.Node('t1')
-        tree.relation('hasLeaf').add(new Weaver.Node('l1'))
+        person = new Weaver.Node(undefined, model.getGraph())
+
+        person.save().then(->
+          model.Person.addMember(person)
+        ).then(->
+          model.Person.load(person.id())
+        ).then((person)->
+          person.should.be.instanceOf(model.Person) 
+        )
+
+      it 'should add an existing node to an other model', ->
+        tree = new Weaver.Node(undefined, model.getGraph())
+        tree.relation('hasLeaf').add(new Weaver.Node())
 
         tree.save().then(->
           model.Country.addMember(tree)
-        ).then((country) ->
-          country.should.be.instanceOf(model.Country)
+        ).then(->
+          model.Country.load(tree.id())
+        ).then((country)->
+          country.should.be.instanceOf(model.Country) 
+        )
+
+      it 'should add an existing node to two other models', ->
+        tree = new Weaver.Node(undefined, model.getGraph())
+        tree.relation('hasLeaf').add(new Weaver.Node())
+
+        tree.save().then(->
+          model.Country.addMember(tree)
+        ).then(->
+          model.Person.addMember(tree)
+        ).then(->
+          model.Country.load(tree.id())
+        ).then((country)->
+          country.should.be.instanceOf(model.Country) 
+        ).then(->
+          model.Person.load(tree.id())
+        ).then((person)->
+          person.should.be.instanceOf(model.Person)
         )
