@@ -1,6 +1,7 @@
 cuid        = require('cuid')
 Promise     = require('bluebird')
 Weaver      = require('./Weaver')
+_           = require('lodash')
 
 class WeaverModelRelation extends Weaver.Relation
 
@@ -29,11 +30,18 @@ class WeaverModelRelation extends Weaver.Relation
       ranges
 
     totalRanges = []
-    for range in @relationDefinition.range
+    for range in @_getRangeKeys()
       totalRanges.push(range)
       totalRanges = totalRanges.concat(addSubRange(range))
 
     totalRanges
+
+  _getRangeKeys: ->
+    range = @relationDefinition.range
+    if _.isArray(range)
+      range
+    else
+      _.keys(range)
 
   _getClassName: (node) ->
     node.className or
