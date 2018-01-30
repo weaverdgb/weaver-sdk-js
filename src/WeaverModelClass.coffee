@@ -9,12 +9,11 @@ class WeaverModelClass extends Weaver.Node
 
   @addMember: (node)->
     if node instanceof WeaverModelClass
-      node.nodeRelation(@model.definition.member).addInGraph(@asNode(), node.getGraph())
+      node.nodeRelation(@model.definition.member).addInGraph(@getNode(), node.getGraph())
     else
-      node.relation(@model.definition.member).addInGraph(@asNode(), node.getGraph())
-    node.save()
+      node.relation(@model.definition.member).addInGraph(@getNode(), node.getGraph())
 
-  @asNode: ->
+  @getNode: ->
     Weaver.Node.getFromGraph(@classId(), @model.getGraph())
 
   constructor: (nodeId)->
