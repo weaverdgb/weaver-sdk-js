@@ -65,13 +65,13 @@ class WeaverNode
 
         instance = new Constructor(relation.target.nodeId, relation.target.graph)
         instance._loadFromQuery(relation.target, constructorFunction, fullyLoaded)
-        _loadRelationFromQuery(instance, relation.nodeId, relation.graph)
+        _loadRelationFromQuery(key, instance, relation.nodeId, relation.graph)
 
     @._clearPendingWrites()
     Weaver.publish('node.loaded', @)
     @
 
-  _loadRelationFromQuery: (instance, nodeId, graph)->
+  _loadRelationFromQuery: (key, instance, nodeId, graph)->
     @relation(key).add(instance, nodeId, graph)
 
   # Loads current node
