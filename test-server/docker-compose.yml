@@ -6,7 +6,7 @@ services:
     - "5432"
 
   postgresql-connector:
-    image: sysunite/weaver-database-postgresql:4.3.0-SNAPSHOT-cleanup-database
+    image: sysunite/weaver-database-postgresql:4.3.0-SNAPSHOT-zeta.0-fix-relation-queries
     links:
     - postgres
     expose:

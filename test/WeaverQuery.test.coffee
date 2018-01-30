@@ -327,6 +327,25 @@ describe 'WeaverQuery Test', ->
       )
 
 
+  describe 'clean nodes, with a-b b-c a-c link-relations', ->
+    a = new Weaver.Node('a')
+    b = new Weaver.Node('b')
+    c = new Weaver.Node('c')
+
+    before ->
+      wipeCurrentProject().then( ->
+        a.relation('link').add(b)
+        b.relation('link').add(c)
+        a.relation('link').add(c)
+        a.save()
+      )
+
+    it 'should support hasRelationOut hasNoRelationOut on the same key with a defined target', ->
+      expect(new Weaver.Query()
+      .hasRelationOut('link')
+      .hasNoRelationOut('link', 'b')
+      .find()).to.eventually.have.length.be(1)
+
   describe 'clean nodes, with a-b b-c link-relations', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
