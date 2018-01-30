@@ -70,6 +70,7 @@ describe 'WeaverModelQuery test', ->
 
       it 'should do an equalTo WeaverModelQuery', ->
         new Weaver.ModelQuery()
+        .class(model.Person)
         .equalTo("Person.fullName", "Aby Delores")
         .find()
         .then((instances) ->
@@ -79,13 +80,13 @@ describe 'WeaverModelQuery test', ->
           assert.equal(p.constructor, model.Person)
           assert.equal(p.id(), "personA")
           assert.equal(p.get('fullName'), 'Aby Delores')
-          assert.equal(p.relation('hasHead').first().constructor, model.Head)  # <- this fails currently
+          assert.equal(p.relation('hasHead').first().constructor, Weaver.Node)
         )
 
       it 'should load model instances', ->
         new Weaver.ModelQuery()
           .restrict("personB")
-          .first().should.eventually.be.instanceOf(model.Person)
+          .first(model.Person).should.eventually.be.instanceOf(model.Person)
 
       it 'should not error on livesInSomebuilding', ->
         new Weaver.ModelQuery()
