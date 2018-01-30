@@ -100387,17 +100387,22 @@ module.exports={
         load = (function(_this) {
           return function(loadClass) {
             return function(nodeId) {
-              return new Weaver.ModelQuery(_this)["class"](_this[loadClass]).restrict(nodeId).inGraph(_this.getGraphName()).first();
+              return new Weaver.ModelQuery(_this)["class"](_this[loadClass]).restrict(nodeId).inGraph(_this.getGraph()).first();
             };
           };
         })(this);
         this[className].load = load(className);
       }
-      this._graphName = this.definition.name + "-" + this.definition.version;
+      this._graph = this.definition.name + "-" + this.definition.version;
     }
 
     WeaverModel.prototype.getGraphName = function() {
-      return this._graphName;
+      console.warn('Deprecated function WeaverModel.getGraphName() used. Use WeaverModel.getGraph().');
+      return this._graph;
+    };
+
+    WeaverModel.prototype.getGraph = function() {
+      return this._graph;
     };
 
     WeaverModel.load = function(name, version) {
@@ -100412,8 +100417,17 @@ module.exports={
       return this.definition.inherit || '_inherit';
     };
 
+    WeaverModel.prototype.getMemberKey = function() {
+      return this.definition.member || '_member';
+    };
+
+    WeaverModel.prototype.getPrototypeKey = function() {
+      console.warn('Deprecated function WeaverModel.getPrototypeKey() used. Use WeaverModel.getMemberKey().');
+      return this.getMemberKey();
+    };
+
     WeaverModel.prototype.bootstrap = function() {
-      return new Weaver.Query().contains('id', this.definition.name + ":").restrictGraphs(this.getGraphName()).find().then((function(_this) {
+      return new Weaver.Query().contains('id', this.definition.name + ":").restrictGraphs(this.getGraph()).find().then((function(_this) {
         return function(nodes) {
           var i;
           return _this._bootstrapClasses((function() {
@@ -100430,47 +100444,14 @@ module.exports={
     };
 
     WeaverModel.prototype._bootstrapClasses = function(existingNodes) {
-      var ModelClass, className, classObj, id, itemName, itemNode, j, len, modelClassNode, node, nodesToCreate, ref, ref1, ref2, superClassNode;
+      var className, id, node, nodesToCreate;
       nodesToCreate = {};
       for (className in this.definition.classes) {
         if (!(!existingNodes.includes(this.definition.name + ":" + className))) {
           continue;
         }
-        node = new Weaver.Node(this.definition.name + ":" + className, this.getGraphName());
+        node = new Weaver.Node(this.definition.name + ":" + className, this.getGraph());
         nodesToCreate[node.id()] = node;
-      }
-      ref = this.definition.classes;
-      for (className in ref) {
-        classObj = ref[className];
-        if (!((classObj.init != null) && !existingNodes.includes(this.definition.name + ":" + className))) {
-          continue;
-        }
-        ModelClass = this[className];
-        ref1 = classObj.init;
-        for (j = 0, len = ref1.length; j < len; j++) {
-          itemName = ref1[j];
-          if (!existingNodes.includes(this.definition.name + ":" + itemName)) {
-            if (this[itemName] != null) {
-              itemNode = nodesToCreate[this.definition.name + ":" + itemName];
-              itemNode.relation(this.definition.prototype).addInGraph(nodesToCreate[this.definition.name + ":" + className], this.getGraphName);
-              this[className][itemName] = itemNode;
-            } else {
-              node = new ModelClass(this.definition.name + ":" + itemName);
-              this[className][itemName] = node;
-              nodesToCreate[this.definition.name + ":" + itemName] = node;
-            }
-          }
-        }
-      }
-      ref2 = this.definition.classes;
-      for (className in ref2) {
-        classObj = ref2[className];
-        if (!((classObj["super"] != null) && !existingNodes.includes(this.definition.name + ":" + className))) {
-          continue;
-        }
-        modelClassNode = nodesToCreate[this.definition.name + ":" + className];
-        superClassNode = Weaver.Node.getFromGraph(this.definition.name + ":" + classObj["super"], this.getGraphName());
-        modelClassNode.relation(this.getInheritKey()).add(superClassNode);
       }
       return Weaver.Node.batchSave((function() {
         var results;
@@ -100480,7 +100461,66 @@ module.exports={
           results.push(node);
         }
         return results;
-      })());
+      })()).then((function(_this) {
+        return function() {
+          var classObj, id, ref, superClassNode;
+          ref = _this.definition.classes;
+          for (className in ref) {
+            classObj = ref[className];
+            if (!((classObj["super"] != null) && !existingNodes.includes(_this.definition.name + ":" + className))) {
+              continue;
+            }
+            node = nodesToCreate[_this.definition.name + ":" + className];
+            superClassNode = Weaver.Node.getFromGraph(_this.definition.name + ":" + classObj["super"], _this.getGraph());
+            if (node instanceof Weaver.ModelClass) {
+              node.nodeRelation(_this.getInheritKey()).add(superClassNode);
+            } else {
+              node.relation(_this.getInheritKey()).add(superClassNode);
+            }
+          }
+          return Weaver.Node.batchSave((function() {
+            var results;
+            results = [];
+            for (id in nodesToCreate) {
+              node = nodesToCreate[id];
+              results.push(node);
+            }
+            return results;
+          })()).then(function() {
+            var ModelClass, itemName, itemNode, j, len, promises, ref1, ref2, reg;
+            promises = [];
+            ref1 = _this.definition.classes;
+            for (className in ref1) {
+              classObj = ref1[className];
+              if (!((classObj.init != null) && !existingNodes.includes(_this.definition.name + ":" + className))) {
+                continue;
+              }
+              ModelClass = _this[className];
+              ref2 = classObj.init;
+              for (j = 0, len = ref2.length; j < len; j++) {
+                itemName = ref2[j];
+                if (!existingNodes.includes(_this.definition.name + ":" + itemName)) {
+                  if (_this[itemName] != null) {
+                    itemNode = nodesToCreate[_this.definition.name + ":" + itemName];
+                    reg = _this[className];
+                    promises.push(ModelClass.addMember(itemNode).then(function() {
+                      return ModelClass.load(itemNode);
+                    }).then(function(loaded) {
+                      return reg[itemName] = loaded;
+                    }));
+                  } else {
+                    itemNode = new ModelClass(_this.definition.name + ":" + itemName);
+                    nodesToCreate[_this.definition.name + ":" + itemName] = itemNode;
+                    promises.push(ModelClass.addMember(itemNode));
+                    _this[className][itemName] = itemNode;
+                  }
+                }
+              }
+            }
+            return Promise.all(promises);
+          });
+        };
+      })(this));
     };
 
     return WeaverModel;
@@ -100495,7 +100535,8 @@ module.exports={
 (function() {
   var Promise, Weaver, WeaverModelClass, cuid,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty;
+    hasProp = {}.hasOwnProperty,
+    slice = [].slice;
 
   cuid = require('cuid');
 
@@ -100506,37 +100547,48 @@ module.exports={
   WeaverModelClass = (function(superClass) {
     extend(WeaverModelClass, superClass);
 
-    function WeaverModelClass(nodeId) {
-      WeaverModelClass.__super__.constructor.call(this, nodeId, this.model.getGraphName());
-      this.totalClassDefinition = this._collectFromSupers();
-      this.relation(this.getPrototypeKey()).addInGraph(Weaver.Node.getFromGraph(this.classId(), this.model.getGraphName()), this.model.getGraphName());
-    }
-
-    WeaverModelClass.prototype.getInheritKey = function() {
-      return this.model.definition.inherit || '_inherit';
-    };
-
-    WeaverModelClass.prototype.getInherit = function() {
-      return this.relation(this.getInheritKey()).first();
-    };
-
-    WeaverModelClass.prototype.getPrototypeKey = function() {
-      return this.model.definition.prototype || '_prototype';
-    };
-
-    WeaverModelClass.prototype.getPrototype = function() {
-      return this.relation(this.getPrototypeKey()).first();
-    };
-
-    WeaverModelClass.prototype.classId = function() {
+    WeaverModelClass.classId = function() {
       return this.definition.name + ":" + this.className;
     };
 
-    WeaverModelClass.prototype.addMember = function(node) {
-      node.relation(this.model.definition.prototype).addInGraph(this, node.getGraphName());
-      return node.save().then(function() {
-        return new this(node.id());
-      });
+    WeaverModelClass.addMember = function(node) {
+      if (node instanceof WeaverModelClass) {
+        node.nodeRelation(this.model.definition.member).addInGraph(this.asNode(), node.getGraph());
+      } else {
+        node.relation(this.model.definition.member).addInGraph(this.asNode(), node.getGraph());
+      }
+      return node.save();
+    };
+
+    WeaverModelClass.asNode = function() {
+      return Weaver.Node.getFromGraph(this.classId(), this.model.getGraph());
+    };
+
+    function WeaverModelClass(nodeId) {
+      var classId, classNode;
+      WeaverModelClass.__super__.constructor.call(this, nodeId, this.model.getGraph());
+      this.totalClassDefinition = this._collectFromSupers();
+      classId = this.constructor.classId();
+      classNode = Weaver.Node.getFromGraph(classId, this.model.getGraph());
+      this.nodeRelation(this.model.getMemberKey()).addInGraph(classNode, this.model.getGraph());
+    }
+
+    WeaverModelClass.prototype.getInherit = function() {
+      return this.nodeRelation(this.model.getInheritKey()).all();
+    };
+
+    WeaverModelClass.prototype.getInheritKey = function() {
+      console.warn('Deprecated function WeaverModelClass.getInheritKey() used. Ask the model, not this modelclass.');
+      return this.model.getInheritKey();
+    };
+
+    WeaverModelClass.prototype.getMember = function() {
+      return this.nodeRelation(this.model.getMemberKey()).all();
+    };
+
+    WeaverModelClass.prototype.getPrototype = function() {
+      console.warn('Deprecated function WeaverModelClass.getPrototype() used. Use WeaverModelClass.getMember().');
+      return this.getMember();
     };
 
     WeaverModelClass.prototype._collectFromSupers = function() {
@@ -100579,43 +100631,19 @@ module.exports={
         throw new Error(this.className + " model is not allowed to have attributes");
       }
       if (this.totalClassDefinition.attributes[field] == null) {
-        throw new Error("Field " + field + " is not valid on this " + this.className + " model");
+        throw new Error(this.className + " model is not allowed to have the " + field + " attribute");
       }
       return this.totalClassDefinition.attributes[field].key || field;
     };
 
-    WeaverModelClass.prototype._getRelationKeys = function(key) {
-      var i, j, modelKey;
+    WeaverModelClass.prototype._getRelationKey = function(key) {
       if (this.totalClassDefinition.relations == null) {
         throw new Error(this.className + " model is not allowed to have relations");
       }
-      if (this.totalClassDefinition.relations[key] != null) {
-        return {
-          model: key,
-          database: this.totalClassDefinition.relations[key].key || key
-        };
-      } else {
-        modelKey = (function() {
-          var ref, results;
-          ref = this.totalClassDefinition.relations;
-          results = [];
-          for (j in ref) {
-            i = ref[j];
-            if ((i != null) && i.key === key) {
-              results.push(j);
-            }
-          }
-          return results;
-        }).call(this);
-        if (modelKey.length === 1) {
-          return {
-            model: modelKey,
-            database: key
-          };
-        } else {
-          throw new Error("Relation " + key + " is not valid on this " + this.className + " model");
-        }
+      if (this.totalClassDefinition.relations[key] == null) {
+        throw new Error(this.className + " model is not allowed to have the " + key + " relation");
       }
+      return this.totalClassDefinition.relations[key].key || key;
     };
 
     WeaverModelClass.prototype.attributes = function() {
@@ -100646,24 +100674,51 @@ module.exports={
       return relations;
     };
 
+    WeaverModelClass.prototype.nodeGet = function() {
+      var args, ref;
+      args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
+      return (ref = WeaverModelClass.__super__.nodeGet.apply(this, arguments)).get.apply(ref, args);
+    };
+
     WeaverModelClass.prototype.get = function(field) {
+      var key;
+      key = this._getAttributeKey(field);
+      if (key == null) {
+        return null;
+      }
       return WeaverModelClass.__super__.get.call(this, this._getAttributeKey(field));
     };
 
+    WeaverModelClass.prototype.nodeSet = function() {
+      var args, ref;
+      args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
+      return (ref = WeaverModelClass.__super__.nodeSet.apply(this, arguments)).set.apply(ref, args);
+    };
+
     WeaverModelClass.prototype.set = function(field, value) {
-      return WeaverModelClass.__super__.set.call(this, this._getAttributeKey(field), value);
+      var key;
+      key = this._getAttributeKey(field);
+      if (key == null) {
+        return null;
+      }
+      return WeaverModelClass.__super__.set.call(this, key, value);
+    };
+
+    WeaverModelClass.prototype.nodeRelation = function() {
+      var args, ref;
+      args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
+      return (ref = Weaver.Node.prototype.relation).call.apply(ref, [this].concat(slice.call(args)));
     };
 
     WeaverModelClass.prototype.relation = function(key) {
-      var className, classRelation, databaseKey, definition, model, modelKey, relationDefinition, relationKeys, totalClassDefinition;
-      if ([this.getPrototypeKey()].includes(key)) {
-        return WeaverModelClass.__super__.relation.call(this, key);
+      var className, classRelation, definition, model, modelKey, relationDefinition, relationKey, totalClassDefinition;
+      relationKey = this._getRelationKey(key);
+      if (relationKey == null) {
+        return null;
       }
-      relationKeys = this._getRelationKeys(key);
-      databaseKey = relationKeys.database;
-      modelKey = relationKeys.model;
+      modelKey = relationKey;
       model = this.model;
-      relationDefinition = this.totalClassDefinition.relations[relationKeys.model];
+      relationDefinition = this.totalClassDefinition.relations[key];
       className = this.className;
       definition = this.definition;
       totalClassDefinition = this.totalClassDefinition;
@@ -100682,7 +100737,7 @@ module.exports={
         return _Class;
 
       })(Weaver.ModelRelation);
-      return WeaverModelClass.__super__.relation.call(this, databaseKey, classRelation);
+      return WeaverModelClass.__super__.relation.call(this, relationKey, classRelation);
     };
 
     WeaverModelClass.prototype.save = function(project) {
@@ -100726,6 +100781,7 @@ module.exports={
   var Promise, Weaver, WeaverModelQuery, cuid,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty,
+    indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
     slice = [].slice;
 
   cuid = require('cuid');
@@ -100740,17 +100796,6 @@ module.exports={
     function WeaverModelQuery(model, target) {
       this.model = model != null ? model : Weaver.currentModel();
       WeaverModelQuery.__super__.constructor.call(this, target);
-      this.useConstructor((function(_this) {
-        return function(node) {
-          var className, modelName, ref;
-          if (node.relation(_this.getPrototypeKey()).first() != null) {
-            ref = node.relation(_this.getPrototypeKey()).first().id().split(":"), modelName = ref[0], className = ref[1];
-            return _this.model[className];
-          } else {
-            return Weaver.Node;
-          }
-        };
-      })(this));
     }
 
     WeaverModelQuery.prototype.getNodeIdFromStringOrNode = function(node) {
@@ -100762,7 +100807,7 @@ module.exports={
         if (node.model != null) {
           return {
             id: node.model.definition.name + ":" + node.className,
-            graph: node.model.getGraphName()
+            graph: node.model.getGraph()
           };
         } else {
           throw err;
@@ -100770,12 +100815,28 @@ module.exports={
       }
     };
 
-    WeaverModelQuery.prototype.getPrototypeKey = function() {
-      return this.model.definition.prototype || '_prototype';
-    };
-
     WeaverModelQuery.prototype["class"] = function(modelClass) {
-      return this.hasRelationOut(this.getPrototypeKey(), Weaver.Node.getFromGraph(modelClass.classId(), this.model.getGraphName()));
+      this.useConstructor((function(_this) {
+        return function(node) {
+          var def, defs, ref;
+          defs = (function() {
+            var i, len, ref, results;
+            ref = node.relation(this.model.getMemberKey()).all();
+            results = [];
+            for (i = 0, len = ref.length; i < len; i++) {
+              def = ref[i];
+              results.push(def.id());
+            }
+            return results;
+          }).call(_this);
+          if (ref = modelClass.classId(), indexOf.call(defs, ref) >= 0) {
+            return modelClass;
+          } else {
+            return Weaver.Node;
+          }
+        };
+      })(this));
+      return this.hasRelationOut(this.model.getMemberKey(), Weaver.Node.getFromGraph(modelClass.classId(), this.model.getGraph()));
     };
 
     WeaverModelQuery.prototype._mapKeys = function(keys, source) {
@@ -100783,7 +100844,7 @@ module.exports={
       databaseKeys = [];
       for (i = 0, len = keys.length; i < len; i++) {
         key = keys[i];
-        if ([this.getPrototypeKey(), '*'].includes(key)) {
+        if ([this.model.getMemberKey(), '*'].includes(key)) {
           databaseKeys.push(key);
         } else {
           if (key.indexOf(".") === -1) {
@@ -100852,7 +100913,7 @@ module.exports={
     };
 
     WeaverModelQuery.prototype.find = function(Constructor) {
-      this.alwaysLoadRelations(this.getPrototypeKey());
+      this.alwaysLoadRelations(this.model.getMemberKey());
       return WeaverModelQuery.__super__.find.call(this, Constructor);
     };
 
@@ -100929,15 +100990,18 @@ module.exports={
     };
 
     WeaverModelRelation.prototype._getClassName = function(node) {
-      return node.className || node.relation(this.model.definition.prototype).first().id().replace(/^[^:]*:/, '');
+      return node.className;
     };
 
     WeaverModelRelation.prototype._checkCorrectClass = function(node) {
       var className, range;
       range = this._getAllRanges();
       className = this._getClassName(node);
+      if (className == null) {
+        throw new Error("Model " + this.className + " is not allowed to have relation " + this.modelKey + " to an unspecified class " + (node.id()));
+      }
       if ((range != null) && !range.includes(className)) {
-        throw new Error("Model " + this.className + " is not allowed to have relation " + this.modelKey + " to " + (className || 'an unspecified class'));
+        throw new Error("Model " + this.className + " is not allowed to have relation " + this.modelKey + " to " + className);
       }
     };
 
@@ -101122,7 +101186,11 @@ module.exports={
           }
           instance = new Constructor(relation.target.nodeId, relation.target.graph);
           instance._loadFromQuery(relation.target, constructorFunction, fullyLoaded);
-          this.relation(key).add(instance, relation.nodeId, false, relation.graph);
+          if (this instanceof Weaver.ModelClass) {
+            this.nodeRelation(key).add(instance, relation.nodeId, false, relation.graph);
+          } else {
+            this.relation(key).add(instance, relation.nodeId, false, relation.graph);
+          }
         }
       }
       this._clearPendingWrites();
