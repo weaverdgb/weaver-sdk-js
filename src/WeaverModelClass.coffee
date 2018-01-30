@@ -4,8 +4,8 @@ Weaver      = require('./Weaver')
 
 class WeaverModelClass extends Weaver.Node
 
-  constructor: (nodeId) ->
-    super(nodeId, @model.getGraphName())
+  constructor: (nodeId)->
+    super(nodeId, @model.getGraph())
     @totalClassDefinition = @_collectFromSupers()
 
     # Add type definition to model class

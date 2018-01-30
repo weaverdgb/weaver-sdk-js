@@ -43,15 +43,19 @@ class WeaverModel
         new Weaver.ModelQuery(@)
           .class(@[loadClass])
           .restrict(nodeId)
-          .inGraph(@getGraphName())
+          .inGraph(@getGraph())
           .first()
 
       @[className].load = load(className)
 
-    @_graphName = "#{@definition.name}-#{@definition.version}"
+    @_graph = "#{@definition.name}-#{@definition.version}"
 
   getGraphName: ->
-    @_graphName
+    console.warn('Deprecated function WeaverModel.getGraphName() used. Use WeaverModel.getGraph().')
+    @_graph
+
+  getGraph: ->
+    @_graph
 
   # Load given model from server
   @load: (name, version) ->
@@ -69,7 +73,7 @@ class WeaverModel
   bootstrap: ->
     new Weaver.Query()
     .contains('id', "#{@definition.name}:")
-    .restrictGraphs(@getGraphName())
+    .restrictGraphs(@getGraph())
     .find().then((nodes) =>
       @_bootstrapClasses((i.id() for i in nodes))
     )
@@ -78,7 +82,7 @@ class WeaverModel
     nodesToCreate = {}
 
     for className of @definition.classes when not existingNodes.includes("#{@definition.name}:#{className}")
-      node = new Weaver.Node("#{@definition.name}:#{className}", @getGraphName())
+      node = new Weaver.Node("#{@definition.name}:#{className}", @getGraph())
       nodesToCreate[node.id()] = node
 
     for className, classObj of @definition.classes when classObj.init? and not existingNodes.includes("#{@definition.name}:#{className}")

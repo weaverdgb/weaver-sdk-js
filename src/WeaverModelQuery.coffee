@@ -23,7 +23,7 @@ class WeaverModelQuery extends Weaver.Query
       if node.model?
         {
           id: "#{node.model.definition.name}:#{node.className}"
-          graph: node.model.getGraphName()
+          graph: node.model.getGraph()
         }
       else
         throw err
