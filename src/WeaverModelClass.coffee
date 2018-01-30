@@ -22,18 +22,19 @@ class WeaverModelClass extends Weaver.Node
     @totalClassDefinition = @_collectFromSupers()
 
     # Add type definition to model class
-    @relation(@model.getMemberKey()).addInGraph(Object.getPrototypeOf(@).asNode(), @model.getGraphName())    
+    classId = @constructor.classId()
+    classNode = Weaver.Node.getFromGraph(classId, @model.getGraph())
+    @nodeRelation(@model.getMemberKey()).addInGraph(classNode, @model.getGraph())
 
   getInherit: ->
-    @relation(@model.getInheritKey()).first()
-
-  getMember: ->
-    @relation(@model.getMemberKey()).first()
+    @nodeRelation(@model.getInheritKey()).all()
 
   getInheritKey: ->
     console.warn('Deprecated function WeaverModelClass.getInheritKey() used. Ask the model, not this modelclass.')
     @model.getInheritKey()
 
+  getMember: ->
+    @nodeRelation(@model.getMemberKey()).all()
 
   getPrototype: ->
     console.warn('Deprecated function WeaverModelClass.getPrototype() used. Use WeaverModelClass.getMember().')
