@@ -85,49 +85,32 @@ class WeaverModel
   _bootstrapClasses: (existingNodes) ->
     nodesToCreate = {}
 
+    # First create all class instances
+    for className, classObj of @definition.classes when classObj.init? and not existingNodes.includes("#{@definition.name}:#{className}")
+      ModelClass = @[className]
+      for itemName in classObj.init when not existingNodes.includes("#{@definition.name}:#{itemName}")
+        node = new ModelClass("#{@definition.name}:#{itemName}")
+        nodesToCreate[node.id()] = node
+        @[className][itemName] = node
+
+    # Now add all the nodes that are not a model class
     for className of @definition.classes when not existingNodes.includes("#{@definition.name}:#{className}")
-      node = new Weaver.Node("#{@definition.name}:#{className}", @getGraph())
-      nodesToCreate[node.id()] = node
+      id = "#{@definition.name}:#{className}"
+      if not nodesToCreate[id]?
+        node = new Weaver.Node(id, @getGraph())
+        nodesToCreate[node.id()] = node
 
-    Weaver.Node.batchSave(node for id, node of nodesToCreate).then(=>
+    # Link inheritance
+    for className, classObj of @definition.classes when classObj.super? and not existingNodes.includes("#{@definition.name}:#{className}")
+      node = nodesToCreate["#{@definition.name}:#{className}"]
+      superClassNode = nodesToCreate["#{@definition.name}:#{classObj.super}"] 
+      if node instanceof Weaver.ModelClass
+        node.nodeRelation(@getInheritKey()).add(superClassNode)
+      else
+        node.relation(@getInheritKey()).add(superClassNode)
 
-      for className, classObj of @definition.classes when classObj.super? and not existingNodes.includes("#{@definition.name}:#{className}")
-        node = nodesToCreate["#{@definition.name}:#{className}"]
-        superClassNode = Weaver.Node.getFromGraph("#{@definition.name}:#{classObj.super}", @getGraph())
-        if node instanceof Weaver.ModelClass
-          node.nodeRelation(@getInheritKey()).add(superClassNode)
-        else
-          node.relation(@getInheritKey()).add(superClassNode)
+    Weaver.Node.batchSave(node for id, node of nodesToCreate)
 
-      Weaver.Node.batchSave(node for id, node of nodesToCreate).then(=>
-
-        promises = []
-        for className, classObj of @definition.classes when classObj.init? and not existingNodes.includes("#{@definition.name}:#{className}")
-          ModelClass = @[className]
-          for itemName in classObj.init when not existingNodes.includes("#{@definition.name}:#{itemName}")
-            
-            if @[itemName]?
-              # This is a member that is also a class
-              itemNode = nodesToCreate["#{@definition.name}:#{itemName}"]
-              reg = @[className]
-              promises.push(
-                ModelClass.addMember(itemNode)
-                .then(->
-                  ModelClass.load(itemNode)
-                ).then((loaded)->
-                  reg[itemName] = loaded
-                )
-              )
-
-            else
-              itemNode = new ModelClass("#{@definition.name}:#{itemName}")
-              nodesToCreate["#{@definition.name}:#{itemName}"] = itemNode
-              promises.push(ModelClass.addMember(itemNode))
-              @[className][itemName] = itemNode
-      
-        Promise.all(promises)
-      )
-    )
 
 
 module.exports = WeaverModel
