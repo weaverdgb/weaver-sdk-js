@@ -4,6 +4,19 @@ Weaver      = require('./Weaver')
 
 class WeaverModelClass extends Weaver.Node
 
+  @classId: ->
+    "#{@definition.name}:#{@className}"
+
+  @addMember: (node)->
+    if node instanceof WeaverModelClass
+      node.nodeRelation(@model.definition.member).addInGraph(@asNode(), node.getGraph())
+    else
+      node.relation(@model.definition.member).addInGraph(@asNode(), node.getGraph())
+    node.save()
+
+  @asNode: ->
+    Weaver.Node.getFromGraph(@classId(), @model.getGraph())
+
   constructor: (nodeId)->
     super(nodeId, @model.getGraph())
     @totalClassDefinition = @_collectFromSupers()
@@ -17,18 +30,11 @@ class WeaverModelClass extends Weaver.Node
   getMember: ->
     @relation(@model.getMemberKey()).first()
 
-  @classId: ->
-    "#{@definition.name}:#{@className}"
   getInheritKey: ->
     console.warn('Deprecated function WeaverModelClass.getInheritKey() used. Ask the model, not this modelclass.')
     @model.getInheritKey()
 
-  @addMember: (node)->
-    node.relation(@model.definition.member).addInGraph(@asNode(), node.getGraph())
-    node.save()
 
-  @asNode: ()->
-    Weaver.Node.getFromGraph(@classId(), @model.getGraphName())
   getPrototype: ->
     console.warn('Deprecated function WeaverModelClass.getPrototype() used. Use WeaverModelClass.getMember().')
     @getMember()
