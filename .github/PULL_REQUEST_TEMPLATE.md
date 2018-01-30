@@ -1,3 +1,8 @@
+Please enter a short description of the changes, and why they are required
+and/or desirable:
+
+...
+
 Please ensure the following boxes are checked before filing a pull request:
 
 - [ ] The automated build passes on the branch this pull request is from
