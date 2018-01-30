@@ -70,6 +70,10 @@ class WeaverModel
   getMemberKey: ->
     @definition.member or '_member'
 
+  getPrototypeKey: ->
+    console.warn('Deprecated function WeaverModel.getPrototypeKey() used. Use WeaverModel.getMemberKey().')
+    @getMemberKey()
+
   bootstrap: ->
     new Weaver.Query()
     .contains('id', "#{@definition.name}:")

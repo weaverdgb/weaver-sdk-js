@@ -19,6 +19,9 @@ class WeaverModelClass extends Weaver.Node
 
   @classId: ->
     "#{@definition.name}:#{@className}"
+  getInheritKey: ->
+    console.warn('Deprecated function WeaverModelClass.getInheritKey() used. Ask the model, not this modelclass.')
+    @model.getInheritKey()
 
   @addMember: (node)->
     node.relation(@model.definition.member).addInGraph(@asNode(), node.getGraph())
@@ -26,6 +29,9 @@ class WeaverModelClass extends Weaver.Node
 
   @asNode: ()->
     Weaver.Node.getFromGraph(@classId(), @model.getGraphName())
+  getPrototype: ->
+    console.warn('Deprecated function WeaverModelClass.getPrototype() used. Use WeaverModelClass.getMember().')
+    @getMember()
 
   # Returns a definition where all super definitions are collected into
   _collectFromSupers: ->
