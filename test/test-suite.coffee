@@ -9,7 +9,7 @@ before ->
     options.rejectUnauthorized = false
   weaver.connect(WEAVER_ENDPOINT,options)
   .then(->
-    weaver.signInWithUsername('admin', 'admin')
+    signInAsAdmin()
   ).then(->
     weaver.wipe()
   ).then(->
@@ -19,20 +19,20 @@ before ->
     weaver.useProject(project)
   )
 
+ensureAdmin = ->
+  if weaver.currentUser()?.userId isnt 'root'
+    signInAsAdmin()
+  else
+    Promise.resolve()
+
 signInAsAdmin = ->
   weaver.signInWithUsername('admin', 'admin')
 
 beforeEach ->
-  if weaver.currentUser()?.userId isnt 'root'
-    signInAsAdmin()
+  ensureAdmin()
 
 after ->
-  (
-    if weaver.currentUser()?.userId isnt 'root'
-      signInAsAdmin()
-    else
-      Promise.resolve()
-  ).then(->
+  ensureAdmin().then(->
     weaver.wipe()
   ).then(->
     weaver.disconnect()
@@ -42,7 +42,7 @@ after ->
 # NOTE THAT THIS BREAKS THE ACL ASSOCIATED WITH A PROJECT TESTING ON
 
 wipeCurrentProject = ->
-  weaver.signInWithUsername('admin', 'admin')
+  ensureAdmin()
   .then(->weaver.getCoreManager().wipeUsers())
   .then(->weaver.currentProject().wipe())
   .then(->weaver.currentProject().unfreeze())
