@@ -23,11 +23,16 @@ signInAsAdmin = ->
   weaver.signInWithUsername('admin', 'admin')
 
 beforeEach ->
-  signInAsAdmin()
+  if weaver.currentUser()?.userId isnt 'root'
+    signInAsAdmin()
 
 after ->
-  signInAsAdmin()
-  .then(->
+  (
+    if weaver.currentUser()?.userId isnt 'root'
+      signInAsAdmin()
+    else
+      Promise.resolve()
+  ).then(->
     weaver.wipe()
   )
 
