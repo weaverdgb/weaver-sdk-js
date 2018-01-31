@@ -55,7 +55,7 @@
     "karma-mocha": "^1.3.0",
     "karma-sinon": "^1.0.5",
     "karma-spec-reporter": "^0.0.32",
-    "mocha": "^3.4.1",
+    "mocha": "^5.0.0",
     "sinon": "^2.2.0",
     "supertest": "^3.0.0",
     "vinyl-buffer": "^1.0.1",
