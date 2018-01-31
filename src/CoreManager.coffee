@@ -28,6 +28,8 @@ class CoreManager
     @commController = new SocketController(endpoint, @options)
     @commController.connect()
 
+  disconnect: ->
+    @commController.disconnect()
 
   local: (routes) ->
     @commController = new LocalController(routes)

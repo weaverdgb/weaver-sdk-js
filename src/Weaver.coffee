@@ -58,6 +58,9 @@ class Weaver
       @coreManager.updateLocalTimeOffset()
     )
 
+  disconnect: ->
+    @coreManager.disconnect()
+
   getCoreManager: ->
     @coreManager
 
