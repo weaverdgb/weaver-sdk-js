@@ -35,6 +35,9 @@ class SocketController
       )
     )
 
+  disconnect: ->
+    @io.disconnect()
+
   emit: (key, body) ->
     new Promise((resolve, reject) =>
       emitStart = Date.now()
