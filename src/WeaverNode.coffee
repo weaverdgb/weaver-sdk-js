@@ -72,7 +72,7 @@ class WeaverNode
     @
 
   _loadRelationFromQuery: (key, instance, nodeId, graph)->
-    @relation(key).add(instance, nodeId, graph)
+    @relation(key).add(instance, nodeId, false, graph)
 
   # Loads current node
   load: ->
