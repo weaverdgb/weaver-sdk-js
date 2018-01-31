@@ -153,7 +153,7 @@ describe 'WeaverModel test', ->
       it 'should succeed saving all instances', ->
         new Weaver.Query().restrictGraphs(model.getGraph()).hasRelationOut('rdf:type', Weaver.Node.getFromGraph('test-model:City', model.getGraph()))
         .find().then((nodes) -> i.id() for i in nodes)
-        .should.eventually.be.eql(["test-model:CityState", "test-model:Delft", "test-model:Rotterdam", "test-model:Leiden"])
+        .should.eventually.be.eql(["test-model:Delft", "test-model:Rotterdam", "test-model:Leiden", "test-model:CityState"])
 
       it 'should have the init instances as members of the model class', ->
         expect(model).to.have.property('City').to.have.property('Rotterdam')
@@ -247,10 +247,8 @@ describe 'WeaverModel test', ->
 
       it 'should add an existing node to a model', ->
         person = new Weaver.Node(undefined, model.getGraph())
-
+        model.Person.addMember(person)
         person.save().then(->
-          model.Person.addMember(person)
-        ).then(->
           model.Person.load(person.id())
         ).then((person)->
           person.should.be.instanceOf(model.Person) 
@@ -259,10 +257,9 @@ describe 'WeaverModel test', ->
       it 'should add an existing node to an other model', ->
         tree = new Weaver.Node(undefined, model.getGraph())
         tree.relation('hasLeaf').add(new Weaver.Node())
+        model.Country.addMember(tree)
 
         tree.save().then(->
-          model.Country.addMember(tree)
-        ).then(->
           model.Country.load(tree.id())
         ).then((country)->
           country.should.be.instanceOf(model.Country) 
@@ -271,12 +268,9 @@ describe 'WeaverModel test', ->
       it 'should add an existing node to two other models', ->
         tree = new Weaver.Node(undefined, model.getGraph())
         tree.relation('hasLeaf').add(new Weaver.Node())
-
+        model.Country.addMember(tree)
+        model.Person.addMember(tree)
         tree.save().then(->
-          model.Country.addMember(tree)
-        ).then(->
-          model.Person.addMember(tree)
-        ).then(->
           model.Country.load(tree.id())
         ).then((country)->
           country.should.be.instanceOf(model.Country) 
