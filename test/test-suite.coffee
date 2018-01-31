@@ -34,6 +34,8 @@ after ->
       Promise.resolve()
   ).then(->
     weaver.wipe()
+  ).then(->
+    weaver.disconnect()
   )
 
 # Previously ran before each test in each file
