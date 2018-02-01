@@ -8,7 +8,7 @@ describe 'WeaverModelQuery test', ->
 
   before ->
     wipeCurrentProject().then(->
-      Weaver.Model.load("test-model", "1.1.1")
+      Weaver.Model.load("test-model", "1.1.2")
     ).then((m) ->
       model = m
       model.bootstrap()
@@ -44,11 +44,14 @@ describe 'WeaverModelQuery test', ->
 
     describe 'and test data', ->
       spain = {}
+      hongkong = {}
 
       before ->
         head    = new model.Head("headA")
         spain   = new model.Country("Spain")
         nlds    = new model.Country("Netherlands")
+        hongkong = new model.Country("HongKong")
+        model.City.addMember(hongkong)
         personA = new model.Person("personA")
         personA.set('fullName', "Aby Delores")
         personA.relation('comesFrom').add(model.City.Rotterdam)
@@ -62,6 +65,15 @@ describe 'WeaverModelQuery test', ->
         personD = new model.Person("personD")
         personD.relation("comesFrom").add(model.City.Rotterdam)
         personD.relation("comesFrom").add(nlds)
+        person人物 = new model.Person("person人物")
+        person人物.relation("comesFrom").add(hongkong)
+        basshouse = new model.House("basshouse")
+        model.Office.addMember(basshouse)
+        personBas = mew model.Person("bas")
+        personBas.livesIn(basshouse)
+        personBas.worksIn(basshouse)
+
+
 
 
 
@@ -71,7 +83,7 @@ describe 'WeaverModelQuery test', ->
         building.relation("buildBy").add(personA)
         personB.relation("livesIn").add(building)
         personC.relation('comesFrom').add(model.City.CityState)
-        Weaver.Node.batchSave([head, spain, nlds, personA, personB, personC, personD])
+        Weaver.Node.batchSave([head, spain, nlds, personA, personB, personC, personD, person人物, basshouse, personBas])
 
       it 'should do an equalTo WeaverModelQuery', ->
         new Weaver.ModelQuery()
@@ -157,4 +169,51 @@ describe 'WeaverModelQuery test', ->
               fail("Unexpected to: #{to.id()}")
 
             range = p.relation('comesFrom').getRange(to)
+        )
+
+      it 'should correctly find the constructor for ambivalent multi range', ->
+        new Weaver.ModelQuery()
+        .class(model.Person)
+        .restrict('person人物')
+        .find()
+        .then((instances) ->
+          assert.equal(instances.length, 1)
+          p = instances[0]
+
+          assert.equal(p.constructor, model.Person)
+          assert.equal(p.id(), 'person人物')
+          for to in p.relation('comesFrom').all()
+
+            assert.equal(to.id(), 'HongKong')
+            console.log(to.constructor.name)
+            ranges = p.relation('comesFrom').getRange(to)
+            console.log(ranges)
+            console.log(to.nodeRelation('rdf:type').all())
+            console.log('hongkong')
+            console.log(hongkong.nodeRelation('rdf:type').all())
+
+          #     expect(to).to.be.instanceOf(model.Country)
+          #   else if to.id() is 'test-model:Rotterdam'
+          #     expect(to).to.be.instanceOf(model.City)
+          #   else
+          #     fail("Unexpected to: #{to.id()}")
+
+          #   
+        )
+      it 'should correctly find the constructor for multi range with only one correct option', ->
+        new Weaver.ModelQuery()
+        .class(model.Person)
+        .restrict('personBas')
+        .find()
+        .then((instances) ->
+          assert.equal(instances.length, 1)
+          p = instances[0]
+
+          assert.equal(p.constructor, model.Person)
+          assert.equal(p.id(), 'personBas')
+          for to in p.relation('livesIn').all()
+            assert.equal(to.id(), 'basshouse')
+          for to in p.relation('worksIn').all()
+            assert.equal(to.id(), 'basshouse')
+
         )

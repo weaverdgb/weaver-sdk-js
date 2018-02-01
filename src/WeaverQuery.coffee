@@ -1,6 +1,7 @@
 util        = require('./util')
 Weaver      = require('./Weaver')
 _           = require('lodash')
+cjson       = require('circular-json')
 
 # Converts a string into a regex that matches it.
 # Surrounding with \Q .. \E does this, we just need to escape any \E's in
@@ -60,6 +61,7 @@ class WeaverQuery
       @useConstructorFunction = -> Constructor
 
     Weaver.getCoreManager().query(@).then((result) =>
+      console.log(cjson.stringify(result))
       Weaver.Query.notify(result)
       list = []
       for node in result.nodes

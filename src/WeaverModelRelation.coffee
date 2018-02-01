@@ -53,26 +53,10 @@ class WeaverModelRelation extends Weaver.Relation
       defs = (def.id().split(":")[1] for def in node.nodeRelation(@model.getMemberKey()).all())
     else  
       defs = (def.id().split(":")[1] for def in node.relation(@model.getMemberKey()).all())
-
-    # console.log(cjson.stringify(node.nodeRelation(@model.getMemberKey())))
-
-    console.log('defs:')
-    console.log(defs)
     ranges = @_getAllRanges()
-    console.log('ranges:')
+    console.log(defs)
     console.log(ranges)
-
-
-    # console.log(node.id())
-    # console.log(to.constructor) for to in node.nodeRelation(@model.getMemberKey()).all()
-
-
-
-
-    (def for def in defs)
-
-
-
+    (def for def in defs when def in ranges)
 
   # Check if relation is allowed according to definition
   _checkCorrectClass: (node) ->
