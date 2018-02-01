@@ -10,7 +10,7 @@ class WeaverNode
 
   constructor: (@nodeId, @graph) ->
     # Generate random id if not given
-    @nodeId = cuid() if not @nodeId?
+    @nodeId ?= cuid()
     @_stored = false       # if true, available in database, local node can hold unsaved changes
     @_loaded = false       # if true, all information from the database was localised on construction
     # Store all attributes and relations in these objects
@@ -21,6 +21,9 @@ class WeaverNode
     @pendingWrites = [Operation.Node(@).createNode()]
 
     Weaver.publish('node.created', @)
+
+  identityString: ->
+    "#{@graph}:#{@nodeId}"
 
   # Node loading from server
   @load: (nodeId, target, Constructor, includeRelations = false, includeAttributes = false, graph) ->
