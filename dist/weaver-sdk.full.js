@@ -100059,7 +100059,7 @@ module.exports = yeast;
 },{}],400:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "6.1.0-beta.4-fix-model-load",
+  "version": "6.1.0-beta.5-projects-apps",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -100068,7 +100068,7 @@ module.exports={
   },
   "com_weaverplatform": {
     "requiredConnectorVersion": "^4.3.0-SNAPSHOT-zeta.0-fix-relation-queries",
-    "requiredServerVersion": "^3.5.2-beta.1"
+    "requiredServerVersion": "^3.5.2-beta.2"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -100127,7 +100127,7 @@ module.exports={
   "scripts": {
     "prepublish": "coffee -o lib -c src && gulp dev",
     "update-deps": "david u -i gulp",
-    "test": "istanbul cover _mocha --",
+    "test": "istanbul cover _mocha -- test/*.test.coffee",
     "test:electron": "electron-mocha --renderer --interactive test/*.test.coffee",
     "test:chrome": "karma start || true",
     "test:node": "mocha test/*.test.coffee || true",
@@ -100180,6 +100180,10 @@ module.exports={
       this.endpoint = endpoint;
       this.commController = new SocketController(endpoint, this.options);
       return this.commController.connect();
+    };
+
+    CoreManager.prototype.disconnect = function() {
+      return this.commController.disconnect();
     };
 
     CoreManager.prototype.local = function(routes) {
@@ -100481,23 +100485,30 @@ module.exports={
       }, id);
     };
 
+    CoreManager.prototype.isFreezeProject = function(id) {
+      return this.GET("project.isfreeze", {
+        id: id
+      }, id);
+    };
+
     CoreManager.prototype.unfreezeProject = function(id) {
       return this.GET("project.unfreeze", {
         id: id
       }, id);
     };
 
-    CoreManager.prototype.addApp = function(id, app) {
+    CoreManager.prototype.addApp = function(id, appName, appMetadata) {
       return this.GET("project.app.add", {
         id: id,
-        app: app
+        appName: appName,
+        appMetadata: appMetadata
       }, id);
     };
 
-    CoreManager.prototype.removeApp = function(id, app) {
+    CoreManager.prototype.removeApp = function(id, appName) {
       return this.GET("project.app.remove", {
         id: id,
-        app: app
+        appName: appName
       }, id);
     };
 
@@ -100951,6 +100962,10 @@ module.exports={
       })(this));
     };
 
+    SocketController.prototype.disconnect = function() {
+      return this.io.disconnect();
+    };
+
     SocketController.prototype.emit = function(key, body) {
       return new Promise((function(_this) {
         return function(resolve, reject) {
@@ -101085,6 +101100,10 @@ module.exports={
           return _this.coreManager.updateLocalTimeOffset();
         };
       })(this));
+    };
+
+    Weaver.prototype.disconnect = function() {
+      return this.coreManager.disconnect();
     };
 
     Weaver.prototype.getCoreManager = function() {
@@ -103364,21 +103383,27 @@ module.exports={
       return Weaver.getCoreManager().unfreezeProject(this.id());
     };
 
-    WeaverProject.prototype.addApp = function(app) {
-      this.apps[app] = true;
-      return Weaver.getCoreManager().addApp(this.id(), app);
+    WeaverProject.prototype.isFrozen = function() {
+      return Weaver.getCoreManager().isFreezeProject(this.id());
     };
 
-    WeaverProject.prototype.removeApp = function(app) {
+    WeaverProject.prototype.addApp = function(appName, appMetadata) {
+      this.apps[appName] = appMetadata;
+      return Weaver.getCoreManager().addApp(this.id(), appName, appMetadata);
+    };
+
+    WeaverProject.prototype.removeApp = function(appNAme) {
       delete this.apps[app];
-      return Weaver.getCoreManager().removeApp(this.id(), app);
+      return Weaver.getCoreManager().removeApp(this.id(), appName);
     };
 
     WeaverProject.prototype.getApps = function() {
-      var name, results;
+      var key, ref, results, value;
+      ref = this.apps;
       results = [];
-      for (name in this.apps) {
-        results.push(name);
+      for (key in ref) {
+        value = ref[key];
+        results.push(value);
       }
       return results;
     };
