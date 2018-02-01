@@ -48,16 +48,22 @@ describe 'WeaverModelQuery test', ->
       before ->
         head    = new model.Head("headA")
         spain   = new model.Country("Spain")
+        nlds    = new model.Country("Netherlands")
         personA = new model.Person("personA")
         personA.set('fullName', "Aby Delores")
         personA.relation('comesFrom').add(model.City.Rotterdam)
         personB = new model.Person("personB")
         personB.set('fullName', "Gaby Baby")
-        personC = new model.Person()
+        personC = new model.Person("personC")
         personC.set('fullName', "#1")
         personA.relation("hasHead").add(head)
         personB.relation("hasHead").add(head)
         personB.relation("comesFrom").add(spain)
+        personD = new model.Person("personD")
+        personD.relation("comesFrom").add(model.City.Rotterdam)
+        personD.relation("comesFrom").add(nlds)
+
+
 
         building = new model.Building()
         area = new model.Area()
@@ -65,8 +71,7 @@ describe 'WeaverModelQuery test', ->
         building.relation("buildBy").add(personA)
         personB.relation("livesIn").add(building)
         personC.relation('comesFrom').add(model.City.CityState)
-
-        Weaver.Node.batchSave([head, spain, personA, personB, personC])
+        Weaver.Node.batchSave([head, spain, nlds, personA, personB, personC, personD])
 
       it 'should do an equalTo WeaverModelQuery', ->
         new Weaver.ModelQuery()
@@ -80,7 +85,7 @@ describe 'WeaverModelQuery test', ->
           assert.equal(p.constructor, model.Person)
           assert.equal(p.id(), "personA")
           assert.equal(p.get('fullName'), 'Aby Delores')
-          assert.equal(p.relation('hasHead').first().constructor, Weaver.Node)
+          assert.equal(p.relation('hasHead').first().constructor, model.Head)
         )
 
       it 'should load model instances', ->
@@ -124,10 +129,34 @@ describe 'WeaverModelQuery test', ->
         new Weaver.ModelQuery().hasRelationOut('Person.comesFrom', spain).find().should.eventually.have.length.be(1)
 
       it 'should allow relations to a model class instance', ->
-        new Weaver.ModelQuery().hasRelationOut('Person.comesFrom', model.City.Rotterdam).find().should.eventually.have.length.be(1)
+        new Weaver.ModelQuery().hasRelationOut('Person.comesFrom', model.City.Rotterdam).find().should.eventually.have.length.be(2)
 
       it 'should allow relations to a model class instance that is also a class', ->
         new Weaver.ModelQuery().hasRelationOut('Person.comesFrom', model.City.CityState).find().should.eventually.have.length.be(1)
 
       it 'should allow relations to a model class', ->
         new Weaver.ModelQuery().hasRelationOut('Person.comesFrom', model.CityState).find().should.eventually.have.length.be(1)
+
+      it 'should correctly find the constructor for multi range', ->
+        console.log('****************test started')
+        new Weaver.ModelQuery()
+        .class(model.Person)
+        .restrict('personD')
+        .find()
+        .then((instances) ->
+          assert.equal(instances.length, 1)
+          p = instances[0]
+
+          assert.equal(p.constructor, model.Person)
+          assert.equal(p.id(), 'personD')
+          # console.log('comesfrom')
+          # console.log(p.relation('comesFrom'))
+          for to in p.relation('comesFrom').all()
+            console.log('some object on comesFrom relation of personD')
+            range = p.relation('comesFrom').getRange(to)
+            # console.log(range)
+
+          # console.log(model.Person)
+          # assert.equal(p.relation('comesFrom').first().constructor, model.Head)
+        )
+

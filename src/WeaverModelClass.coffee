@@ -60,7 +60,10 @@ class WeaverModelClass extends Weaver.Node
 
   # override
   _loadRelationFromQuery: (key, instance, nodeId, graph)->
-    @nodeRelation(key).add(instance, nodeId, false, graph)
+    if @totalClassDefinition.relations[key]?
+      @relation(key).add(instance, nodeId, false, graph)
+    else 
+      @nodeRelation(key).add(instance, nodeId, false, graph)
 
   _getAttributeKey: (field) ->
 
@@ -118,20 +121,9 @@ class WeaverModelClass extends Weaver.Node
   nodeRelation: (args...)->
     Weaver.Node.prototype.relation.call(@, args...)
 
-  relation: (key) ->
-
-    relationKey = @_getRelationKey(key)
-    return null if not relationKey?
-
-    # Based on the key, construct a specific Weaver.ModelRelation
-    modelKey             = relationKey
-    model                = @model
-    relationDefinition   = @totalClassDefinition.relations[key]
-    className            = @className
-    definition           = @definition
-    totalClassDefinition = @totalClassDefinition
-
-    classRelation = class extends Weaver.ModelRelation
+  _createClassRelation: (modelKey, model, relationDefinition, className, definition, totalClassDefinition)->
+    console.log("_createClassRelation called")
+    class extends Weaver.ModelRelation
       constructor:(parent, key) ->
         super(parent, key)
         @modelKey           = modelKey
@@ -139,7 +131,10 @@ class WeaverModelClass extends Weaver.Node
         @className          = className
         @definition         = totalClassDefinition
         @relationDefinition = relationDefinition
-
+    
+  relation: (key) ->
+    relationKey = @_getRelationKey(key)
+    classRelation = @_createClassRelation(relationKey, @model, @totalClassDefinition.relations[key], @className, @definition, @totalClassDefinition)
     super(relationKey, classRelation)
 
   save: (project) ->

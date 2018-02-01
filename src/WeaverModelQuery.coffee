@@ -7,6 +7,19 @@ class WeaverModelQuery extends Weaver.Query
   constructor: (@model = Weaver.currentModel(), target) ->
     super(target)
 
+    # Define constructor function
+    @useConstructor((node, fromRelation)=>
+      defs = (def.id() for def in node.relation(@model.getMemberKey()).all())
+      if defs.length is 0
+        Weaver.Node
+      else if defs.length is 1
+        [modelPart, classPart] = defs[0].split(":")
+        @model[classPart]
+      else
+        console.log('pick please')
+    )
+
+
   getNodeIdFromStringOrNode: (node) ->
     try
       super(node)
@@ -21,14 +34,6 @@ class WeaverModelQuery extends Weaver.Query
 
 
   class: (modelClass) ->
-    # Define constructor function
-    @useConstructor((node) =>
-      defs = (def.id() for def in node.relation(@model.getMemberKey()).all())
-      if modelClass.classId() in defs
-        modelClass
-      else
-        Weaver.Node
-    )
     @hasRelationOut(@model.getMemberKey(), Weaver.Node.getFromGraph(modelClass.classId(), @model.getGraph()))
 
   # Key is composed of Class.modelAttribute
