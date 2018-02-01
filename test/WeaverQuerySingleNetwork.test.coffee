@@ -17,6 +17,12 @@ describe 'WeaverQuery with single Network', ->
   vettel           = new Weaver.Node()
   hamilton         = new Weaver.Node()
 
+  king             = new Weaver.Node(undefined, 'feudal')
+  duke             = new Weaver.Node(undefined, 'feudal')
+  serf             = new Weaver.Node(undefined, 'feudal')
+  serf.relation('isSubjectTo').add(duke)
+  duke.relation('isSubjectTo').add(king)
+
   tree.set('testset', '1')
 
   garden.relation('requires').add(tree)
@@ -52,9 +58,11 @@ describe 'WeaverQuery with single Network', ->
   vettel.relation('beats').add(hamilton)
   hamilton.relation('beats').add(vettel)
 
+
+
   before ->
     wipeCurrentProject().then( ->
-      Promise.all([vettel.save(), garden.save()])
+      Promise.all([vettel.save(), garden.save(), serf.save()])
     )
 
   it 'should do hasRelationOut correctly', ->
@@ -276,4 +284,13 @@ describe 'WeaverQuery with single Network', ->
       .doesNotExist('theme')
       .find().then((nodes) ->
         expect(i.id() for i in nodes).to.eql([ tree.id() ])
+      )
+
+  it 'should support graph alwaysLoadRelationOut', ->
+    r = 'isSubjectTo'
+    new Weaver.Query()
+      .restrict(serf.id())
+      .alwaysLoadRelations(r)
+      .first().then((s) ->
+        expect(s.relation(r).all()).to.have.length.be(1)
       )
