@@ -58,7 +58,6 @@ class WeaverRelation
     result
 
   add: (node, relId, addToPendingWrites = true, graph) ->
-    console.log("weaver-relation add #{node.id()} (graph: #{node.getGraph()}) to tos of rel #{relId} with key #{@key} in graph #{graph} called")
     relId ?= cuid()
     graph ?= @parent.getGraph()
     @_addNodes(node)

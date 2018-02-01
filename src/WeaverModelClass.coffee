@@ -122,7 +122,6 @@ class WeaverModelClass extends Weaver.Node
     Weaver.Node.prototype.relation.call(@, args...)
 
   _createClassRelation: (modelKey, model, relationDefinition, className, definition, totalClassDefinition)->
-    console.log("_createClassRelation called")
     class extends Weaver.ModelRelation
       constructor:(parent, key) ->
         super(parent, key)

@@ -138,7 +138,6 @@ describe 'WeaverModelQuery test', ->
         new Weaver.ModelQuery().hasRelationOut('Person.comesFrom', model.CityState).find().should.eventually.have.length.be(1)
 
       it 'should correctly find the constructor for multi range', ->
-        console.log('****************test started')
         new Weaver.ModelQuery()
         .class(model.Person)
         .restrict('personD')
@@ -149,8 +148,6 @@ describe 'WeaverModelQuery test', ->
 
           assert.equal(p.constructor, model.Person)
           assert.equal(p.id(), 'personD')
-          # console.log('comesfrom')
-          # console.log(p.relation('comesFrom'))
           for to in p.relation('comesFrom').all()
             if to.id() is 'Netherlands'
               expect(to).to.be.instanceOf(model.Country)

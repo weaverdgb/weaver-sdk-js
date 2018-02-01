@@ -50,10 +50,8 @@ class WeaverModelRelation extends Weaver.Relation
   getRange: (node)->
     defs = []
     if node instanceof Weaver.ModelClass
-      console.log('is modelclass')
       defs = (def.id().split(":")[1] for def in node.nodeRelation(@model.getMemberKey()).all())
     else  
-      console.log('is only weaver node')
       defs = (def.id().split(":")[1] for def in node.relation(@model.getMemberKey()).all())
 
     # console.log(cjson.stringify(node.nodeRelation(@model.getMemberKey())))
@@ -82,7 +80,6 @@ class WeaverModelRelation extends Weaver.Relation
     throw new Error("Model #{@className} is not allowed to have relation #{@modelKey} to #{node.id()}, allowed ranges are #{JSON.stringify(@_getAllRanges())}")
 
   add: (node, relId, addToPendingWrites = true) ->
-    console.log('weavermodelrelation add called')
     @_checkCorrectClass(node) if node instanceof Weaver.ModelClass
     super(node, relId, addToPendingWrites)
 
