@@ -68,10 +68,10 @@
   "scripts": {
     "prepublish": "coffee -o lib -c src && gulp dev",
     "update-deps": "david u -i gulp",
-    "test": "istanbul cover _mocha -- test/*.test.coffee",
+    "test": "istanbul cover _mocha --",
     "test:electron": "electron-mocha --renderer --interactive test/*.test.coffee",
     "test:chrome": "karma start || true",
-    "test:node": "mocha test/*.test.coffee || true",
+    "test:node": "mocha || true",
     "gulp": "gulp"
   }
 }
