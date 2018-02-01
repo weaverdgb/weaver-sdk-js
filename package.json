@@ -1,6 +1,6 @@
 {
   "name": "weaver-sdk",
-  "version": "6.1.0-beta.4-fix-model-load",
+  "version": "6.1.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -8,8 +8,8 @@
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "^4.3.0-SNAPSHOT-zeta.0-fix-relation-queries",
-    "requiredServerVersion": "^3.5.2-beta.1"
+    "requiredConnectorVersion": "^4.3.0",
+    "requiredServerVersion": "^3.6.0"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
