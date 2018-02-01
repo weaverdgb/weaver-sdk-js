@@ -25,5 +25,5 @@ I certify that:
   forget
 - [ ] I shall keep my branch updated with any intermediate changes to the
   target branch
-- [ ] This is a quality PR and I take pride in it
+- [ ] This is a quality PR
 - [x] I got to the end of this list
