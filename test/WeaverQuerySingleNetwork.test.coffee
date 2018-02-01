@@ -59,7 +59,6 @@ describe 'WeaverQuery with single Network', ->
   hamilton.relation('beats').add(vettel)
 
 
-
   before ->
     wipeCurrentProject().then( ->
       Promise.all([vettel.save(), garden.save(), serf.save()])
@@ -292,5 +291,11 @@ describe 'WeaverQuery with single Network', ->
       .restrict(serf.id())
       .alwaysLoadRelations(r)
       .first().then((s) ->
+        #First level should be there
         expect(s.relation(r).all()).to.have.length.be(1)
+        # Second too
+        expect(s.relation(r).first().relation(r).all()).to.have.length.be(1)
+
+        # Check that graphs are preserved
+        expect(s.relation(r).first().relation(r).first().getGraph()).to.equal('feudal')
       )

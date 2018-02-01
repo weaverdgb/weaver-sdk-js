@@ -6,7 +6,7 @@ services:
     - "5432"
 
   postgresql-connector:
-    image: sysunite/weaver-database-postgresql:4.3.0-SNAPSHOT-zeta.0-fix-relation-queries
+    image: sysunite/weaver-database-postgresql:4.3.0-SNAPSHOT-zeta.1-always-load-graph
     links:
     - postgres
     expose:
