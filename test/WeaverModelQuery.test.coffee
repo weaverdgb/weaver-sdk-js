@@ -152,11 +152,12 @@ describe 'WeaverModelQuery test', ->
           # console.log('comesfrom')
           # console.log(p.relation('comesFrom'))
           for to in p.relation('comesFrom').all()
-            console.log('some object on comesFrom relation of personD')
+            if to.id() is 'Netherlands'
+              expect(to).to.be.instanceOf(model.Country)
+            else if to.id() is 'test-model:Rotterdam'
+              expect(to).to.be.instanceOf(model.City)
+            else
+              fail("Unexpected to: #{to.id()}")
+
             range = p.relation('comesFrom').getRange(to)
-            # console.log(range)
-
-          # console.log(model.Person)
-          # assert.equal(p.relation('comesFrom').first().constructor, model.Head)
         )
-
