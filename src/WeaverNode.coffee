@@ -10,7 +10,7 @@ class WeaverNode
 
   constructor: (@nodeId, @graph) ->
     # Generate random id if not given
-    @nodeId = cuid() if not @nodeId?
+    @nodeId ?= cuid()
     @_stored = false       # if true, available in database, local node can hold unsaved changes
     @_loaded = false       # if true, all information from the database was localised on construction
     # Store all attributes and relations in these objects
@@ -21,6 +21,9 @@ class WeaverNode
     @pendingWrites = [Operation.Node(@).createNode()]
 
     Weaver.publish('node.created', @)
+
+  identityString: ->
+    "#{@graph}:#{@nodeId}"
 
   # Node loading from server
   @load: (nodeId, target, Constructor, includeRelations = false, includeAttributes = false, graph) ->
@@ -59,17 +62,20 @@ class WeaverNode
       for relation in relations
 
         if constructorFunction?
-          Constructor = constructorFunction(Weaver.Node.loadFromQuery(relation.target)) or Weaver.Node
+          Constructor = constructorFunction(Weaver.Node.loadFromQuery(relation.target), @, key) or Weaver.Node
         else
           Constructor = Weaver.Node
 
         instance = new Constructor(relation.target.nodeId, relation.target.graph)
         instance._loadFromQuery(relation.target, constructorFunction, fullyLoaded)
-        @relation(key).add(instance, relation.nodeId, false, relation.graph)
+        @._loadRelationFromQuery(key, instance, relation.nodeId, relation.graph)
 
     @._clearPendingWrites()
     Weaver.publish('node.loaded', @)
     @
+
+  _loadRelationFromQuery: (key, instance, nodeId, graph)->
+    @relation(key).add(instance, nodeId, false, graph)
 
   # Loads current node
   load: ->

@@ -8,13 +8,40 @@ class WeaverModelQuery extends Weaver.Query
     super(target)
 
     # Define constructor function
-    @useConstructor((node) =>
-      if node.relation(@getPrototypeKey()).first()?
-        [modelName, className] = node.relation(@getPrototypeKey()).first().id().split(":")
-        @model[className]
-      else
+    @useConstructor((node, owner, key)=>
+      defs = (def.id() for def in node.relation(@model.getMemberKey()).all())
+      if defs.length is 0
         Weaver.Node
+      else if defs.length is 1
+        [modelPart, classPart] = defs[0].split(":")
+        @model[classPart]
+
+      # First order node from resultset, no incoming relation to help decide
+      else if not owner?
+
+        if not @preferredConstructor?
+          console.info("Could not choose contructing first order node between type #{JSON.stringify(defs)}")
+          return Weaver.Node
+
+        return @preferredConstructor
+      else
+
+        if not owner instanceof Weaver.ModelClass
+          console.info("Could not choose contructing node between type #{JSON.stringify(defs)}")
+          return Weaver.Node
+
+        modelKey = owner.lookUpModelKey(key)
+        ranges = owner.getToRanges(modelKey, node)
+        if ranges.length < 1
+          console.warn("Could not find a range for constructing second order node between type #{JSON.stringify(defs)}")
+          return Weaver.Node
+        else if ranges.length > 1
+          console.warn("Could not pick from ranges #{JSON.stringify(ranges)} for constructing second order node between type #{JSON.stringify(defs)}")
+          return Weaver.Node
+        else 
+          return @model[ranges[0]]
     )
+
 
   getNodeIdFromStringOrNode: (node) ->
     try
@@ -23,22 +50,20 @@ class WeaverModelQuery extends Weaver.Query
       if node.model?
         {
           id: "#{node.model.definition.name}:#{node.className}"
-          graph: node.model.getGraphName()
+          graph: node.model.getGraph()
         }
       else
         throw err
 
-  getPrototypeKey: ->
-    @model.definition.prototype or '_prototype'
 
   class: (modelClass) ->
-    @hasRelationOut(@getPrototypeKey(), Weaver.Node.getFromGraph(modelClass.classId(), @model.getGraphName()))
+    @hasRelationOut(@model.getMemberKey(), Weaver.Node.getFromGraph(modelClass.classId(), @model.getGraph()))
 
   # Key is composed of Class.modelAttribute
   _mapKeys: (keys, source) ->
     databaseKeys = []
     for key in keys
-      if [@getPrototypeKey(), '*'].includes(key)
+      if [@model.getMemberKey(), '*'].includes(key)
         databaseKeys.push(key)
       else
         if key.indexOf(".") is -1
@@ -84,10 +109,10 @@ class WeaverModelQuery extends Weaver.Query
     super(key) for key in @_mapKeys(keys, "relations")
     @
 
-  find: (Constructor) ->
-    # Always get the prototype relation to map to the correct modelclass
-    @alwaysLoadRelations(@getPrototypeKey())
+  find: (@preferredConstructor) ->
+    # Always get the member relation to map to the correct modelclass
+    @alwaysLoadRelations(@model.getMemberKey())
 
-    super(Constructor)
+    super()
 
 module.exports = WeaverModelQuery

@@ -1,79 +1,117 @@
 cuid        = require('cuid')
 Promise     = require('bluebird')
 Weaver      = require('./Weaver')
+cjson       = require('circular-json')
+_           = require('lodash')
 
 class WeaverModelClass extends Weaver.Node
 
-  constructor: (nodeId) ->
-    super(nodeId, @model.getGraphName())
-    @totalClassDefinition = @_collectFromSupers()
-
-    # Add type definition to model class
-    @relation(@getPrototypeKey()).addInGraph(Weaver.Node.getFromGraph(@classId(), @model.getGraphName()), @model.getGraphName())
-
-  getInheritKey: ->
-    @model.definition.inherit or '_inherit'
-
-  getInherit: ->
-    @relation(@getInheritKey()).first()
-
-  getPrototypeKey: ->
-    @model.definition.prototype or '_prototype'
-
-  getPrototype: ->
-    @relation(@getPrototypeKey()).first()
-
-  classId: ->
+  @classId: ->
     "#{@definition.name}:#{@className}"
 
+  # Make a node member of this class
+  @addMember: (node)->
+    if node instanceof WeaverModelClass
+      node.nodeRelation(@model.definition.member).addInGraph(@getNode(), node.getGraph())
+    else
+      node.relation(@model.definition.member).addInGraph(@getNode(), node.getGraph())
+
+  # Construct a node representing this ModelClass
+  @getNode: ->
+    Weaver.Node.getFromGraph(@classId(), @model.getGraph())
+
+  constructor: (nodeId)->
+    super(nodeId, @model.getGraph())
+
+
+    # Add type definition to model class
+    classId = @constructor.classId()
+    classNode = Weaver.Node.getFromGraph(classId, @model.getGraph())
+    @nodeRelation(@model.getMemberKey()).addInGraph(classNode, @model.getGraph())
+
+  getInherit: ->
+    @nodeRelation(@model.getInheritKey()).all()
+
+  getInheritKey: ->
+    console.warn('Deprecated function WeaverModelClass.getInheritKey() used. Ask the model, not this modelclass.')
+    @model.getInheritKey()
+
+  getMember: ->
+    @nodeRelation(@model.getMemberKey()).all()
+
+  getPrototype: ->
+    console.warn('Deprecated function WeaverModelClass.getPrototype() used. Use WeaverModelClass.getMember().')
+    @getMember()
+
   # Returns a definition where all super definitions are collected into
-  _collectFromSupers: ->
-    addFromSuper = (classDefinition, totalDefinition = {attributes: {}, relations: {}}) =>
 
-      # Start with supers so lower specifications override the super ones
-      if classDefinition.super?
-        superDefinition = @definition.classes[classDefinition.super]
-        addFromSuper(superDefinition, totalDefinition)
 
-      transfer = (source) ->
-        totalDefinition[source][k] = v for k, v of classDefinition[source] if classDefinition[source]?
+  # override
+  _loadRelationFromQuery: (key, instance, nodeId, graph)->
+    if @totalClassDefinition.relations[key]?
+      @relation(key).add(instance, nodeId, false, graph)
+    else 
+      @nodeRelation(key).add(instance, nodeId, false, graph)
 
-      transfer('attributes')
-      transfer('relations')
-
-      totalDefinition
-
-    addFromSuper(@classDefinition)
+  
 
   _getAttributeKey: (field) ->
+
     if not @totalClassDefinition.attributes?
       throw new Error("#{@className} model is not allowed to have attributes")
-
     if not @totalClassDefinition.attributes[field]?
-      throw new Error("Field #{field} is not valid on this #{@className} model")
+      throw new Error("#{@className} model is not allowed to have the #{field} attribute")
 
     @totalClassDefinition.attributes[field].key or field
 
-  _getRelationKeys: (key) ->
+  _getRelationKey: (key) ->
+
     if not @totalClassDefinition.relations?
       throw new Error("#{@className} model is not allowed to have relations")
+    if not @totalClassDefinition.relations[key]?
+      throw new Error("#{@className} model is not allowed to have the #{key} relation")
 
-    if @totalClassDefinition.relations[key]?
-      {
-        model: key
-        database: @totalClassDefinition.relations[key].key or key
-      }
+    @totalClassDefinition.relations[key].key or key
+
+
+  getRanges: (key)->
+    addSubRange = (range, ranges = []) =>
+      for className, definition of @definition.classes
+        if definition.super is range
+          ranges.push(className)
+          # Follow again for this subclass
+          addSubRange(className, ranges)
+
+      ranges
+
+    totalRanges = []
+    for range in @_getRangeKeys(key)
+      totalRanges.push(range)
+      totalRanges = totalRanges.concat(addSubRange(range))
+
+    totalRanges
+
+  lookUpModelKey: (databaseKey)->
+    return key for key, obj of @totalClassDefinition.relations when obj? and obj.key? and obj.key is databaseKey
+    key
+
+
+  _getRangeKeys: (key)->
+    return [] if not @totalClassDefinition.relations?
+    range = @totalClassDefinition.relations[key].range
+    if _.isArray(range)
+      range
     else
-      # May be a database relation
-      modelKey = (j for j, i of @totalClassDefinition.relations when i? and i.key is key)
+      _.keys(range)
 
-      if modelKey.length is 1
-        {
-          model: modelKey
-          database: key
-        }
-      else
-        throw new Error("Relation #{key} is not valid on this #{@className} model")
+  getToRanges: (key, to)->
+    defs = []
+    if to instanceof Weaver.ModelClass
+      defs = (def.id().split(":")[1] for def in to.nodeRelation(@model.getMemberKey()).all())
+    else  
+      defs = (def.id().split(":")[1] for def in to.relation(@model.getMemberKey()).all())
+    ranges = @getRanges(key)
+    (def for def in defs when def in ranges)
 
   attributes: ->
     return {} if not @totalClassDefinition.attributes?
@@ -93,37 +131,43 @@ class WeaverModelClass extends Weaver.Node
 
     relations
 
+  nodeGet: (args...)->
+    super.get(args...)
+
   get: (field) ->
-    super(@_getAttributeKey(field))
+    key = @_getAttributeKey(field)
+    return null if not key?
+    super(key)
+
+  nodeSet: (args...)->
+    super.set(args...)
 
   set: (field, value) ->
-    super(@_getAttributeKey(field), value)
+    key = @_getAttributeKey(field)
+    return null if not key?
+    super(key, value)
+
+  nodeRelation: (args...)->
+    Weaver.Node.prototype.relation.call(@, args...)
 
   relation: (key) ->
-    # Return when using a special relation like the prototype relation
-    return super(key) if [@getPrototypeKey()].includes(key)
-
-    relationKeys = @_getRelationKeys(key)
-    databaseKey = relationKeys.database
-
-    # Based on the key, construct a specific Weaver.ModelRelation
-    modelKey             = relationKeys.model
-    model                = @model
-    relationDefinition   = @totalClassDefinition.relations[relationKeys.model]
-    className            = @className
-    definition           = @definition
-    totalClassDefinition = @totalClassDefinition
-
+    modelKey = key
+    relationKey = @_getRelationKey(key)
+    model = @model
+    className = @className
+    definition = @definition
+    relationDefinition = @totalClassDefinition.relations[key]
     classRelation = class extends Weaver.ModelRelation
-      constructor:(parent, key) ->
+      
+      constructor: (parent, key)->
         super(parent, key)
         @modelKey           = modelKey
         @model              = model
         @className          = className
-        @definition         = totalClassDefinition
+        @definition         = definition
         @relationDefinition = relationDefinition
-
-    super(databaseKey, classRelation)
+        
+    super(relationKey, classRelation)
 
   save: (project) ->
     # Check required attributes
