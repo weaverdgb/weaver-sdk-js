@@ -67,17 +67,19 @@ describe 'WeaverModelQuery test', ->
         personD.relation("comesFrom").add(nlds)
         person人物 = new model.Person("person人物")
         person人物.relation("comesFrom").add(hongkong)
+        person人物.relation("comesFrom").add(model.City.Rotterdam)
+        person人物.relation("comesFrom").add(spain)
         basshouse = new model.House("basshouse")
         model.Office.addMember(basshouse)
-        personBas = mew model.Person("bas")
-        personBas.livesIn(basshouse)
-        personBas.worksIn(basshouse)
+        personBas = new model.Person("personBas")
+        personBas.relation('livesIn').add(basshouse)
+        personBas.relation('worksIn').add(basshouse)
 
 
 
 
 
-        building = new model.Building()
+        building = new model.House()
         area = new model.Area()
         building.relation("placedIn").add(area)
         building.relation("buildBy").add(personA)
@@ -108,7 +110,10 @@ describe 'WeaverModelQuery test', ->
       it 'should not error on livesInSomebuilding', ->
         new Weaver.ModelQuery()
         .equalTo("Person.fullName", "Gaby Baby")
-        .find()
+        .find().then((persons)->
+          persons.length.should.equal(1)
+          persons[0].should.be.instanceOf(model.Person)
+        )
 
       it.skip 'handles selectOut correctly', ->
         new Weaver.ModelQuery()
@@ -138,10 +143,10 @@ describe 'WeaverModelQuery test', ->
         assert.throws((-> q.hasRelationIn("someRelation")))
 
       it 'should allow relations to a model instance', ->
-        new Weaver.ModelQuery().hasRelationOut('Person.comesFrom', spain).find().should.eventually.have.length.be(1)
+        new Weaver.ModelQuery().hasRelationOut('Person.comesFrom', spain).find().should.eventually.have.length.be(2)
 
       it 'should allow relations to a model class instance', ->
-        new Weaver.ModelQuery().hasRelationOut('Person.comesFrom', model.City.Rotterdam).find().should.eventually.have.length.be(2)
+        new Weaver.ModelQuery().hasRelationOut('Person.comesFrom', model.City.Rotterdam).find().should.eventually.have.length.be(3)
 
       it 'should allow relations to a model class instance that is also a class', ->
         new Weaver.ModelQuery().hasRelationOut('Person.comesFrom', model.City.CityState).find().should.eventually.have.length.be(1)
@@ -160,15 +165,16 @@ describe 'WeaverModelQuery test', ->
 
           assert.equal(p.constructor, model.Person)
           assert.equal(p.id(), 'personD')
+          assert.equal(p.relation('comesFrom').all().length, 2)
           for to in p.relation('comesFrom').all()
             if to.id() is 'Netherlands'
               expect(to).to.be.instanceOf(model.Country)
+              p.getToRanges('comesFrom', to).should.eql(['Country'])
             else if to.id() is 'test-model:Rotterdam'
               expect(to).to.be.instanceOf(model.City)
+              p.getToRanges('comesFrom', to).should.eql(['City'])
             else
-              fail("Unexpected to: #{to.id()}")
-
-            range = p.relation('comesFrom').getRange(to)
+              assert.fail(undefined, undefined, "Unexpected to: #{to.id()}")
         )
 
       it 'should correctly find the constructor for ambivalent multi range', ->
@@ -182,25 +188,30 @@ describe 'WeaverModelQuery test', ->
 
           assert.equal(p.constructor, model.Person)
           assert.equal(p.id(), 'person人物')
+          assert.equal(p.relation('comesFrom').all().length, 3)
           for to in p.relation('comesFrom').all()
 
-            assert.equal(to.id(), 'HongKong')
-            console.log(to.constructor.name)
-            ranges = p.relation('comesFrom').getRange(to)
-            console.log(ranges)
-            console.log(to.nodeRelation('rdf:type').all())
-            console.log('hongkong')
-            console.log(hongkong.nodeRelation('rdf:type').all())
+            if to.id() is 'HongKong'
+              expect(to).to.be.instanceOf(Weaver.Node)              
+              p.getToRanges('comesFrom', to).should.eql(['Country', 'City'])
 
-          #     expect(to).to.be.instanceOf(model.Country)
-          #   else if to.id() is 'test-model:Rotterdam'
-          #     expect(to).to.be.instanceOf(model.City)
-          #   else
-          #     fail("Unexpected to: #{to.id()}")
+              (def.id() for def in to.relation('rdf:type').all())
+              .should.eql(['test-model:Country', 'test-model:City'])
+              (def.id() for def in hongkong.nodeRelation('rdf:type').all())
+              .should.eql(['test-model:Country', 'test-model:City'])
 
-          #   
+            else if to.id() is 'Spain'
+              expect(to).to.be.instanceOf(model.Country)
+
+            else if to.id() is 'test-model:Rotterdam'
+              expect(to).to.be.instanceOf(model.City)
+
+            else
+              assert.fail(undefined, undefined, "Unexpected to: #{to.id()}")
+
+  
         )
-      it 'should correctly find the constructor for multi range with only one correct option', ->
+      it 'should correctly find the constructor for range with only one correct option', ->
         new Weaver.ModelQuery()
         .class(model.Person)
         .restrict('personBas')
@@ -213,7 +224,9 @@ describe 'WeaverModelQuery test', ->
           assert.equal(p.id(), 'personBas')
           for to in p.relation('livesIn').all()
             assert.equal(to.id(), 'basshouse')
+            expect(to).to.be.instanceOf(model.House)
           for to in p.relation('worksIn').all()
             assert.equal(to.id(), 'basshouse')
+            expect(to).to.be.instanceOf(model.Office)
 
         )

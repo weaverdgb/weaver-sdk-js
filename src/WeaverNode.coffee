@@ -62,7 +62,7 @@ class WeaverNode
       for relation in relations
 
         if constructorFunction?
-          Constructor = constructorFunction(Weaver.Node.loadFromQuery(relation.target)) or Weaver.Node
+          Constructor = constructorFunction(Weaver.Node.loadFromQuery(relation.target), @, key) or Weaver.Node
         else
           Constructor = Weaver.Node
 

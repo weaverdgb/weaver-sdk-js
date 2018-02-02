@@ -89,12 +89,18 @@ describe 'WeaverModel test', ->
 
       assert.equal(c1.relation("intersection").first().id(), c2.id())
 
+    it 'should read range on model class', ->
+      Person = model.Person
+      person = new Person()
+      person.getRanges('livesIn').should.eql(['House'])
+      person.getRanges('isIn').should.eql(['House', 'Office'])
+
     it 'should add allowed relations by correct range', ->
       Person   = model.Person
-      Building = model.Building
+      House = model.House
       person = new Person()
       person.relation("hasFriend").add(new Person())
-      person.relation("livesIn").add(new Building())
+      person.relation("livesIn").add(new House())
 
     it 'should deny allowed relations by different range', ->
       Person   = model.Person

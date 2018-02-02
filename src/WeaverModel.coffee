@@ -14,21 +14,23 @@ class WeaverModel
       js = """
         (function() {
           function #{className}(nodeId) {
-            this.model           = #{className}.model;
-            this.definition      = #{className}.definition;
-            this.className       = "#{className}";
-            this.classDefinition = #{className}.classDefinition;
+            this.model                = #{className}.model;
+            this.definition           = #{className}.definition;
+            this.className            = "#{className}";
+            this.classDefinition      = #{className}.classDefinition;
+            this.totalClassDefinition = #{className}.totalClassDefinition;
             #{className}.__super__.constructor.call(this, nodeId);
           };
 
-          #{className}.defineBy = function(model, definition, className, classDefinition) {
-            this.model           = model;
-            this.definition      = definition;
-            this.className       = className;
-            this.classDefinition = classDefinition;
+          #{className}.defineBy = function(model, definition, className, classDefinition, totalClassDefinition) {
+            this.model                = model;
+            this.definition           = definition;
+            this.className            = className;
+            this.classDefinition      = classDefinition;
+            this.totalClassDefinition = totalClassDefinition
           };
 
-          #{className}.classId = function(){
+          #{className}.classId = function() {
             return #{className}.definition.name + ":" + #{className}.className
           };
 
@@ -36,15 +38,38 @@ class WeaverModel
         })();
       """
 
+
+
+      _collectFromSupers = (classDefinition)=>
+        addFromSuper = (cd, totalDefinition = {attributes: {}, relations: {}}) =>
+
+          # Start with supers so lower specifications override the super ones
+          if cd.super?
+            superDefinition = @definition.classes[cd.super]
+            addFromSuper(superDefinition, totalDefinition)
+
+          transfer = (source) ->
+            totalDefinition[source][k] = v for k, v of cd[source] if cd[source]?
+
+          transfer('attributes')
+          transfer('relations')
+
+          totalDefinition
+
+        addFromSuper(classDefinition)
+
+
+      totalClassDefinition = _collectFromSupers(classDefinition)
+
       @[className] = eval(js)
       @[className] = @[className] extends Weaver.ModelClass
-      @[className].defineBy(@, @definition, className, classDefinition)
+      @[className].defineBy(@, @definition, className, classDefinition, totalClassDefinition)
       load = (loadClass) => (nodeId) =>
         new Weaver.ModelQuery(@)
           .class(@[loadClass])
           .restrict(nodeId)
           .inGraph(@getGraph())
-          .first()
+          .first(@[loadClass])
 
       @[className].load = load(className)
 

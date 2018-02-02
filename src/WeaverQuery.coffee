@@ -61,7 +61,6 @@ class WeaverQuery
       @useConstructorFunction = -> Constructor
 
     Weaver.getCoreManager().query(@).then((result) =>
-      console.log(cjson.stringify(result))
       Weaver.Query.notify(result)
       list = []
       for node in result.nodes
