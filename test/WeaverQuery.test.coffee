@@ -1164,8 +1164,6 @@ describe 'WeaverQuery Test', ->
           trueNodes = [a,b,d,g,j,k,l,m,a2,c2]
           falseNodes = [c,e,f,h,i,b2]
 
-          # console.log result
-
           for t in trueNodes
             expect(result[t.getGraph()][t.id()]).to.be.true
 
