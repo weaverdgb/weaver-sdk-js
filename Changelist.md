@@ -10,3 +10,6 @@
 - Adds support to query for WeaverModel init members using model.InitMember, so
   `model.City.Rotterdam` is now supported instead of first having to look up the
   `model.City` instance.
+- Adds identityString to Weaver.Node to return the graph:nodeid combination
+- Add `model.City.addMember(node)` for adding an existing node to a model
+- Allow nodes to be member of multiple WeaverModel's

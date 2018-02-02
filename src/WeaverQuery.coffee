@@ -1,6 +1,7 @@
 util        = require('./util')
 Weaver      = require('./Weaver')
 _           = require('lodash')
+cjson       = require('circular-json')
 
 # Converts a string into a regex that matches it.
 # Surrounding with \Q .. \E does this, we just need to escape any \E's in

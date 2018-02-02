@@ -17,6 +17,12 @@ describe 'WeaverQuery with single Network', ->
   vettel           = new Weaver.Node()
   hamilton         = new Weaver.Node()
 
+  king             = new Weaver.Node(undefined, 'feudal')
+  duke             = new Weaver.Node(undefined, 'feudal')
+  serf             = new Weaver.Node(undefined, 'feudal')
+  serf.relation('isSubjectTo').add(duke)
+  duke.relation('isSubjectTo').add(king)
+
   tree.set('testset', '1')
 
   garden.relation('requires').add(tree)
@@ -52,9 +58,10 @@ describe 'WeaverQuery with single Network', ->
   vettel.relation('beats').add(hamilton)
   hamilton.relation('beats').add(vettel)
 
+
   before ->
     wipeCurrentProject().then( ->
-      Promise.all([vettel.save(), garden.save()])
+      Promise.all([vettel.save(), garden.save(), serf.save()])
     )
 
   it 'should do hasRelationOut correctly', ->
@@ -196,9 +203,11 @@ describe 'WeaverQuery with single Network', ->
   it 'should support always including a relation of non-loaded relations', ->
     new Weaver.Query().alwaysLoadRelations('is-brand-of').restrict(ferrari.id()).find().then((nodes) ->
       expect(i.id() for i in nodes).to.eql([ferrari.id()])
+      expect(nodes[0].relation('hasTires').all()).to.have.length.be(1)
       assert.equal(nodes[0].relation('hasTires').first().id(), pirelli.id())
+      expect(nodes[0].relation('hasTires').first().relation('is-brand-of').all()).to.have.length.be(1)
       assert.equal(nodes[0].relation('hasTires').first().relation('is-brand-of').first().id(), wheel.id())
-    ).id
+    )
 
   it 'should support selectOut always including a relation of non-loaded relations', ->
     new Weaver.Query().selectOut('drives').alwaysLoadRelations('is-brand-of').restrict(vettel.id()).find().then((nodes) ->
@@ -274,4 +283,19 @@ describe 'WeaverQuery with single Network', ->
       .doesNotExist('theme')
       .find().then((nodes) ->
         expect(i.id() for i in nodes).to.eql([ tree.id() ])
+      )
+
+  it 'should support graph alwaysLoadRelationOut', ->
+    r = 'isSubjectTo'
+    new Weaver.Query()
+      .restrict(serf.id())
+      .alwaysLoadRelations(r)
+      .first().then((s) ->
+        #First level should be there
+        expect(s.relation(r).all()).to.have.length.be(1)
+        # Second too
+        expect(s.relation(r).first().relation(r).all()).to.have.length.be(1)
+
+        # Check that graphs are preserved
+        expect(s.relation(r).first().relation(r).first().getGraph()).to.equal('feudal')
       )
