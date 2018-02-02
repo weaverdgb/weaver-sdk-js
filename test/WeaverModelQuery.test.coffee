@@ -105,7 +105,7 @@ describe 'WeaverModelQuery test', ->
       it 'should load model instances', ->
         new Weaver.ModelQuery()
           .restrict("personB")
-          .first(model.Person).should.eventually.be.instanceOf(model.Person)
+          .first().should.eventually.be.instanceOf(model.Person)
 
       it 'should not error on livesInSomebuilding', ->
         new Weaver.ModelQuery()
