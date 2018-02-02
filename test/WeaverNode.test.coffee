@@ -229,6 +229,20 @@ describe 'WeaverNode test', ->
       assert.equal(loadedNode.get('length'), 12)
     )
 
+  it 'should allow setting an attribute value again with save', ->
+    node = new Weaver.Node()
+    node.set('test', 'a')
+    node.save().then(->
+      node.set('test', 'a')
+      node.save()
+    )
+    
+  it 'should allow setting an attribute value again immediately', ->
+    node = new Weaver.Node()
+    node.set('test', 'a')
+    node.set('test', 'a')
+    node.save()
+
   it 'should set a new number double attribute', ->
     node = new Weaver.Node()
     node.set('halved', 1.5)
