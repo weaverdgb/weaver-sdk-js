@@ -207,8 +207,8 @@ class CoreManager
   freezeProject: (id) ->
     @GET("project.freeze", {id}, id)
 
-  isFreezeProject: (id) ->
-    @GET("project.isfreeze", {id}, id)
+  isFrozenProject: (id) ->
+    @GET("project.isfrozen", {id}, id)
 
   unfreezeProject: (id) ->
     @GET("project.unfreeze", {id}, id)

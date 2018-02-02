@@ -50,14 +50,14 @@ class WeaverProject
     Weaver.getCoreManager().unfreezeProject(@id())
 
   isFrozen: ->
-    Weaver.getCoreManager().isFreezeProject(@id())
+    Weaver.getCoreManager().isFrozenProject(@id())
 
   addApp: (appName, appMetadata) ->
     @apps[appName] = appMetadata
     Weaver.getCoreManager().addApp(@id(), appName, appMetadata)
 
-  removeApp: (appNAme) ->
-    delete @apps[app]
+  removeApp: (appName) ->
+    delete @apps[appName]
     Weaver.getCoreManager().removeApp(@id(), appName)
 
   getApps: ->

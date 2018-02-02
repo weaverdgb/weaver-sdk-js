@@ -100485,8 +100485,8 @@ module.exports={
       }, id);
     };
 
-    CoreManager.prototype.isFreezeProject = function(id) {
-      return this.GET("project.isfreeze", {
+    CoreManager.prototype.isFrozenProject = function(id) {
+      return this.GET("project.isfrozen", {
         id: id
       }, id);
     };
@@ -103384,7 +103384,7 @@ module.exports={
     };
 
     WeaverProject.prototype.isFrozen = function() {
-      return Weaver.getCoreManager().isFreezeProject(this.id());
+      return Weaver.getCoreManager().isFrozenProject(this.id());
     };
 
     WeaverProject.prototype.addApp = function(appName, appMetadata) {
@@ -103392,8 +103392,8 @@ module.exports={
       return Weaver.getCoreManager().addApp(this.id(), appName, appMetadata);
     };
 
-    WeaverProject.prototype.removeApp = function(appNAme) {
-      delete this.apps[app];
+    WeaverProject.prototype.removeApp = function(appName) {
+      delete this.apps[appName];
       return Weaver.getCoreManager().removeApp(this.id(), appName);
     };
 

@@ -73,16 +73,24 @@ describe 'WeaverProject Test', ->
       weaver.useProject(p)
     )
 
-  it 'should add a project app', ->
+  it 'should add a project app, with some metadata', ->
     p = weaver.currentProject()
-    p.addApp('someApp').then(->
-      assert.equal('someApp', p.getApps()[0])
+    appMetadata =
+      appName: 'FooBarApp'
+      appVersion: '0.2.1-fooBar-b'
+      desireSDK: '6.0.1-weaver'
+    p.addApp(appMetadata.appName,appMetadata).then(->
+      assert.equal(appMetadata, p.getApps()[0])
     )
 
   it 'should remove a project app', ->
     p = weaver.currentProject()
-    p.addApp('someApp').then(->
-      p.removeApp('someApp')
+    appMetadata =
+      appName: 'FooBarApp'
+      appVersion: '0.2.1-fooBar-b'
+      desireSDK: '6.0.1-weaver'
+    p.addApp(appMetadata.appName,appMetadata).then(->
+      p.removeApp(appMetadata.appName)
     ).then(->
       assert.equal(p.getApps().length, 0)
     )
@@ -95,6 +103,20 @@ describe 'WeaverProject Test', ->
   it 'should unfreeze a project making writing possible', ->
     weaver.currentProject().unfreeze().then(->
       (new Weaver.Node()).save().should.not.be.rejected
+    )
+
+  it 'should retrieve the freeze status of a frozen project, calling isFrozen', ->
+    weaver.currentProject().freeze().then(->
+      weaver.currentProject().isFrozen()
+    ).then((res) ->
+      expect(res.status).to.be.true
+    )
+
+  it 'should retrieve the freeze status of a non frozen project, calling isFrozen', ->
+    weaver.currentProject().unfreeze().then(->
+      weaver.currentProject().isFrozen()
+    ).then((res) ->
+      expect(res.status).to.be.false
     )
 
   it 'should be unable to freeze project due to acls', ->
