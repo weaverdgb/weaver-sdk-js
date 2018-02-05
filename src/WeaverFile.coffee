@@ -13,7 +13,13 @@ class WeaverFile extends EventEmitter
     super
     @_local = false
     @_stored = false
-    @_getFileStats(@filePath) if @_fileExists(@filePath)
+    if File? and @filePath instanceof File
+      @fileSize = @filePath.size
+      @fileName = @filePath.name
+      @fileExt = path.extname(@filePath.name)
+      @_local = true
+    else
+      @_getFileStats(@filePath) if @filePath? and @_fileExists(@filePath)
 
   ###*
   # Retreive the ID of the file
@@ -128,9 +134,9 @@ class WeaverFile extends EventEmitter
   # @returns {Promise<WeaverFile>} The stored WeaverFile
   ###
   upload: ->
-    if @_fileExists(@filePath)
+    if (File? and @filePath instanceof File) or @_fileExists(@filePath)
       stream = ss.createStream()
-      readStream = fs.createReadStream(@filePath)
+      readStream = if File? and @filePath instanceof File then ss.createBlobReadStream(@filePath) else fs.createReadStream(@filePath)
       _uploadedBytes = 0
 
       readStream.on('data', (chunk) =>
@@ -185,7 +191,7 @@ class WeaverFile extends EventEmitter
   # @returns {WeaverFile} A new WeaverFile instance
   ###
   @get: (id) ->
-    new WeaverFile(null, id)
+    new WeaverFile(undefined, id)
 
   ###*
   # Remove a file from the object storage

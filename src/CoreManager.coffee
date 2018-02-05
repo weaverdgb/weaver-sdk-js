@@ -28,6 +28,8 @@ class CoreManager
     @commController = new SocketController(endpoint, @options)
     @commController.connect()
 
+  disconnect: ->
+    @commController.disconnect()
 
   local: (routes) ->
     @commController = new LocalController(routes)
@@ -79,7 +81,10 @@ class CoreManager
 
   cloneNode: (sourceId, targetId = cuid(), relationsToTraverse, sourceGraph, targetGraph) ->
     targetGraph = sourceGraph if !targetGraph?
-    @POST('node.clone', { sourceId, sourceGraph, targetId, targetGraph, relationsToTraverse})
+    @POST('node.clone', {sourceId, sourceGraph, targetId, targetGraph, relationsToTraverse})
+
+  findExistingNodes: (nodes) ->
+    @POST('findExistingNodes', {nodes})
 
   serverVersion: ->
     @GET("application.version")
@@ -202,14 +207,17 @@ class CoreManager
   freezeProject: (id) ->
     @GET("project.freeze", {id}, id)
 
+  isFrozenProject: (id) ->
+    @GET("project.isfrozen", {id}, id)
+
   unfreezeProject: (id) ->
     @GET("project.unfreeze", {id}, id)
 
-  addApp: (id, app) ->
-    @GET("project.app.add", {id, app}, id)
+  addApp: (id, appName, appMetadata) ->
+    @GET("project.app.add", {id, appName, appMetadata}, id)
 
-  removeApp: (id, app) ->
-    @GET("project.app.remove", {id, app}, id)
+  removeApp: (id, appName) ->
+    @GET("project.app.remove", {id, appName}, id)
 
   cloneProject: (id, clone_id, name) ->
     @POST("project.clone", {id: clone_id, name}, id)
@@ -245,9 +253,8 @@ class CoreManager
     @POST('users.wipe', {}, target)
 
   query: (query) ->
-    # Remove target
     target = query.target
-    query  = _.omit(query, ['target', 'useConstructorFunction'])
+    query  = _.omit(query, ['model', 'target', 'useConstructorFunction'])
 
     @POST("query", {query}, target)
 
@@ -296,6 +303,9 @@ class CoreManager
 
   deleteFile: (fileId) ->
     @POST("file.delete", {fileId})
+
+  cleanup: ->
+    @GET("cleanup")
 
   enqueue: (functionToEnqueue) ->
     op = @operationsQueue.then(->

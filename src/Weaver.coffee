@@ -29,8 +29,7 @@ class Weaver
     @ModelClass = Weaver.ModelClass
     @ModelRelation = Weaver.ModelRelation
     @ModelQuery = Weaver.ModelQuery
-    if !window?
-      @File = Weaver.File
+    @File = Weaver.File
 
     @coreManager = new Weaver.CoreManager()
     @_connected  = false
@@ -58,6 +57,9 @@ class Weaver
       @_connected = true
       @coreManager.updateLocalTimeOffset()
     )
+
+  disconnect: ->
+    @coreManager.disconnect()
 
   getCoreManager: ->
     @coreManager
@@ -159,5 +161,4 @@ module.exports.Model        = require('./WeaverModel')
 module.exports.ModelClass   = require('./WeaverModelClass')
 module.exports.ModelRelation = require('./WeaverModelRelation')
 module.exports.ModelQuery    = require('./WeaverModelQuery')
-if !window?
-  module.exports.File        = require('./WeaverFile')
+module.exports.File         = require('./WeaverFile')

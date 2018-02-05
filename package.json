@@ -1,6 +1,6 @@
 {
   "name": "weaver-sdk",
-  "version": "6.0.1",
+  "version": "6.1.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -8,8 +8,8 @@
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "^4.2.0",
-    "requiredServerVersion": "^3.5.0"
+    "requiredConnectorVersion": "^4.3.0",
+    "requiredServerVersion": "^3.6.0"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -20,11 +20,12 @@
     "circular-json": "^0.3.1",
     "config": "^1.24.0",
     "cuid": "~1.3.8",
+    "level-fs": "^0.11.2",
     "localforage": "^1.5.0",
     "lodash": "^4.17.4",
     "lokijs": "^1.4.2",
     "pubsub-js": "^1.5.7",
-    "request": "^2.81.0",
+    "request": "^2.82.0",
     "socket.io-client": "^2.0.1",
     "socket.io-stream": "^0.9.1"
   },
@@ -33,11 +34,12 @@
     "chai": "^3.0.0",
     "chai-as-promised": "^6.0.0",
     "coffee-coverage": "^2.0.1",
-    "coffee-script": "^1.12.5",
+    "coffeeify": "^3.0.1",
+    "coffeescript": "^1.12.5",
     "david": "^11.0.0",
     "electron": "^1.6.1",
     "electron-mocha": "^3.3.0",
-    "gulp": "github:gulpjs/gulp#4.0",
+    "gulp": "^4.0.0",
     "gulp-clean": "^0.3.2",
     "gulp-coffee": "^2.3.4",
     "gulp-concat": "^2.6.1",
@@ -46,11 +48,19 @@
     "gulp-uglify": "^2.1.2",
     "ioredis": "^2.5.0",
     "istanbul": "^0.4.3",
-    "mocha": "^3.4.1",
+    "karma": "^2.0.0",
+    "karma-browserify": "^5.1.3",
+    "karma-chai": "^0.1.0",
+    "karma-chrome-launcher": "^2.2.0",
+    "karma-mocha": "^1.3.0",
+    "karma-sinon": "^1.0.5",
+    "karma-spec-reporter": "^0.0.32",
+    "mocha": "^5.0.0",
     "sinon": "^2.2.0",
     "supertest": "^3.0.0",
-    "vinyl-buffer": "^1.0.0",
-    "vinyl-source-stream": "^1.1.0"
+    "vinyl-buffer": "^1.0.1",
+    "vinyl-source-stream": "^2.0.0",
+    "watchify": "^3.9.0"
   },
   "engines": {
     "node": ">=6.9"
@@ -59,8 +69,9 @@
     "prepublish": "coffee -o lib -c src && gulp dev",
     "update-deps": "david u -i gulp",
     "test": "istanbul cover _mocha --",
-    "electron-test": "electron-mocha --renderer --interactive $(ls test/*.test.coffee)",
-    "node-test": "mocha $(ls test/*.test.coffee) || true",
+    "test:electron": "electron-mocha --renderer --interactive test/*.test.coffee",
+    "test:chrome": "karma start || true",
+    "test:node": "mocha || true",
     "gulp": "gulp"
   }
 }

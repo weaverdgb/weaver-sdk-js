@@ -1,14 +1,29 @@
 weaver = require("./test-suite").weaver
 Weaver = require('../src/Weaver')
+cuid   = require('cuid')
 
 describe 'WeaverGraph support', ->
   a = new Weaver.Node()
   b = new Weaver.Node()
   aInGraph = new Weaver.Node(a.id(), 'WeaverGraph')
   aInOtherGraph = new Weaver.Node(a.id(), 'WeaverGraph2')
+  c = new Weaver.Node(cuid(), 'weaverGraph')
   
   before ->
     Weaver.Node.batchSave([a, b, aInGraph, aInOtherGraph])
+
+  describe 'in WeaverNode.load', ->
+    it 'should load a node with an unspecified graph if the node is in the default graph', ->
+      Weaver.Node.load(a.id()).should.not.be.rejected
+
+    it 'should not load a node if the graph is not specified', ->
+      Weaver.Node.load(c.id()).should.be.rejected
+
+    it 'should not load a node if the wrong graph is specified', ->
+      Weaver.Node.load(b.id(), aInGraph.getGraph()).should.be.rejected
+
+    it 'should load nodes in a graph', ->
+      Weaver.Node.loadFromGraph(aInGraph.id(), aInGraph.getGraph()).should.not.be.rejected
 
   describe 'in WeaverNode getFromGraph', ->
     it 'should support graphs', ->

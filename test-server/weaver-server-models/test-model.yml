@@ -1,16 +1,17 @@
 name: test-model
-version: 1.1.0
+version: 1.1.2
 author:
   name: Mohamad Alamili
   email: mohamad@sysunite.com
 
-prototype: 'rdf:type'
+member: 'rdf:type'
 inherit: 'rdfs:subClassOf'
 
 classes:
   Human:
   City:
-    init: [Delft, Rotterdam, Leiden]
+    init: [Delft, Rotterdam, Leiden, CityState]
+  CityState:
   Area:
     attributes:
       squareMeter:
@@ -38,6 +39,10 @@ classes:
     relations:
       placedIn:
         range: [Area]
+  House:
+    super: Building
+  Office:
+    super: Building
   Head:
   Person:
     super: Human
@@ -49,14 +54,19 @@ classes:
       age:
         datatype: integer
     relations:
-      livesIn:
-        key: 'livesInSomeBuilding'
-        range: [Building]
       hasFriend:
         range: [Person]
       comesFrom:
-        range: [Country, City]
-        card: [0,1]
+        range:
+          Country: [0,1]
+          City: [0,2]
       hasHead:
         range: [Head]
       hasRelation:
+      isIn:
+        range: [House, Office]
+      livesIn:
+        key: 'livesInSomeBuilding'
+        range: [House]
+      worksIn:
+        range: [Office]
