@@ -207,14 +207,17 @@ class CoreManager
   freezeProject: (id) ->
     @GET("project.freeze", {id}, id)
 
+  isFrozenProject: (id) ->
+    @GET("project.isfrozen", {id}, id)
+
   unfreezeProject: (id) ->
     @GET("project.unfreeze", {id}, id)
 
-  addApp: (id, app) ->
-    @GET("project.app.add", {id, app}, id)
+  addApp: (id, appName, appMetadata) ->
+    @GET("project.app.add", {id, appName, appMetadata}, id)
 
-  removeApp: (id, app) ->
-    @GET("project.app.remove", {id, app}, id)
+  removeApp: (id, appName) ->
+    @GET("project.app.remove", {id, appName}, id)
 
   cloneProject: (id, clone_id, name) ->
     @POST("project.clone", {id: clone_id, name}, id)
