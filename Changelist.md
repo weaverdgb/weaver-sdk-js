@@ -1,10 +1,6 @@
 # Changelist
 
-## 6.0.1
-- Fixes a bug where the weaver-server embedded sdk would not send GET request
-  bodies
-
-## 6.1.0-beta
+## 6.1.0
 - Adds `weaver.disconnect()` function to close the socket connection
 - Adds support for checking the existence of nodes
 - Adds support to query for WeaverModel init members using model.InitMember, so
@@ -13,9 +9,6 @@
 - Adds identityString to Weaver.Node to return the graph:nodeid combination
 - Add `model.City.addMember(node)` for adding an existing node to a model
 - Allow nodes to be member of multiple WeaverModel's
-
-
-## 6.1.0-beta.5-projects-apps
 - Fixes freeze and unfreeze persistence after weaverServer reboot
 - Adds feature to read the freeze or unfreeze state of a project by isFrozen
 	```coffeescript
@@ -34,3 +27,8 @@
 	p.addApp(appMetadata.appName,appMetadata)
 	```
 	- removeApp still the same, just pass the appName to remove it
+
+## 6.0.1
+- Fixes a bug where the weaver-server embedded sdk would not send GET request
+  bodies
+
