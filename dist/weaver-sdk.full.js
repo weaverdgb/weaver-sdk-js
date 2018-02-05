@@ -100245,7 +100245,7 @@ module.exports = yeast;
 },{}],401:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "6.1.0-rc.0",
+  "version": "6.1.0-rc.1",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -100254,7 +100254,7 @@ module.exports={
   },
   "com_weaverplatform": {
     "requiredConnectorVersion": "^4.3.0",
-    "requiredServerVersion": "^3.6.0"
+    "requiredServerVersion": "^3.6.0-rc.1"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -100671,23 +100671,30 @@ module.exports={
       }, id);
     };
 
+    CoreManager.prototype.isFrozenProject = function(id) {
+      return this.GET("project.isfrozen", {
+        id: id
+      }, id);
+    };
+
     CoreManager.prototype.unfreezeProject = function(id) {
       return this.GET("project.unfreeze", {
         id: id
       }, id);
     };
 
-    CoreManager.prototype.addApp = function(id, app) {
+    CoreManager.prototype.addApp = function(id, appName, appMetadata) {
       return this.GET("project.app.add", {
         id: id,
-        app: app
+        appName: appName,
+        appMetadata: appMetadata
       }, id);
     };
 
-    CoreManager.prototype.removeApp = function(id, app) {
+    CoreManager.prototype.removeApp = function(id, appName) {
       return this.GET("project.app.remove", {
         id: id,
-        app: app
+        appName: appName
       }, id);
     };
 
@@ -103683,21 +103690,27 @@ module.exports={
       return Weaver.getCoreManager().unfreezeProject(this.id());
     };
 
-    WeaverProject.prototype.addApp = function(app) {
-      this.apps[app] = true;
-      return Weaver.getCoreManager().addApp(this.id(), app);
+    WeaverProject.prototype.isFrozen = function() {
+      return Weaver.getCoreManager().isFrozenProject(this.id());
     };
 
-    WeaverProject.prototype.removeApp = function(app) {
-      delete this.apps[app];
-      return Weaver.getCoreManager().removeApp(this.id(), app);
+    WeaverProject.prototype.addApp = function(appName, appMetadata) {
+      this.apps[appName] = appMetadata;
+      return Weaver.getCoreManager().addApp(this.id(), appName, appMetadata);
+    };
+
+    WeaverProject.prototype.removeApp = function(appName) {
+      delete this.apps[appName];
+      return Weaver.getCoreManager().removeApp(this.id(), appName);
     };
 
     WeaverProject.prototype.getApps = function() {
-      var name, results;
+      var key, ref, results, value;
+      ref = this.apps;
       results = [];
-      for (name in this.apps) {
-        results.push(name);
+      for (key in ref) {
+        value = ref[key];
+        results.push(value);
       }
       return results;
     };
