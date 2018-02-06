@@ -100245,7 +100245,7 @@ module.exports = yeast;
 },{}],401:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "6.1.0",
+  "version": "6.1.1",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -102265,11 +102265,12 @@ module.exports={
         ref1 = classObj.init;
         for (j = 0, len = ref1.length; j < len; j++) {
           itemName = ref1[j];
-          if (!(!existingNodes.includes(this.definition.name + ":" + itemName))) {
-            continue;
-          }
           node = new ModelClass(this.definition.name + ":" + itemName);
-          nodesToCreate[node.id()] = node;
+          if (!existingNodes.includes(this.definition.name + ":" + itemName)) {
+            nodesToCreate[node.id()] = node;
+          } else {
+            node._clearPendingWrites();
+          }
           this[className][itemName] = node;
         }
       }
@@ -104471,7 +104472,9 @@ module.exports={
         key: this.key,
         target: node
       });
-      this.pendingWrites.push(Operation.Node(this.parent).createRelation(this.key, node, relId, void 0, false, graph));
+      if (addToPendingWrites) {
+        this.pendingWrites.push(Operation.Node(this.parent).createRelation(this.key, node, relId, void 0, false, graph));
+      }
       return relationNode;
     };
 
