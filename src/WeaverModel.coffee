@@ -113,10 +113,15 @@ class WeaverModel
     # First create all class instances
     for className, classObj of @definition.classes when classObj.init? and not existingNodes.includes("#{@definition.name}:#{className}")
       ModelClass = @[className]
-      for itemName in classObj.init when not existingNodes.includes("#{@definition.name}:#{itemName}")
+      for itemName in classObj.init
+
         node = new ModelClass("#{@definition.name}:#{itemName}")
-        nodesToCreate[node.id()] = node
-        @[className][itemName] = node
+        if not existingNodes.includes("#{@definition.name}:#{itemName}")
+          nodesToCreate[node.id()] = node
+          @[className][itemName] = node
+        else
+          node._clearPendingWrites()
+          @[className][itemName] = node
 
     # Now add all the nodes that are not a model class
     for className of @definition.classes when not existingNodes.includes("#{@definition.name}:#{className}")
