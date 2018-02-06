@@ -1,5 +1,9 @@
 # Changelist
 
+## 6.1.1
+- Add missing check in add() on WeaverRelation for not creating writeops
+- Load already existing instances from the init block of a Model
+
 ## 6.1.0
 - Adds `weaver.disconnect()` function to close the socket connection
 - Adds support for checking the existence of nodes
