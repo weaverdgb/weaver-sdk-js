@@ -68,7 +68,7 @@ class WeaverRelation
     @relationNodes.push(relationNode)
 
     Weaver.publish("node.relation.add", {node: @parent, key: @key, target: node})
-    @pendingWrites.push(Operation.Node(@parent).createRelation(@key, node, relId, undefined, false, graph))
+    @pendingWrites.push(Operation.Node(@parent).createRelation(@key, node, relId, undefined, false, graph)) if addToPendingWrites
     relationNode
 
   update: (oldNode, newNode) ->
