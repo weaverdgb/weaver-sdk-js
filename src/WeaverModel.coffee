@@ -111,10 +111,10 @@ class WeaverModel
     nodesToCreate = {}
 
     # First create all class instances
-    for className, classObj of @definition.classes when classObj.init? and not existingNodes.includes("#{@definition.name}:#{className}")
+    for className, classObj of @definition.classes when classObj.init?
       ModelClass = @[className]
-      for itemName in classObj.init
 
+      for itemName in classObj.init
         node = new ModelClass("#{@definition.name}:#{itemName}")
         if not existingNodes.includes("#{@definition.name}:#{itemName}")
           nodesToCreate[node.id()] = node
@@ -139,7 +139,5 @@ class WeaverModel
         node.relation(@getInheritKey()).add(superClassNode)
 
     Weaver.Node.batchSave(node for id, node of nodesToCreate)
-
-
 
 module.exports = WeaverModel

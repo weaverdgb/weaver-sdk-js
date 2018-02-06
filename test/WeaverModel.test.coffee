@@ -140,6 +140,16 @@ describe 'WeaverModel test', ->
           new Weaver.Query().restrict('test-model:Person').find()
         ).should.eventually.have.length.be(1)
 
+      it 'should have init member after a bootstrap', ->
+        expect(model).to.have.property('City').to.have.property('Rotterdam').be.defined
+
+      it 'should have init member on load an rebootstrap', ->
+        Weaver.Model.load(model.definition.name, model.definition.version).then((reloaded) ->
+          reloaded.bootstrap().then(->
+            expect(reloaded).to.have.property('City').to.have.property('Rotterdam').be.defined
+          )
+        )
+
       it 'should succeed saving with type definition that is bootstrapped', ->
         Person = model.Person
         person = new Person()
