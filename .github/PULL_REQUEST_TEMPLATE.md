@@ -7,28 +7,6 @@ Fixes bad pull requests from being created by requiring developers declare
 things. Introduces new markdown tasklist and comment structure.
 -->
 
-
-## 6.1.0-beta.5-projects-apps
-- Fixes freeze and unfreeze persistence after weaverServer reboot
-- Adds feature to read the freeze or unfreeze state of a project by isFrozen
-	```coffeescript
-	weaver.currentProject().isFrozen()
-	.then((res)->
-		console.log res.status
-	)
-	```
-- Posible to add app metadata for a project `addApp(name,metadata)`
-	```coffeescript
-	p = weaver.currentProject()
-	appMetadata =
-		appName: 'FooBarApp'
-		appVersion: '0.2.1-fooBar-b'
-		desireSDK: '6.0.1-weaver'
-	p.addApp(appMetadata.appName,appMetadata)
-	```
-	- removeApp still the same, just pass the appName to remove it
-
-
 <!--
 Please ensure the following boxes are checked before filing a pull request.
 Failing to comply with these may result in your PR being ignored or closed.
