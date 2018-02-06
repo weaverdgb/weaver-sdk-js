@@ -1,5 +1,7 @@
 # Changelist
 
+- Add missing check in add() on WeaverRelation for not creating writeops
+
 ## 6.1.0
 - Adds `weaver.disconnect()` function to close the socket connection
 - Adds support for checking the existence of nodes
