@@ -100245,7 +100245,7 @@ module.exports = yeast;
 },{}],401:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "6.1.1",
+  "version": "6.1.2",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -102258,7 +102258,7 @@ module.exports={
       ref = this.definition.classes;
       for (className in ref) {
         classObj = ref[className];
-        if (!((classObj.init != null) && !existingNodes.includes(this.definition.name + ":" + className))) {
+        if (!(classObj.init != null)) {
           continue;
         }
         ModelClass = this[className];
