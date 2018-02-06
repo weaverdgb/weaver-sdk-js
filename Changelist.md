@@ -1,5 +1,9 @@
 # Changelist
 
+## 6.1.2
+- Load already existing instances from the init block of a Model (now for
+  real)
+
 ## 6.1.1
 - Add missing check in add() on WeaverRelation for not creating writeops
 - Load already existing instances from the init block of a Model
