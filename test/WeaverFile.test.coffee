@@ -103,8 +103,9 @@ describe 'WeaverFile test', ->
     file = new Weaver.File(path.join(__dirname,'../icon.png'))
 
     user = new Weaver.User("username", "password", "some@email.com")
-    user.signUp()
-    .then(->
+    user.signUp().then(->
+      weaver.signInWithUsername("username", "password")
+    ).then(->
       file.upload()
     ).then(->
        assert.fail()
