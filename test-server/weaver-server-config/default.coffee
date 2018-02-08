@@ -8,6 +8,17 @@ module.exports =
     secret: 'mysupersecretstring'
     expire: '7d'
     salt: 10
+    policy:
+      on: false
+      requirements:
+        maxAge: 220 # days
+        minEntropy: 60 # bits
+        minLength: 20
+        charsets:
+          number: true
+          upper: true
+          lower: true
+          symbol: true
 
   application:
     openUserCreation: true
