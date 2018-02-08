@@ -121,15 +121,19 @@ describe 'WeaverProject Test', ->
 
   it 'should be unable to freeze project due to acls', ->
     new Weaver.User('testuser', 'testpass', 'test@example.com').signUp().then(->
+      weaver.signInWithUsername('testuser', 'testpass')
+    ).then(->
       weaver.currentProject().freeze()
     ).should.be.rejectedWith(/Permission denied/)
 
   it 'should be unable to unfreeze a project due to acls', ->
     weaver.currentProject().freeze().then(->
-      new Weaver.User('testuser', 'testpass', 'test@example.com').signUp().then(->
-        weaver.currentProject().unfreeze()
-      ).should.be.rejectedWith(/Permission denied/)
-    )
+      new Weaver.User('testuser', 'testpass', 'test@example.com').signUp()
+    ).then(->
+      weaver.signInWithUsername('testuser', 'testpass')
+    ).then( ->
+      weaver.currentProject().unfreeze()
+    ).should.be.rejectedWith(/Permission denied/)
 
   it.skip 'should raise an error while saving without currentProject', (done) ->
     p = weaver.currentProject()
@@ -192,6 +196,8 @@ describe 'WeaverProject Test', ->
 
   it 'should not allow unauthorized snapshots', ->
     new Weaver.User('testuser', 'testpass', 'test@example.com').signUp().then(->
+      weaver.signInWithUsername('testuser', 'testpass')
+    ).then(->
       weaver.currentProject().getSnapshot()
     ).should.be.rejectedWith(/Permission denied/)
 
@@ -215,6 +221,8 @@ describe 'WeaverProject Test', ->
 
   it 'should not be able to rename a project with insufficient permissions', ->
     new Weaver.User('testuser', 'testpass', 'test@example.com').signUp().then(->
+      weaver.signInWithUsername('testuser', 'testpass')
+    ).then(->
       weaver.currentProject().rename('rename_test')
     ).should.be.rejectedWith(/Permission denied/)
 
