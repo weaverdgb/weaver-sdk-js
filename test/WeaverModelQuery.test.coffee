@@ -13,7 +13,7 @@ describe 'WeaverModelQuery test', ->
       model = m
       model.bootstrap()
     ).then(->
-      person = new model.Person()
+      person = new model.Person('jondoeid', 'person-graph')
       person.set('fullName', 'John Doe')
       person.save()
     )
@@ -26,6 +26,7 @@ describe 'WeaverModelQuery test', ->
       expect(instances).to.have.length.be(1)
       assert.equal(instances[0].constructor, model.Person)
       assert.equal(instances[0].get('fullName'), 'John Doe')
+      assert.equal(instances[0].getGraph(), 'person-graph')
     )
 
   describe 'with a default model', ->
