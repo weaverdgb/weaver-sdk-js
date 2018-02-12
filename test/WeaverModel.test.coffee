@@ -262,7 +262,7 @@ describe 'WeaverModel test', ->
         )
 
       it 'should add an existing node to a model', ->
-        person = new Weaver.Node(undefined, model.getGraph())
+        person = new Weaver.Node()
         model.Person.addMember(person)
         person.save().then(->
           model.Person.load(person.id())
@@ -271,7 +271,7 @@ describe 'WeaverModel test', ->
         )
 
       it 'should add an existing node to an other model', ->
-        tree = new Weaver.Node(undefined, model.getGraph())
+        tree = new Weaver.Node()
         tree.relation('hasLeaf').add(new Weaver.Node())
         model.Country.addMember(tree)
 
@@ -282,7 +282,7 @@ describe 'WeaverModel test', ->
         )
 
       it 'should add an existing node to two other models', ->
-        tree = new Weaver.Node(undefined, model.getGraph())
+        tree = new Weaver.Node()
         tree.relation('hasLeaf').add(new Weaver.Node())
         model.Country.addMember(tree)
         model.Person.addMember(tree)
