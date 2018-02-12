@@ -180,6 +180,8 @@ describe 'WeaverHistory test', ->
       weaver.useProject(p)
       new Weaver.User('testuser', 'testpassword', 'test@example.com').signUp()
     ).then(->
+      weaver.signInWithUsername('testuser', 'testpassword')
+    ).then(->
       new Weaver.History().dumpHistory()
     ).should.be.rejectedWith(/Permission denied/)
 

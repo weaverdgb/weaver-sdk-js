@@ -1,5 +1,8 @@
 # Changelist
 
+- Do not consider e.g. owl:Class node a valid range for selecting the right 
+  constructor in processing a ModelQuery resultset.
+
 ## 6.1.2
 - Load already existing instances from the init block of a Model (now for
   real)

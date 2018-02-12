@@ -28,7 +28,7 @@ describe 'Authorization test', ->
 
   it 'should allow project creation when authorized', ->
     testUser = new Weaver.User('testuser', 'testpassword', 'email@dontevenvalidate.com')
-    Promise.join(testUser.create(), Weaver.ACL.load('create-projects'), (user, acl) ->
+    Promise.join(testUser.create(), Weaver.ACL.load('project-administration'), (user, acl) ->
       acl.setUserWriteAccess(testUser, true)
       acl.save()
     ).then(->
@@ -48,7 +48,7 @@ describe 'Authorization test', ->
   it 'should allow a user to destroy a project created by that user', ->
     testProject = weaver.currentProject()
     testUser = new Weaver.User(cuid(), 'testpassword', "#{cuid()}@dontevenvalidate.com")
-    Promise.join(testUser.create(), Weaver.ACL.load('create-projects'), (user, acl) ->
+    Promise.join(testUser.create(), Weaver.ACL.load('project-administration'), (user, acl) ->
       acl.setUserWriteAccess(testUser, true)
       acl.save()
     ).then(->
@@ -70,7 +70,7 @@ describe 'Authorization test', ->
   it 'should not allow a user to delete a project by default', ->
     testUser = new Weaver.User('testuser', 'testpassword', 'email@dontevenvalidate.com')
     testUser2 = new Weaver.User('another', 'testpassword', 'email@email.com')
-    Promise.join(weaver.currentProject().destroy(), testUser.create(), testUser2.create(), Weaver.ACL.load('create-projects'), (deleteResult, user, user2, acl) ->
+    Promise.join(weaver.currentProject().destroy(), testUser.create(), testUser2.create(), Weaver.ACL.load('project-administration'), (deleteResult, user, user2, acl) ->
       acl.setUserWriteAccess(testUser, true)
       acl.save()
     ).then(->
@@ -96,7 +96,7 @@ describe 'Authorization test', ->
 
   it 'should allow a user to write to projects he created', ->
     testUser = new Weaver.User('testuser', 'testpassword', 'email@dontevenvalidate.com')
-    Promise.join(weaver.currentProject().destroy(), testUser.create(), Weaver.ACL.load('create-projects'), (deleteResult, user, acl) ->
+    Promise.join(weaver.currentProject().destroy(), testUser.create(), Weaver.ACL.load('project-administration'), (deleteResult, user, acl) ->
       acl.setUserWriteAccess(testUser, true)
       acl.save()
     ).then(->
@@ -119,14 +119,14 @@ describe 'Authorization test', ->
     ).then(->
       weaver.signInWithUsername('testuser', 'testpassword')
     ).then(->
-      Weaver.ACL.load('create-projects')
+      Weaver.ACL.load('project-administration')
     ).then((acl) ->
       acl.setUserWriteAccess(testUser, true)
       acl.save()
     ).should.be.rejected
 
   it 'should prevent system acls from being deleted', ->
-    Weaver.ACL.load('create-projects').then((acl) ->
+    Weaver.ACL.load('project-administration').then((acl) ->
       acl.delete()
     ).should.be.rejected
 
