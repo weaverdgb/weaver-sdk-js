@@ -65,6 +65,11 @@ class WeaverModelClass extends Weaver.Node
 
   _getRelationKey: (key) ->
 
+    if key is @model.getInheritKey()
+      return key
+    if key is @model.getMemberKey()
+      return key
+
     if not @totalClassDefinition.relations?
       throw new Error("#{@className} model is not allowed to have relations")
     if not @totalClassDefinition.relations[key]?
