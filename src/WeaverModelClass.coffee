@@ -20,9 +20,8 @@ class WeaverModelClass extends Weaver.Node
   @getNode: ->
     Weaver.Node.getFromGraph(@classId(), @model.getGraph())
 
-  constructor: (nodeId)->
-    super(nodeId, @model.getGraph())
-
+  constructor: (nodeId, graph)->
+    super(nodeId, graph)
 
     # Add type definition to model class
     classId = @constructor.classId()
