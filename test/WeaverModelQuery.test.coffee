@@ -76,7 +76,7 @@ describe 'WeaverModelQuery test', ->
         personBas.relation('worksIn').add(basshouse)
 
 
-
+        head.nodeRelation('rdf:type').add(new Weaver.Node('owl:Class'))
 
 
         building = new model.House()
