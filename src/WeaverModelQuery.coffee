@@ -9,7 +9,7 @@ class WeaverModelQuery extends Weaver.Query
 
     # Define constructor function
     @useConstructor((node, owner, key)=>
-      defs = (def.id() for def in node.relation(@model.getMemberKey()).all())
+      defs = (def.id() for def in node.relation(@model.getMemberKey()).all() when def.id().startsWith(@model.definition.name))
       if defs.length is 0
         Weaver.Node
       else if defs.length is 1
