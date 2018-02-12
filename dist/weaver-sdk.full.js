@@ -100245,7 +100245,7 @@ module.exports = yeast;
 },{}],401:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "6.1.2",
+  "version": "6.1.3",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -100254,7 +100254,7 @@ module.exports={
   },
   "com_weaverplatform": {
     "requiredConnectorVersion": "^4.3.0",
-    "requiredServerVersion": "^3.7.0-beta.0"
+    "requiredServerVersion": "^3.7.0"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -102653,7 +102653,9 @@ module.exports={
             results = [];
             for (i = 0, len = ref.length; i < len; i++) {
               def = ref[i];
-              results.push(def.id());
+              if (def.id().startsWith(this.model.definition.name)) {
+                results.push(def.id());
+              }
             }
             return results;
           }).call(_this);
