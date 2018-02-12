@@ -100245,7 +100245,7 @@ module.exports = yeast;
 },{}],401:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "6.1.3",
+  "version": "6.1.4",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -102154,7 +102154,7 @@ module.exports={
       ref = this.definition.classes;
       for (className in ref) {
         classDefinition = ref[className];
-        js = "(function() {\n  function " + className + "(nodeId) {\n    this.model                = " + className + ".model;\n    this.definition           = " + className + ".definition;\n    this.className            = \"" + className + "\";\n    this.classDefinition      = " + className + ".classDefinition;\n    this.totalClassDefinition = " + className + ".totalClassDefinition;\n    " + className + ".__super__.constructor.call(this, nodeId);\n  };\n\n  " + className + ".defineBy = function(model, definition, className, classDefinition, totalClassDefinition) {\n    this.model                = model;\n    this.definition           = definition;\n    this.className            = className;\n    this.classDefinition      = classDefinition;\n    this.totalClassDefinition = totalClassDefinition\n  };\n\n  " + className + ".classId = function() {\n    return " + className + ".definition.name + \":\" + " + className + ".className\n  };\n\n  return " + className + ";\n})();";
+        js = "(function() {\n  function " + className + "(nodeId, graph) {\n    this.model                = " + className + ".model;\n    this.definition           = " + className + ".definition;\n    this.className            = \"" + className + "\";\n    this.classDefinition      = " + className + ".classDefinition;\n    this.totalClassDefinition = " + className + ".totalClassDefinition;\n    " + className + ".__super__.constructor.call(this, nodeId, graph);\n  };\n\n  " + className + ".defineBy = function(model, definition, className, classDefinition, totalClassDefinition) {\n    this.model                = model;\n    this.definition           = definition;\n    this.className            = className;\n    this.classDefinition      = classDefinition;\n    this.totalClassDefinition = totalClassDefinition\n  };\n\n  " + className + ".classId = function() {\n    return " + className + ".definition.name + \":\" + " + className + ".className\n  };\n\n  return " + className + ";\n})();";
         _collectFromSupers = (function(_this) {
           return function(classDefinition) {
             var addFromSuper;
@@ -102195,8 +102195,8 @@ module.exports={
         this[className].defineBy(this, this.definition, className, classDefinition, totalClassDefinition);
         load = (function(_this) {
           return function(loadClass) {
-            return function(nodeId) {
-              return new Weaver.ModelQuery(_this)["class"](_this[loadClass]).restrict(nodeId).inGraph(_this.getGraph()).first(_this[loadClass]);
+            return function(nodeId, graph) {
+              return new Weaver.ModelQuery(_this)["class"](_this[loadClass]).restrict(nodeId).inGraph(graph).first(_this[loadClass]);
             };
           };
         })(this);
@@ -102265,7 +102265,7 @@ module.exports={
         ref1 = classObj.init;
         for (j = 0, len = ref1.length; j < len; j++) {
           itemName = ref1[j];
-          node = new ModelClass(this.definition.name + ":" + itemName);
+          node = new ModelClass(this.definition.name + ":" + itemName, this.getGraph());
           if (!existingNodes.includes(this.definition.name + ":" + itemName)) {
             nodesToCreate[node.id()] = node;
           } else {
@@ -102354,9 +102354,9 @@ module.exports={
       return Weaver.Node.getFromGraph(this.classId(), this.model.getGraph());
     };
 
-    function WeaverModelClass(nodeId) {
+    function WeaverModelClass(nodeId, graph) {
       var classId, classNode;
-      WeaverModelClass.__super__.constructor.call(this, nodeId, this.model.getGraph());
+      WeaverModelClass.__super__.constructor.call(this, nodeId, graph);
       classId = this.constructor.classId();
       classNode = Weaver.Node.getFromGraph(classId, this.model.getGraph());
       this.nodeRelation(this.model.getMemberKey()).addInGraph(classNode, this.model.getGraph());

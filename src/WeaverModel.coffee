@@ -13,13 +13,13 @@ class WeaverModel
 
       js = """
         (function() {
-          function #{className}(nodeId) {
+          function #{className}(nodeId, graph) {
             this.model                = #{className}.model;
             this.definition           = #{className}.definition;
             this.className            = "#{className}";
             this.classDefinition      = #{className}.classDefinition;
             this.totalClassDefinition = #{className}.totalClassDefinition;
-            #{className}.__super__.constructor.call(this, nodeId);
+            #{className}.__super__.constructor.call(this, nodeId, graph);
           };
 
           #{className}.defineBy = function(model, definition, className, classDefinition, totalClassDefinition) {
@@ -64,11 +64,11 @@ class WeaverModel
       @[className] = eval(js)
       @[className] = @[className] extends Weaver.ModelClass
       @[className].defineBy(@, @definition, className, classDefinition, totalClassDefinition)
-      load = (loadClass) => (nodeId) =>
+      load = (loadClass) => (nodeId, graph) =>
         new Weaver.ModelQuery(@)
           .class(@[loadClass])
           .restrict(nodeId)
-          .inGraph(@getGraph())
+          .inGraph(graph)
           .first(@[loadClass])
 
       @[className].load = load(className)
@@ -115,7 +115,7 @@ class WeaverModel
       ModelClass = @[className]
 
       for itemName in classObj.init
-        node = new ModelClass("#{@definition.name}:#{itemName}")
+        node = new ModelClass("#{@definition.name}:#{itemName}", @getGraph())
         if not existingNodes.includes("#{@definition.name}:#{itemName}")
           nodesToCreate[node.id()] = node
         else
