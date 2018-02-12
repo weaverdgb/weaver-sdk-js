@@ -115,7 +115,7 @@ class WeaverModel
       ModelClass = @[className]
 
       for itemName in classObj.init
-        node = new ModelClass("#{@definition.name}:#{itemName}")
+        node = new ModelClass("#{@definition.name}:#{itemName}", @getGraph())
         if not existingNodes.includes("#{@definition.name}:#{itemName}")
           nodesToCreate[node.id()] = node
         else
