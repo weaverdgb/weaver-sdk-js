@@ -7,6 +7,8 @@
 ## 6.1.3
 - Do not consider e.g. owl:Class node a valid range for selecting the right 
   constructor in processing a ModelQuery resultset.
+- Instances from any ModelClass extension should not be put in the model
+  graph. By default in the default graph, or set with argument.
 
 ## 6.1.2
 - Load already existing instances from the init block of a Model (now for
