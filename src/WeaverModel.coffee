@@ -13,13 +13,13 @@ class WeaverModel
 
       js = """
         (function() {
-          function #{className}(nodeId) {
+          function #{className}(nodeId, graph) {
             this.model                = #{className}.model;
             this.definition           = #{className}.definition;
             this.className            = "#{className}";
             this.classDefinition      = #{className}.classDefinition;
             this.totalClassDefinition = #{className}.totalClassDefinition;
-            #{className}.__super__.constructor.call(this, nodeId);
+            #{className}.__super__.constructor.call(this, nodeId, graph);
           };
 
           #{className}.defineBy = function(model, definition, className, classDefinition, totalClassDefinition) {
