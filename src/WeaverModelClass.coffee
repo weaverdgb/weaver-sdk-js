@@ -65,9 +65,9 @@ class WeaverModelClass extends Weaver.Node
 
   _getRelationKey: (key) ->
 
-    if key is @getInheritKey
+    if key is @getInheritKey()
       return key
-    if key is @getMemberKey
+    if key is @getMemberKey()
       return key
 
     if not @totalClassDefinition.relations?
