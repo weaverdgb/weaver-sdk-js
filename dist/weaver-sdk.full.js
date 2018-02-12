@@ -100245,7 +100245,7 @@ module.exports = yeast;
 },{}],401:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "6.1.4",
+  "version": "6.1.5",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -102399,6 +102399,12 @@ module.exports={
     };
 
     WeaverModelClass.prototype._getRelationKey = function(key) {
+      if (key === this.model.getInheritKey()) {
+        return key;
+      }
+      if (key === this.model.getMemberKey()) {
+        return key;
+      }
       if (this.totalClassDefinition.relations == null) {
         throw new Error(this.className + " model is not allowed to have relations");
       }
