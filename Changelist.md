@@ -1,5 +1,9 @@
 # Changelist
 
+## 6.1.5
+- Fixes an issue where membership or subtype relations would not be accepted by
+  the model.
+
 ## 6.1.4
 - Instances from any ModelClass extension should not be put in the model
   graph. By default in the default graph, or set with argument.
