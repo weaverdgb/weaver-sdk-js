@@ -1,5 +1,9 @@
 # Changelist
 
+## 6.1.5
+- Fixes an issue where membership or subtype relations would not be accepted by
+  the model.
+
 - Do not consider e.g. owl:Class node a valid range for selecting the right 
   constructor in processing a ModelQuery resultset.
 - Instances from any ModelClass extension should not be put in the model
