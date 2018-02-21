@@ -15,8 +15,19 @@ class WeaverPlugin
 
         # Build payload from arguments based on function require
         payload = {}
-        payload[r] = args[index] for r, index in f.require
+        payload[r] = args[index] for r, index in f.require if r isnt 'file'
         payload[r] = args[f.require.length + index] for r, index in f.optional
+
+        if f.require?.contains?('file')
+          # File is a special parameter name which causes a socket stream to
+          # be created
+          if(File? and @filePath instanceof File) or @_fileExists(@filePath)
+            stream = ss.createStream()
+            readStream = if File? and @filePath instanceof File then ss.createBlobReadStream(@filePath) else fs.createReadStream(@filePath)
+            readStream.pipe(stream)
+            payload['file'] = stream
+          else
+            Promise.reject({code: Weaver.Error.FILE_NOT_EXISTS_ERROR, message: "File does not exist!"})
 
         # Execute by route and payload
         Weaver.getCoreManager().executePluginFunction(f.route, payload)
