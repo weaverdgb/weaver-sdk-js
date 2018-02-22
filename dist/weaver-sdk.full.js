@@ -100245,7 +100245,7 @@ module.exports = yeast;
 },{}],401:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "6.1.5",
+  "version": "6.2.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -100254,7 +100254,7 @@ module.exports={
   },
   "com_weaverplatform": {
     "requiredConnectorVersion": "^4.3.0",
-    "requiredServerVersion": "^3.7.0"
+    "requiredServerVersion": "^3.8.0"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -100756,8 +100756,11 @@ module.exports={
       target = query.target;
       query = _.omit(query, ['model', 'target', 'useConstructorFunction']);
       return this.POST("query", {
-        query: query
-      }, target);
+        query: query,
+        unparsed: true
+      }, target).then(function(res) {
+        return JSON.parse(res);
+      });
     };
 
     CoreManager.prototype.nativeQuery = function(query, target) {
