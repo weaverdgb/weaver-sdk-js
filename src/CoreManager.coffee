@@ -128,6 +128,11 @@ class CoreManager
       new Weaver.Model(model)
     )
 
+  listModels: ->
+    @POST("model.list").then((models) ->
+      (new Weaver.Model(model) for key,model of models)
+    )
+
   reloadModel: (name, version) ->
     @POST("model.reload", {name, version}).then((model) ->
       new Weaver.Model(model)
