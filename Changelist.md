@@ -1,5 +1,8 @@
 # Changelist
 
+## 6.2.1
+- Adds Model.list method
+
 ## 6.1.5
 - Fixes an issue where membership or subtype relations would not be accepted by
   the model.
