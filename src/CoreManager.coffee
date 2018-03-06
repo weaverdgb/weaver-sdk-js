@@ -121,7 +121,7 @@ class CoreManager
     )
 
   executePluginFunction: (route, payload) ->
-    @POST(route, payload)
+    @STREAM(route, payload)
 
   getModel: (name, version) ->
     @POST("model.read", {name, version}).then((model) ->
