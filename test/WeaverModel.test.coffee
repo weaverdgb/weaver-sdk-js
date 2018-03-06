@@ -18,8 +18,8 @@ describe 'WeaverModel test', ->
 
   it 'should list models from the server', ->
     Weaver.Model.list().then((models)->
-      assert.greaterThanOrEqualTo(models.length, 1)
-      assert.notEqualTo(models[0]._graph, 'undefined-undefined')
+      assert.isDefined(models['test-model'])
+      assert.isDefined(models['test-model'].length)
     )
 
   it 'should fail on a not existing model', ->

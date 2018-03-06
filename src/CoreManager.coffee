@@ -129,7 +129,7 @@ class CoreManager
     )
 
   listModels: ->
-    @POST("model.list")
+    @GET("model.list")
 
   reloadModel: (name, version) ->
     @POST("model.reload", {name, version}).then((model) ->
