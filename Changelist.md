@@ -1,6 +1,6 @@
 # Changelist
 
-## 6.2.1
+## 6.3.0
 - Adds Model.list method
 
 ## 6.1.5
@@ -12,7 +12,7 @@
   graph. By default in the default graph, or set with argument.
 
 ## 6.1.3
-- Do not consider e.g. owl:Class node a valid range for selecting the right 
+- Do not consider e.g. owl:Class node a valid range for selecting the right
   constructor in processing a ModelQuery resultset.
 - Instances from any ModelClass extension should not be put in the model
   graph. By default in the default graph, or set with argument.
@@ -56,4 +56,3 @@
 ## 6.0.1
 - Fixes a bug where the weaver-server embedded sdk would not send GET request
   bodies
-
