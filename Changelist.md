@@ -1,5 +1,8 @@
 # Changelist
 
+## pending
+- Add snapshotGraph calls next to snapshot for full project.
+
 ## 6.1.5
 - Fixes an issue where membership or subtype relations would not be accepted by
   the model.
