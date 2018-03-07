@@ -237,11 +237,11 @@ class CoreManager
   dumpHistory: (payload, target)->
     @GET('history', payload, target)
 
-  snapshotProject: (target, zipped)->
-    @GET('snapshot', {zipped}, target)
+  snapshotProject: (target, zipped, stored)->
+    @GET('snapshot', {zipped, stored}, target)
 
-  snapshotProjectGraph: (target, graph, zipped)->
-    @GET('snapshotGraph', {graph, zipped}, target)
+  snapshotProjectGraph: (target, graph, zipped, stored)->
+    @GET('snapshotGraph', {graph, zipped, stored}, target)
 
   wipeProject: (target)->
     @POST('project.wipe', {}, target)
