@@ -240,6 +240,9 @@ class CoreManager
   snapshotProject: (target, zipped)->
     @GET('snapshot', {zipped}, target)
 
+  snapshotProjectGraph: (target, graph, zipped)->
+    @GET('snapshotGraph', {graph, zipped}, target)
+
   wipeProject: (target)->
     @POST('project.wipe', {}, target)
 

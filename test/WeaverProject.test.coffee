@@ -163,6 +163,27 @@ describe 'WeaverProject Test', ->
       expect(writeOperations.length).to.equal(2)
     )
 
+  it 'should export the database content as snapshot per graph', ->
+    node = new Weaver.Node()
+    node.set('name', 'Foo')
+    other = new Weaver.Node(null, 'elsewhere')
+    other.set('name', 'Bar')
+    node.relation('to').add(other)
+
+    node.save().then((node) ->
+      node.save()
+    ).then(->
+      p = weaver.currentProject()
+      p.getSnapshotGraph()
+    ).then((writeOperations)->
+      expect(writeOperations.length).to.equal(3)
+    ).then(->
+      p = weaver.currentProject()
+      p.getSnapshotGraph('elsewhere')
+    ).then((writeOperations)->
+      expect(writeOperations.length).to.equal(2)
+    )
+
   it 'should not leak internal details of projects', ->
     weaver.coreManager.listProjects().then((projects) ->
       p = projects[0]
