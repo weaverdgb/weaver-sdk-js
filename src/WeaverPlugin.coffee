@@ -1,4 +1,7 @@
-Weaver  = require('./Weaver')
+Weaver = require('./Weaver')
+ss     = require('socket.io-stream')
+fs     = require('fs')
+
 
 class WeaverPlugin
 
@@ -15,15 +18,19 @@ class WeaverPlugin
 
         # Build payload from arguments based on function require
         payload = {}
-        payload[r] = args[index] for r, index in f.require if r isnt 'file'
+        payload[r] = args[index] for r, index in f.require when r isnt 'file'
         payload[r] = args[f.require.length + index] for r, index in f.optional
 
-        if f.require?.contains?('file')
+
+        fileParameterIndex = f.require.indexOf('file')
+        if fileParameterIndex > -1
+          file = args[fileParameterIndex]
           # File is a special parameter name which causes a socket stream to
-          # be created
-          if(File? and @filePath instanceof File) or @_fileExists(@filePath)
+          # be created and its always required
+
+          if(File? and file instanceof File) or fs.existsSync(file)
             stream = ss.createStream()
-            readStream = if File? and @filePath instanceof File then ss.createBlobReadStream(@filePath) else fs.createReadStream(@filePath)
+            readStream = if File? and file instanceof File then ss.createBlobReadStream(file) else fs.createReadStream(file)
             readStream.pipe(stream)
             payload['file'] = stream
           else
