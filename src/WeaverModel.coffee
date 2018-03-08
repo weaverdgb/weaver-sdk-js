@@ -89,6 +89,9 @@ class WeaverModel
   @reload: (name, version) ->
     Weaver.getCoreManager().reloadModel(name, version)
 
+  @list: ->
+    Weaver.getCoreManager().listModels()
+
   getInheritKey: ->
     @definition.inherit or '_inherit'
 

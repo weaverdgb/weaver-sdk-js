@@ -77,6 +77,9 @@ class WeaverProject
   getSnapshot: (zipped = false) ->
     Weaver.getCoreManager().snapshotProject(@id(), zipped)
 
+  getSnapshotGraph: (graph = null, zipped = false) ->
+    Weaver.getCoreManager().snapshotProjectGraph(@id(), graph, zipped)
+
   clone: (id, name) ->
     Weaver.getCoreManager().cloneProject(@id(), id, name).then((acl) ->
       new Weaver.Project(name, id, acl, true)
