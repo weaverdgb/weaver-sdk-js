@@ -36,11 +36,11 @@ class WeaverModel
             this.definition           = definition;
             this.className            = className;
             this.classDefinition      = classDefinition;
-            this.totalClassDefinition = totalClassDefinition
+            this.totalClassDefinition = totalClassDefinition;
           };
 
           #{className}.classId = function() {
-            return #{className}.definition.name + ":" + #{className}.className
+            return #{className}.definition.name + ":" + #{className}.className;
           };
 
           return #{className};
@@ -85,11 +85,12 @@ class WeaverModel
     @_graph = "#{@definition.name}-#{@definition.version}"
 
   _loadIncludes: (includeList)->
-    @definition.includes = [] if not @definition.includes?
+    @definition.includes = {} if not @definition.includes?
 
     # Map prefix to included model
     @includes = {}
-    Promise.map(@definition.includes, (incl)=>
+    includeDefs = ({prefix: key, name: obj.name, version: obj.version} for key, obj of @definition.includes)
+    Promise.map(includeDefs, (incl)=>
       if incl.name in includeList
         throw new Error("Model #{@definition.name} tries to include #{incl.name} but this introduces a cycle") 
       WeaverModel.load(incl.name, incl.version, includeList).then((loaded)=>
