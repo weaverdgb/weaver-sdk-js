@@ -1,6 +1,6 @@
-cuid        = require('cuid')
-Promise     = require('bluebird')
-Weaver      = require('./Weaver')
+cuid                 = require('cuid')
+Promise              = require('bluebird')
+Weaver               = require('./Weaver')
 WeaverModelValidator = require('./WeaverModelValidator')
 
 class WeaverModel
@@ -39,36 +39,13 @@ class WeaverModel
         })();
       """
 
-
-      _collectFromSupers = (classDefinition)=>
-        addFromSuper = (cd, totalDefinition = {attributes: {}, relations: {}}) =>
-
-          # Start with supers so lower specifications override the super ones
-          if cd.super?
-            superDefinition = @definition.classes[cd.super]
-            addFromSuper(superDefinition, totalDefinition)
-
-          transfer = (source) ->
-            totalDefinition[source][k] = v for k, v of cd[source] if cd[source]?
-
-          transfer('attributes')
-          transfer('relations')
-
-          totalDefinition
-
-        addFromSuper(classDefinition)
-
-
-      totalClassDefinition = _collectFromSupers(classDefinition)
-
       @[className] = eval(js)
       @[className] = @[className] extends Weaver.ModelClass
       @[className].model                = @
       @[className].definition           = @definition
       @[className].className            = className
       @[className].classDefinition      = classDefinition
-      @[className].totalClassDefinition = totalClassDefinition
-      
+      @[className].totalClassDefinition = @_collectFromSupers(classDefinition)
       
       load = (loadClass) => (nodeId, graph) =>
         new Weaver.ModelQuery(@)
@@ -95,6 +72,23 @@ class WeaverModel
       )
     )
 
+  _collectFromSupers: (classDefinition)->
+    addFromSuper = (cd, totalDefinition = {attributes: {}, relations: {}}) =>
+
+      # Start with supers so lower specifications override the super ones
+      if cd.super?
+        superDefinition = @definition.classes[cd.super]
+        addFromSuper(superDefinition, totalDefinition)
+
+      transfer = (source) ->
+        totalDefinition[source][k] = v for k, v of cd[source] if cd[source]?
+
+      transfer('attributes')
+      transfer('relations')
+
+      totalDefinition
+
+    addFromSuper(classDefinition)
 
   getGraphName: ->
     console.warn('Deprecated function WeaverModel.getGraphName() used. Use WeaverModel.getGraph().')
@@ -140,21 +134,21 @@ class WeaverModel
 
       for itemName in classObj.init
         node = new ModelClass("#{@definition.name}:#{itemName}", @getGraph())
-        if not "#{@definition.name}:#{itemName}" in existingNodes
+        if "#{@definition.name}:#{itemName}" not in existingNodes
           nodesToCreate[node.id()] = node
         else
           node._clearPendingWrites()
         @[className][itemName] = node
 
     # Now add all the nodes that are not a model class
-    for className of @definition.classes when not "#{@definition.name}:#{className}" in existingNodes
+    for className of @definition.classes when "#{@definition.name}:#{className}" not in existingNodes
       id = "#{@definition.name}:#{className}"
       if not nodesToCreate[id]?
         node = new Weaver.Node(id, @getGraph())
         nodesToCreate[node.id()] = node
 
     # Link inheritance
-    for className, classObj of @definition.classes when classObj.super? and not "#{@definition.name}:#{className}" in existingNodes
+    for className, classObj of @definition.classes when classObj.super? and "#{@definition.name}:#{className}" not in existingNodes
       node = nodesToCreate["#{@definition.name}:#{className}"]
       superClassNode = nodesToCreate["#{@definition.name}:#{classObj.super}"] 
       if node instanceof Weaver.ModelClass
@@ -162,6 +156,7 @@ class WeaverModel
       else
         node.relation(@getInheritKey()).add(superClassNode)
 
+    console.log nodesToCreate
     Weaver.Node.batchSave(node for id, node of nodesToCreate)
 
 module.exports = WeaverModel
