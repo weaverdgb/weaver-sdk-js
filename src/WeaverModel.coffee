@@ -5,10 +5,19 @@ WeaverModelValidator = require('./WeaverModelValidator')
 
 class WeaverModel
 
-  constructor: (@definition) ->
-    new WeaverModelValidator(@definition).validate()
+  constructor: (@definition, includeList) ->
+  
+    # Load included models
+    includeList = [] if not includeList?
+    includeList.push(@definition.name)
+    @_loadIncludes(includeList).then(=>
 
-    # Register classes
+      new WeaverModelValidator(@definition, @includes).validate()
+      @_registerClasses()
+    )
+
+  _registerClasses: ->
+  
     for className, classDefinition of @definition.classes
 
       js = """
@@ -75,6 +84,20 @@ class WeaverModel
 
     @_graph = "#{@definition.name}-#{@definition.version}"
 
+  _loadIncludes: (includeList)->
+    @definition.includes = [] if not @definition.includes?
+
+    # Map prefix to included model
+    @includes = {}
+    Promise.map(@definition.includes, (incl)=>
+      if incl.name in includeList
+        throw new Error("Model #{@definition.name} tries to include #{incl.name} but this introduces a cycle") 
+      WeaverModel.load(incl.name, incl.version, includeList).then((loaded)=>
+        @includes[incl.prefix] = loaded
+      )
+    )
+
+
   getGraphName: ->
     console.warn('Deprecated function WeaverModel.getGraphName() used. Use WeaverModel.getGraph().')
     @_graph
@@ -83,8 +106,8 @@ class WeaverModel
     @_graph
 
   # Load given model from server
-  @load: (name, version) ->
-    Weaver.getCoreManager().getModel(name, version)
+  @load: (name, version, includeList) ->
+    Weaver.getCoreManager().getModel(name, version, includeList)
 
   @reload: (name, version) ->
     Weaver.getCoreManager().reloadModel(name, version)

@@ -10,6 +10,7 @@ inherit: 'rdfs:subClassOf'
 includes:
   - name: test-doc-model
     version: 0.1.0
+    prefix: td
 
 classes:
   Human:
@@ -75,4 +76,4 @@ classes:
       worksIn:
         range: [Office]
       signed:
-        range: []
+        range: [td:Document]

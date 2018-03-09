@@ -123,9 +123,9 @@ class CoreManager
   executePluginFunction: (route, payload) ->
     @POST(route, payload)
 
-  getModel: (name, version) ->
+  getModel: (name, version, includeList) ->
     @POST("model.read", {name, version}).then((model) ->
-      new Weaver.Model(model)
+      new Weaver.Model(model, includeList)
     )
 
   listModels: ->
