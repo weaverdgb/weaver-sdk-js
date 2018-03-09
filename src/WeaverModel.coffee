@@ -6,6 +6,8 @@ WeaverModelValidator = require('./WeaverModelValidator')
 class WeaverModel
 
   constructor: (@definition, includeList) ->
+
+    @_graph = "#{@definition.name}-#{@definition.version}"
   
     # Load included models
     includeList = [] if not includeList?
@@ -56,7 +58,6 @@ class WeaverModel
 
       @[className].load = load(className)
 
-    @_graph = "#{@definition.name}-#{@definition.version}"
 
   _loadIncludes: (includeList)->
     @definition.includes = {} if not @definition.includes?

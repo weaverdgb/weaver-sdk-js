@@ -161,7 +161,7 @@ describe 'WeaverModel test', ->
       it 'should have init member after a bootstrap', ->
         expect(model).to.have.property('City').to.have.property('Rotterdam').be.defined
 
-      it 'should have init member on load an rebootstrap', ->
+      it 'should have init member on load a rebootstrap', ->
         Weaver.Model.load(model.definition.name, model.definition.version).then((reloaded) ->
           reloaded.bootstrap().then(->
             expect(reloaded).to.have.property('City').to.have.property('Rotterdam').be.defined
