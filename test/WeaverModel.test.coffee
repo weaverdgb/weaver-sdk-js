@@ -41,6 +41,13 @@ describe 'WeaverModel test', ->
       assert.equal(error.code, Weaver.Error.MODEL_NOT_FOUND)
     )
 
+  it 'should fail on an include cycle', ->
+    Weaver.Model.load("test-cycle-model", "0.0.1").then((Model) ->
+      assert(false)
+    ).catch((error)->
+      assert.equal(error.code, Weaver.Error.MODEL_INCLUSION_CYCLE)
+    )
+
   it 'should fail on a not existing version of an existing model', ->
     Weaver.Model.load("test-model", "1.99.1").then((Model) ->
       assert(false)
@@ -52,7 +59,7 @@ describe 'WeaverModel test', ->
     model = {}
 
     before ->
-      Weaver.Model.load("test-model", "1.1.2").then((m) ->
+      Weaver.Model.load("test-model", "1.2.0").then((m) ->
         model = m
       )
 

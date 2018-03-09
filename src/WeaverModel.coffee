@@ -5,10 +5,11 @@ WeaverModelValidator = require('./WeaverModelValidator')
 
 class WeaverModel
 
-  constructor: (@definition, includeList) ->
-
+  constructor: (@definition) ->
     @_graph = "#{@definition.name}-#{@definition.version}"
   
+  init: (includeList)->
+
     # Load included models
     includeList = [] if not includeList?
     includeList.push(@definition.name)
@@ -16,6 +17,7 @@ class WeaverModel
 
       new WeaverModelValidator(@definition, @includes).validate()
       @_registerClasses()
+      @
     )
 
   _registerClasses: ->
@@ -67,7 +69,10 @@ class WeaverModel
     includeDefs = ({prefix: key, name: obj.name, version: obj.version} for key, obj of @definition.includes)
     Promise.map(includeDefs, (incl)=>
       if incl.name in includeList
-        throw new Error("Model #{@definition.name} tries to include #{incl.name} but this introduces a cycle") 
+
+        error = new Error("Model #{@definition.name} tries to include #{incl.name} but this introduces a cycle")
+        error.code = 209
+        return Promise.reject(error)
       WeaverModel.load(incl.name, incl.version, includeList).then((loaded)=>
         @includes[incl.prefix] = loaded
       )
@@ -100,10 +105,14 @@ class WeaverModel
 
   # Load given model from server
   @load: (name, version, includeList) ->
-    Weaver.getCoreManager().getModel(name, version, includeList)
+    Weaver.getCoreManager().getModel(name, version).then((model)->
+      model.init(includeList)
+    )
 
-  @reload: (name, version) ->
-    Weaver.getCoreManager().reloadModel(name, version)
+  @reload: (name, version, includeList) ->
+    Weaver.getCoreManager().reloadModel(name, version).then((model)->
+      model.init(includeList)
+    )
 
   @list: ->
     Weaver.getCoreManager().listModels()
@@ -119,11 +128,15 @@ class WeaverModel
     @getMemberKey()
 
   bootstrap: ->
-    new Weaver.Query()
-    .contains('id', "#{@definition.name}:")
-    .restrictGraphs(@getGraph())
-    .find().then((nodes) =>
-      @_bootstrapClasses((i.id() for i in nodes))
+    # Bootstrap includes bottom up because higher models can extend concepts from lower models
+    Promise.all((incl.bootstrap() for prefix, incl of @includes))
+    .then(=>
+      new Weaver.Query()
+      .contains('id', "#{@definition.name}:")
+      .restrictGraphs(@getGraph())
+      .find().then((nodes) =>
+        @_bootstrapClasses((i.id() for i in nodes))
+      )
     )
 
   _bootstrapClasses: (existingNodes) ->
