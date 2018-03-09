@@ -31,14 +31,6 @@ class WeaverModel
             #{className}.__super__.constructor.call(this, nodeId, graph);
           };
 
-          #{className}.defineBy = function(model, definition, className, classDefinition, totalClassDefinition) {
-            this.model                = model;
-            this.definition           = definition;
-            this.className            = className;
-            this.classDefinition      = classDefinition;
-            this.totalClassDefinition = totalClassDefinition;
-          };
-
           #{className}.classId = function() {
             return #{className}.definition.name + ":" + #{className}.className;
           };
@@ -46,7 +38,6 @@ class WeaverModel
           return #{className};
         })();
       """
-
 
 
       _collectFromSupers = (classDefinition)=>
@@ -72,7 +63,13 @@ class WeaverModel
 
       @[className] = eval(js)
       @[className] = @[className] extends Weaver.ModelClass
-      @[className].defineBy(@, @definition, className, classDefinition, totalClassDefinition)
+      @[className].model                = @
+      @[className].definition           = @definition
+      @[className].className            = className
+      @[className].classDefinition      = classDefinition
+      @[className].totalClassDefinition = totalClassDefinition
+      
+      
       load = (loadClass) => (nodeId, graph) =>
         new Weaver.ModelQuery(@)
           .class(@[loadClass])
@@ -143,21 +140,21 @@ class WeaverModel
 
       for itemName in classObj.init
         node = new ModelClass("#{@definition.name}:#{itemName}", @getGraph())
-        if not existingNodes.includes("#{@definition.name}:#{itemName}")
+        if not "#{@definition.name}:#{itemName}" in existingNodes
           nodesToCreate[node.id()] = node
         else
           node._clearPendingWrites()
         @[className][itemName] = node
 
     # Now add all the nodes that are not a model class
-    for className of @definition.classes when not existingNodes.includes("#{@definition.name}:#{className}")
+    for className of @definition.classes when not "#{@definition.name}:#{className}" in existingNodes
       id = "#{@definition.name}:#{className}"
       if not nodesToCreate[id]?
         node = new Weaver.Node(id, @getGraph())
         nodesToCreate[node.id()] = node
 
     # Link inheritance
-    for className, classObj of @definition.classes when classObj.super? and not existingNodes.includes("#{@definition.name}:#{className}")
+    for className, classObj of @definition.classes when classObj.super? and not "#{@definition.name}:#{className}" in existingNodes
       node = nodesToCreate["#{@definition.name}:#{className}"]
       superClassNode = nodesToCreate["#{@definition.name}:#{classObj.super}"] 
       if node instanceof Weaver.ModelClass
