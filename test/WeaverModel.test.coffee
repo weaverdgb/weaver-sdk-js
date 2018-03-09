@@ -181,6 +181,16 @@ describe 'WeaverModel test', ->
         person.set("fullName", "Arild Askholmen")
         person.save()
 
+      it 'should succeed saving with type definition of an included model', ->
+        Document = model.td.Document
+        document = new Document()
+        document.save()
+        .then(->
+          Document.load(document.id())
+        ).then((loaded)->
+          expect(loaded.id()).to.equal(document.id())
+        )
+
       it 'should succeed save one instance with single type', ->
         Weaver.Node.loadFromGraph('test-model:Leiden', model.getGraph()).then((node)->
           node.relation('rdf:type').all().should.have.length.be(1)

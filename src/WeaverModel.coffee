@@ -16,49 +16,51 @@ class WeaverModel
     @_loadIncludes(includeList).then(=>
 
       new WeaverModelValidator(@definition, @includes).validate()
-      @_registerClasses()
+      @_registerClass(@, @, className, classDefinition) for className, classDefinition of @definition.classes
+      for prefix, incl of @includes
+        @[prefix] = {}
+        for className, classDefinition of incl.definition.classes 
+          @_registerClass(@[prefix], incl, className, classDefinition) 
       @
     )
 
-  _registerClasses: ->
+  _registerClass: (carrier, model, className, classDefinition)->
   
-    for className, classDefinition of @definition.classes
+    js = """
+      (function() {
+        function #{className}(nodeId, graph) {
+          this.model                = #{className}.model;
+          this.definition           = #{className}.definition;
+          this.className            = "#{className}";
+          this.classDefinition      = #{className}.classDefinition;
+          this.totalClassDefinition = #{className}.totalClassDefinition;
+          #{className}.__super__.constructor.call(this, nodeId, graph);
+        };
 
-      js = """
-        (function() {
-          function #{className}(nodeId, graph) {
-            this.model                = #{className}.model;
-            this.definition           = #{className}.definition;
-            this.className            = "#{className}";
-            this.classDefinition      = #{className}.classDefinition;
-            this.totalClassDefinition = #{className}.totalClassDefinition;
-            #{className}.__super__.constructor.call(this, nodeId, graph);
-          };
+        #{className}.classId = function() {
+          return #{className}.definition.name + ":" + #{className}.className;
+        };
 
-          #{className}.classId = function() {
-            return #{className}.definition.name + ":" + #{className}.className;
-          };
+        return #{className};
+      })();
+    """
 
-          return #{className};
-        })();
-      """
+    carrier[className] = eval(js)
+    carrier[className] = carrier[className] extends Weaver.ModelClass
+    carrier[className].model                = model
+    carrier[className].definition           = model.definition
+    carrier[className].className            = className
+    carrier[className].classDefinition      = classDefinition
+    carrier[className].totalClassDefinition = model._collectFromSupers(classDefinition)
+    
+    load = (loadClass) => (nodeId, graph) =>
+      new Weaver.ModelQuery(model)
+        .class(carrier[loadClass])
+        .restrict(nodeId)
+        .inGraph(graph)
+        .first(carrier[loadClass])
 
-      @[className] = eval(js)
-      @[className] = @[className] extends Weaver.ModelClass
-      @[className].model                = @
-      @[className].definition           = @definition
-      @[className].className            = className
-      @[className].classDefinition      = classDefinition
-      @[className].totalClassDefinition = @_collectFromSupers(classDefinition)
-      
-      load = (loadClass) => (nodeId, graph) =>
-        new Weaver.ModelQuery(@)
-          .class(@[loadClass])
-          .restrict(nodeId)
-          .inGraph(graph)
-          .first(@[loadClass])
-
-      @[className].load = load(className)
+    carrier[className].load = load(className)
 
 
   _loadIncludes: (includeList)->
@@ -67,6 +69,7 @@ class WeaverModel
     # Map prefix to included model
     @includes = {}
     includeDefs = ({prefix: key, name: obj.name, version: obj.version} for key, obj of @definition.includes)
+    
     Promise.map(includeDefs, (incl)=>
       if incl.name in includeList
 
@@ -128,7 +131,7 @@ class WeaverModel
     @getMemberKey()
 
   bootstrap: ->
-    # Bootstrap includes bottom up because higher models can extend concepts from lower models
+    # Bootstrap includes in bottom up order because higher models can extend concepts from lower models
     Promise.all((incl.bootstrap() for prefix, incl of @includes))
     .then(=>
       new Weaver.Query()
