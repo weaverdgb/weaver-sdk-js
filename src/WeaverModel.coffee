@@ -156,7 +156,6 @@ class WeaverModel
       else
         node.relation(@getInheritKey()).add(superClassNode)
 
-    console.log nodesToCreate
     Weaver.Node.batchSave(node for id, node of nodesToCreate)
 
 module.exports = WeaverModel
