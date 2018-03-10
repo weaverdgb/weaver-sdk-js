@@ -78,3 +78,10 @@ classes:
         range: [Office]
       signed:
         range: [td.Document]
+  DeliveryNotice:
+    super: td.Document
+    attributes:
+      at:
+        key: 'at'
+        required: true
+        datatype: xsd:dateTime

@@ -16,7 +16,8 @@ class WeaverModel
     @_loadIncludes(includeList).then(=>
 
       new WeaverModelValidator(@definition, @includes).validate()
-      @_registerClass(@, @, className, classDefinition) for className, classDefinition of @definition.classes
+      for className, classDefinition of @definition.classes
+        @_registerClass(@, @, className, classDefinition) 
       for prefix, incl of @includes
         @[prefix] = {}
         for className, classDefinition of incl.definition.classes 
@@ -85,12 +86,12 @@ class WeaverModel
     addFromSuper = (cd, totalDefinition = {attributes: {}, relations: {}}) =>
 
       # Start with supers so lower specifications override the super ones
-      if cd.super?
+      if cd?.super?
         superDefinition = @definition.classes[cd.super]
         addFromSuper(superDefinition, totalDefinition)
 
       transfer = (source) ->
-        totalDefinition[source][k] = v for k, v of cd[source] if cd[source]?
+        totalDefinition[source][k] = v for k, v of cd?[source] if cd?[source]?
 
       transfer('attributes')
       transfer('relations')
@@ -130,20 +131,44 @@ class WeaverModel
     console.warn('Deprecated function WeaverModel.getPrototypeKey() used. Use WeaverModel.getMemberKey().')
     @getMemberKey()
 
-  bootstrap: ->
-    # Bootstrap includes in bottom up order because higher models can extend concepts from lower models
-    Promise.all((incl.bootstrap() for prefix, incl of @includes))
-    .then(=>
+  # get id of node for className
+  _getClassNodeId: (key)->
+
+    # look in included models if needed
+    if key.indexOf('.') > -1
+      prefix = key.substr(0, key.indexOf('.'))
+      tail = key.substr(key.indexOf('.') + 1)
+      if not @includes[prefix]?
+        throw new Error("Using prefix #{prefix} in #{key} but not including a model using this prefix.")
+      modelName = @includes[prefix].definition.name
+      "#{modelName}:#{tail}"
+
+    # look in the main model
+    else
+      modelName = @definition.name
+      "#{modelName}:#{key}"
+
+  bootstrap: (save=true)->
+    # Bootstrap the include models in bottom up order because first order models can extend concepts from included models
+    Promise.all((incl.bootstrap(false) for prefix, incl of @includes))
+    .then((nodesToCreateList)=>
+
+      nodesToCreate = {}
+      nodesToCreate[key] = value for key, value of map for map in nodesToCreateList
+      
       new Weaver.Query()
       .contains('id', "#{@definition.name}:")
       .restrictGraphs(@getGraph())
       .find().then((nodes) =>
-        @_bootstrapClasses((i.id() for i in nodes))
+        nodesToCreate = @_bootstrapClasses((i.id() for i in nodes), nodesToCreate)
+        if save
+          Weaver.Node.batchSave(node for id, node of nodesToCreate)
+        else
+          nodesToCreate
       )
     )
 
-  _bootstrapClasses: (existingNodes) ->
-    nodesToCreate = {}
+  _bootstrapClasses: (existingNodes, nodesToCreate={}) ->
 
     # First create all class instances
     for className, classObj of @definition.classes when classObj.init?
@@ -158,21 +183,25 @@ class WeaverModel
         @[className][itemName] = node
 
     # Now add all the nodes that are not a model class
-    for className of @definition.classes when "#{@definition.name}:#{className}" not in existingNodes
-      id = "#{@definition.name}:#{className}"
-      if not nodesToCreate[id]?
-        node = new Weaver.Node(id, @getGraph())
-        nodesToCreate[node.id()] = node
+    for className of @definition.classes
+      id = @_getClassNodeId(className)
+      if id not in existingNodes
+        if not nodesToCreate[id]?
+          node = new Weaver.Node(id, @getGraph())
+          nodesToCreate[node.id()] = node
 
     # Link inheritance
-    for className, classObj of @definition.classes when classObj.super? and "#{@definition.name}:#{className}" not in existingNodes
-      node = nodesToCreate["#{@definition.name}:#{className}"]
-      superClassNode = nodesToCreate["#{@definition.name}:#{classObj.super}"] 
-      if node instanceof Weaver.ModelClass
-        node.nodeRelation(@getInheritKey()).add(superClassNode)
-      else
-        node.relation(@getInheritKey()).add(superClassNode)
+    for className, classObj of @definition.classes when classObj.super? 
+      id = @_getClassNodeId(className)
+      superId = @_getClassNodeId(classObj.super)
+      if id not in existingNodes
+        node = nodesToCreate[id]
+        superClassNode = nodesToCreate[superId] 
+        if node instanceof Weaver.ModelClass
+          node.nodeRelation(@getInheritKey()).add(superClassNode)
+        else
+          node.relation(@getInheritKey()).add(superClassNode)
 
-    Weaver.Node.batchSave(node for id, node of nodesToCreate)
+    nodesToCreate
 
 module.exports = WeaverModel
