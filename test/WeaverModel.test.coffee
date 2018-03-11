@@ -184,7 +184,6 @@ describe 'WeaverModel test', ->
       it 'should succeed saving with type definition of an included model', ->
         Document = model.td.Document
         document = new Document()
-        document.set('at', 'work')
         document.save()
         .then(->
           Document.load(document.id())
@@ -195,6 +194,7 @@ describe 'WeaverModel test', ->
       it 'should succeed saving with exteinded type definition of an included model', ->
         Document = model.DeliveryNotice
         document = new Document()
+        document.set('at', 'work')
         document.save()
         .then(->
           Document.load(document.id())
