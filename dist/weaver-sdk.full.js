@@ -100245,7 +100245,7 @@ module.exports = yeast;
 },{}],401:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "6.3.0-rc.0",
+  "version": "6.3.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -100254,7 +100254,7 @@ module.exports={
   },
   "com_weaverplatform": {
     "requiredConnectorVersion": "^4.3.0",
-    "requiredServerVersion": "^3.9.0-beta.5"
+    "requiredServerVersion": "^3.9.0"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -100733,16 +100733,18 @@ module.exports={
       return this.GET('history', payload, target);
     };
 
-    CoreManager.prototype.snapshotProject = function(target, zipped, stored) {
+    CoreManager.prototype.snapshotProject = function(target, json, zipped, stored) {
       return this.GET('snapshot', {
+        json: json,
         zipped: zipped,
         stored: stored
       }, target);
     };
 
-    CoreManager.prototype.snapshotProjectGraph = function(target, graph, zipped, stored) {
+    CoreManager.prototype.snapshotProjectGraph = function(target, graph, json, zipped, stored) {
       return this.GET('snapshotGraph', {
         graph: graph,
+        json: json,
         zipped: zipped,
         stored: stored
       }, target);
@@ -103917,27 +103919,33 @@ module.exports={
       return renamed;
     };
 
-    WeaverProject.prototype.getSnapshot = function(zipped, stored) {
+    WeaverProject.prototype.getSnapshot = function(json, zipped, stored) {
+      if (json == null) {
+        json = true;
+      }
       if (zipped == null) {
         zipped = false;
       }
       if (stored == null) {
         stored = false;
       }
-      return Weaver.getCoreManager().snapshotProject(this.id(), zipped, stored);
+      return Weaver.getCoreManager().snapshotProject(this.id(), json, zipped, stored);
     };
 
-    WeaverProject.prototype.getSnapshotGraph = function(graph, zipped, stored) {
+    WeaverProject.prototype.getSnapshotGraph = function(graph, json, zipped, stored) {
       if (graph == null) {
         graph = null;
       }
+      if (json == null) {
+        json = true;
+      }
       if (zipped == null) {
         zipped = false;
       }
       if (stored == null) {
         stored = false;
       }
-      return Weaver.getCoreManager().snapshotProjectGraph(this.id(), graph, zipped, stored);
+      return Weaver.getCoreManager().snapshotProjectGraph(this.id(), graph, json, zipped, stored);
     };
 
     WeaverProject.prototype.clone = function(id, name) {

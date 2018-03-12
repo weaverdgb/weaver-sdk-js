@@ -1,6 +1,6 @@
 {
   "name": "weaver-sdk",
-  "version": "6.3.0-rc.0",
+  "version": "6.3.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -9,7 +9,7 @@
   },
   "com_weaverplatform": {
     "requiredConnectorVersion": "^4.3.0",
-    "requiredServerVersion": "^3.9.0-beta.5"
+    "requiredServerVersion": "^3.9.0"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
