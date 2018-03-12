@@ -74,11 +74,11 @@ class WeaverProject
     @name = name
     renamed
 
-  getSnapshot: (zipped = false, stored = false) ->
-    Weaver.getCoreManager().snapshotProject(@id(), zipped, stored)
+  getSnapshot: (json=true, zipped=false, stored=false) ->
+    Weaver.getCoreManager().snapshotProject(@id(), json, zipped, stored)
 
-  getSnapshotGraph: (graph = null, zipped = false, stored = false) ->
-    Weaver.getCoreManager().snapshotProjectGraph(@id(), graph, zipped, stored)
+  getSnapshotGraph: (graph=null, json=true, zipped=false, stored=false) ->
+    Weaver.getCoreManager().snapshotProjectGraph(@id(), graph, json, zipped, stored)
 
   clone: (id, name) ->
     Weaver.getCoreManager().cloneProject(@id(), id, name).then((acl) ->

@@ -160,6 +160,7 @@ describe 'WeaverProject Test', ->
       p = weaver.currentProject()
       p.getSnapshot()
     ).then((writeOperations)->
+      console.log writeOperations
       expect(writeOperations.length).to.equal(2)
     )
 
@@ -176,11 +177,13 @@ describe 'WeaverProject Test', ->
       p = weaver.currentProject()
       p.getSnapshotGraph()
     ).then((writeOperations)->
+      console.log writeOperations
       expect(writeOperations.length).to.equal(3)
     ).then(->
       p = weaver.currentProject()
       p.getSnapshotGraph('elsewhere')
     ).then((writeOperations)->
+      console.log writeOperations
       expect(writeOperations.length).to.equal(2)
     )
 
