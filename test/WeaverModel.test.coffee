@@ -16,6 +16,12 @@ describe 'WeaverModel test', ->
       assert.equal(Model.definition.version, "1.1.2")
     )
 
+  it 'should list models from the server', ->
+    Weaver.Model.list().then((models)->
+      assert.isDefined(models['test-model'])
+      assert.isDefined(models['test-model'].length)
+    )
+
   it 'should fail on a not existing model', ->
     Weaver.Model.load("ghost-model", "1.1.2").then((Model) ->
       assert(false)

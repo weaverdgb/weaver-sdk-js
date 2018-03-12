@@ -121,12 +121,15 @@ class CoreManager
     )
 
   executePluginFunction: (route, payload) ->
-    @POST(route, payload)
+    @STREAM(route, payload)
 
   getModel: (name, version) ->
     @POST("model.read", {name, version}).then((model) ->
       new Weaver.Model(model)
     )
+
+  listModels: ->
+    @GET("model.list")
 
   reloadModel: (name, version) ->
     @POST("model.reload", {name, version}).then((model) ->
@@ -239,6 +242,9 @@ class CoreManager
 
   snapshotProject: (target, zipped)->
     @GET('snapshot', {zipped}, target)
+
+  snapshotProjectGraph: (target, graph, zipped)->
+    @GET('snapshotGraph', {graph, zipped}, target)
 
   wipeProject: (target)->
     @POST('project.wipe', {}, target)
