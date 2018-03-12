@@ -150,7 +150,7 @@ describe 'WeaverProject Test', ->
     )
     return
 
-  it 'should export the database content as snapshot', ->
+  it 'should export the database content as snapshot regardless of graph', ->
     node = new Weaver.Node()
 
     node.save().then((node) ->
