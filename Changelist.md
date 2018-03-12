@@ -1,7 +1,8 @@
 # Changelist
 
 ## develop
-- Allow models to include models
+- Allow models to include models.
+- Add snapshotGraph calls next to snapshot for full project.
 
 ## 6.3.0
 - Adds Model.list method
