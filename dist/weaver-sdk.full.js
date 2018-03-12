@@ -98953,7 +98953,7 @@ module.exports={
     };
 
     CoreManager.prototype.executePluginFunction = function(route, payload) {
-      return this.POST(route, payload);
+      return this.STREAM(route, payload);
     };
 
     CoreManager.prototype.getModel = function(name, version) {
@@ -100193,6 +100193,8 @@ module.exports={
 
   WeaverError.MODEL_VERSION_NOT_FOUND = 207;
 
+  WeaverError.MODEL_INCLUSION_CYCLE = 209;
+
   WeaverError.INVALID_USERNAME_PASSWORD = 212;
 
   module.exports = WeaverError;
@@ -100587,7 +100589,8 @@ module.exports={
 (function() {
   var Promise, Weaver, WeaverModel, WeaverModelValidator, cuid,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty;
+    hasProp = {}.hasOwnProperty,
+    indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   cuid = require('cuid');
 
@@ -100599,62 +100602,128 @@ module.exports={
 
   WeaverModel = (function() {
     function WeaverModel(definition) {
-      var _collectFromSupers, classDefinition, className, js, load, ref, totalClassDefinition;
       this.definition = definition;
-      new WeaverModelValidator(this.definition).validate();
-      ref = this.definition.classes;
-      for (className in ref) {
-        classDefinition = ref[className];
-        js = "(function() {\n  function " + className + "(nodeId, graph) {\n    this.model                = " + className + ".model;\n    this.definition           = " + className + ".definition;\n    this.className            = \"" + className + "\";\n    this.classDefinition      = " + className + ".classDefinition;\n    this.totalClassDefinition = " + className + ".totalClassDefinition;\n    " + className + ".__super__.constructor.call(this, nodeId, graph);\n  };\n\n  " + className + ".defineBy = function(model, definition, className, classDefinition, totalClassDefinition) {\n    this.model                = model;\n    this.definition           = definition;\n    this.className            = className;\n    this.classDefinition      = classDefinition;\n    this.totalClassDefinition = totalClassDefinition\n  };\n\n  " + className + ".classId = function() {\n    return " + className + ".definition.name + \":\" + " + className + ".className\n  };\n\n  return " + className + ";\n})();";
-        _collectFromSupers = (function(_this) {
-          return function(classDefinition) {
-            var addFromSuper;
-            addFromSuper = function(cd, totalDefinition) {
-              var superDefinition, transfer;
-              if (totalDefinition == null) {
-                totalDefinition = {
-                  attributes: {},
-                  relations: {}
-                };
-              }
-              if (cd["super"] != null) {
-                superDefinition = _this.definition.classes[cd["super"]];
-                addFromSuper(superDefinition, totalDefinition);
-              }
-              transfer = function(source) {
-                var k, ref1, results, v;
-                if (cd[source] != null) {
-                  ref1 = cd[source];
-                  results = [];
-                  for (k in ref1) {
-                    v = ref1[k];
-                    results.push(totalDefinition[source][k] = v);
-                  }
-                  return results;
-                }
-              };
-              transfer('attributes');
-              transfer('relations');
-              return totalDefinition;
-            };
-            return addFromSuper(classDefinition);
-          };
-        })(this);
-        totalClassDefinition = _collectFromSupers(classDefinition);
-        this[className] = eval(js);
-        this[className] = extend(this[className], Weaver.ModelClass);
-        this[className].defineBy(this, this.definition, className, classDefinition, totalClassDefinition);
-        load = (function(_this) {
-          return function(loadClass) {
-            return function(nodeId, graph) {
-              return new Weaver.ModelQuery(_this)["class"](_this[loadClass]).restrict(nodeId).inGraph(graph).first(_this[loadClass]);
-            };
-          };
-        })(this);
-        this[className].load = load(className);
-      }
       this._graph = this.definition.name + "-" + this.definition.version;
     }
+
+    WeaverModel.prototype.init = function(includeList) {
+      if (includeList == null) {
+        includeList = [];
+      }
+      includeList.push(this.definition.name);
+      return this._loadIncludes(includeList).then((function(_this) {
+        return function() {
+          var classDefinition, className, incl, prefix, ref, ref1, ref2;
+          new WeaverModelValidator(_this.definition, _this.includes).validate();
+          ref = _this.definition.classes;
+          for (className in ref) {
+            classDefinition = ref[className];
+            _this._registerClass(_this, _this, className, classDefinition);
+          }
+          ref1 = _this.includes;
+          for (prefix in ref1) {
+            incl = ref1[prefix];
+            _this[prefix] = {};
+            ref2 = incl.definition.classes;
+            for (className in ref2) {
+              classDefinition = ref2[className];
+              _this._registerClass(_this[prefix], incl, className, classDefinition);
+            }
+          }
+          return _this;
+        };
+      })(this));
+    };
+
+    WeaverModel.prototype._registerClass = function(carrier, model, className, classDefinition) {
+      var js, load;
+      js = "(function() {\n  function " + className + "(nodeId, graph) {\n    this.model                = " + className + ".model;\n    this.definition           = " + className + ".definition;\n    this.className            = \"" + className + "\";\n    this.classDefinition      = " + className + ".classDefinition;\n    this.totalClassDefinition = " + className + ".totalClassDefinition;\n    " + className + ".__super__.constructor.call(this, nodeId, graph);\n  };\n\n  " + className + ".classId = function() {\n    return " + className + ".definition.name + \":\" + " + className + ".className;\n  };\n\n  return " + className + ";\n})();";
+      carrier[className] = eval(js);
+      carrier[className] = extend(carrier[className], Weaver.ModelClass);
+      carrier[className].model = model;
+      carrier[className].definition = model.definition;
+      carrier[className].className = className;
+      carrier[className].classDefinition = classDefinition;
+      carrier[className].totalClassDefinition = model._collectFromSupers(classDefinition);
+      load = (function(_this) {
+        return function(loadClass) {
+          return function(nodeId, graph) {
+            return new Weaver.ModelQuery(model)["class"](carrier[loadClass]).restrict(nodeId).inGraph(graph).first(carrier[loadClass]);
+          };
+        };
+      })(this);
+      return carrier[className].load = load(className);
+    };
+
+    WeaverModel.prototype._loadIncludes = function(includeList) {
+      var includeDefs, key, obj;
+      if (this.definition.includes == null) {
+        this.definition.includes = {};
+      }
+      this.includes = {};
+      includeDefs = (function() {
+        var ref, results;
+        ref = this.definition.includes;
+        results = [];
+        for (key in ref) {
+          obj = ref[key];
+          results.push({
+            prefix: key,
+            name: obj.name,
+            version: obj.version
+          });
+        }
+        return results;
+      }).call(this);
+      return Promise.map(includeDefs, (function(_this) {
+        return function(incl) {
+          var error, ref;
+          if (ref = incl.name, indexOf.call(includeList, ref) >= 0) {
+            error = new Error("Model " + _this.definition.name + " tries to include " + incl.name + " but this introduces a cycle");
+            error.code = 209;
+            return Promise.reject(error);
+          }
+          return WeaverModel.load(incl.name, incl.version, includeList).then(function(loaded) {
+            return _this.includes[incl.prefix] = loaded;
+          });
+        };
+      })(this));
+    };
+
+    WeaverModel.prototype._collectFromSupers = function(classDefinition) {
+      var addFromSuper;
+      addFromSuper = (function(_this) {
+        return function(cd, totalDefinition) {
+          var superDefinition, transfer;
+          if (totalDefinition == null) {
+            totalDefinition = {
+              attributes: {},
+              relations: {}
+            };
+          }
+          if ((cd != null ? cd["super"] : void 0) != null) {
+            superDefinition = _this.definition.classes[cd["super"]];
+            addFromSuper(superDefinition, totalDefinition);
+          }
+          transfer = function(source) {
+            var k, ref, results, v;
+            if ((cd != null ? cd[source] : void 0) != null) {
+              ref = cd != null ? cd[source] : void 0;
+              results = [];
+              for (k in ref) {
+                v = ref[k];
+                results.push(totalDefinition[source][k] = v);
+              }
+              return results;
+            }
+          };
+          transfer('attributes');
+          transfer('relations');
+          return totalDefinition;
+        };
+      })(this);
+      return addFromSuper(classDefinition);
+    };
 
     WeaverModel.prototype.getGraphName = function() {
       console.warn('Deprecated function WeaverModel.getGraphName() used. Use WeaverModel.getGraph().');
@@ -100665,12 +100734,16 @@ module.exports={
       return this._graph;
     };
 
-    WeaverModel.load = function(name, version) {
-      return Weaver.getCoreManager().getModel(name, version);
+    WeaverModel.load = function(name, version, includeList) {
+      return Weaver.getCoreManager().getModel(name, version).then(function(model) {
+        return model.init(includeList);
+      });
     };
 
-    WeaverModel.reload = function(name, version) {
-      return Weaver.getCoreManager().reloadModel(name, version);
+    WeaverModel.reload = function(name, version, includeList) {
+      return Weaver.getCoreManager().reloadModel(name, version).then(function(model) {
+        return model.init(includeList);
+      });
     };
 
     WeaverModel.list = function() {
@@ -100690,26 +100763,81 @@ module.exports={
       return this.getMemberKey();
     };
 
-    WeaverModel.prototype.bootstrap = function() {
-      return new Weaver.Query().contains('id', this.definition.name + ":").restrictGraphs(this.getGraph()).find().then((function(_this) {
-        return function(nodes) {
-          var i;
-          return _this._bootstrapClasses((function() {
-            var j, len, results;
-            results = [];
-            for (j = 0, len = nodes.length; j < len; j++) {
-              i = nodes[j];
-              results.push(i.id());
+    WeaverModel.prototype._getClassNodeId = function(key) {
+      var modelName, prefix, tail;
+      if (key.indexOf('.') > -1) {
+        prefix = key.substr(0, key.indexOf('.'));
+        tail = key.substr(key.indexOf('.') + 1);
+        if (this.includes[prefix] == null) {
+          throw new Error("Using prefix " + prefix + " in " + key + " but not including a model using this prefix.");
+        }
+        modelName = this.includes[prefix].definition.name;
+        return modelName + ":" + tail;
+      } else {
+        modelName = this.definition.name;
+        return modelName + ":" + key;
+      }
+    };
+
+    WeaverModel.prototype.bootstrap = function(save) {
+      var incl, prefix;
+      if (save == null) {
+        save = true;
+      }
+      return Promise.all((function() {
+        var ref, results;
+        ref = this.includes;
+        results = [];
+        for (prefix in ref) {
+          incl = ref[prefix];
+          results.push(incl.bootstrap(false));
+        }
+        return results;
+      }).call(this)).then((function(_this) {
+        return function(nodesToCreateList) {
+          var j, key, len, map, nodesToCreate, value;
+          nodesToCreate = {};
+          for (j = 0, len = nodesToCreateList.length; j < len; j++) {
+            map = nodesToCreateList[j];
+            for (key in map) {
+              value = map[key];
+              nodesToCreate[key] = value;
             }
-            return results;
-          })());
+          }
+          return new Weaver.Query().contains('id', _this.definition.name + ":").restrictGraphs(_this.getGraph()).find().then(function(nodes) {
+            var i, id, node;
+            nodesToCreate = _this._bootstrapClasses((function() {
+              var l, len1, results;
+              results = [];
+              for (l = 0, len1 = nodes.length; l < len1; l++) {
+                i = nodes[l];
+                results.push(i.id());
+              }
+              return results;
+            })(), nodesToCreate);
+            if (save) {
+              return Weaver.Node.batchSave((function() {
+                var results;
+                results = [];
+                for (id in nodesToCreate) {
+                  node = nodesToCreate[id];
+                  results.push(node);
+                }
+                return results;
+              })());
+            } else {
+              return nodesToCreate;
+            }
+          });
         };
       })(this));
     };
 
-    WeaverModel.prototype._bootstrapClasses = function(existingNodes) {
-      var ModelClass, className, classObj, id, itemName, j, len, node, nodesToCreate, ref, ref1, ref2, superClassNode;
-      nodesToCreate = {};
+    WeaverModel.prototype._bootstrapClasses = function(existingNodes, nodesToCreate) {
+      var ModelClass, className, classObj, id, itemName, j, len, node, ref, ref1, ref2, ref3, superClassNode, superId;
+      if (nodesToCreate == null) {
+        nodesToCreate = {};
+      }
       ref = this.definition.classes;
       for (className in ref) {
         classObj = ref[className];
@@ -100721,7 +100849,7 @@ module.exports={
         for (j = 0, len = ref1.length; j < len; j++) {
           itemName = ref1[j];
           node = new ModelClass(this.definition.name + ":" + itemName, this.getGraph());
-          if (!existingNodes.includes(this.definition.name + ":" + itemName)) {
+          if (ref2 = this.definition.name + ":" + itemName, indexOf.call(existingNodes, ref2) < 0) {
             nodesToCreate[node.id()] = node;
           } else {
             node._clearPendingWrites();
@@ -100730,38 +100858,33 @@ module.exports={
         }
       }
       for (className in this.definition.classes) {
-        if (!(!existingNodes.includes(this.definition.name + ":" + className))) {
-          continue;
-        }
-        id = this.definition.name + ":" + className;
-        if (nodesToCreate[id] == null) {
-          node = new Weaver.Node(id, this.getGraph());
-          nodesToCreate[node.id()] = node;
-        }
-      }
-      ref2 = this.definition.classes;
-      for (className in ref2) {
-        classObj = ref2[className];
-        if (!((classObj["super"] != null) && !existingNodes.includes(this.definition.name + ":" + className))) {
-          continue;
-        }
-        node = nodesToCreate[this.definition.name + ":" + className];
-        superClassNode = nodesToCreate[this.definition.name + ":" + classObj["super"]];
-        if (node instanceof Weaver.ModelClass) {
-          node.nodeRelation(this.getInheritKey()).add(superClassNode);
-        } else {
-          node.relation(this.getInheritKey()).add(superClassNode);
+        id = this._getClassNodeId(className);
+        if (indexOf.call(existingNodes, id) < 0) {
+          if (nodesToCreate[id] == null) {
+            node = new Weaver.Node(id, this.getGraph());
+            nodesToCreate[node.id()] = node;
+          }
         }
       }
-      return Weaver.Node.batchSave((function() {
-        var results;
-        results = [];
-        for (id in nodesToCreate) {
+      ref3 = this.definition.classes;
+      for (className in ref3) {
+        classObj = ref3[className];
+        if (!(classObj["super"] != null)) {
+          continue;
+        }
+        id = this._getClassNodeId(className);
+        superId = this._getClassNodeId(classObj["super"]);
+        if (indexOf.call(existingNodes, id) < 0) {
           node = nodesToCreate[id];
-          results.push(node);
+          superClassNode = nodesToCreate[superId];
+          if (node instanceof Weaver.ModelClass) {
+            node.nodeRelation(this.getInheritKey()).add(superClassNode);
+          } else {
+            node.relation(this.getInheritKey()).add(superClassNode);
+          }
         }
-        return results;
-      })());
+      }
+      return nodesToCreate;
     };
 
     return WeaverModel;
@@ -101323,19 +101446,33 @@ module.exports={
   var WeaverModelValidator;
 
   WeaverModelValidator = (function() {
-    function WeaverModelValidator(definition) {
+    function WeaverModelValidator(definition, includes) {
       this.definition = definition;
+      this.includes = includes;
     }
 
+    WeaverModelValidator.prototype.isClass = function(key) {
+      var prefix, tail;
+      if (key.indexOf('.') > -1) {
+        prefix = key.substr(0, key.indexOf('.'));
+        tail = key.substr(key.indexOf('.') + 1);
+        if (this.includes[prefix] == null) {
+          throw new Error("Using prefix " + prefix + " in " + key + " but not including a model using this prefix.");
+        }
+        return this.includes[prefix].definition.classes[tail] != null;
+      } else {
+        return this.definition.classes[key] != null;
+      }
+    };
+
     WeaverModelValidator.prototype.validate = function() {
-      var classDefinition, className, key, range, relation, results, superDefinition;
+      var classDefinition, className, key, range, relation, results;
       results = [];
       for (className in this.definition.classes) {
         this.definition.classes[className] = this.definition.classes[className] || {};
         classDefinition = this.definition.classes[className];
         if (classDefinition["super"] != null) {
-          superDefinition = this.definition.classes[classDefinition["super"]];
-          if (superDefinition == null) {
+          if (!this.isClass(classDefinition["super"])) {
             throw new Error("Super class " + classDefinition["super"] + " for " + className + " could not be found in the definition.");
           }
         }
@@ -101352,7 +101489,7 @@ module.exports={
                 results2 = [];
                 for (i = 0, len = ref1.length; i < len; i++) {
                   range = ref1[i];
-                  if (this.definition.classes[range] == null) {
+                  if (!this.isClass(range)) {
                     throw new Error("Range " + range + " in relation " + className + "." + key + " could not be found in the definition.");
                   } else {
                     results2.push(void 0);
@@ -101988,10 +102125,14 @@ module.exports={
 
 },{"./Operation":423,"./Weaver":425,"./WeaverError":427,"./util":443,"bluebird":73,"cuid":136,"lodash":245}],436:[function(require,module,exports){
 (function() {
-  var Weaver, WeaverPlugin,
+  var Weaver, WeaverPlugin, fs, ss,
     slice = [].slice;
 
   Weaver = require('./Weaver');
+
+  ss = require('socket.io-stream');
+
+  fs = require('fs');
 
   WeaverPlugin = (function() {
     function WeaverPlugin(serverObject) {
@@ -102003,18 +102144,35 @@ module.exports={
       serverObject.functions.forEach((function(_this) {
         return function(f) {
           return _this[f.name] = function() {
-            var args, i, index, j, len, len1, payload, r, ref, ref1;
+            var args, file, fileParameterIndex, i, index, j, len, len1, payload, r, readStream, ref, ref1, stream;
             args = 1 <= arguments.length ? slice.call(arguments, 0) : [];
             payload = {};
             ref = f.require;
             for (index = i = 0, len = ref.length; i < len; index = ++i) {
               r = ref[index];
-              payload[r] = args[index];
+              if (r !== 'file') {
+                payload[r] = args[index];
+              }
             }
             ref1 = f.optional;
             for (index = j = 0, len1 = ref1.length; j < len1; index = ++j) {
               r = ref1[index];
               payload[r] = args[f.require.length + index];
+            }
+            fileParameterIndex = f.require.indexOf('file');
+            if (fileParameterIndex > -1) {
+              file = args[fileParameterIndex];
+              if (((typeof File !== "undefined" && File !== null) && file instanceof File) || fs.existsSync(file)) {
+                stream = ss.createStream();
+                readStream = (typeof File !== "undefined" && File !== null) && file instanceof File ? ss.createBlobReadStream(file) : fs.createReadStream(file);
+                readStream.pipe(stream);
+                payload['file'] = stream;
+              } else {
+                Promise.reject({
+                  code: Weaver.Error.FILE_NOT_EXISTS_ERROR,
+                  message: "File does not exist!"
+                });
+              }
             }
             return Weaver.getCoreManager().executePluginFunction(f.route, payload);
           };
@@ -102081,7 +102239,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Weaver":425}],437:[function(require,module,exports){
+},{"./Weaver":425,"fs":104,"socket.io-stream":331}],437:[function(require,module,exports){
 (function() {
   var Weaver, WeaverProject, cuid;
 

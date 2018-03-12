@@ -9,7 +9,7 @@
   },
   "com_weaverplatform": {
     "requiredConnectorVersion": "^4.3.0",
-    "requiredServerVersion": "^3.9.0-beta.3"
+    "requiredServerVersion": "^3.9.0-beta.5"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
