@@ -16,6 +16,18 @@ describe 'WeaverModel test', ->
       assert.equal(Model.definition.version, "1.1.2")
     )
 
+  it 'should load in a model from the server with another version', ->
+    Weaver.Model.load("test-model", "1.2.0").then((Model) ->
+      assert.equal(Model.definition.name,    "test-model")
+      assert.equal(Model.definition.version, "1.2.0")
+    )
+
+  it 'should reload a model from the server with another version', ->
+    Weaver.Model.reload("test-model", "1.2.0").then((Model) ->
+      assert.equal(Model.definition.name,    "test-model")
+      assert.equal(Model.definition.version, "1.2.0")
+    )
+
   it 'should list models from the server', ->
     Weaver.Model.list().then((models)->
       assert.isDefined(models['test-model'])
@@ -29,6 +41,13 @@ describe 'WeaverModel test', ->
       assert.equal(error.code, Weaver.Error.MODEL_NOT_FOUND)
     )
 
+  it 'should fail on an include cycle', ->
+    Weaver.Model.load("test-cycle-model", "0.0.1").then((Model) ->
+      assert(false)
+    ).catch((error)->
+      assert.equal(error.code, Weaver.Error.MODEL_INCLUSION_CYCLE)
+    )
+
   it 'should fail on a not existing version of an existing model', ->
     Weaver.Model.load("test-model", "1.99.1").then((Model) ->
       assert(false)
@@ -40,7 +59,7 @@ describe 'WeaverModel test', ->
     model = {}
 
     before ->
-      Weaver.Model.load("test-model", "1.1.2").then((m) ->
+      Weaver.Model.load("test-model", "1.2.0").then((m) ->
         model = m
       )
 
@@ -149,7 +168,7 @@ describe 'WeaverModel test', ->
       it 'should have init member after a bootstrap', ->
         expect(model).to.have.property('City').to.have.property('Rotterdam').be.defined
 
-      it 'should have init member on load an rebootstrap', ->
+      it 'should have init member on load a rebootstrap', ->
         Weaver.Model.load(model.definition.name, model.definition.version).then((reloaded) ->
           reloaded.bootstrap().then(->
             expect(reloaded).to.have.property('City').to.have.property('Rotterdam').be.defined
@@ -161,6 +180,27 @@ describe 'WeaverModel test', ->
         person = new Person()
         person.set("fullName", "Arild Askholmen")
         person.save()
+
+      it 'should succeed saving with type definition of an included model', ->
+        Document = model.td.Document
+        document = new Document()
+        document.save()
+        .then(->
+          Document.load(document.id())
+        ).then((loaded)->
+          expect(loaded.id()).to.equal(document.id())
+        )
+
+      it 'should succeed saving with exteinded type definition of an included model', ->
+        Document = model.DeliveryNotice
+        document = new Document()
+        document.set('at', 'work')
+        document.save()
+        .then(->
+          Document.load(document.id())
+        ).then((loaded)->
+          expect(loaded.id()).to.equal(document.id())
+        )
 
       it 'should succeed save one instance with single type', ->
         Weaver.Node.loadFromGraph('test-model:Leiden', model.getGraph()).then((node)->
