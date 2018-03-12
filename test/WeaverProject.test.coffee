@@ -150,7 +150,7 @@ describe 'WeaverProject Test', ->
     )
     return
 
-  it 'should export the database content as snapshot', ->
+  it 'should export the database content as snapshot regardless of graph', ->
     node = new Weaver.Node()
 
     node.save().then((node) ->
@@ -159,6 +159,27 @@ describe 'WeaverProject Test', ->
     ).then(->
       p = weaver.currentProject()
       p.getSnapshot()
+    ).then((writeOperations)->
+      expect(writeOperations.length).to.equal(2)
+    )
+
+  it 'should export the database content as snapshot per graph', ->
+    node = new Weaver.Node()
+    node.set('name', 'Foo')
+    other = new Weaver.Node(null, 'elsewhere')
+    other.set('name', 'Bar')
+    node.relation('to').add(other)
+
+    node.save().then((node) ->
+      node.save()
+    ).then(->
+      p = weaver.currentProject()
+      p.getSnapshotGraph()
+    ).then((writeOperations)->
+      expect(writeOperations.length).to.equal(3)
+    ).then(->
+      p = weaver.currentProject()
+      p.getSnapshotGraph('elsewhere')
     ).then((writeOperations)->
       expect(writeOperations.length).to.equal(2)
     )
@@ -237,7 +258,7 @@ describe 'WeaverProject Test', ->
     a.relation('link').add(b)
     c.relation('link').add(d)
     Promise.all([a.save(), b.save(), c.save(), d.save()]).then(->
-      p.getSnapshot(true)
+      p.getSnapshot(false, true, true)
     ).then((file)->
       assert.include(file.name, ".gz")
     )

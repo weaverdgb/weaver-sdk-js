@@ -1,5 +1,11 @@
 # Changelist
 
+## 6.3.0
+- Allow models to include models.
+- Add snapshotGraph calls next to snapshot for full project.
+- Adds Model.list method
+- Adds ability to send files to plugins
+
 ## 6.1.5
 - Fixes an issue where membership or subtype relations would not be accepted by
   the model.
@@ -9,7 +15,7 @@
   graph. By default in the default graph, or set with argument.
 
 ## 6.1.3
-- Do not consider e.g. owl:Class node a valid range for selecting the right 
+- Do not consider e.g. owl:Class node a valid range for selecting the right
   constructor in processing a ModelQuery resultset.
 - Instances from any ModelClass extension should not be put in the model
   graph. By default in the default graph, or set with argument.
@@ -53,4 +59,3 @@
 ## 6.0.1
 - Fixes a bug where the weaver-server embedded sdk would not send GET request
   bodies
-
