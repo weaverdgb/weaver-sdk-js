@@ -1,5 +1,8 @@
 # Changelist
 
+## develop
+- Allow models to include models
+
 ## 6.3.0
 - Adds Model.list method
 
