@@ -1,10 +1,10 @@
 # Changelist
 
-## develop
-- Allow models to include models
-
 ## 6.3.0
+- Allow models to include models.
+- Add snapshotGraph calls next to snapshot for full project.
 - Adds Model.list method
+- Adds ability to send files to plugins
 
 ## 6.1.5
 - Fixes an issue where membership or subtype relations would not be accepted by
