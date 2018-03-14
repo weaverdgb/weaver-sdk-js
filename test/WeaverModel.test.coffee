@@ -182,16 +182,19 @@ describe 'WeaverModel test', ->
         person.save()
 
       it 'should succeed saving with type definition of an included model', ->
+        Person = model.Person
+        person = new Person()
         Document = model.td.Document
         document = new Document()
-        document.save()
+        person.relation('signed').add(document)
+        person.save()
         .then(->
           Document.load(document.id())
         ).then((loaded)->
           expect(loaded.id()).to.equal(document.id())
         )
 
-      it 'should succeed saving with exteinded type definition of an included model', ->
+      it 'should succeed saving with extended type definition of an included model', ->
         Document = model.DeliveryNotice
         document = new Document()
         document.set('at', 'work')
