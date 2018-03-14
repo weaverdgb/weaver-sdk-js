@@ -9,8 +9,6 @@ class WeaverModelRelation extends Weaver.Relation
   _getClassName: (node) ->
     node.className
 
-
-
   # Check if relation is allowed according to definition
   _checkCorrectClass: (node) ->
     found = @parent.getToRanges(@modelKey, node)

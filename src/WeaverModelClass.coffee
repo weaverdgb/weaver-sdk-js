@@ -52,7 +52,7 @@ class WeaverModelClass extends Weaver.Node
     else 
       @nodeRelation(key).add(instance, nodeId, false, graph)
 
-  
+
 
   _getAttributeKey: (field) ->
 
@@ -102,11 +102,9 @@ class WeaverModelClass extends Weaver.Node
 
   _getRangeKeys: (key)->
     return [] if not @totalClassDefinition.relations?
-    range = @totalClassDefinition.relations[key].range
-    if _.isArray(range)
-      range
-    else
-      _.keys(range)
+    ranges = @totalClassDefinition.relations[key].range
+    ranges = _.keys(ranges) if not _.isArray(ranges)
+    ((if range.indexOf('.') > -1 then range.split('.').pop() else range) for range in ranges)
 
   getToRanges: (key, to)->
     defs = []
