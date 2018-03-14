@@ -1,7 +1,6 @@
 cuid        = require('cuid')
 Promise     = require('bluebird')
 Weaver      = require('./Weaver')
-cjson       = require('circular-json')
 _           = require('lodash')
 
 class WeaverModelClass extends Weaver.Node
@@ -97,7 +96,7 @@ class WeaverModelClass extends Weaver.Node
 
   lookUpModelKey: (databaseKey)->
     return key for key, obj of @totalClassDefinition.relations when obj? and obj.key? and obj.key is databaseKey
-    key
+    databaseKey
 
 
   _getRangeKeys: (key)->
