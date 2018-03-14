@@ -1,5 +1,8 @@
 # Changelist
 
+## 6.3.1
+- Bugfix checking range when creating relation to member of included models.
+
 ## 6.3.0
 - Allow models to include models.
 - Add snapshotGraph calls next to snapshot for full project.
