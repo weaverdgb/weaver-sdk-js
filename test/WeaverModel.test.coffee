@@ -184,8 +184,11 @@ describe 'WeaverModel test', ->
       it 'should succeed saving with type definition of an included model', ->
         Person = model.Person
         person = new Person()
+        person.set("fullName", "Arild Askholmen")
+        
         Document = model.td.Document
         document = new Document()
+        
         person.relation('signed').add(document)
         person.save()
         .then(->
