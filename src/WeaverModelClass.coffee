@@ -94,7 +94,7 @@ class WeaverModelClass extends Weaver.Node
             if superClassName is range
               ranges.push("#{modelName}:#{className}")
               # Follow again for this subclass
-              addSubRange(className, ranges)
+              addSubRange("#{modelName}:#{className}", ranges)
 
       ranges
 

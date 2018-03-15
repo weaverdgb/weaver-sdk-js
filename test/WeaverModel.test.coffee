@@ -109,10 +109,10 @@ describe 'WeaverModel test', ->
 
     it 'should set relations on model instances by inheritance', ->
       c1 = new model.Country()
-      a2 = new model.Area()
-      c1.relation("intersection").add(a2)
+      c2 = new model.Country()
+      c1.relation("intersection").add(c2)
 
-      assert.equal(c1.relation("intersection").first().id(), a2.id())
+      assert.equal(c1.relation("intersection").first().id(), c2.id())
 
     it 'should read range on model class', ->
       Person = model.Person
