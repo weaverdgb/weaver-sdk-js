@@ -8,7 +8,7 @@ describe 'WeaverModelQuery test', ->
 
   before ->
     wipeCurrentProject().then(->
-      Weaver.Model.load('test-model', '1.1.2')
+      Weaver.Model.load('test-model', '1.2.0')
     ).then((m) ->
       model = m
       model.bootstrap()
@@ -75,6 +75,10 @@ describe 'WeaverModelQuery test', ->
         personBas = new model.Person("personBas")
         personBas.relation('livesIn').add(basshouse)
         personBas.relation('worksIn').add(basshouse)
+        contract = new model.td.Document('basContract')
+        delivery = new model.DeliveryNotice('basDeliveryOrder')
+        personBas.relation('signed').add(contract)
+        personBas.relation('signed').add(delivery)
 
 
         head.nodeRelation('rdf:type').add(new Weaver.Node('owl:Class'))
@@ -170,10 +174,10 @@ describe 'WeaverModelQuery test', ->
           for to in p.relation('comesFrom').all()
             if to.id() is 'Netherlands'
               expect(to).to.be.instanceOf(model.Country)
-              p.getToRanges('comesFrom', to).should.eql(['Country'])
+              p.getToRanges('comesFrom', to).should.eql(['test-model:Country'])
             else if to.id() is 'test-model:Rotterdam'
               expect(to).to.be.instanceOf(model.City)
-              p.getToRanges('comesFrom', to).should.eql(['City'])
+              p.getToRanges('comesFrom', to).should.eql(['test-model:City'])
             else
               assert.fail(undefined, undefined, "Unexpected to: #{to.id()}")
         )
@@ -194,7 +198,7 @@ describe 'WeaverModelQuery test', ->
 
             if to.id() is 'HongKong'
               expect(to).to.be.instanceOf(Weaver.Node)              
-              p.getToRanges('comesFrom', to).should.eql(['Country', 'City'])
+              p.getToRanges('comesFrom', to).should.eql(['test-model:Country', 'test-model:City'])
 
               (def.id() for def in to.relation('rdf:type').all())
               .should.eql(['test-model:Country', 'test-model:City'])
@@ -209,9 +213,8 @@ describe 'WeaverModelQuery test', ->
 
             else
               assert.fail(undefined, undefined, "Unexpected to: #{to.id()}")
-
-  
         )
+
       it 'should correctly find the constructor for range with only one correct option', ->
         new Weaver.ModelQuery()
         .class(model.Person)
@@ -229,5 +232,10 @@ describe 'WeaverModelQuery test', ->
           for to in p.relation('worksIn').all()
             assert.equal(to.id(), 'basshouse')
             expect(to).to.be.instanceOf(model.Office)
-
+          for to in p.relation('signed').all()
+            if to.id() is 'basDeliveryOrder'
+              expect(to).to.be.instanceOf(model.DeliveryNotice)
+            if to.id() is 'basContract'
+              expect(to).to.be.instanceOf(model.td.Document)
+ 
         )
