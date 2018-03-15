@@ -1,7 +1,6 @@
 cuid        = require('cuid')
 Promise     = require('bluebird')
 Weaver      = require('./Weaver')
-cjson       = require('circular-json')
 _           = require('lodash')
 
 class WeaverModelClass extends Weaver.Node
@@ -52,7 +51,7 @@ class WeaverModelClass extends Weaver.Node
     else 
       @nodeRelation(key).add(instance, nodeId, false, graph)
 
-  
+
 
   _getAttributeKey: (field) ->
 
@@ -78,18 +77,30 @@ class WeaverModelClass extends Weaver.Node
     @totalClassDefinition.relations[key].key or key
 
 
+
+  getNodeNameByKey: (model, dotPath) ->
+    [first, rest...] = dotPath.split('.')
+    return "#{model.definition.name}:#{dotPath}" if rest.length is 0
+    return @getNodeNameByKey(model.includes[first], rest.join('.')) if model.includes[first]?
+    return null
+
   getRanges: (key)->
+
     addSubRange = (range, ranges = []) =>
-      for className, definition of @definition.classes
-        if definition.super is range
-          ranges.push(className)
-          # Follow again for this subclass
-          addSubRange(className, ranges)
+      for modelName, modelObject of @model.modelMap
+        for className, definition of modelObject.definition.classes
+          if definition.super?
+            superClassName = @getNodeNameByKey(@model, definition.super)
+            if superClassName is range
+              ranges.push("#{modelName}:#{className}")
+              # Follow again for this subclass
+              addSubRange("#{modelName}:#{className}", ranges)
 
       ranges
 
     totalRanges = []
-    for range in @_getRangeKeys(key)
+    for rangeKey in @_getRangeKeys(key)
+      range = @getNodeNameByKey(@model, rangeKey)
       totalRanges.push(range)
       totalRanges = totalRanges.concat(addSubRange(range))
 
@@ -97,23 +108,25 @@ class WeaverModelClass extends Weaver.Node
 
   lookUpModelKey: (databaseKey)->
     return key for key, obj of @totalClassDefinition.relations when obj? and obj.key? and obj.key is databaseKey
-    key
+    databaseKey
 
 
   _getRangeKeys: (key)->
     return [] if not @totalClassDefinition.relations?
-    range = @totalClassDefinition.relations[key].range
-    if _.isArray(range)
-      range
-    else
-      _.keys(range)
+    ranges = @totalClassDefinition.relations[key].range
+    ranges = _.keys(ranges) if not _.isArray(ranges)
+    (range for range in ranges)
+
+  getDefinitions: (node)->
+    defs = []
+    if node instanceof Weaver.ModelClass
+      defs = (def.id() for def in node.nodeRelation(@model.getMemberKey()).all())
+    else  
+      defs = (def.id() for def in node.relation(@model.getMemberKey()).all())
+    defs
 
   getToRanges: (key, to)->
-    defs = []
-    if to instanceof Weaver.ModelClass
-      defs = (def.id().split(":")[1] for def in to.nodeRelation(@model.getMemberKey()).all())
-    else  
-      defs = (def.id().split(":")[1] for def in to.relation(@model.getMemberKey()).all())
+    defs = @getDefinitions(to)
     ranges = @getRanges(key)
     (def for def in defs when def in ranges)
 

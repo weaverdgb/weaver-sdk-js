@@ -13,15 +13,20 @@ class WeaverModel
     # Load included models
     includeList = [] if not includeList?
     includeList.push(@definition.name)
-    @_loadIncludes(includeList).then(=>
+    @modelMap = {}
+    @modelMap[@definition.name] = @
+    @_loadIncludes(includeList, @modelMap).then(=>
 
       new WeaverModelValidator(@definition, @includes).validate()
       for className, classDefinition of @definition.classes
         @_registerClass(@, @, className, classDefinition) 
       for prefix, incl of @includes
         @[prefix] = {}
-        for className, classDefinition of incl.definition.classes 
-          @_registerClass(@[prefix], incl, className, classDefinition) 
+        for className, classDefinition of incl.definition.classes
+          if @modelMap[incl.definition.name]?[className]?
+            @[prefix][className] = @modelMap[incl.definition.name][className]
+          else
+            @_registerClass(@[prefix], incl, className, classDefinition) 
       @
     )
 
@@ -64,7 +69,7 @@ class WeaverModel
     carrier[className].load = load(className)
 
 
-  _loadIncludes: (includeList)->
+  _loadIncludes: (includeList, modelMap)->
     @definition.includes = {} if not @definition.includes?
 
     # Map prefix to included model
@@ -73,12 +78,13 @@ class WeaverModel
     
     Promise.map(includeDefs, (incl)=>
       if incl.name in includeList
-
         error = new Error("Model #{@definition.name} tries to include #{incl.name} but this introduces a cycle")
         error.code = 209
         return Promise.reject(error)
+  
       WeaverModel.load(incl.name, incl.version, includeList).then((loaded)=>
         @includes[incl.prefix] = loaded
+        modelMap[incl.name] = loaded
       )
     )
 

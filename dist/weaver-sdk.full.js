@@ -100245,7 +100245,7 @@ module.exports = yeast;
 },{}],401:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "6.3.0",
+  "version": "6.3.1",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -102178,9 +102178,11 @@ module.exports={
         includeList = [];
       }
       includeList.push(this.definition.name);
-      return this._loadIncludes(includeList).then((function(_this) {
+      this.modelMap = {};
+      this.modelMap[this.definition.name] = this;
+      return this._loadIncludes(includeList, this.modelMap).then((function(_this) {
         return function() {
-          var classDefinition, className, incl, prefix, ref, ref1, ref2;
+          var classDefinition, className, incl, prefix, ref, ref1, ref2, ref3;
           new WeaverModelValidator(_this.definition, _this.includes).validate();
           ref = _this.definition.classes;
           for (className in ref) {
@@ -102194,7 +102196,11 @@ module.exports={
             ref2 = incl.definition.classes;
             for (className in ref2) {
               classDefinition = ref2[className];
-              _this._registerClass(_this[prefix], incl, className, classDefinition);
+              if (((ref3 = _this.modelMap[incl.definition.name]) != null ? ref3[className] : void 0) != null) {
+                _this[prefix][className] = _this.modelMap[incl.definition.name][className];
+              } else {
+                _this._registerClass(_this[prefix], incl, className, classDefinition);
+              }
             }
           }
           return _this;
@@ -102222,7 +102228,7 @@ module.exports={
       return carrier[className].load = load(className);
     };
 
-    WeaverModel.prototype._loadIncludes = function(includeList) {
+    WeaverModel.prototype._loadIncludes = function(includeList, modelMap) {
       var includeDefs, key, obj;
       if (this.definition.includes == null) {
         this.definition.includes = {};
@@ -102251,7 +102257,8 @@ module.exports={
             return Promise.reject(error);
           }
           return WeaverModel.load(incl.name, incl.version, includeList).then(function(loaded) {
-            return _this.includes[incl.prefix] = loaded;
+            _this.includes[incl.prefix] = loaded;
+            return modelMap[incl.name] = loaded;
           });
         };
       })(this));
@@ -102464,19 +102471,17 @@ module.exports={
 
 },{"./Weaver":407,"./WeaverModelValidator":416,"bluebird":72,"cuid":135}],413:[function(require,module,exports){
 (function() {
-  var Promise, Weaver, WeaverModelClass, _, cjson, cuid,
+  var Promise, Weaver, WeaverModelClass, _, cuid,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty,
-    indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
-    slice = [].slice;
+    slice = [].slice,
+    indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   cuid = require('cuid');
 
   Promise = require('bluebird');
 
   Weaver = require('./Weaver');
-
-  cjson = require('circular-json');
 
   _ = require('lodash');
 
@@ -102559,20 +102564,39 @@ module.exports={
       return this.totalClassDefinition.relations[key].key || key;
     };
 
+    WeaverModelClass.prototype.getNodeNameByKey = function(model, dotPath) {
+      var first, ref, rest;
+      ref = dotPath.split('.'), first = ref[0], rest = 2 <= ref.length ? slice.call(ref, 1) : [];
+      if (rest.length === 0) {
+        return model.definition.name + ":" + dotPath;
+      }
+      if (model.includes[first] != null) {
+        return this.getNodeNameByKey(model.includes[first], rest.join('.'));
+      }
+      return null;
+    };
+
     WeaverModelClass.prototype.getRanges = function(key) {
-      var addSubRange, i, len, range, ref, totalRanges;
+      var addSubRange, i, len, range, rangeKey, ref, totalRanges;
       addSubRange = (function(_this) {
         return function(range, ranges) {
-          var className, definition, ref;
+          var className, definition, modelName, modelObject, ref, ref1, superClassName;
           if (ranges == null) {
             ranges = [];
           }
-          ref = _this.definition.classes;
-          for (className in ref) {
-            definition = ref[className];
-            if (definition["super"] === range) {
-              ranges.push(className);
-              addSubRange(className, ranges);
+          ref = _this.model.modelMap;
+          for (modelName in ref) {
+            modelObject = ref[modelName];
+            ref1 = modelObject.definition.classes;
+            for (className in ref1) {
+              definition = ref1[className];
+              if (definition["super"] != null) {
+                superClassName = _this.getNodeNameByKey(_this.model, definition["super"]);
+                if (superClassName === range) {
+                  ranges.push(modelName + ":" + className);
+                  addSubRange(modelName + ":" + className, ranges);
+                }
+              }
             }
           }
           return ranges;
@@ -102581,7 +102605,8 @@ module.exports={
       totalRanges = [];
       ref = this._getRangeKeys(key);
       for (i = 0, len = ref.length; i < len; i++) {
-        range = ref[i];
+        rangeKey = ref[i];
+        range = this.getNodeNameByKey(this.model, rangeKey);
         totalRanges.push(range);
         totalRanges = totalRanges.concat(addSubRange(range));
       }
@@ -102597,48 +102622,58 @@ module.exports={
           return key;
         }
       }
-      return key;
+      return databaseKey;
     };
 
     WeaverModelClass.prototype._getRangeKeys = function(key) {
-      var range;
+      var i, len, range, ranges, results;
       if (this.totalClassDefinition.relations == null) {
         return [];
       }
-      range = this.totalClassDefinition.relations[key].range;
-      if (_.isArray(range)) {
-        return range;
-      } else {
-        return _.keys(range);
+      ranges = this.totalClassDefinition.relations[key].range;
+      if (!_.isArray(ranges)) {
+        ranges = _.keys(ranges);
       }
+      results = [];
+      for (i = 0, len = ranges.length; i < len; i++) {
+        range = ranges[i];
+        results.push(range);
+      }
+      return results;
+    };
+
+    WeaverModelClass.prototype.getDefinitions = function(node) {
+      var def, defs;
+      defs = [];
+      if (node instanceof Weaver.ModelClass) {
+        defs = (function() {
+          var i, len, ref, results;
+          ref = node.nodeRelation(this.model.getMemberKey()).all();
+          results = [];
+          for (i = 0, len = ref.length; i < len; i++) {
+            def = ref[i];
+            results.push(def.id());
+          }
+          return results;
+        }).call(this);
+      } else {
+        defs = (function() {
+          var i, len, ref, results;
+          ref = node.relation(this.model.getMemberKey()).all();
+          results = [];
+          for (i = 0, len = ref.length; i < len; i++) {
+            def = ref[i];
+            results.push(def.id());
+          }
+          return results;
+        }).call(this);
+      }
+      return defs;
     };
 
     WeaverModelClass.prototype.getToRanges = function(key, to) {
       var def, defs, i, len, ranges, results;
-      defs = [];
-      if (to instanceof Weaver.ModelClass) {
-        defs = (function() {
-          var i, len, ref, results;
-          ref = to.nodeRelation(this.model.getMemberKey()).all();
-          results = [];
-          for (i = 0, len = ref.length; i < len; i++) {
-            def = ref[i];
-            results.push(def.id().split(":")[1]);
-          }
-          return results;
-        }).call(this);
-      } else {
-        defs = (function() {
-          var i, len, ref, results;
-          ref = to.relation(this.model.getMemberKey()).all();
-          results = [];
-          for (i = 0, len = ref.length; i < len; i++) {
-            def = ref[i];
-            results.push(def.id().split(":")[1]);
-          }
-          return results;
-        }).call(this);
-      }
+      defs = this.getDefinitions(to);
       ranges = this.getRanges(key);
       results = [];
       for (i = 0, len = defs.length; i < len; i++) {
@@ -102776,7 +102811,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Weaver":407,"bluebird":72,"circular-json":121,"cuid":135,"lodash":239}],414:[function(require,module,exports){
+},{"./Weaver":407,"bluebird":72,"cuid":135,"lodash":239}],414:[function(require,module,exports){
 (function() {
   var Promise, Weaver, WeaverModelQuery, cuid,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
@@ -102797,14 +102832,14 @@ module.exports={
       WeaverModelQuery.__super__.constructor.call(this, target);
       this.useConstructor((function(_this) {
         return function(node, owner, key) {
-          var classPart, def, defs, modelKey, modelPart, ranges, ref;
+          var className, def, defs, modelKey, modelName, ranges, ref, ref1;
           defs = (function() {
             var i, len, ref, results;
             ref = node.relation(this.model.getMemberKey()).all();
             results = [];
             for (i = 0, len = ref.length; i < len; i++) {
               def = ref[i];
-              if (def.id().startsWith(this.model.definition.name)) {
+              if (this.model.modelMap[def.id().split(':')[0]] != null) {
                 results.push(def.id());
               }
             }
@@ -102813,8 +102848,8 @@ module.exports={
           if (defs.length === 0) {
             return Weaver.Node;
           } else if (defs.length === 1) {
-            ref = defs[0].split(":"), modelPart = ref[0], classPart = ref[1];
-            return _this.model[classPart];
+            ref = defs[0].split(":"), modelName = ref[0], className = ref[1];
+            return _this.model.modelMap[modelName][className];
           } else if (owner == null) {
             if (_this.preferredConstructor == null) {
               console.info("Could not choose contructing first order node between type " + (JSON.stringify(defs)));
@@ -102835,7 +102870,8 @@ module.exports={
               console.warn("Could not pick from ranges " + (JSON.stringify(ranges)) + " for constructing second order node between type " + (JSON.stringify(defs)));
               return Weaver.Node;
             } else {
-              return _this.model[ranges[0]];
+              ref1 = ranges[0].split(':'), modelName = ref1[0], className = ref1[1];
+              return _this.model.modelMap[modelName][className];
             }
           }
         };
@@ -102978,13 +103014,14 @@ module.exports={
     };
 
     WeaverModelRelation.prototype._checkCorrectClass = function(node) {
-      var allowed, found;
+      var allowed, defs, found;
+      defs = this.parent.getDefinitions(node);
       found = this.parent.getToRanges(this.modelKey, node);
       allowed = this.parent.getRanges(this.modelKey);
       if (found.length > 0) {
         return true;
       }
-      throw new Error("Model " + this.className + " is not allowed to have relation " + this.modelKey + " to " + (node.id()) + ", allowed ranges are " + (JSON.stringify(allowed)));
+      throw new Error(("Model " + this.className + " is not allowed to have relation " + this.modelKey + " to " + (node.id())) + (" of def " + (JSON.stringify(defs)) + ", allowed ranges are " + (JSON.stringify(allowed))));
     };
 
     WeaverModelRelation.prototype.add = function(node, relId, addToPendingWrites) {
