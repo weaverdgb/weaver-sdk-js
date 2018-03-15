@@ -77,18 +77,30 @@ class WeaverModelClass extends Weaver.Node
     @totalClassDefinition.relations[key].key or key
 
 
+
+  getNodeNameByKey: (model, dotPath) ->
+    [first, rest...] = dotPath.split('.')
+    return "#{model.definition.name}:#{dotPath}" if rest.length is 0
+    return @getNodeNameByKey(model.includes[first], rest.join('.')) if model.includes[first]?
+    return null
+
   getRanges: (key)->
+
     addSubRange = (range, ranges = []) =>
-      for className, definition of @definition.classes
-        if definition.super is range
-          ranges.push(className)
-          # Follow again for this subclass
-          addSubRange(className, ranges)
+      for modelName, modelObject of @model.modelMap
+        for className, definition of modelObject.definition.classes
+          if definition.super?
+            superClassName = @getNodeNameByKey(@model, definition.super)
+            if superClassName is range
+              ranges.push("#{modelName}:#{className}")
+              # Follow again for this subclass
+              addSubRange(className, ranges)
 
       ranges
 
     totalRanges = []
-    for range in @_getRangeKeys(key)
+    for rangeKey in @_getRangeKeys(key)
+      range = @getNodeNameByKey(@model, rangeKey)
       totalRanges.push(range)
       totalRanges = totalRanges.concat(addSubRange(range))
 
@@ -103,14 +115,18 @@ class WeaverModelClass extends Weaver.Node
     return [] if not @totalClassDefinition.relations?
     ranges = @totalClassDefinition.relations[key].range
     ranges = _.keys(ranges) if not _.isArray(ranges)
-    ((if range.indexOf('.') > -1 then range.split('.').pop() else range) for range in ranges)
+    (range for range in ranges)
+
+  getDefinitions: (node)->
+    defs = []
+    if node instanceof Weaver.ModelClass
+      defs = (def.id() for def in node.nodeRelation(@model.getMemberKey()).all())
+    else  
+      defs = (def.id() for def in node.relation(@model.getMemberKey()).all())
+    defs
 
   getToRanges: (key, to)->
-    defs = []
-    if to instanceof Weaver.ModelClass
-      defs = (def.id().split(":")[1] for def in to.nodeRelation(@model.getMemberKey()).all())
-    else  
-      defs = (def.id().split(":")[1] for def in to.relation(@model.getMemberKey()).all())
+    defs = @getDefinitions(to)
     ranges = @getRanges(key)
     (def for def in defs when def in ranges)
 

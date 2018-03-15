@@ -8,7 +8,7 @@ describe 'WeaverModelQuery test', ->
 
   before ->
     wipeCurrentProject().then(->
-      Weaver.Model.load('test-model', '1.1.2')
+      Weaver.Model.load('test-model', '1.2.0')
     ).then((m) ->
       model = m
       model.bootstrap()
@@ -75,6 +75,10 @@ describe 'WeaverModelQuery test', ->
         personBas = new model.Person("personBas")
         personBas.relation('livesIn').add(basshouse)
         personBas.relation('worksIn').add(basshouse)
+        contract = new model.td.Document()
+        delivery = new model.DeliveryNotice()
+        personBas.relation('signed').add(contract)
+        personBas.relation('signed').add(delivery)
 
 
         head.nodeRelation('rdf:type').add(new Weaver.Node('owl:Class'))
@@ -209,9 +213,8 @@ describe 'WeaverModelQuery test', ->
 
             else
               assert.fail(undefined, undefined, "Unexpected to: #{to.id()}")
-
-  
         )
+
       it 'should correctly find the constructor for range with only one correct option', ->
         new Weaver.ModelQuery()
         .class(model.Person)

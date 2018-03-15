@@ -14,7 +14,7 @@ class WeaverModelQuery extends Weaver.Query
         Weaver.Node
       else if defs.length is 1
         [modelPart, classPart] = defs[0].split(":")
-        @model[classPart]
+        @model.modelMap[modelPart][classPart]
 
       # First order node from resultset, no incoming relation to help decide
       else if not owner?
@@ -31,6 +31,7 @@ class WeaverModelQuery extends Weaver.Query
           return Weaver.Node
 
         modelKey = owner.lookUpModelKey(key)
+
         ranges = owner.getToRanges(modelKey, node)
         if ranges.length < 1
           console.warn("Could not find a range for constructing second order node between type #{JSON.stringify(defs)}")
