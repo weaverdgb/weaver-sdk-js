@@ -40,7 +40,8 @@ class WeaverModelQuery extends Weaver.Query
           console.warn("Could not pick from ranges #{JSON.stringify(ranges)} for constructing second order node between type #{JSON.stringify(defs)}")
           return Weaver.Node
         else 
-          return @model[ranges[0]]
+          [modelName, className] = ranges[0].split(':')
+          return @model.modelMap[modelName][className]
     )
 
 
