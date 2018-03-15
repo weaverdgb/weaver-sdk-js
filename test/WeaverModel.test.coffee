@@ -117,8 +117,8 @@ describe 'WeaverModel test', ->
     it 'should read range on model class', ->
       Person = model.Person
       person = new Person()
-      person.getRanges('livesIn').should.eql(['House'])
-      person.getRanges('isIn').should.eql(['House', 'Office'])
+      person.getRanges('livesIn').should.eql(['test-model:House'])
+      person.getRanges('isIn').should.eql(['test-model:House', 'test-model:Office'])
 
     it 'should add allowed relations by correct range', ->
       Person   = model.Person
@@ -182,16 +182,22 @@ describe 'WeaverModel test', ->
         person.save()
 
       it 'should succeed saving with type definition of an included model', ->
+        Person = model.Person
+        person = new Person()
+        person.set("fullName", "Arild Askholmen")
+        
         Document = model.td.Document
         document = new Document()
-        document.save()
+        
+        person.relation('signed').add(document)
+        person.save()
         .then(->
           Document.load(document.id())
         ).then((loaded)->
           expect(loaded.id()).to.equal(document.id())
         )
 
-      it 'should succeed saving with exteinded type definition of an included model', ->
+      it 'should succeed saving with extended type definition of an included model', ->
         Document = model.DeliveryNotice
         document = new Document()
         document.set('at', 'work')
