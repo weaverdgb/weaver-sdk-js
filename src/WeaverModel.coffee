@@ -22,8 +22,11 @@ class WeaverModel
         @_registerClass(@, @, className, classDefinition) 
       for prefix, incl of @includes
         @[prefix] = {}
-        for className, classDefinition of incl.definition.classes 
-          @_registerClass(@[prefix], incl, className, classDefinition) 
+        for className, classDefinition of incl.definition.classes
+          if @modelMap[incl.definition.name]?[className]?
+            @[prefix][className] = @modelMap[incl.definition.name][className]
+          else
+            @_registerClass(@[prefix], incl, className, classDefinition) 
       @
     )
 

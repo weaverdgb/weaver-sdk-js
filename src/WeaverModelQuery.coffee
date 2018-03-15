@@ -9,12 +9,12 @@ class WeaverModelQuery extends Weaver.Query
 
     # Define constructor function
     @useConstructor((node, owner, key)=>
-      defs = (def.id() for def in node.relation(@model.getMemberKey()).all() when def.id().startsWith(@model.definition.name))
+      defs = (def.id() for def in node.relation(@model.getMemberKey()).all() when @model.modelMap[def.id().split(':')[0]]?)
       if defs.length is 0
         Weaver.Node
       else if defs.length is 1
-        [modelPart, classPart] = defs[0].split(":")
-        @model.modelMap[modelPart][classPart]
+        [modelName, className] = defs[0].split(":")
+        @model.modelMap[modelName][className]
 
       # First order node from resultset, no incoming relation to help decide
       else if not owner?

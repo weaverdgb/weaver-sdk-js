@@ -117,8 +117,8 @@ describe 'WeaverModel test', ->
     it 'should read range on model class', ->
       Person = model.Person
       person = new Person()
-      person.getRanges('livesIn').should.eql(['House'])
-      person.getRanges('isIn').should.eql(['House', 'Office'])
+      person.getRanges('livesIn').should.eql(['test-model:House'])
+      person.getRanges('isIn').should.eql(['test-model:House', 'test-model:Office'])
 
     it 'should add allowed relations by correct range', ->
       Person   = model.Person
