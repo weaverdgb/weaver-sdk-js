@@ -48,7 +48,7 @@ class WeaverModelClass extends Weaver.Node
   _loadRelationFromQuery: (key, instance, nodeId, graph)->
     if @totalClassDefinition.relations[key]?
       @relation(key).add(instance, nodeId, false, graph)
-    else 
+    else
       @nodeRelation(key).add(instance, nodeId, false, graph)
 
 
@@ -121,7 +121,7 @@ class WeaverModelClass extends Weaver.Node
     defs = []
     if node instanceof Weaver.ModelClass
       defs = (def.id() for def in node.nodeRelation(@model.getMemberKey()).all())
-    else  
+    else
       defs = (def.id() for def in node.relation(@model.getMemberKey()).all())
     defs
 
@@ -152,9 +152,10 @@ class WeaverModelClass extends Weaver.Node
     super.get(args...)
 
   get: (field) ->
-    key = @_getAttributeKey(field)
-    return null if not key?
-    super(key)
+    try
+      super(@_getAttributeKey(field))
+    catch
+      undefined
 
   nodeSet: (args...)->
     super.set(args...)
@@ -175,7 +176,7 @@ class WeaverModelClass extends Weaver.Node
     definition = @definition
     relationDefinition = @totalClassDefinition.relations[key]
     classRelation = class extends Weaver.ModelRelation
-      
+
       constructor: (parent, key)->
         super(parent, key)
         @modelKey           = modelKey
@@ -183,7 +184,7 @@ class WeaverModelClass extends Weaver.Node
         @className          = className
         @definition         = definition
         @relationDefinition = relationDefinition
-        
+
     super(relationKey, classRelation)
 
   save: (project) ->
