@@ -1,5 +1,9 @@
 # Changelist
 
+## 6.3.2
+- Fixes a bug where calling load() on an instance of ModelClass would destroy
+  the ModelClass functions
+
 ## 6.3.1
 - Bugfix checking range when creating relation to member of included models.
 

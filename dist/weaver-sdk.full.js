@@ -100245,7 +100245,7 @@ module.exports = yeast;
 },{}],401:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "6.3.1",
+  "version": "6.3.2",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -103241,7 +103241,9 @@ module.exports={
           var key, value;
           for (key in loadedNode) {
             value = loadedNode[key];
-            _this[key] = value;
+            if (!_.isFunction(value)) {
+              _this[key] = value;
+            }
           }
           return _this;
         };
