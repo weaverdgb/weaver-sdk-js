@@ -80,7 +80,7 @@ class WeaverNode
   # Loads current node
   load: ->
     Weaver.Node.load(@nodeId).then((loadedNode) =>
-      @[key] = value for key, value of loadedNode
+      @[key] = value for key, value of loadedNode when !_.isFunction(value)
       @
     )
 
@@ -295,16 +295,16 @@ class WeaverNode
 
     if cleanup
       @pendingWrites = []
-      i.__pendingOpNode = @ for i in operations 
+      i.__pendingOpNode = @ for i in operations
 
     for key, relation of @_relations
       for node in relation.nodes
         if node.id()? and not collected[node.id()]
           collected[node.id()] = true
           operations = operations.concat(node._collectPendingWrites(collected, cleanup))
-          
+
       operations = operations.concat(relation.pendingWrites)
-      
+
       for node in relation.relationNodes
         if node.id()? and not collected[node.id()]
           collected[node.id()] = true
