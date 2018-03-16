@@ -185,10 +185,10 @@ describe 'WeaverModel test', ->
         Person = model.Person
         person = new Person()
         person.set("fullName", "Arild Askholmen")
-        
+
         Document = model.td.Document
         document = new Document()
-        
+
         person.relation('signed').add(document)
         person.save()
         .then(->
@@ -319,7 +319,7 @@ describe 'WeaverModel test', ->
         person.save().then(->
           model.Person.load(person.id())
         ).then((person)->
-          person.should.be.instanceOf(model.Person) 
+          person.should.be.instanceOf(model.Person)
         )
 
       it 'should add an existing node to an other model', ->
@@ -330,7 +330,7 @@ describe 'WeaverModel test', ->
         tree.save().then(->
           model.Country.load(tree.id())
         ).then((country)->
-          country.should.be.instanceOf(model.Country) 
+          country.should.be.instanceOf(model.Country)
         )
 
       it 'should add an existing node to two other models', ->
@@ -341,9 +341,33 @@ describe 'WeaverModel test', ->
         tree.save().then(->
           model.Country.load(tree.id())
         ).then((country)->
-          country.should.be.instanceOf(model.Country) 
+          country.should.be.instanceOf(model.Country)
         ).then(->
           model.Person.load(tree.id())
         ).then((person)->
           person.should.be.instanceOf(model.Person)
         )
+
+      describe 'and some data', ->
+        one = {}
+
+        before ->
+          one = new model.Person()
+          one.set('fullName', 'One')
+          two = new model.Person()
+          two.set('fullName', 'Two')
+          one.relation('hasFriend').add(two)
+          one.save()
+
+        it 'should instantiate the correct class for relations on load', ->
+          model.Person.load(one).then((person) ->
+            expect(person.relation('hasFriend').first()).to.be.an.instanceof(model.Person)
+          )
+
+        it 'should allow to get an attribute after load', ->
+          model.Person.load(one.id()).then((person) ->
+            person.relation('hasFriend').first().load()
+          ).then((loadedTwo) ->
+            expect(loadedTwo.get('fullName')).to.equal('Two')
+          )
+
