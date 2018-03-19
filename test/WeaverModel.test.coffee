@@ -143,7 +143,11 @@ describe 'WeaverModel test', ->
       Person = model.Person
       person = new Person()
       person.set('fullName', "John Doe")
-      assert.throws((-> person.get('hasFullName')))
+      expect(person.get('hasFullName')).to.be.undefined
+
+    it 'should not deny getting invalid attributes but instead return undefined', ->
+      person = new model.Person()
+      expect(person.get("totallyNotAnAttributeOfTheModel")).to.be.undefined
 
     it 'should bootstrap a model', ->
       model.bootstrap().then(->
