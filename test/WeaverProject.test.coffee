@@ -166,22 +166,108 @@ describe 'WeaverProject Test', ->
   it 'should export the database content as snapshot per graph', ->
     node = new Weaver.Node()
     node.set('name', 'Foo')
-    other = new Weaver.Node(null, 'elsewhere')
+    node.set('age', 20, undefined, undefined, 'age-graph')
+    other = new Weaver.Node(undefined, 'somewhere')
     other.set('name', 'Bar')
-    node.relation('to').add(other)
+    node.relation('to').addInGraph(other, 'elsewhere')
 
     node.save().then((node) ->
       node.save()
     ).then(->
+
       p = weaver.currentProject()
       p.getSnapshotGraph()
     ).then((writeOperations)->
-      expect(writeOperations.length).to.equal(3)
-    ).then(->
+      expect(writeOperations.length).to.equal(6)
+
       p = weaver.currentProject()
-      p.getSnapshotGraph('elsewhere')
+      p.getSnapshotGraph([])
+    ).then((writeOperations)->
+      expect(writeOperations.length).to.equal(6)
+
+      p = weaver.currentProject()
+      p.getSnapshotGraph([null])
     ).then((writeOperations)->
       expect(writeOperations.length).to.equal(2)
+
+      p = weaver.currentProject()
+      p.getSnapshotGraph(['somewhere'])
+    ).then((writeOperations)->
+      expect(writeOperations.length).to.equal(2)
+
+      p = weaver.currentProject()
+      p.getSnapshotGraph(['elsewhere'])
+    ).then((writeOperations)->
+      expect(writeOperations.length).to.equal(1)
+
+      p = weaver.currentProject()
+      p.getSnapshotGraph(['age-graph'])
+    ).then((writeOperations)->
+      expect(writeOperations.length).to.equal(1)
+
+      p = weaver.currentProject()
+      p.getSnapshotGraph(['age-graph', null, 'somewhere', 'elsewhere'])
+    ).then((writeOperations)->
+      expect(writeOperations.length).to.equal(6)
+    )
+
+  it 'should export the database as snapshot per graph with from and to filters', ->
+    a = new Weaver.Node()
+    b = new Weaver.Node(undefined, 'graph-b')
+    c = new Weaver.Node(undefined, 'graph-c')
+    a.relation('to').add(a)
+    a.relation('to').add(b)
+    a.relation('to').add(c)
+    b.relation('to').add(a)
+    b.relation('to').add(b)
+    b.relation('to').add(c)
+    c.relation('to').add(a)
+    c.relation('to').add(b)
+    c.relation('to').add(c)
+
+    Weaver.Node.batchSave([a, b, c])
+    .then(->
+
+      p = weaver.currentProject()
+      p.getSnapshotGraph(undefined, [null])
+    ).then((writeOperations)->
+      expect(writeOperations.length).to.equal(6)
+
+      p = weaver.currentProject()
+      p.getSnapshotGraph(undefined, ['graph-b'])
+    ).then((writeOperations)->
+      expect(writeOperations.length).to.equal(6)
+
+      p = weaver.currentProject()
+      p.getSnapshotGraph(undefined, ['graph-c'])
+    ).then((writeOperations)->
+      expect(writeOperations.length).to.equal(6)
+
+      p = weaver.currentProject()
+      p.getSnapshotGraph(undefined, [null, 'graph-b', 'graph-c'])
+    ).then((writeOperations)->
+      expect(writeOperations.length).to.equal(12)
+
+      p = weaver.currentProject()
+      p.getSnapshotGraph(undefined, undefined, [null])
+    ).then((writeOperations)->
+      expect(writeOperations.length).to.equal(6)
+
+      p = weaver.currentProject()
+      p.getSnapshotGraph(undefined, undefined, ['graph-b'])
+    ).then((writeOperations)->
+      expect(writeOperations.length).to.equal(6)
+
+      p = weaver.currentProject()
+      p.getSnapshotGraph(undefined, undefined, ['graph-c'])
+    ).then((writeOperations)->
+      expect(writeOperations.length).to.equal(6)
+
+      p = weaver.currentProject()
+      p.getSnapshotGraph(undefined, undefined, [null, 'graph-b', 'graph-c'])
+    ).then((writeOperations)->
+      expect(writeOperations.length).to.equal(12)
+
     )
 
   it 'should not leak internal details of projects', ->
