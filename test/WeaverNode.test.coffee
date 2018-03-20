@@ -27,6 +27,11 @@ describe 'WeaverNode test', ->
     Weaver.Node.load('doesnt-exist')
     .should.eventually.be.rejected
 
+  it 'should reject instantiating a node with an existing node id', ->
+    a = new Weaver.Node()
+    a.save().then(->
+      new Weaver.Node(a.id()).save()
+    ).should.be.rejected
 
   it 'should reject setting an id attribute', ->
     a = new Weaver.Node()
