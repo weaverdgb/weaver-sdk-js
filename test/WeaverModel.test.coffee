@@ -225,7 +225,7 @@ describe 'WeaverModel test', ->
       it 'should succeed saving all instances', ->
         new Weaver.Query().restrictGraphs(model.getGraph()).hasRelationOut('rdf:type', Weaver.Node.getFromGraph('test-model:City', model.getGraph()))
         .find().then((nodes) -> i.id() for i in nodes)
-        .should.eventually.be.eql(["test-model:Delft", "test-model:Rotterdam", "test-model:Leiden", "test-model:CityState"])
+        .should.eventually.have.members(["test-model:Delft", "test-model:Rotterdam", "test-model:Leiden", "test-model:CityState"])
 
       it 'should have the init instances as members of the model class', ->
         expect(model).to.have.property('City').to.have.property('Rotterdam')
