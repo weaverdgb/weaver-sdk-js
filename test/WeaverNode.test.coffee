@@ -3,6 +3,14 @@ wipeCurrentProject = require("./test-suite").wipeCurrentProject
 Weaver = require('../src/Weaver')
 
 describe 'WeaverNode test', ->
+  it 'should allow a node to be destroyed', ->
+    a = new Weaver.Node('this-is-going-to-be-destroyed')
+    a.save().then(->
+      a.destroy()
+    ).then(->
+      Weaver.Node.load('this-is-going-to-be-destroyed')
+    ).should.be.rejected
+
   it 'should handle concurrent remove node operations', ->
     a = new Weaver.Node()
 
@@ -50,7 +58,7 @@ describe 'WeaverNode test', ->
     c = new Weaver.Node()
 
     a.relation('2link').add(b)
-    c.relation('2link').add(c) # Is this right? or should it be b.relation('2link').add(c) ?
+    relNode = c.relation('2link').add(c)
     wipeCurrentProject().then(->
       Promise.all([a.save(), c.save()])
     ).then(->
@@ -62,7 +70,7 @@ describe 'WeaverNode test', ->
       .hasNoRelationOut('2link')
       .find()
     ).then((res)->
-      assert.equal(res.length, 2)
+      expect(i.id() for i in res).to.have.members([a.id(), relNode.id()])
     )
 
   it 'should create a new node', ->
@@ -236,7 +244,7 @@ describe 'WeaverNode test', ->
       node.set('test', 'a')
       node.save()
     )
-    
+
   it 'should allow setting an attribute value again immediately', ->
     node = new Weaver.Node()
     node.set('test', 'a')
@@ -688,14 +696,14 @@ describe 'WeaverNode test', ->
       weaver.setOptions({ignoresOutOfDate: false})
     )
 
-  it 'should fail trying to save a node with the same id than the destroyed node', ->
+  it 'should allow saving a node with the same id as the destroyed node', ->
     a = new Weaver.Node('theid')
     a.save()
     .then( ->
       a.destroy()
     ).then( ->
       new Weaver.Node('theid').save()
-    ).should.be.rejectedWith(Weaver.Error.NODE_ALREADY_EXISTS)
+    )
 
   it 'should fail trying to save a node saved with another attribute value', ->
     a = new Weaver.Node('theid')
