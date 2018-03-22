@@ -37,7 +37,7 @@ describe 'Database Test', ->
     ).then(->
       q.nativeQuery(
         "SELECT * FROM nodes n
-         WHERE deleted_by IS NULL
+         WHERE deleted_by = -1
          AND NOT (EXISTS (SELECT 1 FROM nodes d WHERE n.id = d.deleted_by))
          AND NOT (EXISTS (SELECT 1 FROM replaced_attributes WHERE replaced_attributes.node = n.id LIMIT 1))
          AND NOT (EXISTS (SELECT 1 FROM replaced_relations WHERE replaced_relations.node = n.id LIMIT 1))
