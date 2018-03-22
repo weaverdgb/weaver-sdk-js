@@ -55,6 +55,18 @@ class WeaverQuery
     else
       ["*"]
 
+  stripQuery: (query) ->
+    if query.destruct?
+      query.destruct()
+    else
+      query
+
+  queryRelationArrayValue: (queries) ->
+    if queries.length > 0
+      (@stripQuery(query) for query in queries)
+    else
+      queries
+
   find: (Constructor) ->
 
     if Constructor?
@@ -172,7 +184,7 @@ class WeaverQuery
     if _.isArray(key)
       @_addRelationCondition("$relationArray${@arrayCount++}", '$relIn', key)
     else if node.length is 1 and node[0] instanceof WeaverQuery
-      @_addRelationCondition(key, '$relIn', node)
+      @_addRelationCondition(key, '$relIn', @queryRelationArrayValue(node))
     else
       @_addRelationCondition(key, '$relIn', @nodeRelationArrayValue(node))
 
@@ -180,7 +192,7 @@ class WeaverQuery
     if _.isArray(key)
       @_addRelationCondition("$relationArray${@arrayCount++}", '$relOut', key)
     else if node.length is 1 and node[0] instanceof WeaverQuery
-      @_addRelationCondition(key, '$relOut', node)
+      @_addRelationCondition(key, '$relOut', @queryRelationArrayValue(node))
     else
       @_addRelationCondition(key, '$relOut', @nodeRelationArrayValue(node))
     @
@@ -189,7 +201,7 @@ class WeaverQuery
     if _.isArray(key)
       @_addRelationCondition("$relationArray${@arrayCount++}", '$noRelIn', key)
     else if node.length is 1 and node[0] instanceof WeaverQuery
-      @_addRelationCondition(key, '$noRelIn', node)
+      @_addRelationCondition(key, '$noRelIn', @queryRelationArrayValue(node))
     else
       @_addRelationCondition(key, '$noRelIn', @nodeRelationArrayValue(node))
 
@@ -197,8 +209,9 @@ class WeaverQuery
     if _.isArray(key)
       @_addRelationCondition("$relationArray${@arrayCount++}", '$noRelOut', key)
     else if node.length is 1 and node[0] instanceof WeaverQuery
-      @_addRelationCondition(key, '$noRelOut', node)
+      @_addRelationCondition(key, '$noRelOut', @queryRelationArrayValue(node))
     else
+      node = node.destruct() if node.destruct?
       @_addRelationCondition(key, '$noRelOut', @nodeRelationArrayValue(node))
 
   _addRecursiveCondition: (op, relation, node, includeSelf) ->
@@ -395,5 +408,8 @@ class WeaverQuery
   nativeQuery: (query)->
     Weaver.getCoreManager().nativeQuery(query, Weaver.getInstance().currentProject().id())
 
-# Export
+  @destruct: ->
+    @
+
+  # Export
 module.exports = WeaverQuery
