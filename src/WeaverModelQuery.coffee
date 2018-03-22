@@ -39,7 +39,7 @@ class WeaverModelQuery extends Weaver.Query
         else if ranges.length > 1
           console.warn("Could not pick from ranges #{JSON.stringify(ranges)} for constructing second order node between type #{JSON.stringify(defs)}")
           return Weaver.Node
-        else 
+        else
           [modelName, className] = ranges[0].split(':')
           return @model.modelMap[modelName][className]
     )
@@ -116,5 +116,9 @@ class WeaverModelQuery extends Weaver.Query
     @alwaysLoadRelations(@model.getMemberKey())
 
     super()
+
+  destruct: ->
+    delete @model
+    @
 
 module.exports = WeaverModelQuery
