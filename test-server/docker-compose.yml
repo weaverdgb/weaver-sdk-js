@@ -7,7 +7,6 @@ services:
 
   postgresql-connector:
     image: sysunite/weaver-database-postgresql:4.5.1
-
     links:
     - postgres
     expose:
