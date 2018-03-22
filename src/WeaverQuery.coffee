@@ -411,5 +411,5 @@ class WeaverQuery
   @destruct: ->
     @
 
-  # Export
+# Export
 module.exports = WeaverQuery
