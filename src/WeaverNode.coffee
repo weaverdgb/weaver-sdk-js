@@ -434,9 +434,5 @@ class WeaverNode
   equals: (node) ->
     node instanceof WeaverNode and node.id() is @id() and node.getGraph() is @getGraph()
 
-  destruct: ->
-    nodeId: @nodeId
-    graph: @graph
-
 # Export
 module.exports = WeaverNode

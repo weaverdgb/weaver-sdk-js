@@ -4,7 +4,6 @@ Promise  = require('bluebird')
 pjson    = require('../package.json')
 Weaver   = require('./Weaver')
 ss       = require('socket.io-stream')
-cjson    = require('circular-json')
 
 class SocketController
 
