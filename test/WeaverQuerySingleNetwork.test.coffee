@@ -15,6 +15,7 @@ describe 'WeaverQuery with single Network', ->
   wheel            = new Weaver.Node()
   pirelli          = new Weaver.Node()
   vettel           = new Weaver.Node()
+  raikonnen        = new Weaver.Node()
   hamilton         = new Weaver.Node()
 
   king             = new Weaver.Node(undefined, 'feudal')
@@ -53,6 +54,12 @@ describe 'WeaverQuery with single Network', ->
 
   vettel.set('testset', '2')
   vettel.relation('drives').add(ferrari)
+
+  raikonnen.set('testset', '2')
+  raikonnen.relation('drives').add(ferrari)
+
+  vettel.relation('isTeamMateOf').add(raikonnen)
+  raikonnen.relation('isTeamMateOf').add(vettel)
 
   hamilton.set('testset', '2')
   vettel.relation('beats').add(hamilton)
@@ -299,3 +306,25 @@ describe 'WeaverQuery with single Network', ->
         # Check that graphs are preserved
         expect(s.relation(r).first().relation(r).first().getGraph()).to.equal('feudal')
       )
+
+  it 'should have count and res.length be equal', ->
+    q = new Weaver.Query()
+    Promise.all([
+      q.find().then((res) ->
+        res.length
+      ),
+      q.count()
+    ]).then((counts) ->
+      expect(counts[0]).to.equal(counts[1])
+    )
+
+  it 'should have hasRelationOut count and res.length be equal', ->
+    q = new Weaver.Query().hasRelationOut("*", vettel, raikonnen, ferrari)
+    Promise.all([
+      q.find().then((res) ->
+        res.length
+      ),
+      q.count()
+    ]).then((counts) ->
+      expect(counts[0]).to.equal(counts[1])
+    )
