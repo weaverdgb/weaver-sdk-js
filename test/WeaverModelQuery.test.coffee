@@ -197,7 +197,7 @@ describe 'WeaverModelQuery test', ->
           for to in p.relation('comesFrom').all()
 
             if to.id() is 'HongKong'
-              expect(to).to.be.instanceOf(Weaver.Node)              
+              expect(to).to.be.instanceOf(Weaver.Node)
               p.getToRanges('comesFrom', to).should.eql(['test-model:Country', 'test-model:City'])
 
               (def.id() for def in to.relation('rdf:type').all())
@@ -237,5 +237,5 @@ describe 'WeaverModelQuery test', ->
               expect(to).to.be.instanceOf(model.DeliveryNotice)
             if to.id() is 'basContract'
               expect(to).to.be.instanceOf(model.td.Document)
- 
+
         )
