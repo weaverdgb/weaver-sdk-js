@@ -83,7 +83,7 @@ describe 'WeaverQuery with single Network', ->
     new Weaver.Query()
     .hasRelationIn('*', new Weaver.Query().hasRelationOut('is-a', car))
     .find().then((nodes) ->
-      expect(i.id() for i in nodes).to.eql([ car.id(), pirelli.id() ])
+      expect(i.id() for i in nodes).to.have.members([ car.id(), pirelli.id() ])
     )
 
   it 'should support wildcard relation hasRelationOut', ->

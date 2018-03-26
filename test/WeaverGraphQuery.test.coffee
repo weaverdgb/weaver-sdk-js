@@ -21,7 +21,7 @@ describe 'WeaverGraphQuery', ->
       .restrictGraphs('WeaverGraphQuery')
       .hasNoRelationOut('test', node2)
       .find().then((nodes) -> (i.id() for i in nodes))
-      .should.eventually.eql([ 'node2', 'node3' ])
+      .should.eventually.have.members([ 'node2', 'node3' ])
 
   it 'should allow hasRelationOut', ->
     new Weaver.Query()
@@ -33,14 +33,14 @@ describe 'WeaverGraphQuery', ->
     new Weaver.Query()
       .hasRecursiveRelationOut('test', node3, true)
       .find().then((nodes) -> (i.id() for i in nodes))
-      .should.eventually.eql([ 'node1', 'node2', 'node3' ])
+      .should.eventually.have.members([ 'node1', 'node2', 'node3' ])
 
   it 'should allow hasNoRelationIn', ->
     new Weaver.Query()
       .restrictGraphs('WeaverGraphQuery')
       .hasNoRelationIn('test', node1)
       .find().then((nodes) -> (i.id() for i in nodes))
-      .should.eventually.eql([ 'node1', 'node3' ])
+      .should.eventually.have.members([ 'node1', 'node3' ])
 
   it 'should allow hasRelationIn', ->
     new Weaver.Query()
@@ -52,4 +52,4 @@ describe 'WeaverGraphQuery', ->
     new Weaver.Query()
       .hasRecursiveRelationIn('test', node1)
       .find().then((nodes) -> (i.id() for i in nodes))
-      .should.eventually.eql([ 'node2', 'node3' ])
+      .should.eventually.have.members([ 'node2', 'node3' ])
