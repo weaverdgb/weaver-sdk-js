@@ -100245,7 +100245,7 @@ module.exports = yeast;
 },{}],401:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "6.3.3",
+  "version": "6.3.4-rc.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -100253,7 +100253,7 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "^4.5.1-beta.0",
+    "requiredConnectorVersion": "^4.5.0",
     "requiredServerVersion": "^3.10.0"
   },
   "main": "lib/Weaver.js",
@@ -101122,7 +101122,7 @@ module.exports={
 
 },{"./Weaver":407,"./util":425,"cuid":135}],406:[function(require,module,exports){
 (function() {
-  var Promise, SocketController, Weaver, cjson, io, pjson, ss;
+  var Promise, SocketController, Weaver, io, pjson, ss;
 
   io = require('socket.io-client');
 
@@ -101133,8 +101133,6 @@ module.exports={
   Weaver = require('./Weaver');
 
   ss = require('socket.io-stream');
-
-  cjson = require('circular-json');
 
   SocketController = (function() {
     function SocketController(address, options) {
@@ -101246,7 +101244,7 @@ module.exports={
 
 }).call(this);
 
-},{"../package.json":401,"./Weaver":407,"bluebird":72,"circular-json":121,"socket.io-client":338,"socket.io-stream":347}],407:[function(require,module,exports){
+},{"../package.json":401,"./Weaver":407,"bluebird":72,"socket.io-client":338,"socket.io-stream":347}],407:[function(require,module,exports){
 (function() {
   var Promise, PubSub, Weaver;
 
@@ -103729,13 +103727,6 @@ module.exports={
       return node instanceof WeaverNode && node.id() === this.id() && node.getGraph() === this.getGraph();
     };
 
-    WeaverNode.prototype.destruct = function() {
-      return {
-        nodeId: this.nodeId,
-        graph: this.graph
-      };
-    };
-
     return WeaverNode;
 
   })();
@@ -104120,17 +104111,25 @@ module.exports={
       }
     };
 
+    WeaverQuery.prototype.stripQuery = function(query) {
+      if (query.destruct != null) {
+        return query.destruct();
+      } else {
+        return query;
+      }
+    };
+
     WeaverQuery.prototype.queryRelationArrayValue = function(queries) {
       var k, len, query, results1;
       if (queries.length > 0) {
         results1 = [];
         for (k = 0, len = queries.length; k < len; k++) {
           query = queries[k];
-          results1.push(query.destruct());
+          results1.push(this.stripQuery(query));
         }
         return results1;
       } else {
-        return [queries[0]];
+        return queries;
       }
     };
 
