@@ -27,8 +27,7 @@ describe 'Database Test', ->
       c.relation('knows').update(d, e)
       Promise.all([a.save(), c.save(), d.save()])
     ).then(->
-      a.destroy()
-      b.destroy()
+      Promise.all([a.destroy(), b.destroy()])
     ).then(->
       cm.cleanup()
     ).then(->
@@ -38,10 +37,11 @@ describe 'Database Test', ->
     ).then(->
       q.nativeQuery(
         "SELECT * FROM nodes n
-         WHERE NOT (EXISTS (SELECT 1 FROM removed_nodes WHERE removed_nodes.removed_node = n.id LIMIT 1))
-         AND NOT (EXISTS (SELECT 1 FROM removed_nodes WHERE removed_nodes.node = n.id LIMIT 1))
+         WHERE deleted_by = -1
+         AND NOT (EXISTS (SELECT 1 FROM nodes d WHERE n.id = d.deleted_by))
          AND NOT (EXISTS (SELECT 1 FROM replaced_attributes WHERE replaced_attributes.node = n.id LIMIT 1))
-         AND NOT (EXISTS (SELECT 1 FROM replaced_relations WHERE replaced_relations.node = n.id LIMIT 1))"
+         AND NOT (EXISTS (SELECT 1 FROM replaced_relations WHERE replaced_relations.node = n.id LIMIT 1))
+         ORDER BY id"
       )
     ).then((cleanNodes)->
       expect(allNodes).to.deep.equal(cleanNodes)

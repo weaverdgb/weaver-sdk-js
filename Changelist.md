@@ -1,5 +1,9 @@
 # Changelist
 
+## 6.3.3
+- Fixes ModelClass instances raising an exception when being asked about an
+  attribute they don't have, instead undefined is returned
+
 ## 6.3.2
 - Fixes a bug where calling load() on an instance of ModelClass would destroy
   the ModelClass functions
