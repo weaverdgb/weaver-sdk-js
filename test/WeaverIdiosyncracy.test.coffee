@@ -71,18 +71,15 @@ describe 'Weaver idiosyncracies examination', ->
       removed.destroy()
     )
 
-  it 'allow writing attributes to deleted nodes', ->
+  it 'disallows writing attributes to deleted nodes', ->
     dei = {}
-
     Weaver.Node.load('d').then((res)->
       dei = res # dei is now another reference to the node d
       d.destroy()
     ).then(->
       dei.set('is-now', 'non-existent')
       dei.save() # runs without exception
-    ).then((res)->
-      expect(Weaver.Node.load('d')).to.be.rejected # throws 101 (obviously)
-    )
+    ).should.be.rejected
 
   it 'allows writing relations from deleted nodes', ->
     sea = {}
@@ -93,9 +90,7 @@ describe 'Weaver idiosyncracies examination', ->
     ).then(->
       sea.relation('will-no-longer-sooth').add(b)
       sea.save() # runs without exception
-    ).then((res)->
-      expect(Weaver.Node.load('c')).to.be.rejected # throws 101 (obviously)
-    )
+    ).should.be.rejected
 
   it 'allows writing relations to deleted nodes', ->
     ay = {}
@@ -110,9 +105,7 @@ describe 'Weaver idiosyncracies examination', ->
     ).then(->
       ay.relation('test').add(bee)
       ay.save()
-    ).then(->
-      expect(Weaver.Node.load('b')).to.be.rejected # throws 101 (obviously)
-    )
+    ).should.be.rejected
 
   it 'should not allow writing relations to deleted nodes (using the reference of the client-deleted node, as opposed to the client- valid reference for the server-deleted node)', ->
     ay = {}
@@ -134,32 +127,32 @@ describe 'Weaver idiosyncracies examination', ->
 
   it 'allows setting attributes on destroyed node references', ->
     removedRef2.set('a', 'b')
-    expect(removedRef2.save()).to.not.be.rejected
+    expect(removedRef2.save()).to.be.rejected
 
   it 'does not allow setting relations from destroyed nodes', ->
     expect( -> removed.relation('test').add(a)).to.throw()
 
   it 'allows setting relations from destroyed node references', ->
     removedRef2.relation('test').add(a)
-    expect(removedRef2.save()).to.not.be.rejected
+    expect(removedRef2.save()).to.be.rejected
 
   it 'does not allow setting relations to destroyed nodes', ->
     expect( -> a.relation('test').add(removed)).to.throw()
 
   it 'allows setting relations to destroyed node references', ->
     a.relation('test').add(removedRef2)
-    expect(a.save()).to.not.be.rejected
+    expect(a.save()).to.be.rejected
 
   it 'does not allow attribute removal on destroyed nodes', ->
     expect(-> removed.unset('description')).to.throw()
 
   it 'allows attribute removal on destroyed node references', ->
     removedRef2.unset('description')
-    expect(removedRef2.save()).to.not.be.rejected
+    expect(removedRef2.save()).to.be.rejected
 
   it 'does not allow relation removal on destroyed nodes', ->
     expect(-> removed.relation('test').remove(fromRemoved)).to.throw()
 
   it 'allows relation removal on destroyed node references', ->
     removedRef2.relation('test').remove(fromRemoved)
-    expect(removedRef2.save()).to.not.be.rejected
+    expect(removedRef2.save()).to.be.rejected
