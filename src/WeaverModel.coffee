@@ -202,7 +202,7 @@ class WeaverModel
       superId = @_getClassNodeId(classObj.super)
       if id not in existingNodes
         node = nodesToCreate[id]
-        superClassNode = nodesToCreate[superId] 
+        superClassNode = nodesToCreate[superId] or Weaver.Node.getFromGraph(superId, @getGraph()) 
         if node instanceof Weaver.ModelClass
           node.nodeRelation(@getInheritKey()).add(superClassNode)
         else
