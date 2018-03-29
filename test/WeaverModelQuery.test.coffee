@@ -198,12 +198,12 @@ describe 'WeaverModelQuery test', ->
 
             if to.id() is 'HongKong'
               expect(to).to.be.instanceOf(Weaver.Node)
-              p.getToRanges('comesFrom', to).should.eql(['test-model:Country', 'test-model:City'])
+              p.getToRanges('comesFrom', to).should.have.members(['test-model:Country', 'test-model:City'])
 
               (def.id() for def in to.relation('rdf:type').all())
-              .should.eql(['test-model:Country', 'test-model:City'])
+              .should.have.members(['test-model:Country', 'test-model:City'])
               (def.id() for def in hongkong.nodeRelation('rdf:type').all())
-              .should.eql(['test-model:Country', 'test-model:City'])
+              .should.have.members(['test-model:Country', 'test-model:City'])
 
             else if to.id() is 'Spain'
               expect(to).to.be.instanceOf(model.Country)
