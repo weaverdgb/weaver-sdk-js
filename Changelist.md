@@ -1,5 +1,8 @@
 # Changelist
 
+## 6.3.5
+- Fixes running bootstrap twice with some nodes previously missing
+
 ## 6.3.3
 - Fixes ModelClass instances raising an exception when being asked about an
   attribute they don't have, instead undefined is returned
