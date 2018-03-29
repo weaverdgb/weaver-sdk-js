@@ -154,6 +154,14 @@ describe 'WeaverModel test', ->
         new Weaver.Query().restrict('test-model:Person').find()
       ).should.eventually.have.length.be(1)
 
+    it 'should bootstrap an already bootstrapped model with one extra node', ->
+      model.bootstrap()
+      .then(->
+        Weaver.Node.getFromGraph('test-model:House', model.getGraph()).destroy()
+      ).then(->
+        model.bootstrap()
+      )
+
     it 'should fail saving with type definition that is not yet bootstrapped', ->
       Person = model.Person
       person = new Person()
