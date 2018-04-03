@@ -49,12 +49,12 @@ describe 'WeaverProject Test', ->
     )
 
   it 'should list projects', ->
-    a = new Weaver.Project("A", "a")
+    a = new Weaver.Project("A", "aaa")
     a.create().then(->
       Weaver.Project.list()
     ).then((list) ->
       expect(list.length).to.equal(2)
-      loadedA = p for p in list when p.id() is 'a'
+      loadedA = p for p in list when p.id() is 'aaa'
       expect(loadedA).to.be.defined
       expect(loadedA.name).to.equal('A')
     ).then(->
