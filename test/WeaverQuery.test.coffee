@@ -280,19 +280,21 @@ describe 'WeaverQuery Test', ->
       )
 
   describe 'clean nodes, with a-b and meta to-relation', ->
-    a = new Weaver.Node('a')
-    b = new Weaver.Node('b')
-    c = new Weaver.Node('c')
-    relNodeId = undefined
+
+    beforeEach ->
+      wipeCurrentProject()
 
     it 'should return also relation on relation when query', ->
-      wipeCurrentProject().then( ->
-        relNode = a.relation('to').add(b)
-        relNodeId = relNode.id()
-        assert.isTrue(relNode instanceof Weaver.RelationNode)
-        relNode.relation('meta').add(c)
-        a.save()
-      ).then(->
+      a = new Weaver.Node('a')
+      b = new Weaver.Node('b')
+      c = new Weaver.Node('c')
+
+      relNode = a.relation('to').add(b)
+      relNodeId = relNode.id()
+      assert.isTrue(relNode instanceof Weaver.RelationNode)
+      relNode.relation('meta').add(c)
+      a.save()
+      .then(->
         new Weaver.Query()
         .withRelations()
         .find().then((nodes) ->
@@ -303,26 +305,33 @@ describe 'WeaverQuery Test', ->
           for node in nodes 
             if node.id() is relNodeId
               assert.isTrue(node instanceof Weaver.RelationNode) 
-              # console.log node.fromNode
-              # console.log node.toNode
-        )
+              assert.isTrue(node.fromNode instanceof Weaver.Node) 
+              assert.isTrue(node.toNode instanceof Weaver.Node) 
+        ) 
       )
 
     it 'should return also relation on relation when relation out query', ->
-      wipeCurrentProject().then( ->
-        relNode = a.relation('to').add(b)
-        relNodeId = relNode.id()
-        assert.isTrue(relNode instanceof Weaver.RelationNode)
-        relNode.relation('meta').add(c)
-        a.save()
-      ).then(->
+      a = new Weaver.Node('a')
+      b = new Weaver.Node('b', 'special')
+      c = new Weaver.Node('c')
+
+      relNode = a.relation('to').add(b)
+      relNodeId = relNode.id()
+      assert.isTrue(relNode instanceof Weaver.RelationNode)
+      relNode.relation('meta').add(c)
+      a.save()
+      .then(->
         new Weaver.Query()
         .withRelations()
         .hasRelationOut('meta')
         .find().then((nodes) ->
-          console.log nodes
           expect(nodes.length).to.equal(1)
-          # assert(false) # the payload of this weaver.query does not contain any from or to fields
+          assert.isTrue(nodes[0] instanceof Weaver.RelationNode) 
+          assert.isTrue(nodes[0].fromNode instanceof Weaver.Node) 
+          expect(nodes[0].fromNode.id()).to.equal('a')
+          assert.isTrue(nodes[0].toNode instanceof Weaver.Node) 
+          expect(nodes[0].toNode.id()).to.equal('b')
+          expect(nodes[0].toNode.getGraph()).to.equal('special')
         )
       )
 
