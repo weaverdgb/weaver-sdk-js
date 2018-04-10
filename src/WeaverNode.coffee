@@ -47,11 +47,18 @@ class WeaverNode
     if constructorFunction?
       Constructor = constructorFunction(Weaver.Node.loadFromQuery(node)) or Weaver.Node
     else
-      Constructor = Weaver.Node
+      if node.relationSource? and node.relationTarget?
+        Constructor = Weaver.RelationNode
+      else
+        Constructor = Weaver.Node
 
     instance = new Constructor(node.nodeId, node.graph)
     instance._loadFromQuery(node, constructorFunction, fullyLoaded)
     instance._setStored()
+    if instance instanceof Weaver.RelationNode
+      instance.fromNode = WeaverNode.loadFromQuery(node.relationSource, undefined, false)
+      instance.toNode   = WeaverNode.loadFromQuery(node.relationTarget, undefined, false)
+      instance.key      = node.relationKey
     instance
 
   _loadFromQuery: (object, constructorFunction, fullyLoaded = true) ->

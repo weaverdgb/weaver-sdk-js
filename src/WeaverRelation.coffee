@@ -54,6 +54,7 @@ class WeaverRelation
 
   _createRelationNode: (relId, targetNode, graph) ->
     result = Weaver.RelationNode.get(relId, Weaver.RelationNode, graph)
+    result.fromNode = @parent
     result.toNode = targetNode
     result
 
