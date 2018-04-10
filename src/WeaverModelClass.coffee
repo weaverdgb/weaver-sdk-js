@@ -150,7 +150,6 @@ class WeaverModelClass extends Weaver.Node
       ranges = @getRanges(key)
       (def for def in defs when def in ranges)
     else
-      console.log "#{to.id()} is not a ModelClass"
       []
 
   attributes: ->

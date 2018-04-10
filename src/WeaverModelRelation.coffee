@@ -14,8 +14,9 @@ class WeaverModelRelation extends Weaver.Relation
     defs = []
     if node instanceof Weaver.ModelClass 
       defs = node.getDefinitions()
+    else if node instanceof Weaver.DefinedNode 
+      defs = node.getDefinitions()
     else
-      console.log "#{node.id()} is not a ModelClass"
       return
 
     found = @parent.getToRanges(@modelKey, node)

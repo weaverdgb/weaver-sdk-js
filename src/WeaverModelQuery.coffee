@@ -37,7 +37,7 @@ class WeaverModelQuery extends Weaver.Query
           console.warn("Could not find a range for constructing second order node between type #{JSON.stringify(defs)}")
           return Weaver.Node
         else if ranges.length > 1
-          console.log("Could not pick from ranges #{JSON.stringify(ranges)} for constructing second order node between type #{JSON.stringify(defs)}")
+          console.log("Construct DefinedNode from ranges #{JSON.stringify(ranges)} for constructing second order node between type #{JSON.stringify(defs)}")
           return Weaver.DefinedNode
         else
           [modelName, className] = ranges[0].split(':')
