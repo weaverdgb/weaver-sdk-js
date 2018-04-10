@@ -98690,7 +98690,7 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "^4.5.0",
+    "requiredConnectorVersion": "^4.6.0",
     "requiredServerVersion": "^3.10.0"
   },
   "main": "lib/Weaver.js",
@@ -99208,7 +99208,7 @@ module.exports={
     CoreManager.prototype.query = function(query) {
       var target;
       target = query.target;
-      query = _.omit(query, ['model', 'target', 'useConstructorFunction']);
+      query = _.omit(query, ['model', 'target', 'constructorFunction']);
       return this.POST("query", {
         query: query,
         unparsed: true
@@ -99344,7 +99344,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Error":421,"./LocalController":422,"./SocketController":424,"./Weaver":425,"./WeaverError":427,"bluebird":73,"cuid":136,"lodash":245,"request":296,"socket.io-client":322}],421:[function(require,module,exports){
+},{"./Error":421,"./LocalController":422,"./SocketController":424,"./Weaver":425,"./WeaverError":428,"bluebird":73,"cuid":136,"lodash":245,"request":296,"socket.io-client":322}],421:[function(require,module,exports){
 (function() {
   module.exports = function(code, message) {
     return {
@@ -99557,7 +99557,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Weaver":425,"./util":443,"cuid":136}],424:[function(require,module,exports){
+},{"./Weaver":425,"./util":444,"cuid":136}],424:[function(require,module,exports){
 (function() {
   var Promise, SocketController, Weaver, io, pjson, ss;
 
@@ -99696,6 +99696,7 @@ module.exports={
       }
       Weaver.instance = this;
       this.Node = Weaver.Node;
+      this.DefinedNode = Weaver.DefinedNode;
       this.ACL = Weaver.ACL;
       this.CoreManager = Weaver.CoreManager;
       this.History = Weaver.History;
@@ -99853,6 +99854,8 @@ module.exports={
 
   module.exports.Node = require('./WeaverNode');
 
+  module.exports.DefinedNode = require('./WeaverDefinedNode');
+
   module.exports.ACL = require('./WeaverACL');
 
   module.exports.CoreManager = require('./CoreManager');
@@ -99889,7 +99892,7 @@ module.exports={
 
 }).call(this);
 
-},{"../package.json":419,"./CoreManager":420,"./Error":421,"./WeaverACL":426,"./WeaverError":427,"./WeaverFile":428,"./WeaverHistory":429,"./WeaverModel":430,"./WeaverModelClass":431,"./WeaverModelQuery":432,"./WeaverModelRelation":433,"./WeaverNode":435,"./WeaverPlugin":436,"./WeaverProject":437,"./WeaverQuery":438,"./WeaverRelation":439,"./WeaverRelationNode":440,"./WeaverRole":441,"./WeaverUser":442,"bluebird":73,"pubsub-js":285}],426:[function(require,module,exports){
+},{"../package.json":419,"./CoreManager":420,"./Error":421,"./WeaverACL":426,"./WeaverDefinedNode":427,"./WeaverError":428,"./WeaverFile":429,"./WeaverHistory":430,"./WeaverModel":431,"./WeaverModelClass":432,"./WeaverModelQuery":433,"./WeaverModelRelation":434,"./WeaverNode":436,"./WeaverPlugin":437,"./WeaverProject":438,"./WeaverQuery":439,"./WeaverRelation":440,"./WeaverRelationNode":441,"./WeaverRole":442,"./WeaverUser":443,"bluebird":73,"pubsub-js":285}],426:[function(require,module,exports){
 (function() {
   var Weaver, WeaverACL, cuid;
 
@@ -100061,6 +100064,100 @@ module.exports={
 
 },{"./Weaver":425,"cuid":136}],427:[function(require,module,exports){
 (function() {
+  var Promise, Weaver, WeaverDefinedNode,
+    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+    hasProp = {}.hasOwnProperty,
+    slice = [].slice,
+    indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
+
+  Weaver = require('./Weaver');
+
+  Promise = require('bluebird');
+
+  WeaverDefinedNode = (function(superClass) {
+    extend(WeaverDefinedNode, superClass);
+
+    function WeaverDefinedNode(nodeId, graph) {
+      this.nodeId = nodeId;
+      this.graph = graph;
+      WeaverDefinedNode.__super__.constructor.call(this, this.nodeId, this.graph);
+    }
+
+    WeaverDefinedNode.prototype.getNodeNameByKey = function(model, dotPath) {
+      var first, ref, rest;
+      ref = dotPath.split('.'), first = ref[0], rest = 2 <= ref.length ? slice.call(ref, 1) : [];
+      if (rest.length === 0) {
+        return model.definition.name + ":" + dotPath;
+      }
+      if (model.includes[first] != null) {
+        return this.getNodeNameByKey(model.includes[first], rest.join('.'));
+      }
+      return null;
+    };
+
+    WeaverDefinedNode.prototype.getDefinitions = function() {
+      var addSuperDefs, def, defs, i, len, totalDefs;
+      addSuperDefs = (function(_this) {
+        return function(def, defs) {
+          var className, definition, modelName, ref, res, superClassName;
+          if (defs == null) {
+            defs = [];
+          }
+          res = [];
+          ref = def.split(':'), modelName = ref[0], className = ref[1];
+          if (_this.model.modelMap[modelName] == null) {
+            console.log(modelName + " in " + modelName + ":" + className + " is not available on model " + _this.model.definition.name);
+          }
+          definition = _this.model.modelMap[modelName].definition.classes[className];
+          if (definition["super"] != null) {
+            superClassName = _this.getNodeNameByKey(_this.model, definition["super"]);
+            if (indexOf.call(defs, superClassName) < 0) {
+              res.push(superClassName);
+            }
+            res = res.concat(addSuperDefs(superClassName, defs));
+            return res;
+          } else {
+            return res;
+          }
+        };
+      })(this);
+      defs = [];
+      defs = (function() {
+        var i, len, ref, results;
+        ref = this.relation(this.model.getMemberKey()).all();
+        results = [];
+        for (i = 0, len = ref.length; i < len; i++) {
+          def = ref[i];
+          results.push(def.id());
+        }
+        return results;
+      }).call(this);
+      totalDefs = (function() {
+        var i, len, results;
+        results = [];
+        for (i = 0, len = defs.length; i < len; i++) {
+          def = defs[i];
+          results.push(def);
+        }
+        return results;
+      })();
+      for (i = 0, len = defs.length; i < len; i++) {
+        def = defs[i];
+        totalDefs = totalDefs.concat(addSuperDefs(def, defs));
+      }
+      return totalDefs;
+    };
+
+    return WeaverDefinedNode;
+
+  })(Weaver.Node);
+
+  module.exports = WeaverDefinedNode;
+
+}).call(this);
+
+},{"./Weaver":425,"bluebird":73}],428:[function(require,module,exports){
+(function() {
   var WeaverError;
 
   WeaverError = {};
@@ -100207,7 +100304,7 @@ module.exports={
 
 }).call(this);
 
-},{}],428:[function(require,module,exports){
+},{}],429:[function(require,module,exports){
 (function() {
   var Error, EventEmitter, Promise, Weaver, WeaverError, WeaverFile, fs, path, ss,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
@@ -100494,7 +100591,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Error":421,"./Weaver":425,"./WeaverError":427,"bluebird":73,"events":182,"fs":104,"path":270,"socket.io-stream":331}],429:[function(require,module,exports){
+},{"./Error":421,"./Weaver":425,"./WeaverError":428,"bluebird":73,"events":182,"fs":104,"path":270,"socket.io-stream":331}],430:[function(require,module,exports){
 (function() {
   var Weaver, WeaverHistory;
 
@@ -100591,7 +100688,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Weaver":425}],430:[function(require,module,exports){
+},{"./Weaver":425}],431:[function(require,module,exports){
 (function() {
   var Promise, Weaver, WeaverModel, WeaverModelValidator, cuid,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
@@ -100908,7 +101005,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Weaver":425,"./WeaverModelValidator":434,"bluebird":73,"cuid":136}],431:[function(require,module,exports){
+},{"./Weaver":425,"./WeaverModelValidator":435,"bluebird":73,"cuid":136}],432:[function(require,module,exports){
 (function() {
   var Promise, Weaver, WeaverModelClass, _, cuid,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
@@ -101081,47 +101178,87 @@ module.exports={
       return results;
     };
 
-    WeaverModelClass.prototype.getDefinitions = function(node) {
-      var def, defs;
+    WeaverModelClass.prototype.getDefinitions = function() {
+      var addSuperDefs, def, defs, i, len, totalDefs;
+      addSuperDefs = (function(_this) {
+        return function(def, defs) {
+          var className, definition, modelName, ref, res, superClassName;
+          if (defs == null) {
+            defs = [];
+          }
+          res = [];
+          ref = def.split(':'), modelName = ref[0], className = ref[1];
+          if (_this.model.modelMap[modelName] == null) {
+            console.log(modelName + " in " + modelName + ":" + className + " is not available on model " + _this.model.definition.name);
+          }
+          definition = _this.model.modelMap[modelName].definition.classes[className];
+          if (definition["super"] != null) {
+            superClassName = _this.getNodeNameByKey(_this.model, definition["super"]);
+            if (indexOf.call(defs, superClassName) < 0) {
+              res.push(superClassName);
+            }
+            res = res.concat(addSuperDefs(superClassName, defs));
+            return res;
+          } else {
+            return res;
+          }
+        };
+      })(this);
       defs = [];
-      if (node instanceof Weaver.ModelClass) {
-        defs = (function() {
-          var i, len, ref, results;
-          ref = node.nodeRelation(this.model.getMemberKey()).all();
-          results = [];
-          for (i = 0, len = ref.length; i < len; i++) {
-            def = ref[i];
-            results.push(def.id());
-          }
-          return results;
-        }).call(this);
-      } else {
-        defs = (function() {
-          var i, len, ref, results;
-          ref = node.relation(this.model.getMemberKey()).all();
-          results = [];
-          for (i = 0, len = ref.length; i < len; i++) {
-            def = ref[i];
-            results.push(def.id());
-          }
-          return results;
-        }).call(this);
+      defs = (function() {
+        var i, len, ref, results;
+        ref = this.nodeRelation(this.model.getMemberKey()).all();
+        results = [];
+        for (i = 0, len = ref.length; i < len; i++) {
+          def = ref[i];
+          results.push(def.id());
+        }
+        return results;
+      }).call(this);
+      totalDefs = (function() {
+        var i, len, results;
+        results = [];
+        for (i = 0, len = defs.length; i < len; i++) {
+          def = defs[i];
+          results.push(def);
+        }
+        return results;
+      })();
+      for (i = 0, len = defs.length; i < len; i++) {
+        def = defs[i];
+        totalDefs = totalDefs.concat(addSuperDefs(def, defs));
       }
-      return defs;
+      return totalDefs;
     };
 
     WeaverModelClass.prototype.getToRanges = function(key, to) {
-      var def, defs, i, len, ranges, results;
-      defs = this.getDefinitions(to);
-      ranges = this.getRanges(key);
-      results = [];
-      for (i = 0, len = defs.length; i < len; i++) {
-        def = defs[i];
-        if (indexOf.call(ranges, def) >= 0) {
-          results.push(def);
+      var def, defs, i, j, len, len1, ranges, results, results1;
+      if (to instanceof Weaver.ModelClass) {
+        defs = to.getDefinitions();
+        ranges = this.getRanges(key);
+        results = [];
+        for (i = 0, len = defs.length; i < len; i++) {
+          def = defs[i];
+          if (indexOf.call(ranges, def) >= 0) {
+            results.push(def);
+          }
         }
+        return results;
+      } else if (to instanceof Weaver.DefinedNode) {
+        defs = to.getDefinitions();
+        ranges = this.getRanges(key);
+        results1 = [];
+        for (j = 0, len1 = defs.length; j < len1; j++) {
+          def = defs[j];
+          if (indexOf.call(ranges, def) >= 0) {
+            results1.push(def);
+          }
+        }
+        return results1;
+      } else {
+        console.log((to.id()) + " is not a ModelClass");
+        return [];
       }
-      return results;
     };
 
     WeaverModelClass.prototype.attributes = function() {
@@ -101249,7 +101386,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Weaver":425,"bluebird":73,"cuid":136,"lodash":245}],432:[function(require,module,exports){
+},{"./Weaver":425,"bluebird":73,"cuid":136,"lodash":245}],433:[function(require,module,exports){
 (function() {
   var Promise, Weaver, WeaverModelQuery, cuid,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
@@ -101266,9 +101403,10 @@ module.exports={
     extend(WeaverModelQuery, superClass);
 
     function WeaverModelQuery(model, target) {
+      var constructorFunction;
       this.model = model != null ? model : Weaver.currentModel();
       WeaverModelQuery.__super__.constructor.call(this, target);
-      this.useConstructor((function(_this) {
+      constructorFunction = (function(_this) {
         return function(node, owner, key) {
           var className, def, defs, modelKey, modelName, ranges, ref, ref1;
           defs = (function() {
@@ -101291,13 +101429,13 @@ module.exports={
           } else if (owner == null) {
             if (_this.preferredConstructor == null) {
               console.info("Could not choose contructing first order node between type " + (JSON.stringify(defs)));
-              return Weaver.Node;
+              return Weaver.DefinedNode;
             }
             return _this.preferredConstructor;
           } else {
             if (!owner instanceof Weaver.ModelClass) {
               console.info("Could not choose contructing node between type " + (JSON.stringify(defs)));
-              return Weaver.Node;
+              return Weaver.DefinedNode;
             }
             modelKey = owner.lookUpModelKey(key);
             ranges = owner.getToRanges(modelKey, node);
@@ -101305,15 +101443,16 @@ module.exports={
               console.warn("Could not find a range for constructing second order node between type " + (JSON.stringify(defs)));
               return Weaver.Node;
             } else if (ranges.length > 1) {
-              console.warn("Could not pick from ranges " + (JSON.stringify(ranges)) + " for constructing second order node between type " + (JSON.stringify(defs)));
-              return Weaver.Node;
+              return Weaver.DefinedNode;
             } else {
               ref1 = ranges[0].split(':'), modelName = ref1[0], className = ref1[1];
               return _this.model.modelMap[modelName][className];
             }
           }
         };
-      })(this));
+      })(this);
+      constructorFunction.model = this.model;
+      this.setConstructorFunction(constructorFunction);
     }
 
     WeaverModelQuery.prototype.getNodeIdFromStringOrNode = function(node) {
@@ -101429,7 +101568,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Weaver":425,"bluebird":73,"cuid":136}],433:[function(require,module,exports){
+},{"./Weaver":425,"bluebird":73,"cuid":136}],434:[function(require,module,exports){
 (function() {
   var Promise, Weaver, WeaverModelRelation, _, cjson, cuid,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
@@ -101458,10 +101597,16 @@ module.exports={
 
     WeaverModelRelation.prototype._checkCorrectClass = function(node) {
       var allowed, defs, found;
-      defs = this.parent.getDefinitions(node);
+      defs = [];
+      if (node instanceof Weaver.ModelClass) {
+        defs = node.getDefinitions();
+      } else {
+        console.log((node.id()) + " is not a ModelClass");
+        return;
+      }
       found = this.parent.getToRanges(this.modelKey, node);
       allowed = this.parent.getRanges(this.modelKey);
-      if (found.length > 0) {
+      if ((found != null) && found.length > 0) {
         return true;
       }
       throw new Error(("Model " + this.className + " is not allowed to have relation " + this.modelKey + " to " + (node.id())) + (" of def " + (JSON.stringify(defs)) + ", allowed ranges are " + (JSON.stringify(allowed))));
@@ -101488,7 +101633,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Weaver":425,"bluebird":73,"circular-json":122,"cuid":136,"lodash":245}],434:[function(require,module,exports){
+},{"./Weaver":425,"bluebird":73,"circular-json":122,"cuid":136,"lodash":245}],435:[function(require,module,exports){
 (function() {
   var WeaverModelValidator;
 
@@ -101560,7 +101705,7 @@ module.exports={
 
 }).call(this);
 
-},{}],435:[function(require,module,exports){
+},{}],436:[function(require,module,exports){
 (function() {
   var Operation, Promise, Weaver, WeaverError, WeaverNode, _, cuid, util,
     slice = [].slice;
@@ -101631,23 +101776,27 @@ module.exports={
       }
     };
 
-    WeaverNode.loadFromQuery = function(node, constructorFunction, fullyLoaded) {
+    WeaverNode.loadFromQuery = function(node, constructorFunction, fullyLoaded, model) {
       var Constructor, instance;
       if (fullyLoaded == null) {
         fullyLoaded = true;
       }
       if (constructorFunction != null) {
-        Constructor = constructorFunction(Weaver.Node.loadFromQuery(node)) || Weaver.Node;
-      } else {
-        Constructor = Weaver.Node;
+        Constructor = constructorFunction(Weaver.Node.loadFromQuery(node, void 0, void 0, model));
+      }
+      if (Constructor == null) {
+        Constructor = model != null ? Weaver.DefinedNode : Weaver.Node;
       }
       instance = new Constructor(node.nodeId, node.graph);
-      instance._loadFromQuery(node, constructorFunction, fullyLoaded);
+      if (model != null) {
+        instance.model = model;
+      }
+      instance._loadFromQuery(node, constructorFunction, fullyLoaded, model);
       instance._setStored();
       return instance;
     };
 
-    WeaverNode.prototype._loadFromQuery = function(object, constructorFunction, fullyLoaded) {
+    WeaverNode.prototype._loadFromQuery = function(object, constructorFunction, fullyLoaded, model) {
       var Constructor, instance, j, key, len, ref, relation, relations;
       if (fullyLoaded == null) {
         fullyLoaded = true;
@@ -101660,12 +101809,16 @@ module.exports={
         for (j = 0, len = relations.length; j < len; j++) {
           relation = relations[j];
           if (constructorFunction != null) {
-            Constructor = constructorFunction(Weaver.Node.loadFromQuery(relation.target), this, key) || Weaver.Node;
-          } else {
-            Constructor = Weaver.Node;
+            Constructor = constructorFunction(Weaver.Node.loadFromQuery(relation.target, void 0, void 0, model), this, key);
+          }
+          if (Constructor == null) {
+            Constructor = model != null ? Weaver.DefinedNode : Weaver.Node;
           }
           instance = new Constructor(relation.target.nodeId, relation.target.graph);
-          instance._loadFromQuery(relation.target, constructorFunction, fullyLoaded);
+          if (model != null) {
+            instance.model = model;
+          }
+          instance._loadFromQuery(relation.target, constructorFunction, fullyLoaded, model);
           this._loadRelationFromQuery(key, instance, relation.nodeId, relation.graph);
         }
       }
@@ -102172,7 +102325,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Operation":423,"./Weaver":425,"./WeaverError":427,"./util":443,"bluebird":73,"cuid":136,"lodash":245}],436:[function(require,module,exports){
+},{"./Operation":423,"./Weaver":425,"./WeaverError":428,"./util":444,"bluebird":73,"cuid":136,"lodash":245}],437:[function(require,module,exports){
 (function() {
   var Weaver, WeaverPlugin, fs, ss,
     slice = [].slice;
@@ -102288,7 +102441,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Weaver":425,"fs":104,"socket.io-stream":331}],437:[function(require,module,exports){
+},{"./Weaver":425,"fs":104,"socket.io-stream":331}],438:[function(require,module,exports){
 (function() {
   var Weaver, WeaverProject, cuid;
 
@@ -102474,7 +102627,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Weaver":425,"cuid":136}],438:[function(require,module,exports){
+},{"./Weaver":425,"cuid":136}],439:[function(require,module,exports){
 (function() {
   var Weaver, WeaverQuery, _, cjson, quote, util,
     slice = [].slice;
@@ -102572,9 +102725,9 @@ module.exports={
 
     WeaverQuery.prototype.find = function(Constructor) {
       if (Constructor != null) {
-        this.useConstructorFunction = function() {
+        this.setConstructorFunction(function() {
           return Constructor;
-        };
+        });
       }
       return Weaver.getCoreManager().query(this).then((function(_this) {
         return function(result) {
@@ -102584,7 +102737,7 @@ module.exports={
           ref = result.nodes;
           for (k = 0, len = ref.length; k < len; k++) {
             node = ref[k];
-            castedNode = Weaver.Node.loadFromQuery(node, _this.useConstructorFunction, _this._select == null);
+            castedNode = Weaver.Node.loadFromQuery(node, _this.constructorFunction, _this._select == null, _this.model);
             list.push(castedNode);
           }
           return list;
@@ -103045,8 +103198,8 @@ module.exports={
       return results1;
     };
 
-    WeaverQuery.prototype.useConstructor = function(useConstructorFunction) {
-      this.useConstructorFunction = useConstructorFunction;
+    WeaverQuery.prototype.setConstructorFunction = function(constructorFunction) {
+      this.constructorFunction = constructorFunction;
       return this;
     };
 
@@ -103070,7 +103223,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Weaver":425,"./util":443,"circular-json":122,"lodash":245}],439:[function(require,module,exports){
+},{"./Weaver":425,"./util":444,"circular-json":122,"lodash":245}],440:[function(require,module,exports){
 (function() {
   var Operation, Weaver, WeaverRelation, cuid,
     slice = [].slice;
@@ -103240,7 +103393,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Operation":423,"./Weaver":425,"cuid":136}],440:[function(require,module,exports){
+},{"./Operation":423,"./Weaver":425,"cuid":136}],441:[function(require,module,exports){
 (function() {
   var Operation, Weaver, WeaverNode, WeaverRelationNode, cuid,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
@@ -103282,7 +103435,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Operation":423,"./Weaver":425,"./WeaverNode":435,"cuid":136}],441:[function(require,module,exports){
+},{"./Operation":423,"./Weaver":425,"./WeaverNode":436,"cuid":136}],442:[function(require,module,exports){
 (function() {
   var Weaver, WeaverRole, cuid;
 
@@ -103405,7 +103558,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Weaver":425,"cuid":136}],442:[function(require,module,exports){
+},{"./Weaver":425,"cuid":136}],443:[function(require,module,exports){
 (function() {
   var Promise, Weaver, WeaverUser, cuid;
 
@@ -103551,7 +103704,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Weaver":425,"bluebird":73,"cuid":136}],443:[function(require,module,exports){
+},{"./Weaver":425,"bluebird":73,"cuid":136}],444:[function(require,module,exports){
 (function() {
   var flatten, typeShouldBe;
 

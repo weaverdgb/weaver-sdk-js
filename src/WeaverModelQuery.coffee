@@ -7,6 +7,8 @@ class WeaverModelQuery extends Weaver.Query
   constructor: (@model = Weaver.currentModel(), target) ->
     super(target)
 
+    
+
     # Define constructor function
     constructorFunction = (node, owner, key) =>
       defs = (def.id() for def in node.relation(@model.getMemberKey()).all() when @model.modelMap[def.id().split(':')[0]]?)
@@ -18,31 +20,29 @@ class WeaverModelQuery extends Weaver.Query
 
       # First order node from resultset, no incoming relation to help decide
       else if not owner?
-
         if not @preferredConstructor?
           console.info("Could not choose contructing first order node between type #{JSON.stringify(defs)}")
-          return Weaver.Node
+          return Weaver.DefinedNode
 
         return @preferredConstructor
       else
 
         if not owner instanceof Weaver.ModelClass
           console.info("Could not choose contructing node between type #{JSON.stringify(defs)}")
-          return Weaver.Node
+          return Weaver.DefinedNode
 
         modelKey = owner.lookUpModelKey(key)
-
         ranges = owner.getToRanges(modelKey, node)
         if ranges.length < 1
           console.warn("Could not find a range for constructing second order node between type #{JSON.stringify(defs)}")
           return Weaver.Node
         else if ranges.length > 1
-          console.warn("Could not pick from ranges #{JSON.stringify(ranges)} for constructing second order node between type #{JSON.stringify(defs)}")
-          return Weaver.Node
+          console.log("Could not pick from ranges #{JSON.stringify(ranges)} for constructing second order node between type #{JSON.stringify(defs)}")
+          return Weaver.DefinedNode
         else
           [modelName, className] = ranges[0].split(':')
           return @model.modelMap[modelName][className]
-    )
+
     @setConstructorFunction(constructorFunction)
 
 

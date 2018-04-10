@@ -11,10 +11,16 @@ class WeaverModelRelation extends Weaver.Relation
 
   # Check if relation is allowed according to definition
   _checkCorrectClass: (node) ->
-    defs = @parent.getDefinitions(node)
+    defs = []
+    if node instanceof Weaver.ModelClass 
+      defs = node.getDefinitions()
+    else
+      console.log "#{node.id()} is not a ModelClass"
+      return
+
     found = @parent.getToRanges(@modelKey, node)
     allowed = @parent.getRanges(@modelKey)
-    return true if found.length > 0
+    return true if found? and found.length > 0
     throw new Error("Model #{@className} is not allowed to have relation #{@modelKey} to #{node.id()}"+
                     " of def #{JSON.stringify(defs)}, allowed ranges are #{JSON.stringify(allowed)}")
 

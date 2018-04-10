@@ -117,18 +117,41 @@ class WeaverModelClass extends Weaver.Node
     ranges = _.keys(ranges) if not _.isArray(ranges)
     (range for range in ranges)
 
-  getDefinitions: (node)->
+  getDefinitions: ->
+
+    addSuperDefs = (def, defs = []) =>
+      res = []
+      [modelName, className] = def.split(':')
+      if not @model.modelMap[modelName]?  
+        console.log "#{modelName} in #{modelName}:#{className} is not available on model #{@model.definition.name}"
+      definition = @model.modelMap[modelName].definition.classes[className]
+      if definition.super?
+        superClassName = @getNodeNameByKey(@model, definition.super)
+        res.push(superClassName) if superClassName not in defs
+        res = res.concat(addSuperDefs(superClassName, defs))
+        res
+      else
+        res
+
     defs = []
-    if node instanceof Weaver.ModelClass
-      defs = (def.id() for def in node.nodeRelation(@model.getMemberKey()).all())
-    else
-      defs = (def.id() for def in node.relation(@model.getMemberKey()).all())
-    defs
+    defs = (def.id() for def in @.nodeRelation(@model.getMemberKey()).all())
+    
+    totalDefs = (def for def in defs)
+    totalDefs = totalDefs.concat(addSuperDefs(def, defs)) for def in defs
+    totalDefs
 
   getToRanges: (key, to)->
-    defs = @getDefinitions(to)
-    ranges = @getRanges(key)
-    (def for def in defs when def in ranges)
+    if to instanceof Weaver.ModelClass 
+      defs = to.getDefinitions()
+      ranges = @getRanges(key)
+      (def for def in defs when def in ranges)
+    else if to instanceof Weaver.DefinedNode 
+      defs = to.getDefinitions()
+      ranges = @getRanges(key)
+      (def for def in defs when def in ranges)
+    else
+      console.log "#{to.id()} is not a ModelClass"
+      []
 
   attributes: ->
     return {} if not @totalClassDefinition.attributes?
