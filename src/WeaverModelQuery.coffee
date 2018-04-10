@@ -8,7 +8,7 @@ class WeaverModelQuery extends Weaver.Query
     super(target)
 
     # Define constructor function
-    @useConstructor((node, owner, key)=>
+    constructorFunction = (node, owner, key) =>
       defs = (def.id() for def in node.relation(@model.getMemberKey()).all() when @model.modelMap[def.id().split(':')[0]]?)
       if defs.length is 0
         Weaver.Node
@@ -43,6 +43,7 @@ class WeaverModelQuery extends Weaver.Query
           [modelName, className] = ranges[0].split(':')
           return @model.modelMap[modelName][className]
     )
+    @setConstructorFunction(constructorFunction)
 
 
   getNodeIdFromStringOrNode: (node) ->

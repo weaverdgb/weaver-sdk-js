@@ -260,7 +260,7 @@ class CoreManager
 
   query: (query) ->
     target = query.target
-    query  = _.omit(query, ['model', 'target', 'useConstructorFunction'])
+    query  = _.omit(query, ['model', 'target', 'constructorFunction'])
 
     @POST("query", {query, unparsed: true}, target).then((res) ->
       JSON.parse(res)

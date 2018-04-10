@@ -653,7 +653,7 @@ describe 'WeaverQuery Test', ->
         new Weaver.Query()
         .hasRelationOut('link')
         .selectOut('link', 'test')
-        .useConstructor((node)->
+        .setConstructorFunction((node)->
           if node.get('type') is 'typeA'
             SpecialNodeA
           else if node.get('type') is 'typeC'
