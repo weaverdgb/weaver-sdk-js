@@ -11,13 +11,17 @@ class WeaverRelationNode extends WeaverNode
     super(nodeId, graphId)
 
     @fromNode = null      # is set elsewhere
-    @toNode = null        # is set elsewhere
+    @toNode   = null      # is set elsewhere
+    @key      = null
 
   from: ->
     @fromNode
 
   to: ->
     @toNode
+
+  key: ->
+    @key
 
 # Export
 module.exports = WeaverRelationNode

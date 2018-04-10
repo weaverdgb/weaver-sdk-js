@@ -57,7 +57,8 @@ class WeaverNode
     instance._setStored()
     if instance instanceof Weaver.RelationNode
       instance.fromNode = WeaverNode.loadFromQuery(node.relationSource, undefined, false)
-      instance.toNode = WeaverNode.loadFromQuery(node.relationTarget, undefined, false)
+      instance.toNode   = WeaverNode.loadFromQuery(node.relationTarget, undefined, false)
+      instance.key      = node.relationKey
     instance
 
   _loadFromQuery: (object, constructorFunction, fullyLoaded = true) ->

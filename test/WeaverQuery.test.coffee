@@ -302,12 +302,13 @@ describe 'WeaverQuery Test', ->
           checkNodeInResult(nodes, 'a')
           checkNodeInResult(nodes, 'b')
           checkNodeInResult(nodes, 'c')
-          for node in nodes 
+          for node in nodes
             if node.id() is relNodeId
-              assert.isTrue(node instanceof Weaver.RelationNode) 
-              assert.isTrue(node.fromNode instanceof Weaver.Node) 
-              assert.isTrue(node.toNode instanceof Weaver.Node) 
-        ) 
+              assert.isTrue(node instanceof Weaver.RelationNode)
+              assert.isTrue(node.fromNode instanceof Weaver.Node)
+              assert.isTrue(node.toNode instanceof Weaver.Node)
+              expect(node.key).to.equal("to")
+        )
       )
 
     it 'should return also relation on relation when relation out query', ->
@@ -326,10 +327,10 @@ describe 'WeaverQuery Test', ->
         .hasRelationOut('meta')
         .find().then((nodes) ->
           expect(nodes.length).to.equal(1)
-          assert.isTrue(nodes[0] instanceof Weaver.RelationNode) 
-          assert.isTrue(nodes[0].fromNode instanceof Weaver.Node) 
+          assert.isTrue(nodes[0] instanceof Weaver.RelationNode)
+          assert.isTrue(nodes[0].fromNode instanceof Weaver.Node)
           expect(nodes[0].fromNode.id()).to.equal('a')
-          assert.isTrue(nodes[0].toNode instanceof Weaver.Node) 
+          assert.isTrue(nodes[0].toNode instanceof Weaver.Node)
           expect(nodes[0].toNode.id()).to.equal('b')
           expect(nodes[0].toNode.getGraph()).to.equal('special')
         )
