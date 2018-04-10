@@ -98690,7 +98690,7 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "^4.6.0",
+    "requiredConnectorVersion": "^4.7.0-beta.0",
     "requiredServerVersion": "^3.10.0"
   },
   "main": "lib/Weaver.js",
@@ -101256,7 +101256,6 @@ module.exports={
         }
         return results1;
       } else {
-        console.log((to.id()) + " is not a ModelClass");
         return [];
       }
     };
@@ -101443,6 +101442,7 @@ module.exports={
               console.warn("Could not find a range for constructing second order node between type " + (JSON.stringify(defs)));
               return Weaver.Node;
             } else if (ranges.length > 1) {
+              console.log("Construct DefinedNode from ranges " + (JSON.stringify(ranges)) + " for constructing second order node between type " + (JSON.stringify(defs)));
               return Weaver.DefinedNode;
             } else {
               ref1 = ranges[0].split(':'), modelName = ref1[0], className = ref1[1];
@@ -101451,7 +101451,6 @@ module.exports={
           }
         };
       })(this);
-      constructorFunction.model = this.model;
       this.setConstructorFunction(constructorFunction);
     }
 
@@ -101600,8 +101599,9 @@ module.exports={
       defs = [];
       if (node instanceof Weaver.ModelClass) {
         defs = node.getDefinitions();
+      } else if (node instanceof Weaver.DefinedNode) {
+        defs = node.getDefinitions();
       } else {
-        console.log((node.id()) + " is not a ModelClass");
         return;
       }
       found = this.parent.getToRanges(this.modelKey, node);
@@ -101785,6 +101785,9 @@ module.exports={
         Constructor = constructorFunction(Weaver.Node.loadFromQuery(node, void 0, void 0, model));
       }
       if (Constructor == null) {
+        if ((node.relationSource != null) && (node.relationTarget != null)) {
+          Constructor = Weaver.RelationNode;
+        }
         Constructor = model != null ? Weaver.DefinedNode : Weaver.Node;
       }
       instance = new Constructor(node.nodeId, node.graph);
@@ -101793,6 +101796,11 @@ module.exports={
       }
       instance._loadFromQuery(node, constructorFunction, fullyLoaded, model);
       instance._setStored();
+      if (instance instanceof Weaver.RelationNode) {
+        instance.fromNode = WeaverNode.loadFromQuery(node.relationSource, void 0, false);
+        instance.toNode = WeaverNode.loadFromQuery(node.relationTarget, void 0, false);
+        instance.key = node.relationKey;
+      }
       return instance;
     };
 
@@ -103329,6 +103337,7 @@ module.exports={
     WeaverRelation.prototype._createRelationNode = function(relId, targetNode, graph) {
       var result;
       result = Weaver.RelationNode.get(relId, Weaver.RelationNode, graph);
+      result.fromNode = this.parent;
       result.toNode = targetNode;
       return result;
     };
@@ -103415,16 +103424,21 @@ module.exports={
         throw new Error("Please always supply a relId when constructing WeaverRelationNode");
       }
       WeaverRelationNode.__super__.constructor.call(this, nodeId, graphId);
-      this.toNode = null;
       this.fromNode = null;
+      this.toNode = null;
+      this.key = null;
     }
+
+    WeaverRelationNode.prototype.from = function() {
+      return this.fromNode;
+    };
 
     WeaverRelationNode.prototype.to = function() {
       return this.toNode;
     };
 
-    WeaverRelationNode.prototype.from = function() {
-      return this.fromNode;
+    WeaverRelationNode.prototype.key = function() {
+      return this.key;
     };
 
     return WeaverRelationNode;
