@@ -1,5 +1,8 @@
 # Changelist
 
+## 6.4.0
+- WeaverRelationNodes now have their source, target, and key set when loaded from weaver query
+
 ## 6.3.5
 - Fixes running bootstrap twice with some nodes previously missing
 
