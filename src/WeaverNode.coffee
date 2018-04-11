@@ -48,9 +48,9 @@ class WeaverNode
     if constructorFunction?
       Constructor = constructorFunction(Weaver.Node.loadFromQuery(node, undefined, undefined, model))
     if !Constructor?
-      if node.relationSource? and node.relationTarget?
-        Constructor = Weaver.RelationNode
       Constructor = if model? then Weaver.DefinedNode else Weaver.Node
+    if node.relationSource? and node.relationTarget?
+      Constructor = Weaver.RelationNode
 
     instance = new Constructor(node.nodeId, node.graph)
     instance.model = model if model?
