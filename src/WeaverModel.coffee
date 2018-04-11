@@ -2,6 +2,7 @@ cuid                 = require('cuid')
 Promise              = require('bluebird')
 Weaver               = require('./Weaver')
 WeaverModelValidator = require('./WeaverModelValidator')
+_                    = require('lodash')
 
 class WeaverModel
 
@@ -107,7 +108,9 @@ class WeaverModel
             totalDefinition[source][k] = v
             if v?.range?
               updatedRanges = []
-              for range in v.range
+              ranges = v.range
+              ranges = _.keys(ranges) if not _.isArray(ranges)
+              for range in ranges
                 composedKey = "#{definition.name}:#{range.split(':').pop()}"
                 updated = @getNodeNameByKey(composedKey)
                 updatedRanges.push(updated)
