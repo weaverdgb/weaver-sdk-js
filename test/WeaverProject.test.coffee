@@ -389,8 +389,8 @@ describe 'WeaverProject Test', ->
   it 'should not truncategraph with relations in in other graph (WEAV-304)', ->
     a = new Weaver.Node(undefined, 'todelete')
     b = new Weaver.Node(undefined, 'toremain')
-    a.relation('to').addInGraph(b, 'toremain')
+    a.relation('to').addInGraph(b, 'relationgraph')
 
     Weaver.Node.batchSave([a, b]).then(->
       weaver.currentProject().truncateGraph('todelete', new Weaver.Node(undefined, 'meta'))
-    ).should.be.rejected
+    ).should.be.rejectedWith(/relationgraph/)
