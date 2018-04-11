@@ -78,19 +78,16 @@ class WeaverModelClass extends Weaver.Node
 
 
 
-  getNodeNameByKey: (model, dotPath) ->
-    [first, rest...] = dotPath.split('.')
-    return "#{model.definition.name}:#{dotPath}" if rest.length is 0
-    return @getNodeNameByKey(model.includes[first], rest.join('.')) if model.includes[first]?
-    return null
+
 
   getRanges: (key)->
 
     addSubRange = (range, ranges = []) =>
+
       for modelName, modelObject of @model.modelMap
         for className, definition of modelObject.definition.classes
           if definition.super?
-            superClassName = @getNodeNameByKey(@model, definition.super)
+            superClassName = @model.getNodeNameByKey(definition.super)
             if superClassName is range
               ranges.push("#{modelName}:#{className}")
               # Follow again for this subclass
@@ -100,9 +97,8 @@ class WeaverModelClass extends Weaver.Node
 
     totalRanges = []
     for rangeKey in @_getRangeKeys(key)
-      range = @getNodeNameByKey(@model, rangeKey)
-      totalRanges.push(range)
-      totalRanges = totalRanges.concat(addSubRange(range))
+      totalRanges.push(rangeKey)
+      totalRanges = totalRanges.concat(addSubRange(rangeKey))
 
     totalRanges
 
@@ -126,7 +122,7 @@ class WeaverModelClass extends Weaver.Node
         console.log "#{modelName} in #{modelName}:#{className} is not available on model #{@model.definition.name}"
       definition = @model.modelMap[modelName].definition.classes[className]
       if definition.super?
-        superClassName = @getNodeNameByKey(@model, definition.super)
+        superClassName = @model.getNodeNameByKey(definition.super)
         res.push(superClassName) if superClassName not in defs
         res = res.concat(addSuperDefs(superClassName, defs))
         res

@@ -6,12 +6,6 @@ class WeaverDefinedNode extends Weaver.Node
   constructor: (@nodeId, @graph) ->
     super(@nodeId, @graph)
 
-  getNodeNameByKey: (model, dotPath) ->
-    [first, rest...] = dotPath.split('.')
-    return "#{model.definition.name}:#{dotPath}" if rest.length is 0
-    return @getNodeNameByKey(model.includes[first], rest.join('.')) if model.includes[first]?
-    return null
-
   getDefinitions: ->
 
     addSuperDefs = (def, defs = []) =>
@@ -21,7 +15,7 @@ class WeaverDefinedNode extends Weaver.Node
         console.log "#{modelName} in #{modelName}:#{className} is not available on model #{@model.definition.name}"
       definition = @model.modelMap[modelName].definition.classes[className]
       if definition.super?
-        superClassName = @getNodeNameByKey(@model, definition.super)
+        superClassName = @model.getNodeNameByKey(definition.super)
         res.push(superClassName) if superClassName not in defs
         res = res.concat(addSuperDefs(superClassName, defs))
         res
