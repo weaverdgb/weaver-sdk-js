@@ -70,14 +70,13 @@ class WeaverQuery
   find: (Constructor) ->
 
     if Constructor?
-      @useConstructorFunction = -> Constructor
+      @setConstructorFunction(-> Constructor)
 
     Weaver.getCoreManager().query(@).then((result) =>
       Weaver.Query.notify(result)
       list = []
       for node in result.nodes
-        castedNode = Weaver.Node.loadFromQuery(node, @useConstructorFunction, !@_select?)
-
+        castedNode = Weaver.Node.loadFromQuery(node, @constructorFunction, !@_select?, @model)
         list.push(castedNode)
       list
     )
@@ -397,8 +396,8 @@ class WeaverQuery
     for callback in Weaver.Query.profilers
       callback(result)
 
-  useConstructor: (useConstructorFunction) ->
-    @useConstructorFunction = useConstructorFunction
+  setConstructorFunction: (constructorFunction) ->
+    @constructorFunction = constructorFunction
     @
 
   # Create, Update, Enter, Leave, Delete
