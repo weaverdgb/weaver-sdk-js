@@ -49,12 +49,12 @@ describe 'WeaverProject Test', ->
     )
 
   it 'should list projects', ->
-    a = new Weaver.Project("A", "a")
+    a = new Weaver.Project("A", "aaa")
     a.create().then(->
       Weaver.Project.list()
     ).then((list) ->
       expect(list.length).to.equal(2)
-      loadedA = p for p in list when p.id() is 'a'
+      loadedA = p for p in list when p.id() is 'aaa'
       expect(loadedA).to.be.defined
       expect(loadedA.name).to.equal('A')
     ).then(->
@@ -364,3 +364,33 @@ describe 'WeaverProject Test', ->
     ).then(->
       Weaver.Node.load("cj7a73kr000066dp45qo9acyz")
     )
+
+  it 'should should support truncategraph (WEAV-304)', ->
+    a = new Weaver.Node(undefined, 'todelete')
+    b = new Weaver.Node(undefined, 'toremain')
+
+    Weaver.Node.batchSave([a, b]).then(->
+      weaver.currentProject().truncateGraph('todelete', new Weaver.Node(undefined, 'meta'))
+    ).then(->
+      new Weaver.Query().find()
+    ).then((res) ->
+      expect(res).to.have.length.be(2)
+    )
+
+  it 'should truncategraph with relations in in graph (WEAV-304)', ->
+    a = new Weaver.Node(undefined, 'todelete')
+    b = new Weaver.Node(undefined, 'toremain')
+    a.relation('to').addInGraph(b, 'todelete')
+
+    Weaver.Node.batchSave([a, b]).then(->
+      weaver.currentProject().truncateGraph('todelete', new Weaver.Node(undefined, 'meta'))
+    )
+
+  it 'should not truncategraph with relations in in other graph (WEAV-304)', ->
+    a = new Weaver.Node(undefined, 'todelete')
+    b = new Weaver.Node(undefined, 'toremain')
+    a.relation('to').addInGraph(b, 'relationgraph')
+
+    Weaver.Node.batchSave([a, b]).then(->
+      weaver.currentProject().truncateGraph('todelete', new Weaver.Node(undefined, 'meta'))
+    ).should.be.rejectedWith(/relationgraph/)

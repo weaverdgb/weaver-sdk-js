@@ -100245,7 +100245,7 @@ module.exports = yeast;
 },{}],401:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "6.3.4",
+  "version": "6.4.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -100253,7 +100253,7 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "^4.5.0",
+    "requiredConnectorVersion": "^4.7.0",
     "requiredServerVersion": "^3.10.0"
   },
   "main": "lib/Weaver.js",
@@ -100979,7 +100979,7 @@ module.exports={
 
 },{"bluebird":72}],405:[function(require,module,exports){
 (function() {
-  var NodeOperation, Weaver, cuid, util;
+  var GraphOperation, NodeOperation, Weaver, cuid, util;
 
   Weaver = require('./Weaver');
 
@@ -101114,8 +101114,29 @@ module.exports={
     };
   };
 
+  GraphOperation = function(graph) {
+    var timestamp;
+    if (Weaver.instance != null) {
+      timestamp = Weaver.getCoreManager().serverTime();
+    } else {
+      timestamp = new Date().getTime();
+    }
+    return {
+      truncate: function(removeId, removeGraph) {
+        return {
+          timestamp: timestamp,
+          action: 'truncate-graph',
+          removeId: removeId,
+          removeGraph: removeGraph,
+          graph: graph
+        };
+      }
+    };
+  };
+
   module.exports = {
-    Node: NodeOperation
+    Node: NodeOperation,
+    Graph: GraphOperation
   };
 
 }).call(this);
@@ -102452,7 +102473,7 @@ module.exports={
         superId = this._getClassNodeId(classObj["super"]);
         if (indexOf.call(existingNodes, id) < 0) {
           node = nodesToCreate[id];
-          superClassNode = nodesToCreate[superId];
+          superClassNode = nodesToCreate[superId] || Weaver.Node.getFromGraph(superId, this.getGraph());
           if (node instanceof Weaver.ModelClass) {
             node.nodeRelation(this.getInheritKey()).add(superClassNode);
           } else {
@@ -103202,11 +103223,20 @@ module.exports={
       if (constructorFunction != null) {
         Constructor = constructorFunction(Weaver.Node.loadFromQuery(node)) || Weaver.Node;
       } else {
-        Constructor = Weaver.Node;
+        if ((node.relationSource != null) && (node.relationTarget != null)) {
+          Constructor = Weaver.RelationNode;
+        } else {
+          Constructor = Weaver.Node;
+        }
       }
       instance = new Constructor(node.nodeId, node.graph);
       instance._loadFromQuery(node, constructorFunction, fullyLoaded);
       instance._setStored();
+      if (instance instanceof Weaver.RelationNode) {
+        instance.fromNode = WeaverNode.loadFromQuery(node.relationSource, void 0, false);
+        instance.toNode = WeaverNode.loadFromQuery(node.relationTarget, void 0, false);
+        instance.key = node.relationKey;
+      }
       return instance;
     };
 
@@ -103853,11 +103883,13 @@ module.exports={
 
 },{"./Weaver":407,"fs":101,"socket.io-stream":347}],419:[function(require,module,exports){
 (function() {
-  var Weaver, WeaverProject, cuid;
+  var Ops, Weaver, WeaverProject, cuid;
 
   cuid = require('cuid');
 
   Weaver = require('./Weaver');
+
+  Ops = require('./Operation');
 
   WeaverProject = (function() {
     WeaverProject.READY_RETRY_TIMEOUT = 200;
@@ -104029,6 +104061,12 @@ module.exports={
       });
     };
 
+    WeaverProject.prototype.truncateGraph = function(graph, removeNode) {
+      return removeNode.save().then(function() {
+        return Weaver.getCoreManager().executeOperations([Ops.Graph(graph).truncate(removeNode.id(), removeNode.getGraph())]);
+      });
+    };
+
     return WeaverProject;
 
   })();
@@ -104037,7 +104075,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Weaver":407,"cuid":135}],420:[function(require,module,exports){
+},{"./Operation":405,"./Weaver":407,"cuid":135}],420:[function(require,module,exports){
 (function() {
   var Weaver, WeaverQuery, _, cjson, quote, util,
     slice = [].slice;
@@ -104739,6 +104777,7 @@ module.exports={
     WeaverRelation.prototype._createRelationNode = function(relId, targetNode, graph) {
       var result;
       result = Weaver.RelationNode.get(relId, Weaver.RelationNode, graph);
+      result.fromNode = this.parent;
       result.toNode = targetNode;
       return result;
     };
@@ -104825,16 +104864,21 @@ module.exports={
         throw new Error("Please always supply a relId when constructing WeaverRelationNode");
       }
       WeaverRelationNode.__super__.constructor.call(this, nodeId, graphId);
-      this.toNode = null;
       this.fromNode = null;
+      this.toNode = null;
+      this.key = null;
     }
+
+    WeaverRelationNode.prototype.from = function() {
+      return this.fromNode;
+    };
 
     WeaverRelationNode.prototype.to = function() {
       return this.toNode;
     };
 
-    WeaverRelationNode.prototype.from = function() {
-      return this.fromNode;
+    WeaverRelationNode.prototype.key = function() {
+      return this.key;
     };
 
     return WeaverRelationNode;

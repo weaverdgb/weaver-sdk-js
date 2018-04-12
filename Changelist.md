@@ -1,5 +1,12 @@
 # Changelist
 
+## 6.4.0
+- WeaverRelationNodes now have their source, target, and key set when loaded from weaver query
+- WeaverProject now have an operation to truncate a graph
+
+## 6.3.5
+- Fixes running bootstrap twice with some nodes previously missing
+
 ## 6.3.3
 - Fixes ModelClass instances raising an exception when being asked about an
   attribute they don't have, instead undefined is returned
