@@ -1,5 +1,9 @@
 # Changelist
 
+## 6.4.1
+- Overload allowed attributes and relations from included models
+- Allow setting a subclass from an included model of a range
+
 ## 6.4.0
 - WeaverRelationNodes now have their source, target, and key set when loaded from weaver query
 
