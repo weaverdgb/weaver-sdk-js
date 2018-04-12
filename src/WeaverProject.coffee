@@ -1,5 +1,6 @@
-cuid        = require('cuid')
-Weaver  = require('./Weaver')
+cuid   = require('cuid')
+Weaver = require('./Weaver')
+Ops    = require('./Operation')
 
 class WeaverProject
 
@@ -97,6 +98,11 @@ class WeaverProject
   @list: ->
     Weaver.getCoreManager().listProjects().then((list) ->
       ( new Weaver.Project(p.name, p.id, p.acl, true, p.apps) for p in list )
+    )
+
+  truncateGraph: (graph, removeNode) ->
+    removeNode.save().then( ->
+      Weaver.getCoreManager().executeOperations([ Ops.Graph(graph).truncate(removeNode.id(), removeNode.getGraph()) ])
     )
 
 module.exports = WeaverProject
