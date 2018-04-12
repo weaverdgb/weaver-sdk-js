@@ -114,5 +114,21 @@ NodeOperation = (node) ->
       removeGraph: node.getGraph()
     }
 
+GraphOperation = (graph) ->
+  if Weaver.instance?
+    timestamp = Weaver.getCoreManager().serverTime()
+  else
+    timestamp = new Date().getTime()
+
+  truncate: (removeId, removeGraph) ->
+    {
+      timestamp
+      action: 'truncate-graph'
+      removeId
+      removeGraph
+      graph
+    }
+
 module.exports=
   Node: NodeOperation
+  Graph: GraphOperation
