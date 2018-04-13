@@ -43,17 +43,18 @@ class WeaverNode
       @load(nodeId, undefined, undefined, false, false, graph)
 
 
-  @loadFromQuery: (node, constructorFunction, fullyLoaded = true) ->
+  @loadFromQuery: (node, constructorFunction, fullyLoaded=true, model) ->
+
     if constructorFunction?
-      Constructor = constructorFunction(Weaver.Node.loadFromQuery(node)) or Weaver.Node
-    else
-      if node.relationSource? and node.relationTarget?
-        Constructor = Weaver.RelationNode
-      else
-        Constructor = Weaver.Node
+      Constructor = constructorFunction(Weaver.Node.loadFromQuery(node, undefined, undefined, model))
+    if !Constructor?
+      Constructor = if model? then Weaver.DefinedNode else Weaver.Node
+    if node.relationSource? and node.relationTarget?
+      Constructor = Weaver.RelationNode
 
     instance = new Constructor(node.nodeId, node.graph)
-    instance._loadFromQuery(node, constructorFunction, fullyLoaded)
+    instance.model = model if model?
+    instance._loadFromQuery(node, constructorFunction, fullyLoaded, model)
     instance._setStored()
     if instance instanceof Weaver.RelationNode
       instance.fromNode = WeaverNode.loadFromQuery(node.relationSource, undefined, false)
@@ -61,7 +62,8 @@ class WeaverNode
       instance.key      = node.relationKey
     instance
 
-  _loadFromQuery: (object, constructorFunction, fullyLoaded = true) ->
+  _loadFromQuery: (object, constructorFunction, fullyLoaded=true, model) ->
+
     @_attributes = object.attributes
     @_loaded    = object.creator? && fullyLoaded
 
@@ -69,12 +71,13 @@ class WeaverNode
       for relation in relations
 
         if constructorFunction?
-          Constructor = constructorFunction(Weaver.Node.loadFromQuery(relation.target), @, key) or Weaver.Node
-        else
-          Constructor = Weaver.Node
+          Constructor = constructorFunction(Weaver.Node.loadFromQuery(relation.target, undefined, undefined, model), @, key)
+        if !Constructor?
+          Constructor = if model? then Weaver.DefinedNode else Weaver.Node
 
         instance = new Constructor(relation.target.nodeId, relation.target.graph)
-        instance._loadFromQuery(relation.target, constructorFunction, fullyLoaded)
+        instance.model = model if model?
+        instance._loadFromQuery(relation.target, constructorFunction, fullyLoaded, model)
         @._loadRelationFromQuery(key, instance, relation.nodeId, relation.graph)
 
     @._clearPendingWrites()

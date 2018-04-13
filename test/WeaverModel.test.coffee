@@ -107,6 +107,15 @@ describe 'WeaverModel test', ->
       assert.equal(c.get('areaName'), "Area 51")
       assert.equal(c.get('squareMeter'), 200)
 
+    it 'should set attributes on included model instances by inheritance', ->
+      p = new model.Passport()
+      b = new model.Person()
+      a = new model.td.Autograph()
+      p.set('fileName', 'passport.pdf')
+      p.relation('ownedBy').add(b)
+      p.relation('signedWith').add(a)
+      a.relation('carbonCopy').add(p)
+
     it 'should set relations on model instances by inheritance', ->
       c1 = new model.Country()
       c2 = new model.Country()
@@ -131,7 +140,6 @@ describe 'WeaverModel test', ->
       Person   = model.Person
       Building = model.Building
       person = new Person()
-      assert.throws((-> person.relation("livesIn").add(new Weaver.Node())))
       assert.throws((-> person.relation("livesIn").add(new Person())))
 
     it 'should deny setting invalid model attributes', ->

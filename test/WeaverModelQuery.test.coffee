@@ -46,6 +46,7 @@ describe 'WeaverModelQuery test', ->
     describe 'and test data', ->
       spain = {}
       hongkong = {}
+      personB = undefined
 
       before ->
         head    = new model.Head("headA")
@@ -79,9 +80,6 @@ describe 'WeaverModelQuery test', ->
         delivery = new model.DeliveryNotice('basDeliveryOrder')
         personBas.relation('signed').add(contract)
         personBas.relation('signed').add(delivery)
-
-
-        head.nodeRelation('rdf:type').add(new Weaver.Node('owl:Class'))
 
 
         building = new model.House()
@@ -214,6 +212,11 @@ describe 'WeaverModelQuery test', ->
             else
               assert.fail(undefined, undefined, "Unexpected to: #{to.id()}")
         )
+
+      it 'should correctly find the constructor for subs of range', ->
+        autograph = new model.td.Autograph('passport')
+        passport = new model.Passport('passport')
+        autograph.relation('carbonCopy').add(passport)
 
       it 'should correctly find the constructor for range with only one correct option', ->
         new Weaver.ModelQuery()
