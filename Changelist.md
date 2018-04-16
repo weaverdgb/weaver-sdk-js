@@ -2,6 +2,7 @@
 
 ## 6.4.2
 - Look in all graphs to find membership etc. relations of model classes
+- Reason from the right graph when selecting super classes in the model
 
 ## 6.4.1
 - Overload allowed attributes and relations from included models
