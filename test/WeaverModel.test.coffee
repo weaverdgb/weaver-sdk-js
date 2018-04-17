@@ -391,3 +391,18 @@ describe 'WeaverModel test', ->
             expect(loadedTwo.get('fullName')).to.equal('Two')
           )
 
+        it 'should allow you to set attributes on relations', ->
+          model.Person.load(one.id()).then((personOne) ->
+            rel = personOne.relation('hasFriend')
+            rel.to(rel.all()[0])
+          ).then((relNode) ->
+            relNode.set('friendScore', '-1')
+            relNode.save()
+          ).then(->
+            model.Person.load(one.id())
+          ).then((personOne) ->
+            rel = personOne.relation('hasFriend')
+            rel.to(rel.all()[0])
+          )
+
+
