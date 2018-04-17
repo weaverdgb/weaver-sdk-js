@@ -10,7 +10,7 @@ inherit: 'rdfs:subClassOf'
 includes:
   td:
     name: test-doc-model
-    version: 0.1.0
+    version: 0.2.0
 
 
 classes:
@@ -85,3 +85,8 @@ classes:
         key: 'at'
         required: true
         datatype: xsd:dateTime
+  Passport:
+    super: td.Document
+    relations:
+      ownedBy:
+        range: [Person]

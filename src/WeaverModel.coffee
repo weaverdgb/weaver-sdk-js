@@ -2,6 +2,7 @@ cuid                 = require('cuid')
 Promise              = require('bluebird')
 Weaver               = require('./Weaver')
 WeaverModelValidator = require('./WeaverModelValidator')
+_                    = require('lodash')
 
 class WeaverModel
 
@@ -63,7 +64,6 @@ class WeaverModel
       new Weaver.ModelQuery(model)
         .class(carrier[loadClass])
         .restrict(nodeId)
-        .inGraph(graph)
         .first(carrier[loadClass])
 
     carrier[className].load = load(className)
@@ -89,15 +89,31 @@ class WeaverModel
     )
 
   _collectFromSupers: (classDefinition)->
-    addFromSuper = (cd, totalDefinition = {attributes: {}, relations: {}}) =>
+    addFromSuper = (cd, definition = @definition, totalDefinition = {attributes: {}, relations: {}}) =>
 
       # Start with supers so lower specifications override the super ones
       if cd?.super?
-        superDefinition = @definition.classes[cd.super]
-        addFromSuper(superDefinition, totalDefinition)
+        def = definition
+        className = cd.super
+        if cd.super.indexOf('.') > -1
+          [prefix, className] = cd.super.split('.')
+          def = @includes[prefix].definition
+        superDefinition = def.classes[className]
+        addFromSuper(superDefinition, def, totalDefinition)
 
-      transfer = (source) ->
-        totalDefinition[source][k] = v for k, v of cd?[source] if cd?[source]?
+      transfer = (source) =>
+        for k, v of cd?[source] 
+          if cd?[source]?
+            totalDefinition[source][k] = v
+            if v?.range?
+              updatedRanges = []
+              ranges = v.range
+              ranges = _.keys(ranges) if not _.isArray(ranges)
+              for range in ranges
+                composedKey = "#{definition.name}:#{range.split(':').pop()}"
+                updated = @getNodeNameByKey(composedKey)
+                updatedRanges.push(updated)
+              totalDefinition[source][k].range = updatedRanges
 
       transfer('attributes')
       transfer('relations')
@@ -105,6 +121,25 @@ class WeaverModel
       totalDefinition
 
     addFromSuper(classDefinition)
+
+
+  # eg test-model:td.Document is processed from [test-model:td][Document] to [test-doc-model][Document] 
+  getNodeNameByKey: (dotPath) ->
+    [first, rest...] = dotPath.split('.')
+    return "#{@definition.name}:#{dotPath}" if rest.length is 0 and dotPath.indexOf(':') < 0
+    return "#{dotPath}" if rest.length is 0 and dotPath.indexOf(':') >= 0
+    
+    if first.indexOf(':') < 0
+      if @includes[first]?
+        m = @includes[first]
+        return m.getNodeNameByKey(rest.join('.')) 
+    else 
+      [modelName, prefix] = first.split(':')
+      if @modelMap[modelName]? and @modelMap[modelName].includes[prefix]?
+        m = @modelMap[modelName].includes[prefix]
+        return m.getNodeNameByKey(rest.join('.')) 
+    
+    return null
 
   getGraphName: ->
     console.warn('Deprecated function WeaverModel.getGraphName() used. Use WeaverModel.getGraph().')
