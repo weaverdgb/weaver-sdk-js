@@ -1,5 +1,9 @@
 # Changelist
 
+## 6.4.3
+- Allow to have model class nodes instances be a member some other class, so 
+  they a have normal id without colon
+
 ## 6.4.2
 - Look in all graphs to find membership etc. relations of model classes
 - Reason from the right graph when selecting super classes in the model
