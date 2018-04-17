@@ -2,8 +2,9 @@
 
 ## 6.4.3
 - Do not throw an error on unmet minimal cardinality on model relations
-- Allow to have model class nodes instances be a member some other class, so 
+- Allow to have model class nodes instances be a member some other class, so
   they a have normal id without colon
+- Replaces errors for required attributes, min relations and max relations with warnings
 
 ## 6.4.2
 - Look in all graphs to find membership etc. relations of model classes
