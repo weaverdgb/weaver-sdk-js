@@ -13,10 +13,11 @@ class WeaverModelQuery extends Weaver.Query
     constructorFunction = (node, owner, key) =>
       defs = []
       for def in node.relation(@model.getMemberKey()).all()
-        modelName = @model.definition.name
-        modelName = def.id().split(':')[0] if def.id().indexOf(':') > -1
-        if @model.modelMap[modelName]?
-          defs.push(def.id())
+        if def.indexOf(':') > -1
+          modelName = @model.definition.name
+          modelName = def.id().split(':')[0] if def.id().indexOf(':') > -1
+          if @model.modelMap[modelName]?
+            defs.push(def.id())
       if defs.length is 0
         Weaver.Node
       else if defs.length is 1

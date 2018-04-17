@@ -135,8 +135,8 @@ class WeaverModelClass extends Weaver.Node
     defs = []
     defs = (def.id() for def in @.nodeRelation(@model.getMemberKey()).all())
     
-    totalDefs = (def for def in defs)
-    totalDefs = totalDefs.concat(addSuperDefs(def, defs)) for def in defs
+    totalDefs = (def for def in defs when def.indexOf(':') > -1)
+    totalDefs = totalDefs.concat(addSuperDefs(def, defs)) for def in defs when def.indexOf(':') > -1
     totalDefs
 
   getToRanges: (key, to)->
