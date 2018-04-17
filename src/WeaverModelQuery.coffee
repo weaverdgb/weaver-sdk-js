@@ -11,7 +11,12 @@ class WeaverModelQuery extends Weaver.Query
 
     # Define constructor function
     constructorFunction = (node, owner, key) =>
-      defs = (def.id() for def in node.relation(@model.getMemberKey()).all() when @model.modelMap[def.id().split(':')[0]]?)
+      defs = []
+      for def in node.relation(@model.getMemberKey()).all()
+        modelName = @model.definition.name
+        modelName = def.id().split(':')[0] if def.id().indexOf(':') > -1
+        if @model.modelMap[modelName]?
+          defs.push(def.id())
       if defs.length is 0
         Weaver.Node
       else if defs.length is 1
@@ -40,7 +45,11 @@ class WeaverModelQuery extends Weaver.Query
           console.log("Construct DefinedNode from ranges #{JSON.stringify(ranges)} for constructing second order node between type #{JSON.stringify(defs)}")
           return Weaver.DefinedNode
         else
-          [modelName, className] = ranges[0].split(':')
+          range = ranges[0]
+          modelName = @model.definition.name
+          className = range
+          if range.indexOf(':') > -1
+            [modelName, className] = range.split(':')
           return @model.modelMap[modelName][className]
 
     @setConstructorFunction(constructorFunction)

@@ -117,7 +117,10 @@ class WeaverModelClass extends Weaver.Node
 
     addSuperDefs = (def, defs = []) =>
       res = []
-      [modelName, className] = def.split(':')
+      modelName = @model.definition.name
+      className = def
+      if def.indexOf(':') > -1
+        [modelName, className] = def.split(':')
       if not @model.modelMap[modelName]?  
         console.log "#{modelName} in #{modelName}:#{className} is not available on model #{@model.definition.name}"
       definition = @model.modelMap[modelName].definition.classes[className]
