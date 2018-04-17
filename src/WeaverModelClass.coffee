@@ -217,7 +217,7 @@ class WeaverModelClass extends Weaver.Node
       current = @relation(key).all().length
 
       if current < min
-        throw new Error("Relation #{key} requires a minimum of #{min} relations for a #{@className} model. Currently #{current} is set.")
+        console.warn "Relation #{key} requires a minimum of #{min} relations for a #{@className} model. Currently #{current} is set."
       else if max isnt 'n' and current > max
         throw new Error("Relation #{key} allows a maximum of #{max} relations for a #{@className} model. Currently #{current} is set.")
 
