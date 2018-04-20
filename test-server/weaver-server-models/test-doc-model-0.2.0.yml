@@ -11,6 +11,7 @@ classes:
   Document:
     attributes:
       fileName:
+        key: hasFileName
         datatype: string
     relations:
       signedWith:
