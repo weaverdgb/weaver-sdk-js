@@ -398,5 +398,11 @@ describe 'WeaverModel test', ->
           ).then((relNode) ->
             relNode.set('friendScore', '-1')
             relNode.save()
+          ).then(->
+            model.Person.load(one.id())
+          ).then((personOne) ->
+            rel = personOne.relation('hasFriend')
+            rel.to(rel.all()[0])
           )
+
 
