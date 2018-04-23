@@ -1,5 +1,9 @@
 # Changelist
 
+# 6.4.5
+- Put member relationship of new modelclass instance in the instance graph, 
+  not in the model graph
+
 ## 6.4.4
 - Fixes race condition in WeaverRelation.remove, it now correctly returns
   a promise again
