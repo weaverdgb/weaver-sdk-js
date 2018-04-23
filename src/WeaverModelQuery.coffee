@@ -7,7 +7,7 @@ class WeaverModelQuery extends Weaver.Query
   constructor: (@model = Weaver.currentModel(), target) ->
     super(target)
 
-    
+
 
     # Define constructor function
     constructorFunction = (node, owner, key) =>
@@ -84,7 +84,7 @@ class WeaverModelQuery extends Weaver.Query
 
         [className, modelKey] = key.split(".")
         modelClass = @model[className]
-        definition  = modelClass.classDefinition
+        definition  = modelClass.totalClassDefinition
 
         databaseKeys.push(definition[source]?[modelKey]?.key or modelKey)
 

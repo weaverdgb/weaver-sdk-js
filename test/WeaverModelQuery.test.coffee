@@ -248,3 +248,9 @@ describe 'WeaverModelQuery test', ->
     expect(q.model).to.be.not.undefined
     q.destruct()
     expect(q.model).to.be.undefined
+
+  it 'should get the correct database key for inherited attributes', ->
+    q = new Weaver.ModelQuery(model)
+    q.contains('Passport.fileName', 'someFilename')
+    expect(q._conditions['hasFileName']).to.be.not.undefined
+
