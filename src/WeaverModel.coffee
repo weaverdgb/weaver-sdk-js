@@ -64,7 +64,6 @@ class WeaverModel
       new Weaver.ModelQuery(model)
         .class(carrier[loadClass])
         .restrict(nodeId)
-        .inGraph(graph)
         .first(carrier[loadClass])
 
     carrier[className].load = load(className)

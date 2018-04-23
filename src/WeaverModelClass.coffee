@@ -117,12 +117,15 @@ class WeaverModelClass extends Weaver.Node
 
     addSuperDefs = (def, defs = []) =>
       res = []
-      [modelName, className] = def.split(':')
-      if not @model.modelMap[modelName]?  
+      modelName = @model.definition.name
+      className = def
+      if def.indexOf(':') > -1
+        [modelName, className] = def.split(':')
+      if not @model.modelMap[modelName]?
         console.log "#{modelName} in #{modelName}:#{className} is not available on model #{@model.definition.name}"
       definition = @model.modelMap[modelName].definition.classes[className]
       if definition.super?
-        superClassName = @model.getNodeNameByKey(definition.super)
+        superClassName = @model.modelMap[modelName].getNodeNameByKey(definition.super)
         res.push(superClassName) if superClassName not in defs
         res = res.concat(addSuperDefs(superClassName, defs))
         res
@@ -131,17 +134,17 @@ class WeaverModelClass extends Weaver.Node
 
     defs = []
     defs = (def.id() for def in @.nodeRelation(@model.getMemberKey()).all())
-    
-    totalDefs = (def for def in defs)
-    totalDefs = totalDefs.concat(addSuperDefs(def, defs)) for def in defs
+
+    totalDefs = (def for def in defs when def.indexOf(':') > -1)
+    totalDefs = totalDefs.concat(addSuperDefs(def, defs)) for def in defs when def.indexOf(':') > -1
     totalDefs
 
   getToRanges: (key, to)->
-    if to instanceof Weaver.ModelClass 
+    if to instanceof Weaver.ModelClass
       defs = to.getDefinitions()
       ranges = @getRanges(key)
       (def for def in defs when def in ranges)
-    else if to instanceof Weaver.DefinedNode 
+    else if to instanceof Weaver.DefinedNode
       defs = to.getDefinitions()
       ranges = @getRanges(key)
       (def for def in defs when def in ranges)
@@ -209,7 +212,7 @@ class WeaverModelClass extends Weaver.Node
     # Check required attributes
     for key, attribute of @totalClassDefinition.attributes when attribute.required
       if not @get(key)?
-        throw new Error("Attribute #{key} is required for a #{@className} model")
+        console.warn("Attribute #{key} is required for a #{@className} model")
 
     # Check cardinality on relations
     for key, relation of @totalClassDefinition.relations when relation?.card?
@@ -217,9 +220,9 @@ class WeaverModelClass extends Weaver.Node
       current = @relation(key).all().length
 
       if current < min
-        throw new Error("Relation #{key} requires a minimum of #{min} relations for a #{@className} model. Currently #{current} is set.")
+        console.warn("Relation #{key} requires a minimum of #{min} relations for a #{@className} model. Currently #{current} is set.")
       else if max isnt 'n' and current > max
-        throw new Error("Relation #{key} allows a maximum of #{max} relations for a #{@className} model. Currently #{current} is set.")
+        console.warn("Relation #{key} allows a maximum of #{max} relations for a #{@className} model. Currently #{current} is set.")
 
     super(project)
 
