@@ -1,5 +1,9 @@
 # Changelist
 
+## 6.4.4
+- Fixes race condition in WeaverRelation.remove, it now correctly returns
+  a promise again
+
 ## 6.4.3
 - Do not throw an error on unmet minimal cardinality on model relations
 - Allow to have model class nodes instances be a member some other class, so
