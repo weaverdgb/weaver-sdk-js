@@ -1,5 +1,8 @@
 # Changelist
 
+## 6.4.4
+- Fixed a bug related to inherited attribute keys in map function for models
+
 ## 6.4.3
 - Do not throw an error on unmet minimal cardinality on model relations
 - Allow to have model class nodes instances be a member some other class, so
