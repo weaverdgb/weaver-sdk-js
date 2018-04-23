@@ -188,3 +188,4 @@ describe 'Events test', ->
     n = new Weaver.Node(id)
     n.relation('hasFriend').add(new Weaver.Node("John"))
     n.relation('hasFriend').remove(new Weaver.Node("John"))
+    return # The previous call returns a promise, so hard return nothing

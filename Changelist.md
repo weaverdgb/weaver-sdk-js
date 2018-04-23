@@ -1,6 +1,8 @@
 # Changelist
 
 ## 6.4.4
+- Fixes race condition in WeaverRelation.remove, it now correctly returns
+  a promise again
 - Fixed a bug related to inherited attribute keys in map function for models
 
 ## 6.4.3

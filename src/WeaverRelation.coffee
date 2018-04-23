@@ -86,16 +86,11 @@ class WeaverRelation
 
   remove: (node) ->
     # TODO: This failes when relation is not saved, should be able to only remove locally
-    @_getRelationNodeForTarget(node).destroy()
-
-    # Deprecate this write operation
-    #relId = @relationNodes[node.id()].id()
-    #@pendingWrites.push(Operation.Node(@parent).removeRelation(relId))
-    Weaver.publish("node.relation.remove", {node: @parent, key: @key, target: node})
-
-    @_removeNode(node)
+    relNode = @_getRelationNodeForTarget(node)
     @_removeRelationNodeForTarget(node)
-
+    @_removeNode(node)
+    Weaver.publish("node.relation.remove", {node: @parent, key: @key, target: node})
+    relNode.destroy()
 
 # Export
 module.exports  = WeaverRelation

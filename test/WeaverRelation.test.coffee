@@ -84,6 +84,24 @@ describe 'Weaver relation and WeaverRelationNode test', ->
       expect(loadedNode.relation('comesBefore').nodes.find((x) -> x.equals(bar))).to.not.be.defined
     )
 
+  it 'should remove a relation from the loaded result', ->
+    foo = new Weaver.Node()
+    bar = new Weaver.Node()
+    zoo = new Weaver.Node()
+    foo.relation('comesBefore').add(bar)
+    foo.relation('comesBefore').add(zoo)
+
+    foo.save().then(->
+      Weaver.Node.load(foo.id())
+    ).then((loadedNode) ->
+      expect(i.id() for i in loadedNode.relation('comesBefore').all()).to.have.length.be(2)
+      loadedNode.relation('comesBefore').remove(loadedNode.relation('comesBefore').first())
+    ).then( ->
+      Weaver.Node.load(foo.id())
+    ).then((loadedNode) ->
+      expect(i.id() for i in loadedNode.relation('comesBefore').all()).to.have.length.be(1)
+    )
+
   it 'should remove a relation', ->
     foo = new Weaver.Node()
     bar = new Weaver.Node()
@@ -95,12 +113,10 @@ describe 'Weaver relation and WeaverRelationNode test', ->
       Weaver.Node.load(foo.id())
     ).then((loadedNode) ->
       loadedNode.relation('comesBefore').remove(bar)
-      loadedNode.save()
     ).then( ->
       Weaver.Node.load(foo.id())
     ).then((loadedNode) ->
-      relations = (k for k of loadedNode.relations())
-      assert.lengthOf(relations, 1)
+      expect(i.id() for i in loadedNode.relation('comesBefore').all()).to.have.length.be(1)
     )
 
   it 'should load all nodes in the relation', ->

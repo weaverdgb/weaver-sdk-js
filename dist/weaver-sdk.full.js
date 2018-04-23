@@ -100245,7 +100245,7 @@ module.exports = yeast;
 },{}],401:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "6.4.2",
+  "version": "6.4.4",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -100253,7 +100253,7 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "^4.7.0",
+    "requiredConnectorVersion": "^4.7.1",
     "requiredServerVersion": "^3.10.0"
   },
   "main": "lib/Weaver.js",
@@ -101675,13 +101675,17 @@ module.exports={
             defs = [];
           }
           res = [];
-          ref = def.split(':'), modelName = ref[0], className = ref[1];
+          modelName = _this.model.definition.name;
+          className = def;
+          if (def.indexOf(':') > -1) {
+            ref = def.split(':'), modelName = ref[0], className = ref[1];
+          }
           if (_this.model.modelMap[modelName] == null) {
             console.log(modelName + " in " + modelName + ":" + className + " is not available on model " + _this.model.definition.name);
           }
           definition = _this.model.modelMap[modelName].definition.classes[className];
           if (definition["super"] != null) {
-            superClassName = _this.model.getNodeNameByKey(definition["super"]);
+            superClassName = _this.model.modelMap[modelName].getNodeNameByKey(definition["super"]);
             if (indexOf.call(defs, superClassName) < 0) {
               res.push(superClassName);
             }
@@ -102799,7 +102803,11 @@ module.exports={
             defs = [];
           }
           res = [];
-          ref = def.split(':'), modelName = ref[0], className = ref[1];
+          modelName = _this.model.definition.name;
+          className = def;
+          if (def.indexOf(':') > -1) {
+            ref = def.split(':'), modelName = ref[0], className = ref[1];
+          }
           if (_this.model.modelMap[modelName] == null) {
             console.log(modelName + " in " + modelName + ":" + className + " is not available on model " + _this.model.definition.name);
           }
@@ -102832,13 +102840,17 @@ module.exports={
         results = [];
         for (i = 0, len = defs.length; i < len; i++) {
           def = defs[i];
-          results.push(def);
+          if (def.indexOf(':') > -1) {
+            results.push(def);
+          }
         }
         return results;
       })();
       for (i = 0, len = defs.length; i < len; i++) {
         def = defs[i];
-        totalDefs = totalDefs.concat(addSuperDefs(def, defs));
+        if (def.indexOf(':') > -1) {
+          totalDefs = totalDefs.concat(addSuperDefs(def, defs));
+        }
       }
       return totalDefs;
     };
@@ -102968,7 +102980,7 @@ module.exports={
         attribute = ref[key];
         if (attribute.required) {
           if (this.get(key) == null) {
-            throw new Error("Attribute " + key + " is required for a " + this.className + " model");
+            console.warn("Attribute " + key + " is required for a " + this.className + " model");
           }
         }
       }
@@ -102981,9 +102993,9 @@ module.exports={
         ref2 = relation.card, min = ref2[0], max = ref2[1];
         current = this.relation(key).all().length;
         if (current < min) {
-          throw new Error("Relation " + key + " requires a minimum of " + min + " relations for a " + this.className + " model. Currently " + current + " is set.");
+          console.warn("Relation " + key + " requires a minimum of " + min + " relations for a " + this.className + " model. Currently " + current + " is set.");
         } else if (max !== 'n' && current > max) {
-          throw new Error("Relation " + key + " allows a maximum of " + max + " relations for a " + this.className + " model. Currently " + current + " is set.");
+          console.warn("Relation " + key + " allows a maximum of " + max + " relations for a " + this.className + " model. Currently " + current + " is set.");
         }
       }
       return WeaverModelClass.__super__.save.call(this, project);
@@ -103019,23 +103031,25 @@ module.exports={
       WeaverModelQuery.__super__.constructor.call(this, target);
       constructorFunction = (function(_this) {
         return function(node, owner, key) {
-          var className, def, defs, modelKey, modelName, ranges, ref, ref1;
-          defs = (function() {
-            var i, len, ref, results;
-            ref = node.relation(this.model.getMemberKey()).all();
-            results = [];
-            for (i = 0, len = ref.length; i < len; i++) {
-              def = ref[i];
-              if (this.model.modelMap[def.id().split(':')[0]] != null) {
-                results.push(def.id());
+          var className, def, defs, i, len, modelKey, modelName, range, ranges, ref, ref1, ref2;
+          defs = [];
+          ref = node.relation(_this.model.getMemberKey()).all();
+          for (i = 0, len = ref.length; i < len; i++) {
+            def = ref[i];
+            if (def.id().indexOf(':') > -1) {
+              modelName = _this.model.definition.name;
+              if (def.id().indexOf(':') > -1) {
+                modelName = def.id().split(':')[0];
+              }
+              if (_this.model.modelMap[modelName] != null) {
+                defs.push(def.id());
               }
             }
-            return results;
-          }).call(_this);
+          }
           if (defs.length === 0) {
             return Weaver.Node;
           } else if (defs.length === 1) {
-            ref = defs[0].split(":"), modelName = ref[0], className = ref[1];
+            ref1 = defs[0].split(":"), modelName = ref1[0], className = ref1[1];
             return _this.model.modelMap[modelName][className];
           } else if (owner == null) {
             if (_this.preferredConstructor == null) {
@@ -103057,7 +103071,12 @@ module.exports={
               console.log("Construct DefinedNode from ranges " + (JSON.stringify(ranges)) + " for constructing second order node between type " + (JSON.stringify(defs)));
               return Weaver.DefinedNode;
             } else {
-              ref1 = ranges[0].split(':'), modelName = ref1[0], className = ref1[1];
+              range = ranges[0];
+              modelName = _this.model.definition.name;
+              className = range;
+              if (range.indexOf(':') > -1) {
+                ref2 = range.split(':'), modelName = ref2[0], className = ref2[1];
+              }
               return _this.model.modelMap[modelName][className];
             }
           }
@@ -103100,7 +103119,7 @@ module.exports={
           }
           ref = key.split("."), className = ref[0], modelKey = ref[1];
           modelClass = this.model[className];
-          definition = modelClass.classDefinition;
+          definition = modelClass.totalClassDefinition;
           databaseKeys.push(((ref1 = definition[source]) != null ? (ref2 = ref1[modelKey]) != null ? ref2.key : void 0 : void 0) || modelKey);
         }
       }
@@ -105004,14 +105023,16 @@ module.exports={
     };
 
     WeaverRelation.prototype.remove = function(node) {
-      this._getRelationNodeForTarget(node).destroy();
+      var relNode;
+      relNode = this._getRelationNodeForTarget(node);
+      this._removeRelationNodeForTarget(node);
+      this._removeNode(node);
       Weaver.publish("node.relation.remove", {
         node: this.parent,
         key: this.key,
         target: node
       });
-      this._removeNode(node);
-      return this._removeRelationNodeForTarget(node);
+      return relNode.destroy();
     };
 
     return WeaverRelation;
