@@ -135,20 +135,15 @@ describe 'WeaverProject Test', ->
       weaver.currentProject().unfreeze()
     ).should.be.rejectedWith(/Permission denied/)
 
-  it.skip 'should raise an error while saving without currentProject', (done) ->
+  it 'should raise an error while saving without currentProject', ->
     p = weaver.currentProject()
     weaver.useProject(null)
     node = new Weaver.Node()
-    node.save().then(->
-      assert false
-    )
-    .catch((error)->
-      assert true
-    ).finally(->
+    node.save()
+    .finally(->
       weaver.useProject(p)
-      done()
-    )
-    return
+    ).should.be.rejected
+
 
   it 'should export the database content as snapshot regardless of graph', ->
     node = new Weaver.Node()

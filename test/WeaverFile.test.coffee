@@ -108,7 +108,7 @@ describe 'WeaverFile test', ->
     ).then(->
       file.upload()
     ).then(->
-       assert.fail()
+      assert.fail()
     ).catch((err) ->
       expect(err).to.have.property('message').match(/Permission denied/)
     )
@@ -130,7 +130,7 @@ describe 'WeaverFile test', ->
     ).then(->
       file.upload()
     ).then(->
-       assert.fail()
+      assert.fail()
     ).catch((err) ->
       expect(err).to.have.property('message').match(/Permission denied/)
     )
@@ -159,22 +159,12 @@ describe 'WeaverFile test', ->
   it 'should fail creating a new file, because the file does not exists on local machine', ->
     @skip() if window?
     file = new Weaver.File('../foo.bar')
-    file.upload()
-    .then((res) ->
-      assert(false)
-    ).catch((err) ->
-      assert.equal(err.code, Weaver.Error.FILE_NOT_EXISTS_ERROR)
-    )
+    file.upload().should.be.rejectedWith(Weaver.Error.FILE_NOT_EXISTS_ERROR)
 
   it 'should fail retrieving a file, because the file does not exits on server', ->
     @skip() if window?
     file = Weaver.File.get('some-random-file')
-    file.download(path.join(__dirname,'../tmp/weaver-icon.png'))
-    .then((res) ->
-      assert(false)
-    ).catch((err) ->
-      assert(true)
-    )
+    file.download(path.join(__dirname,'../tmp/weaver-icon.png')).should.be.rejected
 
   it 'should retrieve a file by ID', ->
     @skip() if window?
@@ -203,12 +193,7 @@ describe 'WeaverFile test', ->
       assert.equal(storedFile.name(), file.name())
       storedFile.destroy()
     ).then( ->
-      Weaver.File.get(file.id()).download('./icon.png')
-      .then((res) ->
-        assert(false)
-      ).catch((err) ->
-        assert(true)
-      )
+      Weaver.File.get(file.id()).download('./icon.png').should.be.rejected
     )
 
   describe 'with an uploaded file', ->

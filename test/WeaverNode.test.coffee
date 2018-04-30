@@ -108,9 +108,7 @@ describe 'WeaverNode test', ->
       node.destroy()
     ).then(->
       Weaver.Node.load(id)
-    ).catch((error) ->
-      expect(error.code).to.equal(Weaver.Error.NODE_NOT_FOUND)
-    )
+    ).should.be.rejectedWith(Weaver.Error.NODE_NOT_FOUND)
 
   it 'should set a new string attribute', ->
     node = new Weaver.Node()
@@ -304,16 +302,10 @@ describe 'WeaverNode test', ->
 
     node1.save().then(->
       node2.save()
-    ).then(->
-      assert(false)
     ).should.be.rejectedWith(Weaver.Error.NODE_ALREADY_EXISTS)
 
   it 'should give an error if node does not exist', ->
-    Weaver.Node.load('lol').then((res) ->
-      assert(false)
-    ).catch((error) ->
-      expect(error.code).to.equal(Weaver.Error.NODE_NOT_FOUND)
-    )
+    Weaver.Node.load('lol').should.be.rejectedWith(Weaver.Error.NODE_NOT_FOUND)
 
   it 'should create a relation', ->
     a = new Weaver.Node()
