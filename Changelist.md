@@ -1,6 +1,6 @@
 # Changelist
 
-# develop
+# 6.4.8
 - Throw an error when doing an empty array restrict on WeaverQuery
 
 # 6.4.6

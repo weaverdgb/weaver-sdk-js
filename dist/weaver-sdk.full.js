@@ -100277,7 +100277,7 @@ module.exports = yeast;
 },{}],401:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "6.4.7",
+  "version": "6.4.8",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -104478,6 +104478,9 @@ module.exports={
 
     WeaverQuery.prototype.restrict = function(nodes) {
       var addRestrict, k, len, node;
+      if ((nodes != null) && nodes.length === 0) {
+        throw new Error('Do not set a restriction to an empty array, this means you are querying the whole database.');
+      }
       addRestrict = (function(_this) {
         return function(node) {
           if (util.isString(node)) {
