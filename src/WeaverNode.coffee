@@ -298,9 +298,9 @@ class WeaverNode
     @_collectPendingWrites(undefined, false)
 
   # Go through each relation and recursively add all pendingWrites per relation AND that of the objects
-  _collectPendingWrites: (collected = {}, cleanup=true) ->
+  _collectPendingWrites: (collected = [], cleanup=true) ->
     # Register to keep track which nodes have been collected to prevent recursive blowup
-    collected[@id()] = true
+    collected.push(@) if @ not in collected
     operations = @pendingWrites
 
     if cleanup
@@ -309,15 +309,15 @@ class WeaverNode
 
     for key, relation of @_relations
       for node in relation.nodes
-        if node.id()? and not collected[node.id()]
-          collected[node.id()] = true
+        if node not in collected
+          collected.push(node)
           operations = operations.concat(node._collectPendingWrites(collected, cleanup))
 
       operations = operations.concat(relation.pendingWrites)
 
       for node in relation.relationNodes
-        if node.id()? and not collected[node.id()]
-          collected[node.id()] = true
+        if node not in collected
+          collected.push(node)
           operations = operations.concat(node._collectPendingWrites(collected, cleanup))
 
       if cleanup
