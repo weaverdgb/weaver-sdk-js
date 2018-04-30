@@ -1,5 +1,9 @@
 # Changelist
 
+# develop
+- Do not use the id of the node as identifier in cycle detection for 
+  collecting the pending writes 
+
 # 6.4.5
 - Put member relationship of new modelclass instance in the instance graph, 
   not in the model graph
