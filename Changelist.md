@@ -1,5 +1,8 @@
 # Changelist
 
+# develop
+- The ModelClass .nodeGet and .nodeSet did not work
+
 # 6.4.5
 - Put member relationship of new modelclass instance in the instance graph, 
   not in the model graph
