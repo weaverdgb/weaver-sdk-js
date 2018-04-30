@@ -308,19 +308,22 @@ class WeaverNode
       i.__pendingOpNode = @ for i in operations
 
     for key, relation of @_relations
-      for node in relation.nodes
-        if node not in collected
-          collected.push(node)
-          operations = operations.concat(node._collectPendingWrites(collected, cleanup))
+      if relation.nodes?
+        for node in relation.nodes
+          if node not in collected
+            collected.push(node)
+            operations = operations.concat(node._collectPendingWrites(collected, cleanup))
 
-      operations = operations.concat(relation.pendingWrites)
+      if relation.pendingWrites?
+        operations = operations.concat(relation.pendingWrites)
 
-      for node in relation.relationNodes
-        if node not in collected
-          collected.push(node)
-          operations = operations.concat(node._collectPendingWrites(collected, cleanup))
+      if relation.relationNodes?
+        for node in relation.relationNodes
+          if node not in collected
+            collected.push(node)
+            operations = operations.concat(node._collectPendingWrites(collected, cleanup))
 
-      if cleanup
+      if cleanup and relation.pendingWrites?
         i.__pendingOpNode = relation for i in relation.pendingWrites
         relation.pendingWrites = []
 
