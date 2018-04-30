@@ -3,6 +3,7 @@
 # develop
 - Do not use the id of the node as identifier in cycle detection for 
   collecting the pending writes 
+- The ModelClass .nodeGet and .nodeSet did not work
 
 # 6.4.5
 - Put member relationship of new modelclass instance in the instance graph, 
