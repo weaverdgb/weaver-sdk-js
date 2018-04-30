@@ -978,6 +978,32 @@ describe 'WeaverNode test', ->
     expect(node.pendingWrites[2].graph).to.equal('fifth-graph')
     expect(node.pendingWrites[3].graph).to.equal('first-graph')
 
+
+  it 'should add collect pending writes when one node is loaded multiple times', ->
+    thenode = new Weaver.Node('thenode')
+    someother = new Weaver.Node('someother')
+    thenode.relation('link').add(someother)
+    someother.relation('link').add(thenode)
+    Weaver.Node.batchSave([thenode, someother])
+    .then(->
+      new Weaver.Query()
+      .hasRelationOut('link')
+      .selectOut('link')
+      .find()
+    ).then((nodes)->
+      thenode1 = null
+      thenode2 = null
+      for node in nodes
+        thenode1 = node if node.id() is 'thenode'
+        thenode2 = node.relation('link').first() if node.id() is 'someother'
+
+      thenode1.set('color', 'yellow')
+      thenode2.set('location', 'under water')
+      thenode1.relation('equals').add(thenode2)
+      setAttributes = (op for op in thenode1.peekPendingWrites() when op.action is 'create-attribute' and op.sourceId is 'thenode')
+      expect(setAttributes.length).to.equal(2)
+    )
+
   it 'should add graph options to nodes', ->
     node = new Weaver.Node(null, 'first-graph')
     target = new Weaver.Node(null)
