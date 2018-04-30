@@ -98,6 +98,7 @@ describe 'WeaverModel test', ->
       person.nodeSet('hasFullName', 'John Doe')
       assert.isDefined(person.attributes().fullName)
       assert.isUndefined(person.attributes().hasFullName)
+      expect(person.nodeGet('hasFullName')).to.equal('John Doe')
 
     it 'should get attributes on model instances', ->
       Person = model.Person
