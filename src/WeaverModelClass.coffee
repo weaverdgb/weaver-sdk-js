@@ -170,7 +170,7 @@ class WeaverModelClass extends Weaver.Node
     relations
 
   nodeGet: (args...)->
-    super.get(args...)
+    Weaver.Node.prototype.get.call(@, args...)
 
   get: (field) ->
     try
@@ -179,7 +179,7 @@ class WeaverModelClass extends Weaver.Node
       undefined
 
   nodeSet: (args...)->
-    super.set(args...)
+    Weaver.Node.prototype.set.call(@, args...)
 
   set: (field, value) ->
     key = @_getAttributeKey(field)

@@ -92,6 +92,13 @@ describe 'WeaverModel test', ->
       assert.isDefined(person.attributes().fullName)
       assert.isUndefined(person.attributes().hasFullName)
 
+    it 'should set attributes the node way on model instances', ->
+      Person = model.Person
+      person = new Person()
+      person.nodeSet('hasFullName', 'John Doe')
+      assert.isDefined(person.attributes().fullName)
+      assert.isUndefined(person.attributes().hasFullName)
+
     it 'should get attributes on model instances', ->
       Person = model.Person
       person = new Person()
