@@ -1,6 +1,8 @@
 # Changelist
 
 # develop
+- Do not use the id of the node as identifier in cycle detection for 
+  collecting the pending writes 
 - The ModelClass .nodeGet and .nodeSet did not work
 
 # 6.4.5
