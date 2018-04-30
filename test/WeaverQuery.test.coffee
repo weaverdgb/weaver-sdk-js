@@ -27,6 +27,9 @@ describe 'WeaverQuery Test', ->
         checkNodeInResult(nodes, 'a')
       )
 
+    it 'should throw error with emtpy array restrict', ->
+      expect(-> new Weaver.Query().restrict([])).to.throw
+
     it 'should restrict to multiple nodes', ->
       new Weaver.Query()
       .restrict([a,c])

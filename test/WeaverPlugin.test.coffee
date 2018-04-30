@@ -13,11 +13,7 @@ describe 'WeaverPlugin test', ->
     )
 
   it 'should raise an error when plugin is not found', ->
-    Weaver.Plugin.load('someplugin').then((plugin) ->
-      assert false
-    ).catch((error) ->
-      assert true
-    )
+    Weaver.Plugin.load('someplugin').should.be.rejected
 
   it 'should call plugin functions on calculator', ->
     plugin = null
@@ -48,11 +44,7 @@ describe 'WeaverPlugin test', ->
   it 'should raise an error when a function is incorrectly called', ->
     Weaver.Plugin.load('calculator').then((plugin) ->
       plugin.add(4) # Missing field y
-    ).then(->
-      assert false
-    ).catch((error) ->
-      assert true
-    )
+    ).should.be.rejected
 
   it.skip 'should deny execution access if not permitted', ->
 

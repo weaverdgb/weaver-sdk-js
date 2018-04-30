@@ -115,6 +115,9 @@ class WeaverQuery
 
   restrict: (nodes) ->
 
+    if nodes? and nodes.length is 0
+      throw new Error('Do not set a restriction to an empty array, this means you are querying the whole database.')
+
     addRestrict = (node) =>
       if util.isString(node)
         @_restrict.push(node)

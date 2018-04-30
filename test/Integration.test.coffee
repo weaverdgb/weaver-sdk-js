@@ -153,9 +153,5 @@ describe 'Integration Test', ->
       node.save()
 
     ).then((node) ->
-
       assert.equal(node.get('name'), 'Sonic')
-    )
-    .catch((error) ->
-      assert false
     )
