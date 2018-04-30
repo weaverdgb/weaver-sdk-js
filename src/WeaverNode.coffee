@@ -302,32 +302,27 @@ class WeaverNode
     # Register to keep track which nodes have been collected to prevent recursive blowup
     collected.push(@) if @ not in collected
     operations = @pendingWrites
+    if not operations?
+      return []
 
     if cleanup
       @pendingWrites = []
       i.__pendingOpNode = @ for i in operations
 
     for key, relation of @_relations
-      if relation.nodes?
-        for node in relation.nodes
-          if node not in collected
-            collected.push(node)
-            operations = operations.concat(node._collectPendingWrites(collected, cleanup))
+      for node in relation.nodes when node not in collected
+        collected.push(node)
+        operations = operations.concat(node._collectPendingWrites(collected, cleanup))
 
-      if relation.pendingWrites?
-        operations = operations.concat(relation.pendingWrites)
+      operations = operations.concat(relation.pendingWrites)
 
-      if relation.relationNodes?
-        for node in relation.relationNodes
-          if node not in collected
-            collected.push(node)
-            operations = operations.concat(node._collectPendingWrites(collected, cleanup))
+      for node in relation.relationNodes when node not in collected
+          collected.push(node)
+          operations = operations.concat(node._collectPendingWrites(collected, cleanup))
 
-      if cleanup and relation.pendingWrites?
+      if cleanup
         i.__pendingOpNode = relation for i in relation.pendingWrites
         relation.pendingWrites = []
-
-
 
     operations
 
