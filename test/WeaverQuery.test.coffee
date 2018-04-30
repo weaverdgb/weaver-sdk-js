@@ -28,9 +28,7 @@ describe 'WeaverQuery Test', ->
       )
 
     it 'should throw error with emtpy array restrict', ->
-      new Weaver.Query()
-      .restrict([])
-      .find().should.be.rejected
+      expect(-> new Weaver.Query().restrict([])).to.throw
 
     it 'should restrict to multiple nodes', ->
       new Weaver.Query()
