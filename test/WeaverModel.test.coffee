@@ -106,7 +106,6 @@ describe 'WeaverModel test', ->
 
     it 'should set relation on included model instances', ->
       s = new model.Shelf()
-      console.log s.getRanges('supports')
       d = new model.td.Document()
       s.relation('supports').add(d)
 
