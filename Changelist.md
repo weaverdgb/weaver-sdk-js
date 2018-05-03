@@ -1,5 +1,9 @@
 # Changelist
 
+# develop
+- In some situations with pointing to super clases the model did not load
+  ranges properly.
+
 # 6.4.8
 - Throw an error when doing an empty array restrict on WeaverQuery
 

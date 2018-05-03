@@ -110,8 +110,7 @@ class WeaverModel
               ranges = v.range
               ranges = _.keys(ranges) if not _.isArray(ranges)
               for range in ranges
-                composedKey = "#{definition.name}:#{range.split(':').pop()}"
-                updated = @getNodeNameByKey(composedKey)
+                updated = @getNodeNameByKey(range)
                 updatedRanges.push(updated)
               totalDefinition[source][k].range = updatedRanges
 
