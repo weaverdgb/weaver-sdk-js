@@ -90,3 +90,11 @@ classes:
     relations:
       ownedBy:
         range: [Person]
+  Shelf:
+    relations:  
+      supports: 
+        range: [td.Document]
+  BookShelf:
+    super: Shelf
+
+
