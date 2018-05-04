@@ -63,17 +63,17 @@ describe 'WeaverGraph support', ->
     source = 'graph-redir-source'
     oldTarget = 'graph-old-target'
     newTarget = 'graph-new-target'
-    a = new Weaver.Node(undefined, source)
-    b = new Weaver.Node(undefined, oldTarget)
-    c = new Weaver.Node(b.id(), newTarget)
-    a.relation('rel').add(b)
+    sourceNode = new Weaver.Node(undefined, source)
+    oldTargetNode = new Weaver.Node(undefined, oldTarget)
+    newTargetNode = new Weaver.Node(oldTargetNode.id(), newTarget)
+    sourceNode.relation('rel').add(oldTargetNode)
 
     before ->
-      Weaver.Node.batchSave([ a, c ])
+      Weaver.Node.batchSave([ sourceNode, newTargetNode ])
 
     it 'should do nothing on dryruns', ->
       weaver.currentProject().redirectGraph(source, oldTarget, newTarget, true, false).then(->
-        Weaver.Node.loadFromGraph(a.id(), source)
+        Weaver.Node.loadFromGraph(sourceNode.id(), source)
       ).then((node) ->
         expect(node.relation('rel').all()).to.have.length.be(1)
         expect(node.relation('rel').first().getGraph()).to.equal(oldTarget)
@@ -81,7 +81,7 @@ describe 'WeaverGraph support', ->
 
     it 'should work for simple cases', ->
       weaver.currentProject().redirectGraph(source, oldTarget, newTarget, false, false).then(->
-        Weaver.Node.loadFromGraph(a.id(), source)
+        Weaver.Node.loadFromGraph(sourceNode.id(), source)
       ).then((node) ->
         expect(i.getGraph() for i in node.relation('rel').all()).to.have.members([ oldTarget, newTarget ])
       )
