@@ -1,5 +1,8 @@
 # Changelist
 
+## 6.5.1
+- Fixes a bug in the required versions
+
 ## 6.5.0
 - Adds redirectGraph operations, which redirects relations to a graph from
   a graph to a different graph.
