@@ -246,6 +246,9 @@ class CoreManager
   snapshotProjectGraph: (target, graphs, fromGraphs, toGraphs, json, zipped, stored)->
     @GET('snapshotGraph', {graphs, fromGraphs, toGraphs, json, zipped, stored}, target)
 
+  redirectGraph: (target, sourceGraph, oldTargetGraph, newTargetGraph, dryrun, performPartial) ->
+    @POST('graph.redirect', {sourceGraph, oldTargetGraph, newTargetGraph, dryrun, performPartial}, target)
+
   wipeProject: (target)->
     @POST('project.wipe', {}, target)
 

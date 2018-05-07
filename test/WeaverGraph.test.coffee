@@ -8,7 +8,7 @@ describe 'WeaverGraph support', ->
   aInGraph = new Weaver.Node(a.id(), 'WeaverGraph')
   aInOtherGraph = new Weaver.Node(a.id(), 'WeaverGraph2')
   c = new Weaver.Node(cuid(), 'weaverGraph')
-  
+
   before ->
     Weaver.Node.batchSave([a, b, aInGraph, aInOtherGraph])
 
@@ -33,14 +33,14 @@ describe 'WeaverGraph support', ->
     it 'should get a previously created node', ->
       expect(Weaver.Node.firstOrCreateInGraph(a.id(), 'WeaverGraph'))
         .to.eventually.have.property('graph').equal('WeaverGraph')
-    
+
     it 'should not create a new node when previously present', ->
       Weaver.Node.firstOrCreateInGraph(a.id(), 'WeaverGraph').then(->
         new Weaver.Query()
           .restrict(a.id())
           .find()
         ).should.eventually.have.length.be(3)
-  
+
   describe 'in WeaverRelation', ->
     it 'should allow to link to a node in a graph', ->
       b.relation('test').add(aInGraph)
@@ -58,3 +58,35 @@ describe 'WeaverGraph support', ->
       rel = b.relation('test')
       rel.addInGraph(c, 'somegraph')
       expect(rel.pendingWrites[0]).to.have.property('graph').be.equal('somegraph')
+
+  describe 'Graph redirection', ->
+    source = 'graph-redir-source'
+    oldTarget = 'graph-old-target'
+    newTarget = 'graph-new-target'
+    sourceNode = new Weaver.Node(undefined, source)
+    oldTargetNode = new Weaver.Node(undefined, oldTarget)
+    newTargetNode = new Weaver.Node(oldTargetNode.id(), newTarget)
+    sourceNode.relation('rel').add(oldTargetNode)
+
+    before ->
+      Weaver.Node.batchSave([ sourceNode, newTargetNode ])
+
+    it 'should do nothing on dryruns', ->
+      weaver.currentProject().redirectGraph(source, oldTarget, newTarget, true, false).then(->
+        Weaver.Node.loadFromGraph(sourceNode.id(), source)
+      ).then((node) ->
+        expect(node.relation('rel').all()).to.have.length.be(1)
+        expect(node.relation('rel').first().getGraph()).to.equal(oldTarget)
+      )
+
+    it 'should work for simple cases', ->
+      weaver.currentProject().redirectGraph(source, oldTarget, newTarget, false, false).then(->
+        Weaver.Node.loadFromGraph(sourceNode.id(), source)
+      ).then((node) ->
+        expect(i.getGraph() for i in node.relation('rel').all()).to.have.members([ oldTarget, newTarget ])
+      )
+
+
+
+
+
