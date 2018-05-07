@@ -49,6 +49,7 @@ describe 'WeaverModel test', ->
     before ->
       Weaver.Model.load("test-model", "1.2.0").then((m) ->
         model = m
+        model.bootstrap()
       )
 
     it 'should set the type definition to the model class', ->
@@ -102,6 +103,11 @@ describe 'WeaverModel test', ->
       c.set('squareMeter', 200)
       assert.equal(c.get('areaName'), "Area 51")
       assert.equal(c.get('squareMeter'), 200)
+
+    it 'should set relation on included model instances', ->
+      s = new model.Shelf()
+      d = new model.td.Document()
+      s.relation('supports').add(d)
 
     it 'should set attributes on included model instances by inheritance', ->
       p = new model.Passport()

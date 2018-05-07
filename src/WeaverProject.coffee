@@ -105,4 +105,8 @@ class WeaverProject
       Weaver.getCoreManager().executeOperations([ Ops.Graph(graph).truncate(removeNode.id(), removeNode.getGraph()) ])
     )
 
+  redirectGraph: (sourceGraph, oldTargetGraph, newTargetGraph, dryrun = false, performPartial = false) ->
+    Weaver.getCoreManager().redirectGraph(@id(), sourceGraph, oldTargetGraph, newTargetGraph, dryrun, performPartial)
+
+
 module.exports = WeaverProject
