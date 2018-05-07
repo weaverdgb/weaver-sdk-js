@@ -6,7 +6,7 @@ services:
     - "5432"
 
   postgresql-connector:
-    image: sysunite/weaver-database-postgresql:4.8.0-beta.1
+    image: sysunite/weaver-database-postgresql:4.8.0
     expose:
     - "4567"
     environment:
@@ -28,7 +28,7 @@ services:
     - "9000:9000"
 
   weaver-server:
-    image: sysunite/weaver-server:3.11.0-beta.1
+    image: sysunite/weaver-server:3.11.0
     expose:
     - "9487"
     ports:
