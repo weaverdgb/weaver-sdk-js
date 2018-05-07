@@ -54,10 +54,6 @@ describe 'WeaverModel test', ->
     it 'should set the type definition to the model class', ->
       Person = model.Person
       person = new Person()
-      # console.log '&'
-      # console.log person.nodeRelation(person.model.getMemberKey())
-      # console.log '&'
-      # console.log person.model.getMemberKey()
       assert.equal(person.nodeRelation(person.model.getMemberKey()).first().id(), "#{model.definition.name}:#{person.className}")
       assert.equal(person.getMember()[0].id(), "#{model.definition.name}:#{person.className}")
 
@@ -111,7 +107,11 @@ describe 'WeaverModel test', ->
       p = new model.Passport()
       b = new model.Person()
       a = new model.td.Autograph()
+
       p.set('fileName', 'passport.pdf')
+      console.log '#'
+      console.log p.relation('ownedBy')
+
       p.relation('ownedBy').add(b)
       p.relation('signedWith').add(a)
       a.relation('carbonCopy').add(p)
