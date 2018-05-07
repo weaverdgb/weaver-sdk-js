@@ -109,8 +109,6 @@ describe 'WeaverModel test', ->
       a = new model.td.Autograph()
 
       p.set('fileName', 'passport.pdf')
-      console.log '#'
-      console.log p.relation('ownedBy')
 
       p.relation('ownedBy').add(b)
       p.relation('signedWith').add(a)

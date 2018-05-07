@@ -19,7 +19,7 @@ class WeaverModelClass extends Weaver.Node
   @getNode: ->
     Weaver.Node.getFromGraph(@classId(), @model.getGraph())
 
-  constructor: (nodeId,graph, model)->
+  constructor: (nodeId = cuid(),graph, model)->
     super(nodeId, graph)
     @nodeId = nodeId
     @graph = graph
@@ -190,7 +190,7 @@ class WeaverModelClass extends Weaver.Node
     super(key, value)
 
   nodeRelation: (args...)->
-    Weaver.Node.prototype.relation.call(@, 'rdf:type')
+    Weaver.Node.prototype.relation.call(@, args...)
 
   relation: (key) ->
     modelKey = key
