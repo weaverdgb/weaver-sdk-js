@@ -101100,7 +101100,7 @@ module.exports = yeast;
 },{}],406:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "6.4.9",
+  "version": "6.5.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -101108,8 +101108,8 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "^4.7.0",
-    "requiredServerVersion": "^3.10.0"
+    "requiredConnectorVersion": "^4.8.0-beta.1",
+    "requiredServerVersion": "^3.11.0-beta.1"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -101148,7 +101148,6 @@ module.exports={
     "gulp-uglify": "^2.1.2",
     "ioredis": "^2.5.0",
     "istanbul": "^0.4.3",
-    "js-yaml": "^3.10.0",
     "karma": "^2.0.0",
     "karma-browserify": "^5.1.3",
     "karma-chai": "^0.1.0",
@@ -101605,6 +101604,16 @@ module.exports={
         json: json,
         zipped: zipped,
         stored: stored
+      }, target);
+    };
+
+    CoreManager.prototype.redirectGraph = function(target, sourceGraph, oldTargetGraph, newTargetGraph, dryrun, performPartial) {
+      return this.POST('graph.redirect', {
+        sourceGraph: sourceGraph,
+        oldTargetGraph: oldTargetGraph,
+        newTargetGraph: newTargetGraph,
+        dryrun: dryrun,
+        performPartial: performPartial
       }, target);
     };
 
@@ -105127,6 +105136,16 @@ module.exports={
       return removeNode.save().then(function() {
         return Weaver.getCoreManager().executeOperations([Ops.Graph(graph).truncate(removeNode.id(), removeNode.getGraph())]);
       });
+    };
+
+    WeaverProject.prototype.redirectGraph = function(sourceGraph, oldTargetGraph, newTargetGraph, dryrun, performPartial) {
+      if (dryrun == null) {
+        dryrun = false;
+      }
+      if (performPartial == null) {
+        performPartial = false;
+      }
+      return Weaver.getCoreManager().redirectGraph(this.id(), sourceGraph, oldTargetGraph, newTargetGraph, dryrun, performPartial);
     };
 
     return WeaverProject;
