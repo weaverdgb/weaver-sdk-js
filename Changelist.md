@@ -1,5 +1,8 @@
 # Changelist
 
+## develop
+- Update minio in docker composition to the lates release version.
+
 ## 6.5.0
 - Adds redirectGraph operations, which redirects relations to a graph from
   a graph to a different graph.
