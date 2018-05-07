@@ -35,17 +35,20 @@ class WeaverModel
   
     js = """
       (function() {
-        function #{className}(nodeId, graph) {
-          this.model                = #{className}.model;
-          this.definition           = #{className}.definition;
-          this.className            = "#{className}";
-          this.classDefinition      = #{className}.classDefinition;
-          this.totalClassDefinition = #{className}.totalClassDefinition;
-          #{className}.__super__.constructor.call(this, nodeId, graph);
-        };
+        var #{className} = class #{className} extends Weaver.ModelClass {
+          constructor(model = #{className}.model, nodeId, graph) {
+            super(model, nodeId, graph)
+            this.model                = #{className}.model;
+            this.definition           = #{className}.definition;
+            this.className            = "#{className}";
+            this.classDefinition      = #{className}.classDefinition;
+            this.totalClassDefinition = #{className}.totalClassDefinition;
 
-        #{className}.classId = function() {
-          return #{className}.definition.name + ":" + #{className}.className;
+            #{className}.__super__.constructor.call(this, nodeId, graph);
+          }
+          classId() {
+            return #{className}.definition.name + ":" + #{className}.className;
+          };
         };
 
         return #{className};
@@ -53,7 +56,6 @@ class WeaverModel
     """
 
     carrier[className] = eval(js)
-    carrier[className] = carrier[className] extends Weaver.ModelClass
     carrier[className].model                = model
     carrier[className].definition           = model.definition
     carrier[className].className            = className

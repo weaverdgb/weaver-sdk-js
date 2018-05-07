@@ -54,6 +54,10 @@ describe 'WeaverModel test', ->
     it 'should set the type definition to the model class', ->
       Person = model.Person
       person = new Person()
+      # console.log '&'
+      # console.log person.nodeRelation(person.model.getMemberKey())
+      # console.log '&'
+      # console.log person.model.getMemberKey()
       assert.equal(person.nodeRelation(person.model.getMemberKey()).first().id(), "#{model.definition.name}:#{person.className}")
       assert.equal(person.getMember()[0].id(), "#{model.definition.name}:#{person.className}")
 
@@ -400,5 +404,3 @@ describe 'WeaverModel test', ->
             rel = personOne.relation('hasFriend')
             rel.to(rel.all()[0])
           )
-
-
