@@ -1,15 +1,23 @@
 # Changelist
 
-# 6.4.8
+## 6.5.0
+- Adds redirectGraph operations, which redirects relations to a graph from
+  a graph to a different graph.
+
+## 6.4.9
+- In some situations with pointing to super clases the model did not load
+  ranges properly.
+
+## 6.4.8
 - Throw an error when doing an empty array restrict on WeaverQuery
 
-# 6.4.6
-- Do not use the id of the node as identifier in cycle detection for 
-  collecting the pending writes 
+## 6.4.6
+- Do not use the id of the node as identifier in cycle detection for
+  collecting the pending writes
 - The ModelClass .nodeGet and .nodeSet did not work
 
 # 6.4.5
-- Put member relationship of new modelclass instance in the instance graph, 
+- Put member relationship of new modelclass instance in the instance graph,
   not in the model graph
 
 ## 6.4.4
