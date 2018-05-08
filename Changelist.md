@@ -1,6 +1,6 @@
 # Changelist
 
-## 6.5.2
+## 7.0.0
 - Moves to coffeescript 2
 
 ## 6.5.1
