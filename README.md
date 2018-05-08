@@ -21,27 +21,37 @@
 # Weaver SDK for JavaScript
 A library that gives you access to the Weaver platform from your JavaScript app.
 
-* [Getting started](#getting-started)
-  + [Weaver](#weaver)
-  + [Weaver.Nodes](#weavernodes)
-* [Reference](#reference)
-  + [Weaver](#weaver-1)
-    - [Class Methods](#class-methods)
-    - [Instance methods](#instance-methods)
-  + [Weaver.Node](#weavernode)
-    - [Class methods](#class-methods)
-    - [Instance methods](#instance-methods-1)
-* [Install - Development](#install---development)
-* [Tests](#tests)
-  + [NodeJS test](#nodejs-test)
-  + [Browser test](#browser-test)
-* [Todo](#todo)
-* [Future work](#future-work)
-- [Weaver Model](#weaver-model)
-* [Creating](#creating)
-    - [Step 1: Define a model](#step-1--define-a-model)
-    - [Step 2: Instantiate a member](#step-2--instantiate-a-member)
-  + [Step 3: Nest models to describe complex structures](#step-3--nest-models-to-describe-complex-structures)
+- [Getting started](#getting-started)
+  * [Weaver](#weaver)
+  * [Nodes](#nodes)
+- [Reference API](#reference-api)
+  * [Weaver](#weaver-1)
+    + [Class Methods](#class-methods)
+    + [Instance methods](#instance-methods)
+  * [Weaver.Node](#weavernode)
+    + [Class methods](#class-methods)
+    + [Instance methods](#instance-methods-1)
+  * [Weaver.Relation](#weaverrelation)
+    + [Instance methods](#instance-methods-2)
+  * [Weaver.Project](#weaverproject)
+    + [Class methods](#class-methods-1)
+    + [Instance Methods](#instance-methods)
+  * [Weaver.User](#weaveruser)
+    + [Class Methods](#class-methods-1)
+    + [Instance Methods](#instance-methods-1)
+  * [Weaver.Query](#weaverquery)
+    + [Class methods](#class-methods-2)
+    + [Instance methods](#instance-methods-3)
+      - [Exclusion Criteria](#exclusion-criteria)
+      - [Extra loading instructions](#extra-loading-instructions)
+      - [Nesting queries / FOAF](#nesting-queries---foaf)
+  * [Weaver Model](#weaver-model)
+    + [Creating](#creating)
+      - [Step 1: Define a model](#step-1--define-a-model)
+      - [Step 2: Instantiate a member](#step-2--instantiate-a-member)
+      - [Step 3: Nest models to describe complex structures](#step-3--nest-models-to-describe-complex-structures)
+- [Building locally](#building-locally)
+- [Tests](#tests)
 
 
 ## Getting started
@@ -180,7 +190,7 @@ Weaver.Node.load('hello-weaver')
 ```
 
 
-## Reference
+## Reference API
 
 ### Weaver
 #### Class Methods
