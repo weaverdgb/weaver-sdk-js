@@ -21,12 +21,23 @@
 # Weaver SDK for JavaScript
 A library that gives you access to the Weaver platform from your JavaScript app.
 
+- [Getting started](#getting-started)
+  * [The Weaver instance](#the-weaver-instance)
+  * [Weaver.Nodes](#weavernodes)
+- [Reference](#reference)
+
 ## Getting started
 
-### The Weaver instance
+### Weaver
+
+Installation:
+```
+npm i -S weaver-sdk
+```
 
 Create the instance
 ```coffeescript
+Weaver = require('weaver-sdk')
 weaver = new Weaver()
 ```
 
@@ -153,144 +164,177 @@ Weaver.Node.load('hello-weaver')
 
 ## Reference
 
-##### Initialize
-- weaver = new Weaver()
-- weaver.connect(socketUrl)
-- weaver.database(localDatabase)
-- weaver.authenticate(token)
-
-##### Interact
-- weaver.add(data, type, id)
-- weaver.addPromise(data, type, id): Same as weaver.add, but returns a promise which is fulfilled through the server.
-- weaver.collection(data, id)
-- weaver.get(id, {eagerness})
-
-### Object: Entity
-
-##### Read
-- entity.$id()
-- entity.$type()
-- entity.$values()
-- entity.$links()
-- entity.$linksArray()
-- entity.$isFetched({eagerness})
-- entity.$fetch({eagerness})
-
-##### Persist
-- entity.$push(key, value)
-- entity.$push(entity)
-- entity.$remove(key)
-- entity.$remove(entity)
-- entity.$destroy()
-
-##### Events
-- entity.$on('key', callback)
-
-
-## Examples
-
-##### Creating a new Weaver instance connected to a socket
-```javascript
-var weaver = new Weaver();
-weaver.connect('https://weaver-server.herokuapp.com');
+### Weaver
+#### Class Methods
+```coffeescript
+  Weaver.getInstance()
+  # return the weaver instance
+```
+```coffeescript
+  Weaver.useModel(model)
+  # set's the Weaver.Model to be used by default
+```
+```coffeescript
+  Weaver.currentModel()
+  # returns the current default model
+```
+```coffeescript
+  Weaver.shout(message)
+  # Shout a message to other connected clients
+```
+```coffeescript
+  Weaver.sniff(callback)
+  # Listen to shouted messages and perform the supplied callback
 ```
 
-##### Creating a new Weaver instance connected to a local database
-```javascript
-var weaver = new Weaver();
-weaver.database(database);
+```coffeescript
+  Weaver.subscribe(operationType, callback)
+  # Listen perform the supplied callback when events of the provided type are published to the server
+  subscription = Weaver.subscribe('node.created', (msg, node) ->
+    if node.id() is 'hello-world'
+      console.log 'hello-weaver'
+  )
+
+  new Weaver.Node('hello-world')
+
+  # -> 'hello-weaver'
+```
+```coffeescript
+  Weaver.unsubscribe(subscription)
+  # Unsubscribe from a specific subscription
+```
+```coffeescript
+  Weaver.clearAllSubscriptions()
+  # Unsubscribe from all subscriptions
+```
+#### Instance methods
+```coffeescript
+  Weaver.prototype.version()
+  # returns sdk version
+```
+```coffeescript
+  Weaver.prototype.serverVersion().then(console.log)
+  # logs version of connected server
+```
+```coffeescript
+  Weaver.prototype.connect(endpoint)
+  # sets endpoint of weaver-server to connect to
+```
+```coffeescript
+  Weaver.prototype.disconnect()
+  # breaks connection with weaver-server, if connected to one
+```
+```coffeescript
+  Weaver.prototype.useProject(project)
+  # sets current project to read from/write to
+```
+```coffeescript
+  Weaver.prototype.currentProject()
+  # returns the current project
+```
+```coffeescript
+  Weaver.prototype.signOut()
+  # signs out the current user
+```
+```coffeescript
+  Weaver.prototype.currentUser()
+  # returns the currently signed-in user
+```
+```coffeescript
+  Weaver.prototype.signInWithUsername(username, password)
+  # retrieves a user token, and a user object.
+```
+```coffeescript
+  Weaver.prototype.signInWithToken(authToken)
+  # signs in a user using a token retrieved from the server
+```
+```coffeescript
+  Weaver.prototype.wipe
+  # wipes:
+  #   - all projects on the server
+  #   - all user data on the server
 ```
 
-##### Authenticating using a token
-
-Authentication is optional (but enforced if the server is configured so)
-
-```javascript
-weaver.authenticate('token123')
+### Weaver.Node
+#### Class methods
+```coffeescript
+  new Weaver.Node(nodeId, graph)
+  # creates a new Weaver.Node, don't forget to call `save` to persist to db
 ```
-
-Returns a promise with a javascript object containing information about whether the client is authorized to perform the following operations:
-```javascript
-{
-  read: true,
-  write: false
-}
-
+```coffeescript
+  Weaver.Node.load(nodeId)
+  # returns a Promise which will resolve the specified node if it exists
 ```
-##### Creating an entity
-```javascript
-var john = weaver.add({name: 'John Doe', age: 27, male: true});
+```coffeescript
+  Weaver.Node.get(nodeId)
+  # creates a shallow Node with the specified id
+  # note: does not create a create.node operation in pendingWrites, so node.save() will not push a node creation operation to the server.
+  # not recommended unless you know what you're doing, use Weaver.Node.load instead
 ```
-
-##### Getting an entity
-```javascript
-weaver.get('id_01', {eagerness: 1}).then(function(entity){
-	...
-});
+```coffeescript
+  Weaver.Node.firstOrCreate(nodeId)
+  # gets the node matching the id if it exists, or constructs a new node with the specified id
 ```
-
-##### Fetching an entity
-```javascript
-john.$fetch({eagerness: 3});
+```coffeescript
+  Weaver.Node.batchSave(array)
+  # pass an array of nodes with pendingWrites to save them all at once with a single server transaction
 ```
-
-##### Updating an entity
-```javascript
-john.color = 'Red';
-john.$push('color');
+```coffeescript
+  Weaver.Node.batchDestroy(array)
+  # pass an array of nodes to destroy them all at once with a single server transaction
 ```
-
-###### or
-```javascript
-john.$push('color', 'Red');
+#### Instance methods
+```coffeescript
+  Weaver.Node.prototype.load()
+  # same as Weaver.Node.load(Weaver.Node.prototype.id())
 ```
-
-##### Linking to another entity
-```javascript
-john.friend = lisa;
-john.$push('friend');
+```coffeescript
+  Weaver.Node.prototype.id()
+  # returns the id of a node
 ```
-
-###### or
-```javascript
-john.$push('friend', lisa);
+```coffeescript
+  Weaver.Node.prototype.attributes()
+  # returns a map of loaded attributes on this node
 ```
-
-##### Linking to multiple entities
-```javascript
-john.friends = weaver.collection();
-john.$push('friends');
-john.friends.$push(lisa)
+```coffeescript
+  Weaver.Node.prototype.relations()
+  # returns a map of loaded relations on this node
 ```
-
-###### or
-```javascript
-john.friends.$push(lisa.id(), lisa);
+```coffeescript
+  Weaver.Node.prototype.set(key, value)
+  # sets an attribute on the node
 ```
-
-###### or
-```javascript
-john.friends[lisa.id()] = lisa;
-john.friends.$push(lisa.id());
+```coffeescript
+  Weaver.Node.prototype.unset(key)
+  # unsets an attribute on the node
 ```
-
-##### Removing entity key
-```javascript
-john.age = '28';
-john.$remove('age');
+```coffeescript
+  Weaver.Node.prototype.get(key)
+  # gets the value for a given attribute key on the node
 ```
-
-###### or
-```javascript
-john.friend = lisa;
-john.$remove('friend');
+```coffeescript
+  Weaver.Node.prototype.relation(key)
+  # returns a Weaver.Relation for the given relation key
+  # note, creates an empty Weaver.Relation object if no loaded relation are found.
 ```
-
-##### Destroying an entity
-```javascript
-john.$destroy();
+```coffeescript
+  Weaver.Node.prototype.clone(newId, relationsToTraverse...)
+  # clones a node.
+  # recursively clones relations of the node if relationsToTraverse is defined
 ```
-
+```coffeescript
+  Weaver.Node.prototype.equals(node)
+  # checks if the supplied node refers to the same node as the instance from a database perspective (id comparison)
+```
+```coffeescript
+  Weaver.Node.prototype.save()
+  # executes all pending db writes on the instance
+  # is recursively called on all loaded relations of this node
+```
+```coffeescript
+  Weaver.Node.prototype.destroy()
+  # destroys the instance, also on the db
+```
 ## Install - Development
 
 `$ npm install`
