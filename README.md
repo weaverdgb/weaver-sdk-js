@@ -21,10 +21,28 @@
 # Weaver SDK for JavaScript
 A library that gives you access to the Weaver platform from your JavaScript app.
 
-- [Getting started](#getting-started)
-  * [The Weaver instance](#the-weaver-instance)
-  * [Weaver.Nodes](#weavernodes)
-- [Reference](#reference)
+* [Getting started](#getting-started)
+  + [Weaver](#weaver)
+  + [Weaver.Nodes](#weavernodes)
+* [Reference](#reference)
+  + [Weaver](#weaver-1)
+    - [Class Methods](#class-methods)
+    - [Instance methods](#instance-methods)
+  + [Weaver.Node](#weavernode)
+    - [Class methods](#class-methods)
+    - [Instance methods](#instance-methods-1)
+* [Install - Development](#install---development)
+* [Tests](#tests)
+  + [NodeJS test](#nodejs-test)
+  + [Browser test](#browser-test)
+* [Todo](#todo)
+* [Future work](#future-work)
+- [Weaver Model](#weaver-model)
+* [Creating](#creating)
+    - [Step 1: Define a model](#step-1--define-a-model)
+    - [Step 2: Instantiate a member](#step-2--instantiate-a-member)
+  + [Step 3: Nest models to describe complex structures](#step-3--nest-models-to-describe-complex-structures)
+
 
 ## Getting started
 
@@ -84,7 +102,7 @@ You have now:
 
 You're ready to start creating and interacting with nodes.
 
-### Weaver.Nodes
+### Nodes
 
 ```coffeescript
 # creates a node (only client side for now)
@@ -334,6 +352,109 @@ Weaver.Node.load('hello-weaver')
 ```coffeescript
   Weaver.Node.prototype.destroy()
   # destroys the instance, also on the db
+```
+### Weaver.Project
+#### Class methods
+```coffeescript
+  Weaver.Project.list()
+  # Lists all projects on the server that the logged in user has access to.
+```
+#### Instance Methods
+```coffeescript
+  new Weaver.Project(@name, @projectId)
+  # creates a new Weaver.Project clientside
+```
+```coffeescript
+  Weaver.Project.prototype.create()
+  # Publishes a create-project operation on the server.
+  # Consider this as the persistent constructor
+```
+```coffeescript
+  Weaver.Project.prototype.destroy()
+  # Self-explanatory. This is a persisting operation.
+```
+```coffeescript
+  Weaver.Project.prototype.wipe()
+  # Wipes all data from this project, without deleting the project itself
+```
+```coffeescript
+  Weaver.Project.prototype.freeze()
+  # Freezes project in it's current state, preventing any further writing
+```
+```coffeescript
+  Weaver.Project.prototype.unfreeze()
+  # Unfreezes project, allowing writing as normal
+```
+```coffeescript
+  Weaver.Project.prototype.isFrozen()
+  # Return's the frozen state of this project
+```
+```coffeescript
+  Weaver.Project.prototype.rename(name)
+  # Renames this project on the server
+```
+```coffeescript
+  Weaver.Project.prototype.clone()
+  # Clone's this project in it's entirety
+```
+```coffeescript
+  Weaver.Project.prototype.getSnapshot(shouldBeJson, shouldBeZipped)
+  # Returns a snapshot of this project, defaults to zipped = false, shouldBeJson = true
+```
+```coffeescript
+  Weaver.Project.prototype.clone()
+  # Clone's this project in it's entirety
+```
+```coffeescript
+  Weaver.Project.prototype.addApp(appName, appData)
+  # Add some meta data to this project relating to a specific app
+```
+```coffeescript
+  Weaver.Project.prototype.removeApp(appName)
+  # Removes some meta data from this project relating to a specific app
+```
+```coffeescript
+  Weaver.Project.prototype.getApps()
+  # Returns a map which contains metadata for each app relating to this project, keyed by the app's name
+```
+### Weaver.User
+#### Class Methods
+```coffeescript
+  Weaver.User.get(authToken)
+  # create a shallow Weaver.User with aupplied userToken set
+```
+```coffeescript
+  Weaver.User.list()
+  # lists all users on the server
+```
+```coffeescript
+  Weaver.User.listProjectUsers()
+  # lists all users with access to the current project
+```
+#### Instance Methods
+```coffeescript
+  Weaver.User.prototype.id()
+  # Returns the userId for the User instance
+```
+```coffeescript
+  Weaver.User.prototype.save()
+  # Persists user data to server
+```
+```coffeescript
+  Weaver.User.prototype.changePassword(password)
+  # Changes a user's password
+```
+```coffeescript
+  Weaver.User.prototype.signUp()
+  # Saves the user and signs in as currentUser
+```
+```coffeescript
+  Weaver.User.prototype.destroy()
+  # Destroys the user
+```
+```coffeescript
+  Weaver.User.prototype.getProjectsForUser()
+  # Returns the projects a user has access to
 ```
 ## Install - Development
 
