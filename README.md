@@ -353,6 +353,32 @@ Weaver.Node.load('hello-weaver')
   Weaver.Node.prototype.destroy()
   # destroys the instance, also on the db
 ```
+### Weaver.Relation
+#### Instance methods
+```coffeescript
+  Weaver.Relation.prototype.load()
+  # loads all nodes on this relation, so they will no longer be shallow
+```
+```coffeescript
+  Weaver.Node.prototype.to(node)
+  # returns the relationNode linking to the passed node, or throws an error if no relationNode is present linking to the passed node
+```
+```coffeescript
+  Weaver.Node.prototype.all()
+  # returns all nodes linked to with the current relation key
+```
+```coffeescript
+  Weaver.Node.prototype.first()
+  # returns the first node linked to with the current relation key
+```
+```coffeescript
+  Weaver.Node.prototype.add()
+  # links to the passed node from the instance relation
+```
+```coffeescript
+  Weaver.Node.prototype.remove(node)
+  # unlinks the passed node from the relation instance 
+```
 ### Weaver.Project
 #### Class methods
 ```coffeescript
