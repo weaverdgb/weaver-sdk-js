@@ -21,8 +21,6 @@ class WeaverModelClass extends Weaver.Node
 
   constructor: (nodeId = cuid(),graph, model)->
     super(nodeId, graph)
-    @nodeId = nodeId
-    @graph = graph
     @model = model
 
     # Add type definition to model class
