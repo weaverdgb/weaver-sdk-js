@@ -1,5 +1,9 @@
 # Changelist
 
+## 7.0.1
+
+- updates README
+
 ## 7.0.0
 - Moves to coffeescript 2
 

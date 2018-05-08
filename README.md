@@ -18,12 +18,140 @@
 </div>
 
 
-## Weaver SDK for JavaScript
+# Weaver SDK for JavaScript
 A library that gives you access to the Weaver platform from your JavaScript app.
 
-## API
+## Getting started
 
-### Object: Weaver
+### The Weaver instance
+
+Create the instance
+```coffeescript
+weaver = new Weaver()
+```
+
+Be sure to only create a single `Weaver` instance. If you need to get a reference to a previously instantiated `Weaver` instance later, or within devtools, just do:
+```coffeescript
+weaver = Weaver.getInstance()
+```
+
+Connect to a running weaver-server
+```coffeescript
+weaver.connect('http://my-weaver-server-url.com')
+.then(->
+  ...
+```
+
+Sign in with an existing user account for your weaver-server (or `admin : admin` if you've just cloned a weaver-server and there are no accounts yet)
+```coffeescript
+weaver.signInWithUsername('admin','admin')
+.then(->
+  ...
+```
+
+Select or create a new Project
+
+```coffeescript
+# select an existing project
+Weaver.Project.list().then((projects)->
+  weaver.useProject(projects[0])
+)
+
+# .. or create
+p = new Weaver.Project(projectName, projectId)
+p.create() # Required. Spins up a new database on weaver-server, which will forevermore be linked with this Weaver.Project
+.then(->
+  weaver.useProject(p)
+  ...
+```
+
+You have now:
+  - [x] Instantiated weaver
+  - [x] Connected to a running server
+  - [x] Signed-in with a valid user account
+  - [x] Selected a project to work on
+
+You're ready to start creating and interacting with nodes.
+
+### Weaver.Nodes
+
+```coffeescript
+# creates a node (only client side for now)
+n = new Weaver.Node('hello-weaver')
+n.id()
+# -> 'hello-weaver'
+```
+```coffeescript
+# set a name attribute
+n.set('name', 'The First Node')
+...
+n.get('name')
+# -> 'The First Node'
+```
+```coffeescript
+# create a relation
+o = new Weaver.Node('how-are-you-weaver')
+o.set('name', 'The Second Node')
+n.relation('hasDescendant').add(o)
+```
+```coffeescript
+# getting relations
+n.relation('hasDescendant')
+# this returns a Weaver.RelationNode, which has a bunch of properties, among them a 'nodes' array, which contains all the nodes which are linked from the node 'n' via the relation 'hasDescendant'
+
+n.relation('hasDescendant').first()
+# -> returns the first relation for this relation key, in this case, the Weaver.Node object referenced by o
+
+# gets the name attribute of the first relation from 'n' for the relation key 'hasDescendant'
+n.relation('hasDescendant').first().get('name')
+# -> 'The Second Node'
+```
+```coffeescript
+# saving to db
+n.save()
+.then(->
+  ...
+# this collects all the pending writes on the node n, and pushes them to the database.
+```
+In our example, calling `n.save()` will execute several write operations on the database:
+- a create node operation for node `n`
+- a create attribute operation for the `name` attribute we set for `n`
+- a create relation operation for node `n` to node `o`, using the relation key `hasDescendant`
+
+In addition, `Weaver.Node.prototype.save` is downwards recursive, so it will collect and execute all pending writes on all relations of `n`, and all relations of those nodes, etc.
+So, calling `n.save()` in our example above, will also collect and execute the pending write operations on node `o`:
+- a create node operation for node `o`
+- a create attribute operation for the `name` attribute we set for `o`
+
+, as `o` is a relation of `n`. Pretty sweet, right?
+
+```coffeescript
+# loading saved nodes from the database
+Weaver.Node.load('hello-weaver')
+.then((node)->
+  node.get('name')
+)
+# -> 'The First Node'
+```
+```coffeescript
+  # nodes are loaded with a depth/eagerness of 1
+  # relations will therefore need to be loaded explicitly
+  Weaver.Node.load('hello-weaver')
+  .then((node)->
+    node.relation('hasDescendant').first().get('name')
+    # -> undefined
+
+    node.relation('hasDescendant').first().load()
+
+  ).then((o)->
+    o.get('name')
+    # -> 'The Second Node'
+  )
+
+```
+
+
+## Reference
 
 ##### Initialize
 - weaver = new Weaver()
