@@ -377,7 +377,7 @@ Weaver.Node.load('hello-weaver')
 ```
 ```coffeescript
   Weaver.Node.prototype.remove(node)
-  # unlinks the passed node from the relation instance 
+  # unlinks the passed node from the relation instance
 ```
 ### Weaver.Project
 #### Class methods
@@ -482,55 +482,103 @@ Weaver.Node.load('hello-weaver')
   Weaver.User.prototype.getProjectsForUser()
   # Returns the projects a user has access to
 ```
-## Install - Development
+### Weaver.Query
+#### Class methods
+```coffeescript
+  Weaver.Query.profile(callback)
+  # Fires the callback whenever a query is resolved.
+  # The callback is passed one argument, which contains information about the query which was just resolved
+```
+```coffeescript
+  Weaver.Query.clearProfilers()
+  # Destroys any notifiers which were created
+```
+#### Instance methods
+```coffeescript
+  Weaver.Query.prototype.find(Constructor)
+  # Executes the query and returns results constructed with the supplied Constructor, if one is given
+```
+```coffeescript
+  Weaver.Query.prototype.count()
+  # Executes the query and returns a count of the results
+```
+```coffeescript
+  Weaver.Query.prototype.first()
+  # Executes the query and returns the first result
+```
+```coffeescript
+  Weaver.Query.prototype.limit(limit)
+  # Limits the amount of results (default/maximum permitted is 1,000)
+```
+```coffeescript
+  Weaver.Query.prototype.skip(skip)
+  # Skips the passed amount of results. Useful for Result pagination
+```
+```coffeescript
+  Weaver.Query.prototype.order(keys, ascending)
+  # Orders results based on their value for a given attribute key
+```
+##### Exclusion Criteria
+```coffeescript
+  Weaver.Query.prototype.restrict(nodes)
+  # Adds a restriction on the query based on the ids of the array of passed nodes. (an array of ids is acceptable here too)
+```
+```coffeescript
+  Weaver.Query.prototype.equalTo(key, value)
+  # Restricts based on attributes. Results must match the passed key : value args
+```
+```coffeescript
+  Weaver.Query.prototype.notEqualTo(key, value)
+  # Restricts based on attributes. Results must not match the passed key : value args
+```
+```coffeescript
+  Weaver.Query.prototype.startsWith(key, value)
+  Weaver.Query.prototype.endsWith(key, value)
+  # Restricts based on attributes. Results must have a value which matches the passed key, and which value matches the rule described.
+```
+```coffeescript
+  Weaver.Query.prototype.lessThan(key, value)
+  Weaver.Query.prototype.greaterThan(key, value)
+  Weaver.Query.prototype.lessThanOrEqualTo(key, value)
+  Weaver.Query.prototype.greaterThanOrEqualTo(key, value)
+  # These all restrict based on attributes. The attribute value must respect the mathematical rule described
+```
+```coffeescript
+  Weaver.Query.prototype.hasRelationIn(key, node...)
+  Weaver.Query.prototype.hasNoRelationIn(key, node...)
+  # These restrict based on incoming relations. key is the relation key, and node is the node which the relation must originate from. node is an optional argument here, if node is not passed, then this criteria is considered passed if ANY relation exists for the passed key.
+```
+```coffeescript
+  Weaver.Query.prototype.hasRelationOut(key, node...)
+  Weaver.Query.prototype.hasNoRelationOut(key, node...)
+  # Same as above, but for outgoing relations instead
+```
+```coffeescript
+  Weaver.Query.prototype.
+  #
+```
+##### Extra loading instructions
+```coffeescript
+  Weaver.Query.prototype.selectOut(relationKeys...)
+  # As above, but will recursively load
+```
+```coffeescript
+  Weaver.Query.prototype.selectRecursiveOut(relationKeys...)
+  # Will fully load outgoing relations with a relation key matching any one of the passed arguments
+```
+##### Nesting queries / FOAF
+Any query which contains a node as an argument may instead be passed a nested query.
+```coffeescript
+  new Weaver.Query().hasRelationOut('hasChild',
+    new Weaver.Query().hasRelationOut('attendsSchool', '*')
+  )
+  # will return all nodes which have an outgoing hasChild relation to a node which has an outgoing attendsSchool relation.
+```
+### Weaver Model
 
-`$ npm install`
+#### Creating
 
-If you want to add weaver-sdk-js to your webApp, use [grunt](http://gruntjs.com/) to create the js. Two main commands.
-
-For production environments:
-
-`$ grunt dist`
-
-For development environments:
-
-`$ grunt dev`
-
-## Tests
-
-### NodeJS test
-
-Based on mocha
-
-`$ npm run node-test`
-
-### Browser test
-
-Based on electron mocha
-
-`$ npm run browser-test`
-
-
-## Todo
-- further implement local listening and removing
-- error handling
-- repository weaver under $
-- add more tests
-
-## Future work
-- fetch incoming links
-- add created and updated metadata
-- add date field
-- enable paging
-- authentication
-- querying data
-
-
-# Weaver Model
-
-## Creating
-
-#### Step 1: Define a model
+##### Step 1: Define a model
 
 
  This will create a new Model with the name 'Man'
@@ -567,7 +615,7 @@ Based on electron mocha
 	trump = new Man()
  ```
 
-#### Step 2: Instantiate a member
+##### Step 2: Instantiate a member
 
 Model members extend `Weaver.Node`. They can be saved to the database, to be loaded later, and if their constructor is passed an argument,
 The root node of that member will be initialized with that argument as an id.
@@ -590,7 +638,7 @@ the model will figure out what to do based on the structure you provided earlier
 		.save()
 ```
 
-### Step 3: Nest models to describe complex structures
+##### Step 3: Nest models to describe complex structures
 
 Include a model member in the definition for another model.
 ```javascript
@@ -636,3 +684,17 @@ Include a model member in the definition for another model.
 
     trump.destroy()           //would that it were so easy..
  ```
+
+## Building locally
+
+```
+$ git clone https://github.com/weaverplatform/weaver-sdk-js.git
+$ npm i
+$ npm run prepublish
+```
+
+## Tests
+
+```
+$ npm test
+```
