@@ -10,7 +10,7 @@ EventEmitter     = require('events').EventEmitter
 class WeaverFile extends EventEmitter
 
   constructor: (@filePath, @fileId) ->
-    super
+    super()
     @_local = false
     @_stored = false
     if File? and @filePath instanceof File

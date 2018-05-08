@@ -3,8 +3,11 @@ Promise     = require('bluebird')
 
 class WeaverDefinedNode extends Weaver.Node
 
-  constructor: (@nodeId, @graph) ->
-    super(@nodeId, @graph)
+  constructor: (nodeId, graph) ->
+    super(nodeId, graph)
+    @nodeId = nodeId
+    @graph = graph
+
   getDefinitions: ->
 
     addSuperDefs = (def, defs = []) =>

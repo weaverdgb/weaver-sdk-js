@@ -1,5 +1,8 @@
 # Changelist
 
+## 6.5.2
+- Moves to coffeescript 2
+
 ## 6.5.1
 - Fixes a bug in the required versions
 

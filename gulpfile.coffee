@@ -9,11 +9,11 @@ buffer      = require('vinyl-buffer')
 plumber     = require('gulp-plumber')
 notify      = require("gulp-notify")
 
-errorString = "<%= error.name %>: " +
-					    "<%= error.message %> " +
-					    "in file <%= error.filename.substr(error.filename.lastIndexOf('/') + 1) %> " +
-					    "on line <%= error.location.first_line + 1 %>:" +
-					    "<%= error.location.first_column %>"
+errorString = """<%= error.name %>: 
+					    <%= error.message %>
+					    in file <%= error.filename.substr(error.filename.lastIndexOf('/') + 1) %>
+					    on line <%= error.location.first_line + 1 %>:
+					    <%= error.location.first_column %>"""
 
 gulp.task('clean', ->
   gulp.src(['./dist', './tmp'], read: false, allowEmpty: true)

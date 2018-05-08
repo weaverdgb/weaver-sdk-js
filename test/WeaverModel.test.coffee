@@ -113,7 +113,9 @@ describe 'WeaverModel test', ->
       p = new model.Passport()
       b = new model.Person()
       a = new model.td.Autograph()
+
       p.set('fileName', 'passport.pdf')
+
       p.relation('ownedBy').add(b)
       p.relation('signedWith').add(a)
       a.relation('carbonCopy').add(p)
