@@ -6,7 +6,7 @@ class WeaverProject
 
   @READY_RETRY_TIMEOUT: 200
 
-  constructor: (@name, @projectId, @acl, @_stored = false, @apps = {}) ->
+  constructor: (@name, @projectId, @acl, @_stored = false, @projectMetadata = {}) ->
     @name = @name or 'unnamed'
     @projectId = @projectId or cuid()
 
@@ -53,16 +53,16 @@ class WeaverProject
   isFrozen: ->
     Weaver.getCoreManager().isFrozenProject(@id())
 
-  addApp: (appName, appMetadata) ->
-    @apps[appName] = appMetadata
-    Weaver.getCoreManager().addApp(@id(), appName, appMetadata)
+  addMetadata: (bundleKey, key, data) ->
+    @projectMetadata[key] = data
+    Weaver.getCoreManager().addProjectMetadata(@id(), bundleKey, key, data)
 
-  removeApp: (appName) ->
-    delete @apps[appName]
-    Weaver.getCoreManager().removeApp(@id(), appName)
+  removeMetadata: (bundleKey, key) ->
+    delete @projectMetadata[key]
+    Weaver.getCoreManager().removeProjectMetadata(@id(), bundleKey, key)
 
   getApps: ->
-    (value for key,value of @apps)
+    (value for key,value of @projectMetadata)
 
   getAllNodes: (attributes)->
     Weaver.getCoreManager().getAllNodes(attributes, @id())

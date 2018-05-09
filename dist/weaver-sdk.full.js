@@ -101100,7 +101100,7 @@ module.exports = yeast;
 },{}],406:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "6.5.1",
+  "version": "7.1.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -101135,7 +101135,7 @@ module.exports={
     "chai-as-promised": "^6.0.0",
     "coffee-coverage": "^2.0.1",
     "coffeeify": "^3.0.1",
-    "coffeescript": "^1.12.5",
+    "coffeescript": "^2.2.4",
     "david": "^11.0.0",
     "electron": "^1.6.1",
     "electron-mocha": "^3.3.0",
@@ -101542,18 +101542,20 @@ module.exports={
       }, id);
     };
 
-    CoreManager.prototype.addApp = function(id, appName, appMetadata) {
-      return this.GET("project.app.add", {
+    CoreManager.prototype.addProjetMetadata = function(id, bundleKey, key, data) {
+      return this.GET("project.metadata.add", {
         id: id,
-        appName: appName,
-        appMetadata: appMetadata
+        bundleKey: bundleKey,
+        key: key,
+        data: data
       }, id);
     };
 
-    CoreManager.prototype.removeApp = function(id, appName) {
-      return this.GET("project.app.remove", {
+    CoreManager.prototype.removeProjectMetadata = function(id, bundleKey, key) {
+      return this.GET("project.metadata.remove", {
         id: id,
-        appName: appName
+        bundleKey: bundleKey,
+        key: key
       }, id);
     };
 
@@ -102203,10 +102205,6 @@ module.exports={
       return this.coreManager;
     };
 
-    Weaver.prototype.getUsersDB = function() {
-      return this.coreManager.getUsersDB();
-    };
-
     Weaver.prototype.useProject = function(project) {
       return this.coreManager.currentProject = project;
     };
@@ -102526,9 +102524,9 @@ module.exports={
     extend(WeaverDefinedNode, superClass);
 
     function WeaverDefinedNode(nodeId, graph) {
+      WeaverDefinedNode.__super__.constructor.call(this, nodeId, graph);
       this.nodeId = nodeId;
       this.graph = graph;
-      WeaverDefinedNode.__super__.constructor.call(this, this.nodeId, this.graph);
     }
 
     WeaverDefinedNode.prototype.getDefinitions = function() {
@@ -102772,7 +102770,7 @@ module.exports={
     function WeaverFile(filePath1, fileId1) {
       this.filePath = filePath1;
       this.fileId = fileId1;
-      WeaverFile.__super__.constructor.apply(this, arguments);
+      WeaverFile.__super__.constructor.call(this);
       this._local = false;
       this._stored = false;
       if ((typeof File !== "undefined" && File !== null) && this.filePath instanceof File) {
@@ -103131,8 +103129,6 @@ module.exports={
 },{"./Weaver":412}],418:[function(require,module,exports){
 (function() {
   var Promise, Weaver, WeaverModel, WeaverModelValidator, _, cuid,
-    extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty,
     indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
     slice = [].slice;
 
@@ -103189,9 +103185,8 @@ module.exports={
 
     WeaverModel.prototype._registerClass = function(carrier, model, className, classDefinition) {
       var js, load;
-      js = "(function() {\n  function " + className + "(nodeId, graph) {\n    this.model                = " + className + ".model;\n    this.definition           = " + className + ".definition;\n    this.className            = \"" + className + "\";\n    this.classDefinition      = " + className + ".classDefinition;\n    this.totalClassDefinition = " + className + ".totalClassDefinition;\n    " + className + ".__super__.constructor.call(this, nodeId, graph);\n  };\n\n  " + className + ".classId = function() {\n    return " + className + ".definition.name + \":\" + " + className + ".className;\n  };\n\n  return " + className + ";\n})();";
+      js = "(function() {\n  var " + className + " = class " + className + " extends Weaver.ModelClass {\n    constructor(nodeId, graph) {\n      super(nodeId, graph, " + className + ".model)\n      this.model                = " + className + ".model;\n      this.definition           = " + className + ".definition;\n      this.className            = \"" + className + "\";\n      this.classDefinition      = " + className + ".classDefinition;\n      this.totalClassDefinition = " + className + ".totalClassDefinition;\n    }\n    classId() {\n      return " + className + ".definition.name + \":\" + " + className + ".className;\n    };\n  };\n\n  return " + className + ";\n})();";
       carrier[className] = eval(js);
-      carrier[className] = extend(carrier[className], Weaver.ModelClass);
       carrier[className].model = model;
       carrier[className].definition = model.definition;
       carrier[className].className = className;
@@ -103533,12 +103528,16 @@ module.exports={
       return Weaver.Node.getFromGraph(this.classId(), this.model.getGraph());
     };
 
-    function WeaverModelClass(nodeId, graph) {
+    function WeaverModelClass(nodeId, graph, model) {
       var classId, classNode;
+      if (nodeId == null) {
+        nodeId = cuid();
+      }
       WeaverModelClass.__super__.constructor.call(this, nodeId, graph);
+      this.model = model;
       classId = this.constructor.classId();
       classNode = Weaver.Node.getFromGraph(classId, this.model.getGraph());
-      this.nodeRelation(this.model.getMemberKey()).addInGraph(classNode, graph);
+      this.nodeRelation(this.model.getMemberKey()).addInGraph(classNode, this.graph);
     }
 
     WeaverModelClass.prototype.getInherit = function() {
@@ -104099,8 +104098,8 @@ module.exports={
       } else {
         return;
       }
-      found = this.parent.getToRanges(this.modelKey, node);
-      allowed = this.parent.getRanges(this.modelKey);
+      found = this.owner.getToRanges(this.modelKey, node);
+      allowed = this.owner.getRanges(this.modelKey);
       if ((found != null) && found.length > 0) {
         return true;
       }
@@ -104965,12 +104964,12 @@ module.exports={
   WeaverProject = (function() {
     WeaverProject.READY_RETRY_TIMEOUT = 200;
 
-    function WeaverProject(name1, projectId, acl1, _stored, apps) {
+    function WeaverProject(name1, projectId, acl1, _stored, projectMetadata) {
       this.name = name1;
       this.projectId = projectId;
       this.acl = acl1;
       this._stored = _stored != null ? _stored : false;
-      this.apps = apps != null ? apps : {};
+      this.projectMetadata = projectMetadata != null ? projectMetadata : {};
       this.name = this.name || 'unnamed';
       this.projectId = this.projectId || cuid();
     }
@@ -105031,19 +105030,19 @@ module.exports={
       return Weaver.getCoreManager().isFrozenProject(this.id());
     };
 
-    WeaverProject.prototype.addApp = function(appName, appMetadata) {
-      this.apps[appName] = appMetadata;
-      return Weaver.getCoreManager().addApp(this.id(), appName, appMetadata);
+    WeaverProject.prototype.addMetadata = function(bundleKey, key, data) {
+      this.projectMetadata[key] = data;
+      return Weaver.getCoreManager().addProjectMetadata(this.id(), bundleKey, key, data);
     };
 
-    WeaverProject.prototype.removeApp = function(appName) {
-      delete this.apps[appName];
-      return Weaver.getCoreManager().removeApp(this.id(), appName);
+    WeaverProject.prototype.removeMetadata = function(bundleKey, key) {
+      delete this.projectMetadata[key];
+      return Weaver.getCoreManager().removeProjectMetadata(this.id(), bundleKey, key);
     };
 
     WeaverProject.prototype.getApps = function() {
       var key, ref, results, value;
-      ref = this.apps;
+      ref = this.projectMetadata;
       results = [];
       for (key in ref) {
         value = ref[key];
@@ -105767,8 +105766,8 @@ module.exports={
   Weaver = require('./Weaver');
 
   WeaverRelation = (function() {
-    function WeaverRelation(parent, key) {
-      this.parent = parent;
+    function WeaverRelation(owner, key) {
+      this.owner = owner;
       this.key = key;
       this.pendingWrites = [];
       this.nodes = [];
@@ -105825,7 +105824,7 @@ module.exports={
     };
 
     WeaverRelation.prototype.load = function() {
-      return new Weaver.Query().hasRelationIn(this.key, this.parent).find().then((function(_this) {
+      return new Weaver.Query().hasRelationIn(this.key, this.owner).find().then((function(_this) {
         return function(nodes) {
           _this._addNodes.apply(_this, nodes);
           return _this.nodes;
@@ -105861,7 +105860,7 @@ module.exports={
     WeaverRelation.prototype._createRelationNode = function(relId, targetNode, graph) {
       var result;
       result = Weaver.RelationNode.get(relId, Weaver.RelationNode, graph);
-      result.fromNode = this.parent;
+      result.fromNode = this.owner;
       result.toNode = targetNode;
       return result;
     };
@@ -105875,18 +105874,18 @@ module.exports={
         relId = cuid();
       }
       if (graph == null) {
-        graph = this.parent.getGraph();
+        graph = this.owner.getGraph();
       }
       this._addNodes(node);
       relationNode = this._createRelationNode(relId, node, graph);
       this.relationNodes.push(relationNode);
       Weaver.publish("node.relation.add", {
-        node: this.parent,
+        node: this.owner,
         key: this.key,
         target: node
       });
       if (addToPendingWrites) {
-        this.pendingWrites.push(Operation.Node(this.parent).createRelation(this.key, node, relId, void 0, false, graph));
+        this.pendingWrites.push(Operation.Node(this.owner).createRelation(this.key, node, relId, void 0, false, graph));
       }
       return relationNode;
     };
@@ -105899,12 +105898,12 @@ module.exports={
       this._removeRelationNodeForTarget(oldNode);
       this.relationNodes.push(this._createRelationNode(newRelId, newNode));
       Weaver.publish("node.relation.update", {
-        node: this.parent,
+        node: this.owner,
         key: this.key,
         oldTarget: oldNode,
         target: newNode
       });
-      return this.pendingWrites.push(Operation.Node(this.parent).createRelation(this.key, newNode, newRelId, oldRel, Weaver.getInstance()._ignoresOutOfDate));
+      return this.pendingWrites.push(Operation.Node(this.owner).createRelation(this.key, newNode, newRelId, oldRel, Weaver.getInstance()._ignoresOutOfDate));
     };
 
     WeaverRelation.prototype.remove = function(node) {
@@ -105913,7 +105912,7 @@ module.exports={
       this._removeRelationNodeForTarget(node);
       this._removeNode(node);
       Weaver.publish("node.relation.remove", {
-        node: this.parent,
+        node: this.owner,
         key: this.key,
         target: node
       });
