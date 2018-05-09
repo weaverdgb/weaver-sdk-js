@@ -65,8 +65,6 @@ class Weaver
   getCoreManager: ->
     @coreManager
 
-  getUsersDB: ->
-    @coreManager.getUsersDB()
 
   useProject: (project) ->
     @coreManager.currentProject = project

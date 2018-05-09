@@ -1,5 +1,10 @@
 # Changelist
 
+## 7.1.0
+
+- updates README
+- removes broken weaver.getUsersDB method
+
 ## 7.0.0
 - Moves to coffeescript 2
 
