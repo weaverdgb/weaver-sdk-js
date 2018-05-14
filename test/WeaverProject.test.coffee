@@ -73,26 +73,28 @@ describe 'WeaverProject Test', ->
       weaver.useProject(p)
     )
 
-  it 'should add a project app, with some metadata', ->
+  it 'should add metadata to a project', ->
     p = weaver.currentProject()
     appMetadata =
       appName: 'FooBarApp'
       appVersion: '0.2.1-fooBar-b'
       desireSDK: '6.0.1-weaver'
-    p.addApp(appMetadata.appName,appMetadata).then(->
-      assert.equal(appMetadata, p.getApps()[0])
+    bundleName = 'apps'
+    p.addMetadata(bundleName, appMetadata.appName, appMetadata).then(->
+      assert.equal(appMetadata, p.getMetadata()[0])
     )
 
-  it 'should remove a project app', ->
+  it 'should remove metadata from a project', ->
     p = weaver.currentProject()
     appMetadata =
       appName: 'FooBarApp'
       appVersion: '0.2.1-fooBar-b'
       desireSDK: '6.0.1-weaver'
-    p.addApp(appMetadata.appName,appMetadata).then(->
-      p.removeApp(appMetadata.appName)
+    bundleName = 'apps'
+    p.addMetadata(bundleName, appMetadata.appName, appMetadata).then(->
+      p.removeMetadata(bundleName, appMetadata.appName)
     ).then(->
-      assert.equal(p.getApps().length, 0)
+      assert.equal(p.getMetadata().length, 0)
     )
 
   it 'should freeze a project making writing impossible', ->

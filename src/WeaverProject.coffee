@@ -61,8 +61,8 @@ class WeaverProject
     delete @projectMetadata[key]
     Weaver.getCoreManager().removeProjectMetadata(@id(), bundleKey, key)
 
-  getApps: ->
-    (value for key,value of @projectMetadata)
+  getMetadata: ->
+    (value for key,value of @projectMetadata) # change this to have a call to the server ?
 
   getAllNodes: (attributes)->
     Weaver.getCoreManager().getAllNodes(attributes, @id())

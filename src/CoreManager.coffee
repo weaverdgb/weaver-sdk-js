@@ -216,7 +216,7 @@ class CoreManager
   unfreezeProject: (id) ->
     @GET("project.unfreeze", {id}, id)
 
-  addProjetMetadata: (id, bundleKey, key, data) ->
+  addProjectMetadata: (id, bundleKey, key, data) ->
     @GET("project.metadata.add", {id, bundleKey, key, data}, id)
 
   removeProjectMetadata: (id, bundleKey, key) ->
