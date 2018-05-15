@@ -101542,8 +101542,8 @@ module.exports={
       }, id);
     };
 
-    CoreManager.prototype.addProjetMetadata = function(id, bundleKey, key, data) {
-      return this.GET("project.metadata.add", {
+    CoreManager.prototype.addProjectMetadata = function(id, bundleKey, key, data) {
+      return this.POST("project.metadata.add", {
         id: id,
         bundleKey: bundleKey,
         key: key,
@@ -101552,7 +101552,15 @@ module.exports={
     };
 
     CoreManager.prototype.removeProjectMetadata = function(id, bundleKey, key) {
-      return this.GET("project.metadata.remove", {
+      return this.POST("project.metadata.remove", {
+        id: id,
+        bundleKey: bundleKey,
+        key: key
+      }, id);
+    };
+
+    CoreManager.prototype.getProjectMetadata = function(id, bundleKey, key) {
+      return this.GET("project.metadata.get", {
         id: id,
         bundleKey: bundleKey,
         key: key
@@ -104964,12 +104972,11 @@ module.exports={
   WeaverProject = (function() {
     WeaverProject.READY_RETRY_TIMEOUT = 200;
 
-    function WeaverProject(name1, projectId, acl1, _stored, projectMetadata) {
+    function WeaverProject(name1, projectId, acl1, _stored) {
       this.name = name1;
       this.projectId = projectId;
       this.acl = acl1;
       this._stored = _stored != null ? _stored : false;
-      this.projectMetadata = projectMetadata != null ? projectMetadata : {};
       this.name = this.name || 'unnamed';
       this.projectId = this.projectId || cuid();
     }
@@ -105031,24 +105038,15 @@ module.exports={
     };
 
     WeaverProject.prototype.addMetadata = function(bundleKey, key, data) {
-      this.projectMetadata[key] = data;
       return Weaver.getCoreManager().addProjectMetadata(this.id(), bundleKey, key, data);
     };
 
     WeaverProject.prototype.removeMetadata = function(bundleKey, key) {
-      delete this.projectMetadata[key];
       return Weaver.getCoreManager().removeProjectMetadata(this.id(), bundleKey, key);
     };
 
-    WeaverProject.prototype.getApps = function() {
-      var key, ref, results, value;
-      ref = this.projectMetadata;
-      results = [];
-      for (key in ref) {
-        value = ref[key];
-        results.push(value);
-      }
-      return results;
+    WeaverProject.prototype.getMetadata = function(bundleKey, key) {
+      return Weaver.getCoreManager().getProjectMetadata(this.id(), bundleKey, key);
     };
 
     WeaverProject.prototype.getAllNodes = function(attributes) {

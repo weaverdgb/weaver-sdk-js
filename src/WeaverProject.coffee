@@ -6,7 +6,7 @@ class WeaverProject
 
   @READY_RETRY_TIMEOUT: 200
 
-  constructor: (@name, @projectId, @acl, @_stored = false, @projectMetadata = {}) ->
+  constructor: (@name, @projectId, @acl, @_stored = false) ->
     @name = @name or 'unnamed'
     @projectId = @projectId or cuid()
 
@@ -54,15 +54,13 @@ class WeaverProject
     Weaver.getCoreManager().isFrozenProject(@id())
 
   addMetadata: (bundleKey, key, data) ->
-    @projectMetadata[key] = data
     Weaver.getCoreManager().addProjectMetadata(@id(), bundleKey, key, data)
 
   removeMetadata: (bundleKey, key) ->
-    delete @projectMetadata[key]
     Weaver.getCoreManager().removeProjectMetadata(@id(), bundleKey, key)
 
-  getMetadata: ->
-    (value for key,value of @projectMetadata) # change this to have a call to the server ?
+  getMetadata: (bundleKey, key) ->
+    Weaver.getCoreManager().getProjectMetadata(@id(),bundleKey, key)
 
   getAllNodes: (attributes)->
     Weaver.getCoreManager().getAllNodes(attributes, @id())

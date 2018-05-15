@@ -81,7 +81,9 @@ describe 'WeaverProject Test', ->
       desireSDK: '6.0.1-weaver'
     bundleName = 'apps'
     p.addMetadata(bundleName, appMetadata.appName, appMetadata).then(->
-      assert.equal(appMetadata, p.getMetadata()[0])
+      p.getMetadata(bundleName, appMetadata.appName)
+    ).then((metadataProject)->
+      assert(appMetadata, metadataProject)
     )
 
   it 'should remove metadata from a project', ->
@@ -90,13 +92,13 @@ describe 'WeaverProject Test', ->
       appName: 'FooBarApp'
       appVersion: '0.2.1-fooBar-b'
       desireSDK: '6.0.1-weaver'
-    bundleName = 'apps'
+    bundleName = 'fooApps'
     p.addMetadata(bundleName, appMetadata.appName, appMetadata).then(->
       p.removeMetadata(bundleName, appMetadata.appName)
     ).then(->
-      assert.equal(p.getMetadata().length, 0)
-    )
-
+      p.getMetadata(bundleName, appMetadata.appName)
+    ).should.be.rejectedWith(/No metadata on project unnamed for bundleKey fooApps or key FooBarApp/)
+     
   it 'should freeze a project making writing impossible', ->
     weaver.currentProject().freeze().then(->
       (new Weaver.Node()).save().should.be.rejected
