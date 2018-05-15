@@ -98,7 +98,33 @@ describe 'WeaverProject Test', ->
     ).then(->
       p.getMetadata(bundleName, appMetadata.appName)
     ).should.be.rejectedWith(/No metadata on project unnamed for bundleKey fooApps or key FooBarApp/)
-     
+  
+  it 'should reject where trying to getMetadata for a non existing metadata related with a bundle', ->
+    p = weaver.currentProject()
+    p.getMetadata('fooBundle','barKey')
+      .should.be.rejectedWith(/No metadata on project unnamed for bundleKey fooBundle or key barKey/)
+
+  it 'should retrieve all keys for a certain bundle', ->
+    p = weaver.currentProject()
+    meta0 = 
+      name: 'foo'
+      version: 0
+    key0 = 'model0'
+    meta1 =
+      nameApp: 'bar'
+      versionApp: '1.0.2'
+    key1 = 'model1'
+    bundleKey = 'models'
+    objectToTest = {
+      meta0
+      meta1
+    } 
+    Promise.join(p.addMetadata(bundleKey,key0,meta0),p.addMetadata(bundleKey,key1,meta1),->
+      p.getMetadata(bundleKey, null)
+    ).then((metadataFromBundle)->
+      assert(metadataFromBundle, objectToTest) 
+    )
+
   it 'should freeze a project making writing impossible', ->
     weaver.currentProject().freeze().then(->
       (new Weaver.Node()).save().should.be.rejected
