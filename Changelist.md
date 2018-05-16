@@ -1,15 +1,17 @@
 # Changelist
 
-## 7.1.0
+## develop
+- Update minio in docker composition to the lates release version.
 
-- updates README
-- removes broken weaver.getUsersDB method
+## 7.1.0
+- Updates README.
+- Removes broken weaver.getUsersDB method.
 
 ## 7.0.0
-- Moves to coffeescript 2
+- Moves to coffeescript 2.
 
 ## 6.5.1
-- Fixes a bug in the required versions
+- Fixes a bug in the required versions.
 
 ## 6.5.0
 - Adds redirectGraph operations, which redirects relations to a graph from
