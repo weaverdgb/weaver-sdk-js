@@ -1,5 +1,10 @@
 # Changelist
 
+## 7.1.1
+
+- Adding a general method to store metadata related with a project
+- Removing the previous method to add metadata for projects related only with Apps
+
 ## 7.1.0
 
 - updates README
