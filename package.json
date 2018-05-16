@@ -1,6 +1,6 @@
 {
   "name": "weaver-sdk",
-  "version": "6.5.0",
+  "version": "7.1.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -8,8 +8,8 @@
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "^4.8.0-beta.1",
-    "requiredServerVersion": "^3.11.0-beta.1"
+    "requiredConnectorVersion": "^4.8.0",
+    "requiredServerVersion": "^3.11.0"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -35,7 +35,7 @@
     "chai-as-promised": "^6.0.0",
     "coffee-coverage": "^2.0.1",
     "coffeeify": "^3.0.1",
-    "coffeescript": "^1.12.5",
+    "coffeescript": "^2.2.4",
     "david": "^11.0.0",
     "electron": "^1.6.1",
     "electron-mocha": "^3.3.0",

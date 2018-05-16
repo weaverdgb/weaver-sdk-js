@@ -19,13 +19,14 @@ class WeaverModelClass extends Weaver.Node
   @getNode: ->
     Weaver.Node.getFromGraph(@classId(), @model.getGraph())
 
-  constructor: (nodeId, graph)->
+  constructor: (nodeId = cuid(),graph, model)->
     super(nodeId, graph)
+    @model = model
 
     # Add type definition to model class
     classId = @constructor.classId()
     classNode = Weaver.Node.getFromGraph(classId, @model.getGraph())
-    @nodeRelation(@model.getMemberKey()).addInGraph(classNode, graph)
+    @nodeRelation(@model.getMemberKey()).addInGraph(classNode, @graph)
 
   getInherit: ->
     @nodeRelation(@model.getInheritKey()).all()

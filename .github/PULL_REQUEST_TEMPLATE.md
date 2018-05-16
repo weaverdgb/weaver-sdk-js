@@ -15,6 +15,7 @@ Failing to comply with these may result in your PR being ignored or closed.
 I certify that:
 - [ ] The automated build passes on the branch this pull request is from
 - [ ] My change is documented in the Changelist.md
+- [ ] Any functionality additions/changes are documented in the README.md
 - [ ] Any new dockerimages this build depends on are properly tagged on github
 - [ ] I shall not merge until the travis build is green and the PR is accepted by
   another developer

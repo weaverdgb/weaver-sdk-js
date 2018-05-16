@@ -19,8 +19,8 @@ class WeaverModelRelation extends Weaver.Relation
     else
       return
 
-    found = @parent.getToRanges(@modelKey, node)
-    allowed = @parent.getRanges(@modelKey)
+    found = @owner.getToRanges(@modelKey, node)
+    allowed = @owner.getRanges(@modelKey)
     return true if found? and found.length > 0
     throw new Error("Model #{@className} is not allowed to have relation #{@modelKey} to #{node.id()}"+
                     " of def #{JSON.stringify(defs)}, allowed ranges are #{JSON.stringify(allowed)}")

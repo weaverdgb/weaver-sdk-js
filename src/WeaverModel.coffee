@@ -8,7 +8,7 @@ class WeaverModel
 
   constructor: (@definition) ->
     @_graph = "#{@definition.name}-#{@definition.version}"
-  
+
   init: (includeList)->
 
     # Load included models
@@ -20,32 +20,33 @@ class WeaverModel
 
       new WeaverModelValidator(@definition, @includes).validate()
       for className, classDefinition of @definition.classes
-        @_registerClass(@, @, className, classDefinition) 
+        @_registerClass(@, @, className, classDefinition)
       for prefix, incl of @includes
         @[prefix] = {}
         for className, classDefinition of incl.definition.classes
           if @modelMap[incl.definition.name]?[className]?
             @[prefix][className] = @modelMap[incl.definition.name][className]
           else
-            @_registerClass(@[prefix], incl, className, classDefinition) 
+            @_registerClass(@[prefix], incl, className, classDefinition)
       @
     )
 
   _registerClass: (carrier, model, className, classDefinition)->
-  
+
     js = """
       (function() {
-        function #{className}(nodeId, graph) {
-          this.model                = #{className}.model;
-          this.definition           = #{className}.definition;
-          this.className            = "#{className}";
-          this.classDefinition      = #{className}.classDefinition;
-          this.totalClassDefinition = #{className}.totalClassDefinition;
-          #{className}.__super__.constructor.call(this, nodeId, graph);
-        };
-
-        #{className}.classId = function() {
-          return #{className}.definition.name + ":" + #{className}.className;
+        var #{className} = class #{className} extends Weaver.ModelClass {
+          constructor(nodeId, graph) {
+            super(nodeId, graph, #{className}.model)
+            this.model                = #{className}.model;
+            this.definition           = #{className}.definition;
+            this.className            = "#{className}";
+            this.classDefinition      = #{className}.classDefinition;
+            this.totalClassDefinition = #{className}.totalClassDefinition;
+          }
+          classId() {
+            return #{className}.definition.name + ":" + #{className}.className;
+          };
         };
 
         return #{className};
@@ -53,13 +54,12 @@ class WeaverModel
     """
 
     carrier[className] = eval(js)
-    carrier[className] = carrier[className] extends Weaver.ModelClass
     carrier[className].model                = model
     carrier[className].definition           = model.definition
     carrier[className].className            = className
     carrier[className].classDefinition      = classDefinition
     carrier[className].totalClassDefinition = model._collectFromSupers(classDefinition)
-    
+
     load = (loadClass) => (nodeId, graph) =>
       new Weaver.ModelQuery(model)
         .class(carrier[loadClass])
@@ -75,13 +75,13 @@ class WeaverModel
     # Map prefix to included model
     @includes = {}
     includeDefs = ({prefix: key, name: obj.name, version: obj.version} for key, obj of @definition.includes)
-    
+
     Promise.map(includeDefs, (incl)=>
       if incl.name in includeList
         error = new Error("Model #{@definition.name} tries to include #{incl.name} but this introduces a cycle")
         error.code = 209
         return Promise.reject(error)
-  
+
       WeaverModel.load(incl.name, incl.version, includeList).then((loaded)=>
         @includes[incl.prefix] = loaded
         modelMap[incl.name] = loaded
@@ -102,7 +102,7 @@ class WeaverModel
         addFromSuper(superDefinition, def, totalDefinition)
 
       transfer = (source) =>
-        for k, v of cd?[source] 
+        for k, v of cd?[source]
           if cd?[source]?
             totalDefinition[source][k] = v
             if v?.range?
@@ -122,22 +122,22 @@ class WeaverModel
     addFromSuper(classDefinition)
 
 
-  # eg test-model:td.Document is processed from [test-model:td][Document] to [test-doc-model][Document] 
+  # eg test-model:td.Document is processed from [test-model:td][Document] to [test-doc-model][Document]
   getNodeNameByKey: (dotPath) ->
     [first, rest...] = dotPath.split('.')
     return "#{@definition.name}:#{dotPath}" if rest.length is 0 and dotPath.indexOf(':') < 0
     return "#{dotPath}" if rest.length is 0 and dotPath.indexOf(':') >= 0
-    
+
     if first.indexOf(':') < 0
       if @includes[first]?
         m = @includes[first]
-        return m.getNodeNameByKey(rest.join('.')) 
-    else 
+        return m.getNodeNameByKey(rest.join('.'))
+    else
       [modelName, prefix] = first.split(':')
       if @modelMap[modelName]? and @modelMap[modelName].includes[prefix]?
         m = @modelMap[modelName].includes[prefix]
-        return m.getNodeNameByKey(rest.join('.')) 
-    
+        return m.getNodeNameByKey(rest.join('.'))
+
     return null
 
   getGraphName: ->
@@ -195,7 +195,7 @@ class WeaverModel
 
       nodesToCreate = {}
       nodesToCreate[key] = value for key, value of map for map in nodesToCreateList
-      
+
       new Weaver.Query()
       .contains('id', "#{@definition.name}:")
       .restrictGraphs(@getGraph())
@@ -231,12 +231,12 @@ class WeaverModel
           nodesToCreate[node.id()] = node
 
     # Link inheritance
-    for className, classObj of @definition.classes when classObj.super? 
+    for className, classObj of @definition.classes when classObj.super?
       id = @_getClassNodeId(className)
       superId = @_getClassNodeId(classObj.super)
       if id not in existingNodes
         node = nodesToCreate[id]
-        superClassNode = nodesToCreate[superId] or Weaver.Node.getFromGraph(superId, @getGraph()) 
+        superClassNode = nodesToCreate[superId] or Weaver.Node.getFromGraph(superId, @getGraph())
         if node instanceof Weaver.ModelClass
           node.nodeRelation(@getInheritKey()).add(superClassNode)
         else

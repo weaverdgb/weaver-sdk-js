@@ -4,7 +4,7 @@ Weaver  = require('./Weaver')
 
 class WeaverRelation
 
-  constructor: (@parent, @key) ->
+  constructor: (@owner, @key) ->
     @pendingWrites = []   # All operations that need to get saved
     @nodes = []           # All nodes that this relation points to
     @relationNodes = []   # RelationNodes
@@ -29,7 +29,7 @@ class WeaverRelation
     @relationNodes = @relationNodes.filter((x) -> not x.to().equals(oldNode))
 
   load: ->
-    new Weaver.Query().hasRelationIn(@key, @parent).find()
+    new Weaver.Query().hasRelationIn(@key, @owner).find()
       .then((nodes) =>
         @_addNodes(nodes...)
         @nodes
@@ -54,13 +54,13 @@ class WeaverRelation
 
   _createRelationNode: (relId, targetNode, graph) ->
     result = Weaver.RelationNode.get(relId, Weaver.RelationNode, graph)
-    result.fromNode = @parent
+    result.fromNode = @owner
     result.toNode = targetNode
     result
 
   add: (node, relId, addToPendingWrites = true, graph) ->
     relId ?= cuid()
-    graph ?= @parent.getGraph()
+    graph ?= @owner.getGraph()
     @_addNodes(node)
 
     # Currently this assumes having one relation to the same node
@@ -68,8 +68,8 @@ class WeaverRelation
     relationNode = @_createRelationNode(relId, node, graph)
     @relationNodes.push(relationNode)
 
-    Weaver.publish("node.relation.add", {node: @parent, key: @key, target: node})
-    @pendingWrites.push(Operation.Node(@parent).createRelation(@key, node, relId, undefined, false, graph)) if addToPendingWrites
+    Weaver.publish("node.relation.add", {node: @owner, key: @key, target: node})
+    @pendingWrites.push(Operation.Node(@owner).createRelation(@key, node, relId, undefined, false, graph)) if addToPendingWrites
     relationNode
 
   update: (oldNode, newNode) ->
@@ -81,15 +81,15 @@ class WeaverRelation
     @_removeRelationNodeForTarget(oldNode)
     @relationNodes.push(@_createRelationNode(newRelId, newNode))
 
-    Weaver.publish("node.relation.update", {node: @parent, key: @key, oldTarget: oldNode, target: newNode})
-    @pendingWrites.push(Operation.Node(@parent).createRelation(@key, newNode, newRelId, oldRel, Weaver.getInstance()._ignoresOutOfDate))
+    Weaver.publish("node.relation.update", {node: @owner, key: @key, oldTarget: oldNode, target: newNode})
+    @pendingWrites.push(Operation.Node(@owner).createRelation(@key, newNode, newRelId, oldRel, Weaver.getInstance()._ignoresOutOfDate))
 
   remove: (node) ->
     # TODO: This failes when relation is not saved, should be able to only remove locally
     relNode = @_getRelationNodeForTarget(node)
     @_removeRelationNodeForTarget(node)
     @_removeNode(node)
-    Weaver.publish("node.relation.remove", {node: @parent, key: @key, target: node})
+    Weaver.publish("node.relation.remove", {node: @owner, key: @key, target: node})
     relNode.destroy()
 
 # Export
