@@ -97,12 +97,12 @@ describe 'WeaverProject Test', ->
       p.removeMetadata(bundleName, appMetadata.appName)
     ).then(->
       p.getMetadata(bundleName, appMetadata.appName)
-    ).should.be.rejectedWith(/No metadata on project unnamed for bundleKey fooApps or key FooBarApp/)
+    ).should.be.rejectedWith("No metadata on project #{p.name} for bundleKey fooApps or key FooBarApp")
   
   it 'should reject where trying to getMetadata for a non existing metadata related with a bundle', ->
     p = weaver.currentProject()
     p.getMetadata('fooBundle','barKey')
-      .should.be.rejectedWith(/No metadata on project unnamed for bundleKey fooBundle or key barKey/)
+      .should.be.rejectedWith("No metadata on project #{p.name} for bundleKey fooBundle or key barKey")
 
   it 'should retrieve all keys for a certain bundle', ->
     p = weaver.currentProject()
