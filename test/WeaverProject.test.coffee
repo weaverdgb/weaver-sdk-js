@@ -83,7 +83,7 @@ describe 'WeaverProject Test', ->
     p.addMetadata(bundleName, appMetadata.appName, appMetadata).then(->
       p.getMetadata(bundleName, appMetadata.appName)
     ).then((metadataProject)->
-      assert(appMetadata, metadataProject)
+      assert.deepEqual(appMetadata, metadataProject)
     )
 
   it 'should remove metadata from a project', ->
