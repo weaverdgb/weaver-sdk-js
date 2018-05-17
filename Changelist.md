@@ -1,6 +1,6 @@
 # Changelist
 
-## 7.1.1
+## 7.2.0
 
 - Adding a general method to store metadata related with a project
 - Removing the previous method to add metadata for projects related only with Apps
@@ -132,3 +132,4 @@
 ## 6.0.1
 - Fixes a bug where the weaver-server embedded sdk would not send GET request
   bodies
+

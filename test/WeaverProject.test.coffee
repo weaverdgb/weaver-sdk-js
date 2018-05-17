@@ -99,30 +99,35 @@ describe 'WeaverProject Test', ->
       p.getMetadata(bundleName, appMetadata.appName)
     ).should.be.rejectedWith("No metadata on project #{p.name} for bundleKey fooApps or key FooBarApp")
   
-  it 'should reject where trying to getMetadata for a non existing metadata related with a bundle', ->
+  it 'should reject where trying to getMetadata for a non existing metadata related with a bundle and key', ->
     p = weaver.currentProject()
     p.getMetadata('fooBundle','barKey')
       .should.be.rejectedWith("No metadata on project #{p.name} for bundleKey fooBundle or key barKey")
 
+  it 'should reject where trying to getMetadata for a non existing metadata related with a bundle', ->
+    p = weaver.currentProject()
+    p.getMetadata('fooBundle')
+      .should.be.rejectedWith("No metadata on project #{p.name} for bundleKey fooBundle")
+
   it 'should retrieve all keys for a certain bundle', ->
     p = weaver.currentProject()
-    meta0 = 
+    model0 = 
       name: 'foo'
       version: 0
     key0 = 'model0'
-    meta1 =
+    model1 =
       nameApp: 'bar'
       versionApp: '1.0.2'
     key1 = 'model1'
     bundleKey = 'models'
     objectToTest = {
-      meta0
-      meta1
+      model0
+      model1
     } 
-    Promise.join(p.addMetadata(bundleKey,key0,meta0),p.addMetadata(bundleKey,key1,meta1),->
+    Promise.join(p.addMetadata(bundleKey,key0,model0),p.addMetadata(bundleKey,key1,model1),->
       p.getMetadata(bundleKey, null)
     ).then((metadataFromBundle)->
-      assert(metadataFromBundle, objectToTest) 
+      expect(objectToTest).to.eql(metadataFromBundle)
     )
 
   it 'should freeze a project making writing impossible', ->
