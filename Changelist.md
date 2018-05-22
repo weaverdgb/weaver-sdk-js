@@ -1,15 +1,20 @@
 # Changelist
 
-## 7.1.0
+## 7.2.0
 
-- updates README
-- removes broken weaver.getUsersDB method
+- Adding a general method to store metadata related with a project
+- Removing the previous method to add metadata for projects related only with Apps
+
+## 7.1.0
+- Updates README.
+- Removes broken weaver.getUsersDB method.
+- Update minio in docker composition to the lates release version.
 
 ## 7.0.0
-- Moves to coffeescript 2
+- Moves to coffeescript 2.
 
 ## 6.5.1
-- Fixes a bug in the required versions
+- Fixes a bug in the required versions.
 
 ## 6.5.0
 - Adds redirectGraph operations, which redirects relations to a graph from
@@ -127,3 +132,4 @@
 ## 6.0.1
 - Fixes a bug where the weaver-server embedded sdk would not send GET request
   bodies
+

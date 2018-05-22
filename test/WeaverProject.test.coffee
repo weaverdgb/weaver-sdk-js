@@ -73,26 +73,61 @@ describe 'WeaverProject Test', ->
       weaver.useProject(p)
     )
 
-  it 'should add a project app, with some metadata', ->
+  it 'should add metadata to a project', ->
     p = weaver.currentProject()
     appMetadata =
       appName: 'FooBarApp'
       appVersion: '0.2.1-fooBar-b'
       desireSDK: '6.0.1-weaver'
-    p.addApp(appMetadata.appName,appMetadata).then(->
-      assert.equal(appMetadata, p.getApps()[0])
+    bundleName = 'apps'
+    p.addMetadata(bundleName, appMetadata.appName, appMetadata).then(->
+      p.getMetadata(bundleName, appMetadata.appName)
+    ).then((metadataProject)->
+      assert.deepEqual(appMetadata, metadataProject)
     )
 
-  it 'should remove a project app', ->
+  it 'should remove metadata from a project', ->
     p = weaver.currentProject()
     appMetadata =
       appName: 'FooBarApp'
       appVersion: '0.2.1-fooBar-b'
       desireSDK: '6.0.1-weaver'
-    p.addApp(appMetadata.appName,appMetadata).then(->
-      p.removeApp(appMetadata.appName)
+    bundleName = 'fooApps'
+    p.addMetadata(bundleName, appMetadata.appName, appMetadata).then(->
+      p.removeMetadata(bundleName, appMetadata.appName)
     ).then(->
-      assert.equal(p.getApps().length, 0)
+      p.getMetadata(bundleName, appMetadata.appName)
+    ).should.be.rejectedWith("No metadata on project #{p.name} for bundleKey fooApps or key FooBarApp")
+  
+  it 'should reject where trying to getMetadata for a non existing metadata related with a bundle and key', ->
+    p = weaver.currentProject()
+    p.getMetadata('fooBundle','barKey')
+      .should.be.rejectedWith("No metadata on project #{p.name} for bundleKey fooBundle or key barKey")
+
+  it 'should reject where trying to getMetadata for a non existing metadata related with a bundle', ->
+    p = weaver.currentProject()
+    p.getMetadata('fooBundle')
+      .should.be.rejectedWith("No metadata on project #{p.name} for bundleKey fooBundle")
+
+  it 'should retrieve all keys for a certain bundle', ->
+    p = weaver.currentProject()
+    model0 = 
+      name: 'foo'
+      version: 0
+    key0 = 'model0'
+    model1 =
+      nameApp: 'bar'
+      versionApp: '1.0.2'
+    key1 = 'model1'
+    bundleKey = 'models'
+    objectToTest = {
+      model0
+      model1
+    } 
+    Promise.join(p.addMetadata(bundleKey,key0,model0),p.addMetadata(bundleKey,key1,model1),->
+      p.getMetadata(bundleKey, null)
+    ).then((metadataFromBundle)->
+      expect(objectToTest).to.eql(metadataFromBundle)
     )
 
   it 'should freeze a project making writing impossible', ->
