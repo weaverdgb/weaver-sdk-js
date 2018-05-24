@@ -187,6 +187,11 @@ class WeaverModelClass extends Weaver.Node
     return null if not key?
     super(key, value)
 
+  unset: (field, value) ->
+    key = @_getAttributeKey(field)
+    return null if not key?
+    super(key)
+
   nodeRelation: (args...)->
     Weaver.Node.prototype.relation.call(@, args...)
 
