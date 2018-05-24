@@ -188,9 +188,9 @@ class WeaverModel
       modelName = @definition.name
       "#{modelName}:#{key}"
 
-  bootstrap: (save=true)->
+  bootstrap: (project, save=true)->
     # Bootstrap the include models in bottom up order because first order models can extend concepts from included models
-    Promise.all((incl.bootstrap(false) for prefix, incl of @includes))
+    Promise.all((incl.bootstrap(project, false) for prefix, incl of @includes))
     .then((nodesToCreateList)=>
 
       nodesToCreate = {}
@@ -202,7 +202,7 @@ class WeaverModel
       .find().then((nodes) =>
         nodesToCreate = @_bootstrapClasses((i.id() for i in nodes), nodesToCreate)
         if save
-          Weaver.Node.batchSave(node for id, node of nodesToCreate)
+          Weaver.Node.batchSave((node for id, node of nodesToCreate), project)
         else
           nodesToCreate
       )

@@ -1,5 +1,8 @@
 # Changelist
 
+## 7.2.3
+- Add project argument to bootstrap function
+
 ## 7.2.2
 - Fixes model classes not being able to unset attributes
 
