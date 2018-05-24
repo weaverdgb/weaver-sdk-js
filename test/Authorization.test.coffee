@@ -94,6 +94,29 @@ describe 'Authorization test', ->
       weaver.currentProject().destroy()
     ).should.be.rejected
 
+  it 'should not allow a user to delete a project if it is an admin even though he may not have read access', ->
+    testUser = new Weaver.User('testuser', 'testpassword', 'email@dontevenvalidate.com')
+    testUser2 = new Weaver.User('another', 'testpassword', 'email@email.com')
+    Promise.join(weaver.currentProject().destroy(), testUser.create(), testUser2.create(), Weaver.ACL.load('project-administration'), (deleteResult, user, user2, acl) ->
+      acl.setUserWriteAccess(testUser, true)
+      acl.setUserWriteAccess(testUser2, true)
+      acl.save()
+    ).then(->
+      weaver.signOut()
+    ).then(->
+      weaver.signInWithUsername('testuser', 'testpassword')
+    ).then(->
+      p = new Weaver.Project('A created project')
+      weaver.useProject(p)
+      p.create()
+    ).then(->
+      weaver.signOut()
+    ).then(->
+      weaver.signInWithUsername('another', 'testpassword')
+    ).then(->
+      weaver.currentProject().destroy()
+    ).should.not.be.rejected
+
   it 'should allow a user to write to projects he created', ->
     testUser = new Weaver.User('testuser', 'testpassword', 'email@dontevenvalidate.com')
     Promise.join(weaver.currentProject().destroy(), testUser.create(), Weaver.ACL.load('project-administration'), (deleteResult, user, acl) ->
