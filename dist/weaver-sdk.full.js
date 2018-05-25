@@ -103385,7 +103385,11 @@ module.exports={
       }
     };
 
-    WeaverModel.prototype.bootstrap = function(project, save) {
+    WeaverModel.prototype.bootstrap = function(project) {
+      return this._bootstrap(project);
+    };
+
+    WeaverModel.prototype._bootstrap = function(project, save) {
       var incl, prefix;
       if (save == null) {
         save = true;
@@ -103396,7 +103400,7 @@ module.exports={
         results = [];
         for (prefix in ref) {
           incl = ref[prefix];
-          results.push(incl.bootstrap(project, false));
+          results.push(incl._bootstrap(project, false));
         }
         return results;
       }).call(this)).then((function(_this) {
