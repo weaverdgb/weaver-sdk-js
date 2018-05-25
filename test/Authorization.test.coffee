@@ -65,6 +65,7 @@ describe 'Authorization test', ->
     )
 
   it 'should not allow a user to delete a project by default', ->
+    testProject = weaver.currentProject()
     testUser = new Weaver.User('testuser', 'testpassword', 'email@dontevenvalidate.com')
     testUser2 = new Weaver.User('another', 'testpassword', 'email@email.com')
     Promise.join(weaver.currentProject().destroy(), testUser.create(), testUser2.create(), Weaver.ACL.load('project-administration'), (deleteResult, user, user2, acl) ->
@@ -89,6 +90,10 @@ describe 'Authorization test', ->
       weaver.signInWithUsername('another', 'testpassword')
     ).then(->
       weaver.currentProject().destroy()
+    ).finally(->
+      signInAsAdmin().then(->
+        weaver.useProject(testProject)
+      )
     ).should.be.rejected
 
   it 'should not allow a user to delete a project if it is an admin even though he may not have read access', ->
