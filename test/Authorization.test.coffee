@@ -40,9 +40,6 @@ describe 'Authorization test', ->
       p.create()
     ).then((project) ->
       project.destroy()
-    ).catch((err) ->
-      # workaround for the limited developemt projects
-      expect(err).to.have.property('message').match(/No more available projects/)
     )
 
   it 'should allow a user to destroy a project created by that user', ->
