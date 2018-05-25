@@ -68,7 +68,7 @@ describe 'Authorization test', ->
     testProject = weaver.currentProject()
     testUser = new Weaver.User('testuser', 'testpassword', 'email@dontevenvalidate.com')
     testUser2 = new Weaver.User('another', 'testpassword', 'email@email.com')
-    Promise.join(weaver.currentProject().destroy(), testUser.create(), testUser2.create(), Weaver.ACL.load('project-administration'), (deleteResult, user, user2, acl) ->
+    Promise.join(testUser.create(), testUser2.create(), Weaver.ACL.load('project-administration'), (user, user2, acl) ->
       acl.setUserWriteAccess(testUser, true)
       acl.save()
     ).then(->
@@ -92,7 +92,9 @@ describe 'Authorization test', ->
       weaver.currentProject().destroy()
     ).finally(->
       signInAsAdmin().then(->
+        toDelete = weaver.currentProject()
         weaver.useProject(testProject)
+        toDelete.destroy()
       )
     ).should.be.rejected
 
@@ -100,7 +102,7 @@ describe 'Authorization test', ->
     testProject = weaver.currentProject()
     testUser = new Weaver.User('testuser', 'testpassword', 'email@dontevenvalidate.com')
     testUser2 = new Weaver.User('another', 'testpassword', 'email@email.com')
-    Promise.join(weaver.currentProject().destroy(), testUser.create(), testUser2.create(), Weaver.ACL.load('project-administration'), (deleteResult, user, user2, acl) ->
+    Promise.join(testUser.create(), testUser2.create(), Weaver.ACL.load('project-administration'), (user, user2, acl) ->
       acl.setUserWriteAccess(testUser, true)
       acl.setUserWriteAccess(testUser2, true)
       acl.save()
