@@ -101100,7 +101100,7 @@ module.exports = yeast;
 },{}],406:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "7.2.1",
+  "version": "7.2.2",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -103810,6 +103810,15 @@ module.exports={
         return null;
       }
       return WeaverModelClass.__super__.set.call(this, key, value);
+    };
+
+    WeaverModelClass.prototype.unset = function(field, value) {
+      var key;
+      key = this._getAttributeKey(field);
+      if (key == null) {
+        return null;
+      }
+      return WeaverModelClass.__super__.unset.call(this, key);
     };
 
     WeaverModelClass.prototype.nodeRelation = function() {
