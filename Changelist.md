@@ -1,5 +1,8 @@
 # Changelist
 
+## 7.2.2
+- Fixes model classes not being able to unset attributes
+
 ## 7.2.0
 
 - Adding a general method to store metadata related with a project
