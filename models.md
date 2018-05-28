@@ -19,7 +19,7 @@ classes:
 Which can be visualised in a UML-like diagram:
 ```graphviz
 custom_mark10
-	digraph {
+	digraph A {
 		rankdir=LR;
 		subgraph cluster_0 {
 			label="some-model";
