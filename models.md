@@ -236,8 +236,8 @@ diagram_5
     Monkey -> Tree [label="ownsTree"; arrowtail=diamond; arrowhead=vee; dir=both];
     Monkey -> monkeyOwns [label=""; arrowtail=diamond; arrowhead=none; dir=both];
     monkeyOwns -> Banana [label=""; arrowhead=vee];
-    monkeyOwns -> Date [label=since; style=dotted; arrowtail=diamond; arrowhead=vee; dir=both; constraint=false];
-    monkeyOwns -> Date [label=till; arrowtail=diamond; arrowhead=vee; dir=both; constraint=false];
+    monkeyOwns -> Date [label=since; style=dotted; arrowtail=diamond; arrowhead=vee; dir=both];
+    monkeyOwns -> Date [label=till; arrowtail=diamond; arrowhead=vee; dir=both];
     Eater -> Fruit [label=eats; arrowtail=diamond; arrowhead=vee; dir=both];
     Fruit -> Color [label=hasColor; arrowtail=diamond; arrowhead=vee; dir=both];
     Eater -> eaterOwns [label=""; arrowtail=diamond; arrowhead=none; dir=both];
