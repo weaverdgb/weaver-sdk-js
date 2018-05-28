@@ -22,15 +22,15 @@ Which can be visualised in a UML-like diagram:
 <details>
 <summary></summary>
 diagram_1
-	digraph A {
-    rankdir=LR;
-    subgraph cluster_0 {
-      label="some-model";
-      rankdir=LR;
-      node [shape = ellipse];
-      Thing
-    }
-  }
+digraph A {
+	rankdir=LR;
+	subgraph cluster_0 {
+		label="some-model";
+		rankdir=LR;
+		node [shape = ellipse];
+		Thing
+	}
+}
 diagram_1
 </details>
 
