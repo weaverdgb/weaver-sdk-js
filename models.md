@@ -17,9 +17,8 @@ classes:
 ```
 
 Which can be visualised in a UML-like diagram:
-```graphviz
-custom_mark10
-	digraph {
+![Alt text](https://g.gravizo.com/svg?
+  digraph {
 		rankdir=LR;
 		subgraph cluster_0 {
 			label="some-model";
@@ -28,10 +27,7 @@ custom_mark10
 			Thing
 		}
 	}
-custom_mark10
-```
-
-![Alt text](https://g.gravizo.com/source/custom_mark10?https%3A%2F%2Fraw.githubusercontent.com%2Fweaverplatform%2Fweaver-sdk-js%2Fmodel-ideas%2Fmodels.md)
+)
 
 
 
