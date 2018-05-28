@@ -100,7 +100,7 @@ classes:
 <details>
 <summary></summary>
 diagram_3
-digraph {
+digraph C {
   rankdir=LR;
   subgraph cluster_0 {
     label="some-model";
@@ -130,7 +130,7 @@ diagram_3
 <details>
 <summary></summary>
 diagram_4
-digraph {
+digraph D {
   rankdir=LR;
   subgraph cluster_0 {
     label="fruit-model";
@@ -179,7 +179,7 @@ Inherit from included model:
 <details>
 <summary></summary>
 diagram_5
-digraph {
+digraph E {
   rankdir=LR;
   subgraph cluster_0 {
     label="fruit-model";
