@@ -229,9 +229,9 @@ diagram_5
       node [shape = box];
       Monkey; Tree; Banana; monkeyOwns [shape = diamond; label="owns"];
     }
-    Eater -> Monkey [abel=""; arrowtail=onormal; arrowhead=diamond; dir=both]
-    Fruit -> Banana [label=""; arrowtail=onormal; arrowhead=diamond; dir=both; constraint=false]
-    eaterOwns -> monkeyOwns [abel=""; arrowtail=onormal; arrowhead=diamond; dir=both]
+    Eater -> Monkey [abel=""; arrowtail=onormal; arrowhead=diamond; dir=both];
+    Fruit -> Banana [label=""; arrowtail=onormal; arrowhead=diamond; dir=both];
+    eaterOwns -> monkeyOwns [abel=""; arrowtail=onormal; arrowhead=diamond; dir=both];
     Monkey -> Fruit [label=eats; style=dotted; arrowtail=diamond; arrowhead=vee; dir=both];
     Monkey -> Tree [label="ownsTree"; arrowtail=diamond; arrowhead=vee; dir=both];
     Monkey -> monkeyOwns [label=""; arrowtail=diamond; arrowhead=none; dir=both];
