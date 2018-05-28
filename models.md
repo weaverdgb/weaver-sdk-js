@@ -6,7 +6,7 @@
 ## 1. Intro
 `Weaver.Model` is a concept that only exists SDK (client) side. It is a filtered way to interact with the *schemaless* graph data inside a Weaver Project.
 - If it is used to create data it will function like a schema by validating the input.
-- If used for reading it will show these nodes, attributes and relations the model describes.
+- If used for reading from a mixed project it will only show these nodes, attributes and relations the model describes.
 
 ### Definition
 
@@ -16,6 +16,7 @@ name: some-model
 version: 1.0.0
 
 classes:
+
   Thing
 ```
 
@@ -39,7 +40,7 @@ diagram_1
 
 
 
-### Concepts
+## 2. Concepts
 
 Concepts in the model are `classes`, `relations` and `attributes`. 
 ```yaml
@@ -47,7 +48,9 @@ name: some-model
 version: 1.0.0
 
 classes:
+
   Thing:
+
   Person:
     attributes:
       name:
@@ -77,15 +80,17 @@ diagram_2
 diagram_2
 </details>
 
-### Punning
+### Meta relations
 
-Relations can also be references as classes.
+Relations can also be references as classes. However they should not be instantiated directly. This is prevented by the flag `abstract: true`.
 ```yaml
 name: some-model
 version: 1.0.0
 
 classes:
+
   Thing:
+
   Person:
     attributes:
       name:
@@ -93,7 +98,9 @@ classes:
     relations:
       owns:
         range: Thing
+
   owns:
+    abstract: true
     attributes:
       since: 
         datatype: datetime
@@ -125,7 +132,36 @@ diagram_3
 diagram_3
 </details>
 
-## 2. Inclusion and inheritence
+### Model keys
+
+Sometimes the relationship names are a long or complex. It is possible to use a simplified key in the model using the `modelKey`. The following model is equivalent with model above:
+
+```yaml
+name: some-model
+version: 1.0.0
+
+classes:
+
+  Thing:
+
+  Person:
+    attributes:
+      hasReferenceString:
+        modelKey: name
+        datatype: string
+    relations:
+      isInInheritanceGroupOf:
+        modelKey: owns
+        range: Thing
+
+  isInInheritanceGroupOf:
+    abstract: true
+    attributes:
+      since: 
+        datatype: datetime
+```
+
+## 3. Inclusion and inheritence
 ![Alt text](https://g.gravizo.com/source/svg/diagram_4?https%3A%2F%2Fraw.githubusercontent.com%2Fweaverplatform%2Fweaver-sdk-js%2Fmodel-ideas%2Fmodels.md)
 <details>
 <summary></summary>
@@ -152,24 +188,31 @@ diagram_4
 name: fruit-model
 version: 1.0.0
 
-classes:
+classes:                                                      # domain                 # range
+
   Fruit:                       # fruit-model:Fruit
     relations:
-      hasColor:
-        range: Color
+      hasColor:                # fruit-model:hasColor         fruit-model:Fruit        fruit-model:Color
+        range: Color           # fruit-model:Color
+
+  Apple:
+    super: Fruit
+
   Eater:                       # fruit-model:Eater
     relations:
-      owns:                    # fruit-model:owns
+      owns:                    # fruit-model:owns             fruit-model:Eater        fruit-model:Fruit
         range: Fruit 
-      eats:                    # fruit-model:eats
+      eats:                    # fruit-model:eats             fruit-model:Eater        fruit-model:Fruit
         range: Fruit 
 
   owns:                        # fruit-model:owns
+    abstract: true
     relations:
-      since:                   # fruit-model:since
-        range: Date 
+      since:                   # fruit-model:since            fruit-model:owns (*)     fruit-model:Date
+        range: Date            # fruit-model:Date
   
   Date:                        # fruit-model:Date
+
   Color:                       # fruit-model:Color
 ```
 
@@ -218,34 +261,31 @@ includes:
     name: fruit-model
     version: 1.0.0
 
-classes:
-  Monkey:
+classes:                                                      # domain                 # range
+
+  Monkey:                      # monkey-model:Monkey
     super: fm.Eater            # fruit-model:Eater
     relations:
-      ownsTree:                # monkey-model:ownsTree
-        range: Tree
+      ownsTree:                # monkey-model:ownsTree        monkey-model:Monkey      monkey-model:Tree
+        range: Tree            # monkey-model:Tree
         modelKey: owns
         card: [0, 1]
-      owns:                    # monkey-model:owns
-        range: Banana
+      owns:                    # monkey-model:owns            monkey-model:Monkey      monkey-model:Banana
+        range: Banana          # monkey-model:Banana
         modelKey: owns
         card: [0, n]
 
   owns:                        # monkey-model:owns
     super: fm.owns             # fruit-model:owns
+    abstract: true
     relations:
-      till:
+      till:                    # monkey-model:till            monkey-model:owns (*)    fruit-model:Date
         range: fm.Date         # fruit-model:Date
 
   Banana:                      # monkey-model:Banana
+    super: fm.Fruit            # fruit-model:Fruit
 
   Tree:                        # monkey-model:Tree
-
-  Fruit:                       # monkey-model:Fruit
-    super: fm.Fruit            # fruit-model:Fruit
-    relations:
-      hasColor:
-        range: Color
 
   Color:                       # monkey-model:Color
 
