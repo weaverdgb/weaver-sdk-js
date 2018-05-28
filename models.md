@@ -115,11 +115,8 @@ digraph C {
     Person -> owns [label=""; arrowtail=diamond; arrowhead=none; dir=both];
     owns -> Thing [label=""; arrowhead=vee];
     owns -> since [label=since; arrowtail=diamond; arrowhead=vee; dir=both];
-
-    {rank=same owns name since}
-    since -> owns  [style="invis"]
-
-
+    {rank=same owns name since};
+    since -> owns  [style="invis"];
   }
 }
 diagram_3
@@ -187,32 +184,26 @@ digraph E {
     node [shape = box];
     Eater; Fruit; Color; Fruit; Date
   }
-  
   subgraph cluster_1 {
     label="monkey-model";
     node [shape = box];
     Monkey; Tree; Banana; monkeyOwns [shape = diamond; label="owns"];
   }
-
   Eater -> Monkey [abel=""; arrowtail=onormal; arrowhead=diamond; dir=both]
   Fruit -> Banana [label=""; arrowtail=onormal; arrowhead=diamond; dir=both; constraint=false]
   eaterOwns -> monkeyOwns [abel=""; arrowtail=onormal; arrowhead=diamond; dir=both]
-
   Monkey -> Tree [label="ownsTree"; arrowtail=diamond; arrowhead=vee; dir=both];
-
   Monkey -> monkeyOwns [label=""; arrowtail=diamond; arrowhead=none; dir=both];
   monkeyOwns -> Banana [label=""; arrowhead=vee];
   monkeyOwns -> Date [label=since; style=dotted; arrowtail=diamond; arrowhead=vee; dir=both; constraint=false];
   monkeyOwns -> Date [label=till; arrowtail=diamond; arrowhead=vee; dir=both; constraint=false];
-
-
   Eater -> Fruit [label=eats; arrowtail=diamond; arrowhead=vee; dir=both];
   Fruit -> Color [label=hasColor; arrowtail=diamond; arrowhead=vee; dir=both];
   Eater -> eaterOwns [label=""; arrowtail=diamond; arrowhead=none; dir=both];
   eaterOwns -> Fruit [label=owns; arrowhead=vee];
   eaterOwns -> Date [label=since; arrowtail=diamond; arrowhead=vee; dir=both];
 }
-diagram 5
+diagram_5
 </details>
 
 ```yaml
