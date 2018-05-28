@@ -17,7 +17,10 @@ classes:
 ```
 
 Which can be visualised in a UML-like diagram:
-```graphviz
+
+![Alt text](https://g.gravizo.com/source/svg/custom_mark10?https%3A%2F%2Fraw.githubusercontent.com%2Fweaverplatform%2Fweaver-sdk-js%2Fmodel-ideas%2Fmodels.md)
+<details> 
+<summary></summary>
 custom_mark10
 	digraph {
 		rankdir=LR;
@@ -29,10 +32,7 @@ custom_mark10
 		}
 	}
 custom_mark10
-```
-
-![Alt text](https://g.gravizo.com/source/svg/custom_mark10?https%3A%2F%2Fraw.githubusercontent.com%2Fweaverplatform%2Fweaver-sdk-js%2Fmodel-ideas%2Fmodels.md)
-
+</details>
 
 
 
