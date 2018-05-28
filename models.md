@@ -6,7 +6,7 @@
 ## 1. Intro
 `Weaver.Model` is a concept that only exists SDK (client) side. It is a filtered way to interact with the *schemaless* graph data inside a Weaver Project.
 - If it is used to create data it will function like a schema by validating the input.
-- If used for reading from a mixed project it will only show these nodes, attributes and relations the model describes.
+- If used for reading from a mixed project data it will only show the nodes, attributes and relations the model describes and leave the others invisible.
 
 ### Definition
 
@@ -153,12 +153,6 @@ classes:
       isInInheritanceGroupOf:
         modelKey: owns
         range: Thing
-
-  isInInheritanceGroupOf:
-    abstract: true
-    attributes:
-      since: 
-        datatype: datetime
 ```
 
 ## 3. Inclusion and inheritence
@@ -208,7 +202,7 @@ classes:                                                      # domain          
   owns:                        # fruit-model:owns
     abstract: true
     relations:
-      since:                   # fruit-model:since            fruit-model:owns (*)     fruit-model:Date
+      since:                   # fruit-model:since            fruit-model:owns         fruit-model:Date
         range: Date            # fruit-model:Date
   
   Date:                        # fruit-model:Date
@@ -238,6 +232,7 @@ diagram_5
     Eater -> Monkey [abel=""; arrowtail=onormal; arrowhead=diamond; dir=both]
     Fruit -> Banana [label=""; arrowtail=onormal; arrowhead=diamond; dir=both; constraint=false]
     eaterOwns -> monkeyOwns [abel=""; arrowtail=onormal; arrowhead=diamond; dir=both]
+    Monkey -> Fruit [label=eats; style=dotted; arrowtail=diamond; arrowhead=vee; dir=both];
     Monkey -> Tree [label="ownsTree"; arrowtail=diamond; arrowhead=vee; dir=both];
     Monkey -> monkeyOwns [label=""; arrowtail=diamond; arrowhead=none; dir=both];
     monkeyOwns -> Banana [label=""; arrowhead=vee];
@@ -279,7 +274,7 @@ classes:                                                      # domain          
     super: fm.owns             # fruit-model:owns
     abstract: true
     relations:
-      till:                    # monkey-model:till            monkey-model:owns (*)    fruit-model:Date
+      till:                    # monkey-model:till            monkey-model:owns        fruit-model:Date
         range: fm.Date         # fruit-model:Date
 
   Banana:                      # monkey-model:Banana
