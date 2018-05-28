@@ -18,10 +18,10 @@ classes:
 
 Which can be visualised in a UML-like diagram:
 
-![Alt text](https://g.gravizo.com/source/svg/custom_mark10?https%3A%2F%2Fraw.githubusercontent.com%2Fweaverplatform%2Fweaver-sdk-js%2Fmodel-ideas%2Fmodels.md)
+![Alt text](https://g.gravizo.com/source/svg/diagram_1?https%3A%2F%2Fraw.githubusercontent.com%2Fweaverplatform%2Fweaver-sdk-js%2Fmodel-ideas%2Fmodels.md)
 <details>
 <summary></summary>
-custom_mark10
+diagram_1
 	digraph A {
     rankdir=LR;
     subgraph cluster_0 {
@@ -31,7 +31,7 @@ custom_mark10
       Thing
     }
   }
-custom_mark10
+diagram_1
 </details>
 
 
@@ -54,8 +54,11 @@ classes:
         range: Thing
 ```
 
-```graphviz
-digraph {
+![Alt text](https://g.gravizo.com/source/svg/diagram_2?https%3A%2F%2Fraw.githubusercontent.com%2Fweaverplatform%2Fweaver-sdk-js%2Fmodel-ideas%2Fmodels.md)
+<details>
+<summary></summary>
+diagram_2
+digraph B {
   rankdir=LR;
   subgraph cluster_0 {
     label="some-model";
@@ -68,7 +71,8 @@ digraph {
     Person -> Thing [label=owns; arrowtail=diamond; arrowhead=vee; dir=both];
   }
 }
-```
+diagram_2
+</details>
 
 ### Punning
 
@@ -92,7 +96,10 @@ classes:
         datatype: datetime
 ```
 
-```graphviz
+![Alt text](https://g.gravizo.com/source/svg/diagram_3?https%3A%2F%2Fraw.githubusercontent.com%2Fweaverplatform%2Fweaver-sdk-js%2Fmodel-ideas%2Fmodels.md)
+<details>
+<summary></summary>
+diagram_3
 digraph {
   rankdir=LR;
   subgraph cluster_0 {
@@ -115,10 +122,14 @@ digraph {
 
   }
 }
-```
+diagram_3
+</details>
 
 ## 2. Inclusion and inheritence
-```graphviz
+![Alt text](https://g.gravizo.com/source/svg/diagram_4?https%3A%2F%2Fraw.githubusercontent.com%2Fweaverplatform%2Fweaver-sdk-js%2Fmodel-ideas%2Fmodels.md)
+<details>
+<summary></summary>
+diagram_4
 digraph {
   rankdir=LR;
   subgraph cluster_0 {
@@ -134,7 +145,8 @@ digraph {
     eaterOwns -> Date [label=since; arrowtail=diamond; arrowhead=vee; dir=both];
   }
 }
-```
+diagram_4
+</details>
 
 ```yaml
 name: fruit-model
@@ -163,7 +175,10 @@ classes:
 
 
 Inherit from included model:
-```graphviz
+![Alt text](https://g.gravizo.com/source/svg/diagram_5?https%3A%2F%2Fraw.githubusercontent.com%2Fweaverplatform%2Fweaver-sdk-js%2Fmodel-ideas%2Fmodels.md)
+<details>
+<summary></summary>
+diagram_5
 digraph {
   rankdir=LR;
   subgraph cluster_0 {
@@ -197,7 +212,8 @@ digraph {
   eaterOwns -> Fruit [label=owns; arrowhead=vee];
   eaterOwns -> Date [label=since; arrowtail=diamond; arrowhead=vee; dir=both];
 }
-```
+diagram 5
+</details>
 
 ```yaml
 name: monkey-model
@@ -240,8 +256,3 @@ classes:
   Color:                       # monkey-model:Color
 
 ```
-
-
-
-
-![Alt text](https://g.gravizo.com/source/custom_mark10?https%3A%2F%2Fraw.githubusercontent.com%2FTLmaK0%2Fgravizo%2Fmaster%2FREADME.md)
