@@ -1,3 +1,6 @@
+
+
+
 # Overview Weaver.Model
 
 ## 1. Intro
@@ -22,15 +25,15 @@ Which can be visualised in a UML-like diagram:
 <details>
 <summary></summary>
 diagram_1
-digraph A {
-	rankdir=LR;
-	subgraph cluster_0 {
-		label="some-model";
-		rankdir=LR;
-		node [shape = ellipse];
-		Thing
-	}
-}
+  digraph A {
+    rankdir=LR;
+    subgraph cluster_0 {
+      label="some-model";
+      rankdir=LR;
+      node [shape = ellipse];
+      Thing
+    }
+  }
 diagram_1
 </details>
 
@@ -58,19 +61,19 @@ classes:
 <details>
 <summary></summary>
 diagram_2
-digraph B {
-  rankdir=LR;
-  subgraph cluster_0 {
-    label="some-model";
+  digraph B {
     rankdir=LR;
-    node [shape = ellipse];
-    Person
-    Thing
-    name [label="_string_"; shape = box]
-    Person -> name [label=name; arrowtail=diamond; arrowhead=vee; dir=both];
-    Person -> Thing [label=owns; arrowtail=diamond; arrowhead=vee; dir=both];
+    subgraph cluster_0 {
+      label="some-model";
+      rankdir=LR;
+      node [shape = ellipse];
+      Person
+      Thing
+      name [label="_string_"; shape = box]
+      Person -> name [label=name; arrowtail=diamond; arrowhead=vee; dir=both];
+      Person -> Thing [label=owns; arrowtail=diamond; arrowhead=vee; dir=both];
+    }
   }
-}
 diagram_2
 </details>
 
@@ -100,25 +103,25 @@ classes:
 <details>
 <summary></summary>
 diagram_3
-digraph C {
-  rankdir=LR;
-  subgraph cluster_0 {
-    label="some-model";
+  digraph C {
     rankdir=LR;
-    node [shape = ellipse];
-    Person
-    Thing
-    name [label="_string_"; shape = box]
-    since [label="_datetime_"; shape = box]
-    owns [label="owns"; shape = diamond]
-    Person -> name [label=name; arrowtail=diamond; arrowhead=vee; dir=both];
-    Person -> owns [label=""; arrowtail=diamond; arrowhead=none; dir=both];
-    owns -> Thing [label=""; arrowhead=vee];
-    owns -> since [label=since; arrowtail=diamond; arrowhead=vee; dir=both];
-    {rank=same owns name since};
-    since -> owns  [style="invis"];
+    subgraph cluster_0 {
+      label="some-model";
+      rankdir=LR;
+      node [shape = ellipse];
+      Person
+      Thing
+      name [label="_string_"; shape = box]
+      since [label="_datetime_"; shape = box]
+      owns [label="owns"; shape = diamond]
+      Person -> name [label=name; arrowtail=diamond; arrowhead=vee; dir=both];
+      Person -> owns [label=""; arrowtail=diamond; arrowhead=none; dir=both];
+      owns -> Thing [label=""; arrowhead=vee];
+      owns -> since [label=since; arrowtail=diamond; arrowhead=vee; dir=both];
+      {rank=same owns name since};
+      since -> owns  [style="invis"];
+    }
   }
-}
 diagram_3
 </details>
 
@@ -127,21 +130,21 @@ diagram_3
 <details>
 <summary></summary>
 diagram_4
-digraph D {
-  rankdir=LR;
-  subgraph cluster_0 {
-    label="fruit-model";
+  digraph D {
     rankdir=LR;
-    node [shape = diamond];
-    eaterOwns [label="owns"];
-    node [shape = box];
-    Eater -> Fruit [label=eats; arrowtail=diamond; arrowhead=vee; dir=both];
-    Fruit -> Color [label=hasColor; arrowtail=diamond; arrowhead=vee; dir=both];
-    Eater -> eaterOwns [label=""; arrowtail=diamond; arrowhead=none; dir=both];
-    eaterOwns -> Fruit [label=owns; arrowhead=vee];
-    eaterOwns -> Date [label=since; arrowtail=diamond; arrowhead=vee; dir=both];
+    subgraph cluster_0 {
+      label="fruit-model";
+      rankdir=LR;
+      node [shape = diamond];
+      eaterOwns [label="owns"];
+      node [shape = box];
+      Eater -> Fruit [label=eats; arrowtail=diamond; arrowhead=vee; dir=both];
+      Fruit -> Color [label=hasColor; arrowtail=diamond; arrowhead=vee; dir=both];
+      Eater -> eaterOwns [label=""; arrowtail=diamond; arrowhead=none; dir=both];
+      eaterOwns -> Fruit [label=owns; arrowhead=vee];
+      eaterOwns -> Date [label=since; arrowtail=diamond; arrowhead=vee; dir=both];
+    }
   }
-}
 diagram_4
 </details>
 
@@ -176,33 +179,33 @@ Inherit from included model:
 <details>
 <summary></summary>
 diagram_5
-digraph E {
-  rankdir=LR;
-  subgraph cluster_0 {
-    label="fruit-model";
-    eaterOwns [shape = diamond; label="owns"];
-    node [shape = box];
-    Eater; Fruit; Color; Fruit; Date
+  digraph E {
+    rankdir=LR;
+    subgraph cluster_0 {
+      label="fruit-model";
+      eaterOwns [shape = diamond; label="owns"];
+      node [shape = box];
+      Eater; Fruit; Color; Fruit; Date
+    }
+    subgraph cluster_1 {
+      label="monkey-model";
+      node [shape = box];
+      Monkey; Tree; Banana; monkeyOwns [shape = diamond; label="owns"];
+    }
+    Eater -> Monkey [abel=""; arrowtail=onormal; arrowhead=diamond; dir=both]
+    Fruit -> Banana [label=""; arrowtail=onormal; arrowhead=diamond; dir=both; constraint=false]
+    eaterOwns -> monkeyOwns [abel=""; arrowtail=onormal; arrowhead=diamond; dir=both]
+    Monkey -> Tree [label="ownsTree"; arrowtail=diamond; arrowhead=vee; dir=both];
+    Monkey -> monkeyOwns [label=""; arrowtail=diamond; arrowhead=none; dir=both];
+    monkeyOwns -> Banana [label=""; arrowhead=vee];
+    monkeyOwns -> Date [label=since; style=dotted; arrowtail=diamond; arrowhead=vee; dir=both; constraint=false];
+    monkeyOwns -> Date [label=till; arrowtail=diamond; arrowhead=vee; dir=both; constraint=false];
+    Eater -> Fruit [label=eats; arrowtail=diamond; arrowhead=vee; dir=both];
+    Fruit -> Color [label=hasColor; arrowtail=diamond; arrowhead=vee; dir=both];
+    Eater -> eaterOwns [label=""; arrowtail=diamond; arrowhead=none; dir=both];
+    eaterOwns -> Fruit [label=owns; arrowhead=vee];
+    eaterOwns -> Date [label=since; arrowtail=diamond; arrowhead=vee; dir=both];
   }
-  subgraph cluster_1 {
-    label="monkey-model";
-    node [shape = box];
-    Monkey; Tree; Banana; monkeyOwns [shape = diamond; label="owns"];
-  }
-  Eater -> Monkey [abel=""; arrowtail=onormal; arrowhead=diamond; dir=both]
-  Fruit -> Banana [label=""; arrowtail=onormal; arrowhead=diamond; dir=both; constraint=false]
-  eaterOwns -> monkeyOwns [abel=""; arrowtail=onormal; arrowhead=diamond; dir=both]
-  Monkey -> Tree [label="ownsTree"; arrowtail=diamond; arrowhead=vee; dir=both];
-  Monkey -> monkeyOwns [label=""; arrowtail=diamond; arrowhead=none; dir=both];
-  monkeyOwns -> Banana [label=""; arrowhead=vee];
-  monkeyOwns -> Date [label=since; style=dotted; arrowtail=diamond; arrowhead=vee; dir=both; constraint=false];
-  monkeyOwns -> Date [label=till; arrowtail=diamond; arrowhead=vee; dir=both; constraint=false];
-  Eater -> Fruit [label=eats; arrowtail=diamond; arrowhead=vee; dir=both];
-  Fruit -> Color [label=hasColor; arrowtail=diamond; arrowhead=vee; dir=both];
-  Eater -> eaterOwns [label=""; arrowtail=diamond; arrowhead=none; dir=both];
-  eaterOwns -> Fruit [label=owns; arrowhead=vee];
-  eaterOwns -> Date [label=since; arrowtail=diamond; arrowhead=vee; dir=both];
-}
 diagram_5
 </details>
 
@@ -247,3 +250,4 @@ classes:
   Color:                       # monkey-model:Color
 
 ```
+
