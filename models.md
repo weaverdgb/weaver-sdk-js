@@ -38,6 +38,14 @@ diagram_1
 diagram_1
 </details>
 
+Using the model in the SDK would look like this:
+
+```coffee
+# load model
+m = ...
+thing = new m.Thing()
+```
+
 
 
 ## 2. Concepts
@@ -80,9 +88,40 @@ diagram_2
 diagram_2
 </details>
 
+And for the SDK:
+
+```coffee
+# load model
+m = ...
+thing = new m.Thing()
+person = new m.Person()
+
+person.set('name', 'Medic')
+person.relation('owns').add(thing)
+```
+
+### Cardinality
+An attribute can only have one value. It is either set or not. Requiring a certain attribute to be set can be done with the field `required`:
+```yaml
+  Person:
+    attributes:
+      name:
+        datatype: string
+        required: true
+```
+
+Any number of relations can be set. Controlling the amount of relations can be done with the `card` key:
+
+```yaml
+  Person:
+    relations:
+      owns:
+        range: Thing
+        card: [0, n]
+```
 ### Meta relations
 
-Relations can also be references as classes. However they should not be instantiated directly. This is prevented by the flag `abstract: true`.
+Relations can also be references as classes. However they should not be instantiated directly. This is prevented setting the flag `abstract` to `true`.
 ```yaml
 name: some-model
 version: 1.0.0
@@ -95,15 +134,18 @@ classes:
     attributes:
       name:
         datatype: string
+        required: true
     relations:
       owns:
         range: Thing
+        card: [0, n]
 
   owns:
     abstract: true
     attributes:
       since: 
         datatype: datetime
+        required: true
 ```
 
 ![Alt text](https://g.gravizo.com/source/svg/diagram_3?https%3A%2F%2Fraw.githubusercontent.com%2Fweaverplatform%2Fweaver-sdk-js%2Fmodel-ideas%2Fmodels.md)
@@ -155,7 +197,168 @@ classes:
         range: Thing
 ```
 
+Still these keys in the interaction with the model can be used:
+```coffee
+person.set('name', 'Medic')         # name resolves to [some-model:]hasReferenceString
+person.relation('owns').add(thing)  # owns resolves to [some-model:]isInInheritanceGroupOf
+```
+
 ## 3. Inclusion and inheritence
+
+Models can include each other. Concepts from the included model can be addressed by using the used prefix in the `includes` block. This prefix only exists in the context of the model performing the include.
+
+```yaml
+name: some-other-model
+version: 1.0.0
+
+includes:
+  sm:
+    name: some-model
+    version: 1.0.0
+
+classes:
+  Brick:
+    relations:
+      partOf:
+        range: sm.Thing
+```
+
+An inheritance link can be befined between classes using the `super` key.
+
+```yaml
+name: some-other-model
+version: 1.0.0
+
+includes:
+  sm:
+    name: some-model
+    version: 1.0.0
+
+classes:
+
+  Doctor:
+    super: sm.Person
+    relations:
+      operates:
+        range: sm.Person
+        
+  Brick:
+    relations:
+      partOf:
+        range: sm.Thing
+```
+
+This means instances of this class are also instances of the super class. So when a range points to the super class instances of this class are also acceptable.
+
+Also, the class inherits the attribute and relation definitions of the super class. The `Doctor` class can have both `owns` and `operates` relations.
+
+### Relations only inherit as class
+
+It is not possible to redefine relations or attributes. Not within one model and not from included models. It is however possible to add for example the `till` attribute to the `owns` relation from the `some-model`.
+
+```yaml
+name: some-other-model
+version: 1.0.0
+
+includes:
+  sm:
+    name: some-model
+    version: 1.0.0
+
+classes:
+
+  Doctor:
+    super: sm.Person
+    relations:
+      operates:
+        range: sm.Person
+        
+  Brick:
+    relations:
+      partOf:
+        range: sm.Thing
+
+  sm.owns:
+    abstract: true
+    attributes:
+      till: 
+        datatype: datetime
+        required: false
+```
+
+```coffee
+# load model
+m = ...
+
+thing = new m.sm.Thing()
+
+doc = new m.Doctor()
+rel = doc.relation('owns').add(thing)      # owns resolves to some-model:owns
+rel.set('since', '2015-05-04T00:00:00Z')
+rel.set('till', '2018-01-01T00:00:00Z')
+```
+
+Another possibility is to redefind a relation.
+```yaml
+name: some-other-model
+version: 1.0.0
+
+includes:
+  sm:
+    name: some-model
+    version: 1.0.0
+
+classes:
+
+  Doctor:
+    super: sm.Person
+    relations:
+      operates:
+        range: sm.Person
+      owns:
+        range: Permit
+        
+  Brick:
+    relations:
+      partOf:
+        range: sm.Thing
+
+  Permit:
+
+  owns:
+    super: sm.owns
+    abstract: true
+    attributes:
+      till: 
+        datatype: datetime
+        required: false
+```
+
+```coffee
+# load model
+m = ...
+
+doc = new m.Doctor()
+
+thing = new m.sm.Thing()
+
+rel = doc.relation('owns').add(thing)      # owns resolves to some-model:owns
+rel.set('since', '2015-05-04T00:00:00Z')
+rel.set('till', '2018-01-01T00:00:00Z')
+
+permit = new m.permit()
+
+rel = doc.relation('owns').add(permit)     # owns resolves to some-other-model:owns
+rel.set('since', '2015-05-04T00:00:00Z')
+rel.set('till', '2018-01-01T00:00:00Z')
+```
+
+Note that the `some-model:owns` relation is also available to link to instances of the `Thing` class. Adding the `permit` to `onws` resolves to `some-other-model:owns` relation.
+
+The specification of `some-other-model:owns` having super `some-model:owns` has no effect on resolving the `owns` modelKey. It only results in the inheritance of the meta attributes and relations like `since`.
+
+## 9. Complete example
+
 ![Alt text](https://g.gravizo.com/source/svg/diagram_4?https%3A%2F%2Fraw.githubusercontent.com%2Fweaverplatform%2Fweaver-sdk-js%2Fmodel-ideas%2Fmodels.md)
 <details>
 <summary></summary>
@@ -246,6 +449,37 @@ diagram_5
   }
 diagram_5
 </details>
+
+```graphviz
+  digraph E {
+    rankdir=LR;
+    subgraph cluster_0 {
+      label="fruit-model";
+      eaterOwns [shape = diamond; label="owns"];
+      node [shape = box];
+      Eater; Fruit; Color; Fruit; Date
+    }
+    subgraph cluster_1 {
+      label="monkey-model";
+      node [shape = box];
+      Monkey; Tree; Banana; monkeyOwns [shape = diamond; label="owns"];
+    }
+    Eater -> Monkey [abel=""; arrowtail=onormal; arrowhead=diamond; dir=both];
+    Fruit -> Banana [label=""; arrowtail=onormal; arrowhead=diamond; dir=both];
+    eaterOwns -> monkeyOwns [abel=""; arrowtail=onormal; arrowhead=diamond; dir=both];
+    Monkey -> Fruit [label=eats; style=dotted; arrowtail=diamond; arrowhead=vee; dir=both];
+    Monkey -> Tree [label="ownsTree"; arrowtail=diamond; arrowhead=vee; dir=both];
+    Monkey -> monkeyOwns [label=""; arrowtail=diamond; arrowhead=none; dir=both];
+    monkeyOwns -> Banana [label=""; arrowhead=vee];
+    monkeyOwns -> Date [label=since; style=dotted; arrowtail=diamond; arrowhead=vee; dir=both];
+    monkeyOwns -> Date [label=till; arrowtail=diamond; arrowhead=vee; dir=both];
+    Eater -> Fruit [label=eats; arrowtail=diamond; arrowhead=vee; dir=both];
+    Fruit -> Color [label=hasColor; arrowtail=diamond; arrowhead=vee; dir=both];
+    Eater -> eaterOwns [label=""; arrowtail=diamond; arrowhead=none; dir=both];
+    eaterOwns -> Fruit [label=owns; arrowhead=vee];
+    eaterOwns -> Date [label=since; arrowtail=diamond; arrowhead=vee; dir=both];
+  }
+```
 
 ```yaml
 name: monkey-model
