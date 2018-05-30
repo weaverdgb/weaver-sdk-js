@@ -56,7 +56,7 @@ A library that gives you access to the Weaver platform from your JavaScript app.
 - **[Building locally](#building-locally)**
 - **[Tests](#tests)**
 
-<a id="getting-started"/>
+<a id="getting-started"></a>
 
 ---
 ## Getting started
@@ -117,7 +117,7 @@ You have now:
   - [x] Selected a project to work on
 
 You're ready to start creating and interacting with nodes.
- <a id="nodes"/>
+ <a id="nodes"></a>
 
 ### Nodes
 
@@ -195,11 +195,11 @@ Weaver.Node.load('hello-weaver')
   )
 
 ```
-<a id="reference-api"/>
+<a id="reference-api"></a>
 
 ## Reference API
 
-<a id="weaver"/>
+<a id="weaver"></a>
 
 ### Weaver
 #### Class Methods
@@ -291,7 +291,7 @@ Weaver.Node.load('hello-weaver')
   #   - all projects on the server
   #   - all user data on the server
 ```
- <a id="weavernode"/>
+ <a id="weavernode"></a>
 ---
 ### Weaver.Node
 ---
@@ -375,7 +375,7 @@ Weaver.Node.load('hello-weaver')
   Weaver.Node.prototype.destroy()
   # destroys the instance, also on the db
 ```
-<a id="weaverrelation"/>
+<a id="weaverrelation"></a>
 ---
 ### Weaver.Relation
 ---
@@ -405,7 +405,7 @@ Weaver.Node.load('hello-weaver')
   Weaver.Node.prototype.remove(node)
   # unlinks the passed node from the relation instance
 ```
-<a id="weaverproject"/>
+<a id="weaverproject"></a>
 ---
 ### Weaver.Project
 ---
@@ -473,7 +473,7 @@ Weaver.Node.load('hello-weaver')
   Weaver.Project.prototype.getApps()
   # Returns a map which contains metadata for each app relating to this project, keyed by the app's name
 ```
-<a id="weaveruser"/>
+<a id="weaveruser"></a>
 ---
 ### Weaver.User
 ---
@@ -516,7 +516,7 @@ Weaver.Node.load('hello-weaver')
   Weaver.User.prototype.getProjectsForUser()
   # Returns the projects a user has access to
 ```
-<a id="weaverquery"/>
+<a id="weaverquery"></a>
 ---
 ### Weaver.Query
 ---
@@ -612,7 +612,7 @@ Any query which contains a node as an argument may instead be passed a nested qu
   )
   # will return all nodes which have an outgoing hasChild relation to a node which has an outgoing attendsSchool relation.
 ```
-<a id="weaverplugin"/>
+<a id="weaverplugin"></a>
 ---
 ### Weaver.Plugin
 ---
@@ -648,7 +648,7 @@ Any query which contains a node as an argument may instead be passed a nested qu
   Weaver.Plugin.prototype.getPluginDescription()
   # Returns the plugin description
 ```
-<a id="weavermodel"/>
+<a id="weavermodel"></a>
 
 ---
 ### Weaver.Model
