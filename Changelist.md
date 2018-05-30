@@ -3,6 +3,9 @@
 ## 7.3.1
 - Set target project in booststrap query.
 
+## 7.3.0
+- Set target project in booststrap write operations.
+
 ## 7.2.3
 - Add project argument to bootstrap function.
 
