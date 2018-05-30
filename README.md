@@ -21,40 +21,46 @@
 # Weaver SDK for JavaScript
 A library that gives you access to the Weaver platform from your JavaScript app.
 
-- [Getting started](#getting-started)
-  * [Weaver](#weaver)
-  * [Nodes](#nodes)
-- [Reference API](#reference-api)
-  * [Weaver](#weaver-1)
-    + [Class Methods](#class-methods)
-    + [Instance methods](#instance-methods)
-  * [Weaver.Node](#weavernode)
-    + [Class methods](#class-methods)
-    + [Instance methods](#instance-methods-1)
-  * [Weaver.Relation](#weaverrelation)
-    + [Instance methods](#instance-methods-2)
-  * [Weaver.Project](#weaverproject)
-    + [Class methods](#class-methods-1)
-    + [Instance Methods](#instance-methods)
-  * [Weaver.User](#weaveruser)
-    + [Class Methods](#class-methods-1)
-    + [Instance Methods](#instance-methods-1)
-  * [Weaver.Query](#weaverquery)
-    + [Class methods](#class-methods-2)
-    + [Instance methods](#instance-methods-3)
-      - [Exclusion Criteria](#exclusion-criteria)
-      - [Extra loading instructions](#extra-loading-instructions)
-      - [Nesting queries / FOAF](#nesting-queries---foaf)
-  * [Weaver Model](#weaver-model)
-    + [Creating](#creating)
-      - [Step 1: Define a model](#step-1--define-a-model)
-      - [Step 2: Instantiate a member](#step-2--instantiate-a-member)
-      - [Step 3: Nest models to describe complex structures](#step-3--nest-models-to-describe-complex-structures)
-- [Building locally](#building-locally)
-- [Tests](#tests)
+- **[Getting started](#getting-started)**
+  - Weaver
+  - Nodes
+- **[Reference API](#reference-api)**
+  * **[Weaver](#weaver)**
+    * Class Methods
+    * Instance methods
+  * **[Weaver.Node](#weavernode)**
+    * Class methods
+    * Instance methods
+  * **[Weaver.Relation](#weaverrelation)**
+    * Instance methods
+  * **[Weaver.Project](#weaverproject)**
+    * Class methods
+    * Instance Methods
+  * **[Weaver.User](#weaveruser)**
+    * Class Methods]
+    * Instance Methods
+  * **[Weaver.Query](#weaverquery)**
+    * Class methods
+    * Instance methods
+      - Exclusion Criteria
+      - Extra loading instructions
+      - Nesting queries / FOAF
+  * **[Weaver.Model](#weavermodel)**
+    * Creating
+      - Step 1: Define a model]
+      - Step 2: Instantiate a member]
+      - Step 3: Nest models to describe complex structures
+  * **[Weaver.Plugin](#weaverplugin)**
+    * Class methods
+    * Instance methods
+- **[Building locally](#building-locally)**
+- **[Tests](#tests)**
 
+<a id="getting-started"/>
 
+---
 ## Getting started
+---
 
 ### Weaver
 
@@ -111,6 +117,7 @@ You have now:
   - [x] Selected a project to work on
 
 You're ready to start creating and interacting with nodes.
+ <a id="nodes"/>
 
 ### Nodes
 
@@ -188,9 +195,11 @@ Weaver.Node.load('hello-weaver')
   )
 
 ```
-
+<a id="reference-api"/>
 
 ## Reference API
+
+<a id="weaver"/>
 
 ### Weaver
 #### Class Methods
@@ -282,8 +291,11 @@ Weaver.Node.load('hello-weaver')
   #   - all projects on the server
   #   - all user data on the server
 ```
-
+ <a id="weavernode"/>
+---
 ### Weaver.Node
+---
+
 #### Class methods
 ```coffeescript
   new Weaver.Node(nodeId, graph)
@@ -363,7 +375,11 @@ Weaver.Node.load('hello-weaver')
   Weaver.Node.prototype.destroy()
   # destroys the instance, also on the db
 ```
+<a id="weaverrelation"/>
+---
 ### Weaver.Relation
+---
+
 #### Instance methods
 ```coffeescript
   Weaver.Relation.prototype.load()
@@ -389,7 +405,11 @@ Weaver.Node.load('hello-weaver')
   Weaver.Node.prototype.remove(node)
   # unlinks the passed node from the relation instance
 ```
+<a id="weaverproject"/>
+---
 ### Weaver.Project
+---
+
 #### Class methods
 ```coffeescript
   Weaver.Project.list()
@@ -453,7 +473,11 @@ Weaver.Node.load('hello-weaver')
   Weaver.Project.prototype.getApps()
   # Returns a map which contains metadata for each app relating to this project, keyed by the app's name
 ```
+<a id="weaveruser"/>
+---
 ### Weaver.User
+---
+
 #### Class Methods
 ```coffeescript
   Weaver.User.get(authToken)
@@ -492,7 +516,11 @@ Weaver.Node.load('hello-weaver')
   Weaver.User.prototype.getProjectsForUser()
   # Returns the projects a user has access to
 ```
+<a id="weaverquery"/>
+---
 ### Weaver.Query
+---
+
 #### Class methods
 ```coffeescript
   Weaver.Query.profile(callback)
@@ -584,7 +612,47 @@ Any query which contains a node as an argument may instead be passed a nested qu
   )
   # will return all nodes which have an outgoing hasChild relation to a node which has an outgoing attendsSchool relation.
 ```
-### Weaver Model
+<a id="weaverplugin"/>
+---
+### Weaver.Plugin
+---
+
+#### Class Methods
+```coffeescript
+  Weaver.Plugin.load(pluginName)
+  # Load a Weaver.Plugin which exists on the server
+```
+```coffeescript
+  Weaver.Plugin.list()
+  # lists all plugins on the server
+```
+#### Instance Methods
+
+```coffeescript
+  Weaver.Plugin.prototype.printFunctions()
+  # Prints the functions available for this plugin
+```
+```coffeescript
+  Weaver.Plugin.prototype.getPluginName()
+  # Returns the plugin name
+```
+```coffeescript
+  Weaver.Plugin.prototype.getPluginVersion()
+  # Returns the plugin version
+```
+```coffeescript
+  Weaver.Plugin.prototype.getPluginAuthor()
+  # Returns the plugin author
+```
+```coffeescript
+  Weaver.Plugin.prototype.getPluginDescription()
+  # Returns the plugin description
+```
+<a id="weavermodel"/>
+
+---
+### Weaver.Model
+---
 
 #### Creating
 
