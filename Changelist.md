@@ -1,15 +1,18 @@
 # Changelist
 
+## 7.3.1
+- Set target project in booststrap query.
+
 ## 7.2.3
-- Add project argument to bootstrap function
+- Add project argument to bootstrap function.
 
 ## 7.2.2
-- Fixes model classes not being able to unset attributes
+- Fixes model classes not being able to unset attributes.
 
 ## 7.2.0
 
-- Adding a general method to store metadata related with a project
-- Removing the previous method to add metadata for projects related only with Apps
+- Adding a general method to store metadata related with a project.
+- Removing the previous method to add metadata for projects related only with Apps.
 
 ## 7.1.0
 - Updates README.
