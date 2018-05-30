@@ -40,9 +40,7 @@ class WeaverProject
     Weaver.getCoreManager().executeZippedWriteOperations(@id(), filename)
 
   destroy: ->
-    super().then(=>
-      Weaver.getCoreManager().deleteProject(@id())
-    )
+    Weaver.getCoreManager().deleteProject(@id())
 
   freeze: ->
     Weaver.getCoreManager().freezeProject(@id())
