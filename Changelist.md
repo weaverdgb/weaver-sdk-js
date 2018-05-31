@@ -1,5 +1,8 @@
 # Changelist
 
+## 7.3.2
+- Adding test to cover: Allowing a user to read metadata from project without administration access for project
+
 ## 7.3.1
 - Set target project in booststrap query.
 
