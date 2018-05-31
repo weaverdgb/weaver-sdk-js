@@ -53,6 +53,7 @@ A library that gives you access to the Weaver platform from your JavaScript app.
   * **[Weaver.Plugin](#weaverplugin)**
     * Class methods
     * Instance methods
+- **[Creating your own plugins](#creatingplugins)**
 - **[Building locally](#building-locally)**
 - **[Tests](#tests)**
 
@@ -762,6 +763,58 @@ Include a model member in the definition for another model.
 
     trump.destroy()           //would that it were so easy..
  ```
+<a id="creatingplugins"></a>
+ ## Creating your own plugins
+
+Got something special that you wish your weaver-server could do? Build your own `Weaver.Plugin` to add server-side functionality.
+Define any functionality you want to offload to the server within a `Weaver.Plugin`, and then access it using an integrated prebuilt interface within the sdk.
+
+We have built a weaver-service bootstrapper [here](https://github.com/weaverplatform/generator-weaver-service) to get you started, so download that, and bootstrap your new service to get started.
+
+The directory in which you bootstrapped your service will already have generated a README.md, but we'll explain what to do here also for ease of reference.
+
+Let's say we made a cloud-sync service, to sync some data with a separate cloud store.
+First we'll install the bootstrapper: (and _yeoman_ if you haven't already got it)
+```
+$ npm install -g yo
+$ npm install -g generator-weaver-service
+```
+
+Then we'll run the bootstrapper:
+```
+$ yo weaver-service
+# be careful not to use any capital letters in the organization name
+```
+
+Then we'll add some configuration to our local weaver-server instance so that it picks up our new service
+```yaml
+# in #{weaver-server-root-folder}/config/default.coffee
+...
+
+pluggableServices:
+    'cloud-sync-service': 'http://localhost:2525' #or whatever port number you chose during bootstrapping
+
+...
+```
+
+Then, back in `/cloud-sync-service`
+```
+$ npm run prepublish
+$ node lib/index.js
+```
+Your service should now be up-and-running!
+Restart your weaver-server and make sure you see some acknowledgement of your new service in the startup logs.
+```
+2018-05-31 14:06:49 | INFO | Service plugin cloud-sync-service loaded with 3 Swagger paths parsed
+```
+Use a [weaver sdk](https://github.com/weaverplatform/weaver-sdk-js) to reference your new service, and start playing!
+```coffee
+Weaver.Plugin.load('cloud-sync-service')
+.then((cloudSync) ->
+  cloudSync.myNewFunctionality()        
+)
+```
+
 
 ## Building locally
 
