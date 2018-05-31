@@ -16,7 +16,7 @@ I certify that:
 - [ ] The automated build passes on the branch this pull request is from
 - [ ] My change is documented in the Changelist.md
 - [ ] Any functionality additions/changes are documented in the README.md
-- [ ] Any functionality additions/changes are _also_ documented [here] (https://github.com/weaverplatform/weaver-docs/blob/master/pages/developers/reference/weaver-sdk-js.md "Weaver-docs")
+- [ ] Any functionality additions/changes are _also_ documented [here](https://github.com/weaverplatform/weaver-docs/blob/master/pages/developers/reference/weaver-sdk-js.md "Weaver-docs")
 - [ ] Any new dockerimages this build depends on are properly tagged on github
 - [ ] I shall not merge until the travis build is green and the PR is accepted by
   another developer
