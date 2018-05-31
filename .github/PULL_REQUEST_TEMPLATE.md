@@ -1,15 +1,7 @@
 <!--
-Please enter a short description of the changes, and why they are required
-and/or desirable:
+Description is not required if the Changelist.md was updated properly.
 
-Example:
-Fixes bad pull requests from being created by requiring developers declare
-things. Introduces new markdown tasklist and comment structure.
--->
-
-<!--
-Please ensure the following boxes are checked before filing a pull request.
-Failing to comply with these may result in your PR being ignored or closed.
+Please check the following boxes faithfully.
 -->
 
 I certify that:
