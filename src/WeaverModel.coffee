@@ -199,7 +199,7 @@ class WeaverModel
       nodesToCreate = {}
       nodesToCreate[key] = value for key, value of map for map in nodesToCreateList
 
-      new Weaver.Query()
+      new Weaver.Query(project)
       .contains('id', "#{@definition.name}:")
       .restrictGraphs(@getGraph())
       .find().then((nodes) =>

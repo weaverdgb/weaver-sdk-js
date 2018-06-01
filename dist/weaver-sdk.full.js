@@ -101100,7 +101100,7 @@ module.exports = yeast;
 },{}],406:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "7.3.0",
+  "version": "7.3.1",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -101109,7 +101109,7 @@ module.exports={
   },
   "com_weaverplatform": {
     "requiredConnectorVersion": "^4.8.1",
-    "requiredServerVersion": "^3.12.0"
+    "requiredServerVersion": "^3.12.0 || ^3.12.1-beta.0"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -103414,7 +103414,7 @@ module.exports={
               nodesToCreate[key] = value;
             }
           }
-          return new Weaver.Query().contains('id', _this.definition.name + ":").restrictGraphs(_this.getGraph()).find().then(function(nodes) {
+          return new Weaver.Query(project).contains('id', _this.definition.name + ":").restrictGraphs(_this.getGraph()).find().then(function(nodes) {
             var i, id, node;
             nodesToCreate = _this._bootstrapClasses((function() {
               var l, len1, results;
@@ -105031,11 +105031,7 @@ module.exports={
     };
 
     WeaverProject.prototype.destroy = function() {
-      return WeaverProject.__super__.destroy.call(this).then((function(_this) {
-        return function() {
-          return Weaver.getCoreManager().deleteProject(_this.id());
-        };
-      })(this));
+      return Weaver.getCoreManager().deleteProject(this.id());
     };
 
     WeaverProject.prototype.freeze = function() {
