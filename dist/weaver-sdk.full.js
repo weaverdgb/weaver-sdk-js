@@ -102428,7 +102428,7 @@ module.exports = yeast;
 },{}],407:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "8.0.0",
+  "version": "8.0.0-beta.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -102437,14 +102437,13 @@ module.exports={
   },
   "com_weaverplatform": {
     "requiredConnectorVersion": "^4.8.1",
-    "requiredServerVersion": "^3.12.0 || ^3.13.0-beta.0"
+    "requiredServerVersion": "^3.12.0 || ^3.13.1-beta.0"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
   "repository": {},
   "dependencies": {
     "bluebird": "~3.4.1",
-    "chirql": "^1.0.16",
     "circular-json": "^0.3.1",
     "config": "^1.24.0",
     "cuid": "~1.3.8",
