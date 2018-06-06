@@ -1,5 +1,10 @@
 # Changelist
 
+## 7.4.0
+- Adds the selectRelations(..) function to WeaverQuery. If this is called only
+  relations matching the argument keys are returned from the server. This
+  should limit result set sizes and thus improve processing performance.
+
 ## 7.3.1
 - Set target project in booststrap query.
 
