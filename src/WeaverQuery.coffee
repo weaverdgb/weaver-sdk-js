@@ -22,6 +22,7 @@ class WeaverQuery
     @_conditions         = {}
     @_include            = []
     @_select             = undefined
+    @_selectRelations    = undefined
     @_selectOut          = []
     @_selectRecursiveOut = []
     @_recursiveConditions= []
@@ -315,6 +316,10 @@ class WeaverQuery
 
   include: (keys) ->
     @_include = keys
+    @
+
+  selectRelations: (keys...) ->
+    @_selectRelations = keys
     @
 
   select: (keys...) ->
