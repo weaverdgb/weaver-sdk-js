@@ -1,5 +1,8 @@
 # Changelist
 
+## 8.0.0
+- Only use major model version in graph name for bootstrap.
+
 ## 7.3.1
 - Set target project in booststrap query.
 

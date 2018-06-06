@@ -98,7 +98,33 @@ describe 'WeaverProject Test', ->
     ).then(->
       p.getMetadata(bundleName, appMetadata.appName)
     ).should.be.rejectedWith("No metadata on project #{p.name} for bundleKey fooApps or key FooBarApp")
-  
+ 
+  it 'should be able for a user to retrieve metadata without project administration access', ->
+    p = weaver.currentProject()
+    appMetadata =
+      appName: 'FooBarApp'
+      appVersion: '0.2.1-fooBar-b'
+      desireSDK: '6.0.1-weaver'
+    user = new Weaver.User('testuser', 'testpass', 'test@example.com')
+    bundleName = 'apps'
+    p.addMetadata(bundleName, appMetadata.appName, appMetadata).then(->
+      Weaver.ACL.load(p.acl.id)
+    ).then((acl)->
+      acl.setUserReadAccess(user, true)
+      acl.save()
+    ).then(->
+      user.create()
+    ).then(->
+      weaver.signInWithUsername('testuser', 'testpass')
+    ).then(->
+      p.getMetadata(bundleName, appMetadata.appName)
+    ).then((metadataProject)->
+      assert.deepEqual(appMetadata, metadataProject)
+    ).then(->
+      weaver.signOut()
+    )
+    
+
   it 'should reject where trying to getMetadata for a non existing metadata related with a bundle and key', ->
     p = weaver.currentProject()
     p.getMetadata('fooBundle','barKey')
