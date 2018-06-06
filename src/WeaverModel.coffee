@@ -1,5 +1,6 @@
 cuid                 = require('cuid')
 Promise              = require('bluebird')
+semver               = require('semver')
 Weaver               = require('./Weaver')
 WeaverModelValidator = require('./WeaverModelValidator')
 _                    = require('lodash')
@@ -7,7 +8,7 @@ _                    = require('lodash')
 class WeaverModel
 
   constructor: (@definition) ->
-    @_graph = "#{@definition.name}-#{@definition.version}"
+    @_graph = "#{@definition.name}-#{semver.major(@definition.version)}"
 
   init: (includeList)->
 
