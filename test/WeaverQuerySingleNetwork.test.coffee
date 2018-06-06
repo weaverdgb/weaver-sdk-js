@@ -127,6 +127,7 @@ describe 'WeaverQuery with single Network', ->
     .selectRelations()
     .find().then((nodes) ->
       expect(nodes[0].relations()).to.not.have.property('drives')
+      expect(nodes[0]).to.have.property('_loaded').equal(false)
     )
 
   it 'should support selectRelation', ->
