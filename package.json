@@ -1,6 +1,6 @@
 {
   "name": "weaver-sdk",
-  "version": "8.0.0",
+  "version": "8.0.1-beta.1",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -8,15 +8,14 @@
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "^4.8.1 || ^4.9.0-beta.0",
-    "requiredServerVersion": "^3.12.0 || ^3.13.0-beta.0"
+    "requiredConnectorVersion": "^4.9.0-beta.0",
+    "requiredServerVersion": "^3.12.0 || ^3.13.2"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
   "repository": {},
   "dependencies": {
     "bluebird": "~3.4.1",
-    "chirql": "^1.0.16",
     "circular-json": "^0.3.1",
     "config": "^1.24.0",
     "cuid": "~1.3.8",

@@ -1000,13 +1000,6 @@ check-error@^1.0.2:
   version "1.0.2"
   resolved "https://npm.sysunite.com/check-error/-/check-error-1.0.2.tgz#574d312edd88bb5dd8912e9286dd6c0aed4aac82"
 
-chirql@^1.0.16:
-  version "1.0.16"
-  resolved "https://npm.sysunite.com/chirql/-/chirql-1.0.16.tgz#62d8bc6705f7b833cb284fc0db199f5a395d2edf"
-  dependencies:
-    request "^2.79.0"
-    sparql-client "^0.2.0"
-
 chokidar@^1.0.0, chokidar@^1.4.1:
   version "1.7.0"
   resolved "https://npm.sysunite.com/chokidar/-/chokidar-1.7.0.tgz#798e689778151c8076b4b360e5edd28cda2bb468"
@@ -4222,10 +4215,6 @@ lodash.without@~4.4.0:
   version "4.4.0"
   resolved "https://npm.sysunite.com/lodash.without/-/lodash.without-4.4.0.tgz#3cd4574a00b67bae373a94b748772640507b7aac"
 
-lodash@^2.4.1:
-  version "2.4.2"
-  resolved "https://npm.sysunite.com/lodash/-/lodash-2.4.2.tgz#fadd834b9683073da179b3eae6d9c0d15053f73e"
-
 lodash@^3.10.1:
   version "3.10.1"
   resolved "https://npm.sysunite.com/lodash/-/lodash-3.10.1.tgz#5bf45e8e49ba4189e17d482789dfd15bd140b7b6"
@@ -6003,7 +5992,7 @@ replace-homedir@^1.0.0:
     is-absolute "^1.0.0"
     remove-trailing-separator "^1.1.0"
 
-request@2, request@^2.0.0, request@^2.40.0, request@^2.45.0, request@^2.74.0, request@^2.79.0, request@^2.82.0:
+request@2, request@^2.0.0, request@^2.45.0, request@^2.74.0, request@^2.82.0:
   version "2.85.0"
   resolved "https://npm.sysunite.com/request/-/request-2.85.0.tgz#5a03615a47c61420b3eb99b7dba204f83603e1fa"
   dependencies:
@@ -6528,13 +6517,6 @@ source-map@~0.2.0:
 sparkles@^1.0.0:
   version "1.0.0"
   resolved "https://npm.sysunite.com/sparkles/-/sparkles-1.0.0.tgz#1acbbfb592436d10bbe8f785b7cc6f82815012c3"
-
-sparql-client@^0.2.0:
-  version "0.2.0"
-  resolved "https://npm.sysunite.com/sparql-client/-/sparql-client-0.2.0.tgz#ace2ab8c621e350e110d401cab9651249e7f7a48"
-  dependencies:
-    lodash "^2.4.1"
-    request "^2.40.0"
 
 spdx-correct@^3.0.0:
   version "3.0.0"
