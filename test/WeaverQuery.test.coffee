@@ -758,6 +758,34 @@ describe 'WeaverQuery Test', ->
         expect(nodes[0].relation('beatenBy').nodes[0].get('name')).to.equal('Lewis')
       )
 
+    it 'should allow combined deep and shallow selectOut clauses', ->
+      a = new Weaver.Node('a')
+      b = new Weaver.Node('b')
+      c = new Weaver.Node('c')
+      d = new Weaver.Node('d')
+
+      b.set('name', 'Seb')
+      c.set('name', 'Lewis')
+      d.set('name', 'Birk')
+
+      a.relation('beats').add(b)
+      a.relation('beatenBy').add(c)
+      b.relation('beatenBy').add(d)
+
+      a.save().then( ->
+        new Weaver.Query()
+        .hasRelationOut('beats')
+        .selectOut('beats')
+        .selectOut('beatenBy', 'beats')
+        .find()
+      ).then((nodes) ->
+        expect(nodes).to.have.length.be(1)
+        checkNodeInResult(nodes, 'a')
+        expect(nodes[0].relation('beats').nodes[0].get('name')).to.equal('Seb')
+        expect(nodes[0].relation('beatenBy').nodes[0].get('name')).to.equal('Lewis')
+        expect(nodes[0].relation('beats').nodes[0].relation('beatenBy').nodes[0].get('name')).to.equal('Birk')
+      )
+
     it 'should not 503 on selectOut for no nodes', ->
       new Weaver.Query()
       .selectOut('test')
