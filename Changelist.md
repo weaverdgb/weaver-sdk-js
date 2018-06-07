@@ -4,6 +4,8 @@
 - Adds the selectRelations(..) function to WeaverQuery. If this is called only
   relations matching the argument keys are returned from the server. This
   should limit result set sizes and thus improve processing performance.
+- If first a model is bootstrapped and then another model is bootstrapped
+  that includes the first a node was not found.
 
 ## 8.0.0
 - Only use major model version in graph name for bootstrap.
