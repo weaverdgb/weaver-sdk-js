@@ -34,5 +34,5 @@ services:
     ports:
     - "9487:9487"
     volumes:
-    - "./weaver-server-config:/usr/src/app/config"
+    - "./weaver-server-config/local.coffee:/usr/src/app/config/local.coffee"
     - "./weaver-server-models:/usr/src/app/models"
