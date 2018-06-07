@@ -197,13 +197,14 @@ class WeaverModel
     .then((nodesToCreateList)=>
 
       nodesToCreate = {}
-      nodesToCreate[key] = value for key, value of map for map in nodesToCreateList
+      nodesToCreate[id] = node for id, node of map for map in nodesToCreateList
 
       new Weaver.Query(project)
       .contains('id', "#{@definition.name}:")
-      .restrictGraphs(@getGraph())
       .find().then((nodes) =>
-        nodesToCreate = @_bootstrapClasses((i.id() for i in nodes), nodesToCreate)
+        existingNodes = {}
+        existingNodes[n.id()] = n for n in nodes
+        nodesToCreate = @_bootstrapClasses(existingNodes, nodesToCreate)
         if save
           Weaver.Node.batchSave((node for id, node of nodesToCreate), project)
         else
@@ -219,7 +220,7 @@ class WeaverModel
 
       for itemName in classObj.init
         node = new ModelClass("#{@definition.name}:#{itemName}", @getGraph())
-        if "#{@definition.name}:#{itemName}" not in existingNodes
+        if !existingNodes["#{@definition.name}:#{itemName}"]?
           nodesToCreate[node.id()] = node
         else
           node._clearPendingWrites()
@@ -228,7 +229,7 @@ class WeaverModel
     # Now add all the nodes that are not a model class
     for className of @definition.classes
       id = @_getClassNodeId(className)
-      if id not in existingNodes
+      if !existingNodes[id]?
         if not nodesToCreate[id]?
           node = new Weaver.Node(id, @getGraph())
           nodesToCreate[node.id()] = node
@@ -237,9 +238,9 @@ class WeaverModel
     for className, classObj of @definition.classes when classObj.super?
       id = @_getClassNodeId(className)
       superId = @_getClassNodeId(classObj.super)
-      if id not in existingNodes
+      if !existingNodes[id]?
         node = nodesToCreate[id]
-        superClassNode = nodesToCreate[superId] or Weaver.Node.getFromGraph(superId, @getGraph())
+        superClassNode = nodesToCreate[superId] or existingNodes[superId] or throw new Error("Failed linking to super node #{superId}")
         if node instanceof Weaver.ModelClass
           node.nodeRelation(@getInheritKey()).add(superClassNode)
         else
