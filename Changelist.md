@@ -1,5 +1,8 @@
 # Changelist
 
+## 7.4.1
+- Send existing nodes to cascading bootstraps to effectuate fix.
+
 ## 7.4.0
 - Adds the selectRelations(..) function to WeaverQuery. If this is called only
   relations matching the argument keys are returned from the server. This

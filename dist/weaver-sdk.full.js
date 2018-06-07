@@ -101100,7 +101100,7 @@ module.exports = yeast;
 },{}],406:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "7.4.0",
+  "version": "7.4.1",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -103404,24 +103404,35 @@ module.exports={
         }
         return results;
       }).call(this)).then((function(_this) {
-        return function(nodesToCreateList) {
-          var i, id, len, map, node, nodesToCreate;
+        return function(resList) {
+          var existingNodes, i, id, j, len, len1, node, nodesToCreate, ref, ref1, res;
+          existingNodes = {};
+          for (i = 0, len = resList.length; i < len; i++) {
+            res = resList[i];
+            ref = res.existingNodes;
+            for (id in ref) {
+              node = ref[id];
+              existingNodes[id] = node;
+            }
+          }
           nodesToCreate = {};
-          for (i = 0, len = nodesToCreateList.length; i < len; i++) {
-            map = nodesToCreateList[i];
-            for (id in map) {
-              node = map[id];
+          for (j = 0, len1 = resList.length; j < len1; j++) {
+            res = resList[j];
+            ref1 = res.nodesToCreate;
+            for (id in ref1) {
+              node = ref1[id];
               nodesToCreate[id] = node;
             }
           }
           return new Weaver.Query(project).contains('id', _this.definition.name + ":").find().then(function(nodes) {
-            var existingNodes, j, len1, n;
-            existingNodes = {};
-            for (j = 0, len1 = nodes.length; j < len1; j++) {
-              n = nodes[j];
+            var l, len2, n;
+            for (l = 0, len2 = nodes.length; l < len2; l++) {
+              n = nodes[l];
               existingNodes[n.id()] = n;
             }
-            nodesToCreate = _this._bootstrapClasses(existingNodes, nodesToCreate);
+            resList = _this._bootstrapClasses(existingNodes, nodesToCreate);
+            nodesToCreate = resList.nodesToCreate;
+            existingNodes = resList.existingNodes;
             if (save) {
               return Weaver.Node.batchSave((function() {
                 var results;
@@ -103433,7 +103444,10 @@ module.exports={
                 return results;
               })(), project);
             } else {
-              return nodesToCreate;
+              return {
+                nodesToCreate: nodesToCreate,
+                existingNodes: existingNodes
+              };
             }
           });
         };
@@ -103493,7 +103507,10 @@ module.exports={
           }
         }
       }
-      return nodesToCreate;
+      return {
+        nodesToCreate: nodesToCreate,
+        existingNodes: existingNodes
+      };
     };
 
     return WeaverModel;
