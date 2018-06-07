@@ -120,6 +120,26 @@ describe 'WeaverQuery with single Network', ->
       checkNodeInResult(nodes, garden.id())
     )
 
+  it 'should support empty selectRelations', ->
+    new Weaver.Query()
+    .equalTo('testset', '2')
+    .restrict(raikonnen.id())
+    .selectRelations()
+    .find().then((nodes) ->
+      expect(nodes[0].relations()).to.not.have.property('drives')
+      expect(nodes[0]).to.have.property('_loaded').equal(false)
+    )
+
+  it 'should support selectRelation', ->
+    new Weaver.Query()
+    .equalTo('testset', '2')
+    .restrict(raikonnen.id())
+    .selectRelations('drives')
+    .find().then((nodes) ->
+      expect(nodes[0].relations()).to.not.have.property('isTeamMateOf')
+      expect(nodes[0].relations()).to.have.property('drives')
+    )
+
   it 'should support find() after count()', ->
     q = new Weaver.Query().equalTo('testset', '1')
 
