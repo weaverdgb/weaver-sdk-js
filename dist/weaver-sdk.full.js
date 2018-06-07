@@ -101100,7 +101100,7 @@ module.exports = yeast;
 },{}],406:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "7.4.0-alpha.1",
+  "version": "7.4.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -103271,7 +103271,7 @@ module.exports={
             addFromSuper(superDefinition, def, totalDefinition);
           }
           transfer = function(source) {
-            var j, k, len, range, ranges, ref1, results, updated, updatedRanges, v;
+            var i, k, len, range, ranges, ref1, results, updated, updatedRanges, v;
             ref1 = cd != null ? cd[source] : void 0;
             results = [];
             for (k in ref1) {
@@ -103284,8 +103284,8 @@ module.exports={
                   if (!_.isArray(ranges)) {
                     ranges = _.keys(ranges);
                   }
-                  for (j = 0, len = ranges.length; j < len; j++) {
-                    range = ranges[j];
+                  for (i = 0, len = ranges.length; i < len; i++) {
+                    range = ranges[i];
                     updated = _this.getNodeNameByKey(range);
                     updatedRanges.push(updated);
                   }
@@ -103405,26 +103405,23 @@ module.exports={
         return results;
       }).call(this)).then((function(_this) {
         return function(nodesToCreateList) {
-          var j, key, len, map, nodesToCreate, value;
+          var i, id, len, map, node, nodesToCreate;
           nodesToCreate = {};
-          for (j = 0, len = nodesToCreateList.length; j < len; j++) {
-            map = nodesToCreateList[j];
-            for (key in map) {
-              value = map[key];
-              nodesToCreate[key] = value;
+          for (i = 0, len = nodesToCreateList.length; i < len; i++) {
+            map = nodesToCreateList[i];
+            for (id in map) {
+              node = map[id];
+              nodesToCreate[id] = node;
             }
           }
-          return new Weaver.Query(project).contains('id', _this.definition.name + ":").restrictGraphs(_this.getGraph()).find().then(function(nodes) {
-            var i, id, node;
-            nodesToCreate = _this._bootstrapClasses((function() {
-              var l, len1, results;
-              results = [];
-              for (l = 0, len1 = nodes.length; l < len1; l++) {
-                i = nodes[l];
-                results.push(i.id());
-              }
-              return results;
-            })(), nodesToCreate);
+          return new Weaver.Query(project).contains('id', _this.definition.name + ":").find().then(function(nodes) {
+            var existingNodes, j, len1, n;
+            existingNodes = {};
+            for (j = 0, len1 = nodes.length; j < len1; j++) {
+              n = nodes[j];
+              existingNodes[n.id()] = n;
+            }
+            nodesToCreate = _this._bootstrapClasses(existingNodes, nodesToCreate);
             if (save) {
               return Weaver.Node.batchSave((function() {
                 var results;
@@ -103444,7 +103441,7 @@ module.exports={
     };
 
     WeaverModel.prototype._bootstrapClasses = function(existingNodes, nodesToCreate) {
-      var ModelClass, className, classObj, id, itemName, j, len, node, ref, ref1, ref2, ref3, superClassNode, superId;
+      var ModelClass, className, classObj, i, id, itemName, len, node, ref, ref1, ref2, superClassNode, superId;
       if (nodesToCreate == null) {
         nodesToCreate = {};
       }
@@ -103456,10 +103453,10 @@ module.exports={
         }
         ModelClass = this[className];
         ref1 = classObj.init;
-        for (j = 0, len = ref1.length; j < len; j++) {
-          itemName = ref1[j];
+        for (i = 0, len = ref1.length; i < len; i++) {
+          itemName = ref1[i];
           node = new ModelClass(this.definition.name + ":" + itemName, this.getGraph());
-          if (ref2 = this.definition.name + ":" + itemName, indexOf.call(existingNodes, ref2) < 0) {
+          if (existingNodes[this.definition.name + ":" + itemName] == null) {
             nodesToCreate[node.id()] = node;
           } else {
             node._clearPendingWrites();
@@ -103469,24 +103466,26 @@ module.exports={
       }
       for (className in this.definition.classes) {
         id = this._getClassNodeId(className);
-        if (indexOf.call(existingNodes, id) < 0) {
+        if (existingNodes[id] == null) {
           if (nodesToCreate[id] == null) {
             node = new Weaver.Node(id, this.getGraph());
             nodesToCreate[node.id()] = node;
           }
         }
       }
-      ref3 = this.definition.classes;
-      for (className in ref3) {
-        classObj = ref3[className];
+      ref2 = this.definition.classes;
+      for (className in ref2) {
+        classObj = ref2[className];
         if (!(classObj["super"] != null)) {
           continue;
         }
         id = this._getClassNodeId(className);
         superId = this._getClassNodeId(classObj["super"]);
-        if (indexOf.call(existingNodes, id) < 0) {
+        if (existingNodes[id] == null) {
           node = nodesToCreate[id];
-          superClassNode = nodesToCreate[superId] || Weaver.Node.getFromGraph(superId, this.getGraph());
+          superClassNode = nodesToCreate[superId] || existingNodes[superId] || (function() {
+            throw new Error("Failed linking to super node " + superId);
+          })();
           if (node instanceof Weaver.ModelClass) {
             node.nodeRelation(this.getInheritKey()).add(superClassNode);
           } else {
