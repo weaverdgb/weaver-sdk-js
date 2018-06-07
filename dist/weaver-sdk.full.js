@@ -101100,7 +101100,7 @@ module.exports = yeast;
 },{}],406:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "7.3.1",
+  "version": "7.4.0-alpha.1",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -101108,7 +101108,7 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "^4.8.1",
+    "requiredConnectorVersion": "^4.9.0",
     "requiredServerVersion": "^3.12.0 || ^3.12.1-beta.0"
   },
   "main": "lib/Weaver.js",
@@ -105192,6 +105192,7 @@ module.exports={
       this._conditions = {};
       this._include = [];
       this._select = void 0;
+      this._selectRelations = void 0;
       this._selectOut = [];
       this._selectRecursiveOut = [];
       this._recursiveConditions = [];
@@ -105272,7 +105273,7 @@ module.exports={
           ref = result.nodes;
           for (k = 0, len = ref.length; k < len; k++) {
             node = ref[k];
-            castedNode = Weaver.Node.loadFromQuery(node, _this.constructorFunction, _this._select == null, _this.model);
+            castedNode = Weaver.Node.loadFromQuery(node, _this.constructorFunction, (_this._selectRelations == null) && (_this._select == null), _this.model);
             list.push(castedNode);
           }
           return list;
@@ -105610,6 +105611,13 @@ module.exports={
 
     WeaverQuery.prototype.include = function(keys) {
       this._include = keys;
+      return this;
+    };
+
+    WeaverQuery.prototype.selectRelations = function() {
+      var keys;
+      keys = 1 <= arguments.length ? slice.call(arguments, 0) : [];
+      this._selectRelations = keys;
       return this;
     };
 
