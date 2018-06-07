@@ -195,21 +195,26 @@ class WeaverModel
   _bootstrap: (project, save=true)->
     # Bootstrap the include models in bottom up order because first order models can extend concepts from included models
     Promise.all((incl._bootstrap(project, false) for prefix, incl of @includes))
-    .then((nodesToCreateList)=>
+    .then((resList)=>
+
+      existingNodes = {}
+      existingNodes[id] = node for id, node of res.existingNodes for res in resList
 
       nodesToCreate = {}
-      nodesToCreate[id] = node for id, node of map for map in nodesToCreateList
+      nodesToCreate[id] = node for id, node of res.nodesToCreate for res in resList
 
       new Weaver.Query(project)
       .contains('id', "#{@definition.name}:")
       .find().then((nodes) =>
-        existingNodes = {}
         existingNodes[n.id()] = n for n in nodes
-        nodesToCreate = @_bootstrapClasses(existingNodes, nodesToCreate)
+        resList = @_bootstrapClasses(existingNodes, nodesToCreate)
+        nodesToCreate = resList.nodesToCreate
+        existingNodes = resList.existingNodes
+
         if save
           Weaver.Node.batchSave((node for id, node of nodesToCreate), project)
         else
-          nodesToCreate
+          {nodesToCreate, existingNodes}
       )
     )
 
@@ -247,6 +252,6 @@ class WeaverModel
         else
           node.relation(@getInheritKey()).add(superClassNode)
 
-    nodesToCreate
+    {nodesToCreate, existingNodes}
 
 module.exports = WeaverModel
