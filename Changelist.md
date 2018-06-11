@@ -1,5 +1,8 @@
 # Changelist
 
+## 7.4.2
+- Only look in the graph with the model version for already existing nodes.
+
 ## 7.4.1
 - Send existing nodes to cascading bootstraps to effectuate fix.
 
