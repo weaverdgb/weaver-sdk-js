@@ -102428,7 +102428,7 @@ module.exports = yeast;
 },{}],407:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "8.2.0",
+  "version": "8.2.1-beta.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -106653,16 +106653,22 @@ module.exports={
 
     WeaverQuery.prototype.first = function(Constructor) {
       this._limit = 1;
-      return this.find(Constructor).then(function(res) {
-        if (res.length === 0) {
-          return Promise.reject({
-            code: 101,
-            "Node not found": "Node not found"
-          });
-        } else {
-          return res[0];
-        }
-      });
+      return this.find(Constructor).then((function(_this) {
+        return function(res) {
+          var obj, ref;
+          if (res.length === 0) {
+            return Promise.reject((
+              obj = {
+                code: 101
+              },
+              obj[ref = "Node " + (_this._restrict.join(' ')) + " not found"] = ref,
+              obj
+            ));
+          } else {
+            return res[0];
+          }
+        };
+      })(this));
     };
 
     WeaverQuery.prototype.get = function(node, Constructor, graph) {
