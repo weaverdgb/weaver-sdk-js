@@ -112,7 +112,7 @@ describe 'WeaverNode test', ->
 
   it 'should mention id in not found error', ->
     Weaver.Node.load('non:existant')
-    .should.be.rejectedWith('Node non:existant not found': 'Node non:existant not found')
+    .should.eventually.be.rejected.and.has.property('message', 'Node ["non:existant"] not found in [null]')
   
   it 'should set a new string attribute', ->
     node = new Weaver.Node()

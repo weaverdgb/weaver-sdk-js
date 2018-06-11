@@ -1,7 +1,7 @@
 # Changelist
 
 ## 8.2.1
-- Metion id of node not found message.
+- Metion id and graph of node not found message.
 
 ## 8.2.0
 - If first a model is bootstrapped and then another model is bootstrapped
