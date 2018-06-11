@@ -101100,7 +101100,7 @@ module.exports = yeast;
 },{}],406:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "7.4.1",
+  "version": "7.4.2",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -103424,7 +103424,7 @@ module.exports={
               nodesToCreate[id] = node;
             }
           }
-          return new Weaver.Query(project).contains('id', _this.definition.name + ":").find().then(function(nodes) {
+          return new Weaver.Query(project).contains('id', _this.definition.name + ":").restrictGraphs(_this.getGraph()).find().then(function(nodes) {
             var l, len2, n;
             for (l = 0, len2 = nodes.length; l < len2; l++) {
               n = nodes[l];
