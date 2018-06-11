@@ -204,6 +204,7 @@ class WeaverModel
 
       new Weaver.Query(project)
       .contains('id', "#{@definition.name}:")
+      .restrictGraphs(@getGraph())
       .find().then((nodes) =>
         existingNodes[n.id()] = n for n in nodes
         resList = @_bootstrapClasses(existingNodes, nodesToCreate)
