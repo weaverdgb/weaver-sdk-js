@@ -1,5 +1,8 @@
 # Changelist
 
+## 8.2.1
+- Mention id and graph of node not found message.
+
 ## 8.2.0
 - If first a model is bootstrapped and then another model is bootstrapped
   that includes the first a node was not found.
