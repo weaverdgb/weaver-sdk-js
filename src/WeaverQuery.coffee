@@ -102,9 +102,9 @@ class WeaverQuery
 
   first: (Constructor) ->
     @_limit = 1
-    @find(Constructor).then((res) ->
+    @find(Constructor).then((res) =>
       if res.length is 0
-        Promise.reject({code:101, "Node not found"})
+        Promise.reject({code:101, message:"Node #{JSON.stringify(@_restrict)} not found in #{JSON.stringify(@_inGraph)}"})
       else
         res[0]
     )
