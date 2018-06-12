@@ -354,5 +354,7 @@ describe 'WeaverQuery with single Network', ->
       expect(nodes).to.have.length.be(1)
       expect(nodes[0]).to.have.property('relationsIn')
       expect(nodes[0].relationsIn).to.have.property('drives')
+      expect(node.id() for node in nodes[0].relationsIn['drives'].nodes).to.have.members([ vettel.id(), raikonnen.id()])
+
     )
 
