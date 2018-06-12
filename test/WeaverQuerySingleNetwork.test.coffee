@@ -348,3 +348,11 @@ describe 'WeaverQuery with single Network', ->
     ]).then((counts) ->
       expect(counts[0]).to.equal(counts[1])
     )
+
+  it 'should support selectIn', ->
+    new Weaver.Query().restrict(ferrari.id()).selectIn('drives').find().then((nodes) ->
+      expect(nodes).to.have.length.be(1)
+      expect(nodes[0]).to.have.property('relationsIn')
+      expect(nodes[0].relationsIn).to.have.property('drives')
+    )
+

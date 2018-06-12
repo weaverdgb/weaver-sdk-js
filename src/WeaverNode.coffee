@@ -1,10 +1,11 @@
-cuid        = require('cuid')
-Operation   = require('./Operation')
-Weaver      = require('./Weaver')
-util        = require('./util')
-_           = require('lodash')
-Promise     = require('bluebird')
-WeaverError = require('./WeaverError')
+cuid             = require('cuid')
+Operation        = require('./Operation')
+Weaver           = require('./Weaver')
+util             = require('./util')
+_                = require('lodash')
+Promise          = require('bluebird')
+WeaverError      = require('./WeaverError')
+WeaverRelationIn = require('./WeaverRelationIn')
 
 class WeaverNode
 
@@ -14,8 +15,9 @@ class WeaverNode
     @_stored = false       # if true, available in database, local node can hold unsaved changes
     @_loaded = false       # if true, all information from the database was localised on construction
     # Store all attributes and relations in these objects
-    @_attributes = {}
-    @_relations  = {}
+    @_attributes  = {}
+    @_relations   = {}
+    @relationsIn  = {}
 
     # All operations that need to get saved
     @pendingWrites = [Operation.Node(@).createNode()]
@@ -67,6 +69,18 @@ class WeaverNode
     @_attributes = object.attributes
     @_loaded    = object.creator? && fullyLoaded
 
+    for key, relations of object.relationsIn
+      for relation in relations
+        if constructorFunction?
+          Constructor = constructorFunction(Weaver.Node.loadFromQuery(relation.source, undefined, undefined, model), @, key)
+        if !Constructor?
+          Constructor = if model? then Weaver.DefinedNode else Weaver.Node
+
+        instance = new Constructor(relation.source.nodeId, relation.source.graph)
+        instance.model = model if model?
+        instance._loadFromQuery(relation.source, constructorFunction, fullyLoaded, model)
+        @._loadRelationInFromQuery(key, instance, relation.nodeId, relation.graph)
+
     for key, relations of object.relations
       for relation in relations
 
@@ -86,6 +100,10 @@ class WeaverNode
 
   _loadRelationFromQuery: (key, instance, nodeId, graph)->
     @relation(key).add(instance, nodeId, false, graph)
+
+  _loadRelationInFromQuery: (key, instance, nodeId, graph)->
+    @relationsIn[key] ?= new WeaverRelationIn(key)
+    @relationsIn[key].addSource(instance)
 
   # Loads current node
   load: ->
