@@ -195,20 +195,27 @@ class WeaverModel
   _bootstrap: (project, save=true)->
     # Bootstrap the include models in bottom up order because first order models can extend concepts from included models
     Promise.all((incl._bootstrap(project, false) for prefix, incl of @includes))
-    .then((nodesToCreateList)=>
+    .then((resList)=>
+
+      existingNodes = {}
+      existingNodes[id] = node for id, node of res.existingNodes for res in resList
 
       nodesToCreate = {}
-      nodesToCreate[key] = value for key, value of map for map in nodesToCreateList
+      nodesToCreate[id] = node for id, node of res.nodesToCreate for res in resList
 
       new Weaver.Query(project)
       .contains('id', "#{@definition.name}:")
       .restrictGraphs(@getGraph())
       .find().then((nodes) =>
-        nodesToCreate = @_bootstrapClasses((i.id() for i in nodes), nodesToCreate)
+        existingNodes[n.id()] = n for n in nodes
+        resList = @_bootstrapClasses(existingNodes, nodesToCreate)
+        nodesToCreate = resList.nodesToCreate
+        existingNodes = resList.existingNodes
+
         if save
           Weaver.Node.batchSave((node for id, node of nodesToCreate), project)
         else
-          nodesToCreate
+          {nodesToCreate, existingNodes}
       )
     )
 
@@ -220,7 +227,7 @@ class WeaverModel
 
       for itemName in classObj.init
         node = new ModelClass("#{@definition.name}:#{itemName}", @getGraph())
-        if "#{@definition.name}:#{itemName}" not in existingNodes
+        if !existingNodes["#{@definition.name}:#{itemName}"]?
           nodesToCreate[node.id()] = node
         else
           node._clearPendingWrites()
@@ -229,7 +236,7 @@ class WeaverModel
     # Now add all the nodes that are not a model class
     for className of @definition.classes
       id = @_getClassNodeId(className)
-      if id not in existingNodes
+      if !existingNodes[id]?
         if not nodesToCreate[id]?
           node = new Weaver.Node(id, @getGraph())
           nodesToCreate[node.id()] = node
@@ -238,14 +245,14 @@ class WeaverModel
     for className, classObj of @definition.classes when classObj.super?
       id = @_getClassNodeId(className)
       superId = @_getClassNodeId(classObj.super)
-      if id not in existingNodes
+      if !existingNodes[id]?
         node = nodesToCreate[id]
-        superClassNode = nodesToCreate[superId] or Weaver.Node.getFromGraph(superId, @getGraph())
+        superClassNode = nodesToCreate[superId] or existingNodes[superId] or throw new Error("Failed linking to super node #{superId}")
         if node instanceof Weaver.ModelClass
           node.nodeRelation(@getInheritKey()).add(superClassNode)
         else
           node.relation(@getInheritKey()).add(superClassNode)
 
-    nodesToCreate
+    {nodesToCreate, existingNodes}
 
 module.exports = WeaverModel

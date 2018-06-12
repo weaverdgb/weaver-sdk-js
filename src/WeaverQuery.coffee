@@ -22,6 +22,7 @@ class WeaverQuery
     @_conditions         = {}
     @_include            = []
     @_select             = undefined
+    @_selectRelations    = undefined
     @_selectOut          = []
     @_selectRecursiveOut = []
     @_recursiveConditions= []
@@ -76,7 +77,7 @@ class WeaverQuery
       Weaver.Query.notify(result)
       list = []
       for node in result.nodes
-        castedNode = Weaver.Node.loadFromQuery(node, @constructorFunction, !@_select?, @model)
+        castedNode = Weaver.Node.loadFromQuery(node, @constructorFunction, !@_selectRelations? && !@_select?, @model)
         list.push(castedNode)
       list
     )
@@ -101,9 +102,9 @@ class WeaverQuery
 
   first: (Constructor) ->
     @_limit = 1
-    @find(Constructor).then((res) ->
+    @find(Constructor).then((res) =>
       if res.length is 0
-        Promise.reject({code:101, "Node not found"})
+        Promise.reject({code:101, message:"Node #{JSON.stringify(@_restrict)} not found in #{JSON.stringify(@_inGraph)}"})
       else
         res[0]
     )
@@ -315,6 +316,10 @@ class WeaverQuery
 
   include: (keys) ->
     @_include = keys
+    @
+
+  selectRelations: (keys...) ->
+    @_selectRelations = keys
     @
 
   select: (keys...) ->
