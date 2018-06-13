@@ -102428,7 +102428,7 @@ module.exports = yeast;
 },{}],407:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "8.2.1",
+  "version": "8.3.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -102436,8 +102436,8 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "^4.9.0",
-    "requiredServerVersion": "^3.13.2"
+    "requiredConnectorVersion": "^4.10.0",
+    "requiredServerVersion": "^3.13.3"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -103344,7 +103344,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Weaver":413,"./util":432,"cuid":126}],412:[function(require,module,exports){
+},{"./Weaver":413,"./util":433,"cuid":126}],412:[function(require,module,exports){
 (function() {
   var Promise, SocketController, Weaver, io, pjson, ss;
 
@@ -103675,7 +103675,7 @@ module.exports={
 
 }).call(this);
 
-},{"../package.json":407,"./CoreManager":408,"./Error":409,"./WeaverACL":414,"./WeaverDefinedNode":415,"./WeaverError":416,"./WeaverFile":417,"./WeaverHistory":418,"./WeaverModel":419,"./WeaverModelClass":420,"./WeaverModelQuery":421,"./WeaverModelRelation":422,"./WeaverNode":424,"./WeaverPlugin":425,"./WeaverProject":426,"./WeaverQuery":427,"./WeaverRelation":428,"./WeaverRelationNode":429,"./WeaverRole":430,"./WeaverUser":431,"bluebird":72,"pubsub-js":271}],414:[function(require,module,exports){
+},{"../package.json":407,"./CoreManager":408,"./Error":409,"./WeaverACL":414,"./WeaverDefinedNode":415,"./WeaverError":416,"./WeaverFile":417,"./WeaverHistory":418,"./WeaverModel":419,"./WeaverModelClass":420,"./WeaverModelQuery":421,"./WeaverModelRelation":422,"./WeaverNode":424,"./WeaverPlugin":425,"./WeaverProject":426,"./WeaverQuery":427,"./WeaverRelation":428,"./WeaverRelationNode":430,"./WeaverRole":431,"./WeaverUser":432,"bluebird":72,"pubsub-js":271}],414:[function(require,module,exports){
 (function() {
   var Weaver, WeaverACL, cuid;
 
@@ -105568,7 +105568,7 @@ module.exports={
 
 },{}],424:[function(require,module,exports){
 (function() {
-  var Operation, Promise, Weaver, WeaverError, WeaverNode, _, cuid, util,
+  var Operation, Promise, Weaver, WeaverError, WeaverNode, WeaverRelationIn, _, cuid, util,
     slice = [].slice,
     indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
@@ -105586,6 +105586,8 @@ module.exports={
 
   WeaverError = require('./WeaverError');
 
+  WeaverRelationIn = require('./WeaverRelationIn');
+
   WeaverNode = (function() {
     function WeaverNode(nodeId1, graph1) {
       this.nodeId = nodeId1;
@@ -105597,6 +105599,7 @@ module.exports={
       this._loaded = false;
       this._attributes = {};
       this._relations = {};
+      this.relationsIn = {};
       this.pendingWrites = [Operation.Node(this).createNode()];
       Weaver.publish('node.created', this);
     }
@@ -105667,17 +105670,36 @@ module.exports={
     };
 
     WeaverNode.prototype._loadFromQuery = function(object, constructorFunction, fullyLoaded, model) {
-      var Constructor, instance, j, key, len, ref, relation, relations;
+      var Constructor, instance, j, k, key, len, len1, ref, ref1, relation, relations;
       if (fullyLoaded == null) {
         fullyLoaded = true;
       }
       this._attributes = object.attributes;
       this._loaded = (object.creator != null) && fullyLoaded;
-      ref = object.relations;
+      ref = object.relationsIn;
       for (key in ref) {
         relations = ref[key];
         for (j = 0, len = relations.length; j < len; j++) {
           relation = relations[j];
+          if (constructorFunction != null) {
+            Constructor = constructorFunction(Weaver.Node.loadFromQuery(relation.source, void 0, void 0, model), this, key);
+          }
+          if (Constructor == null) {
+            Constructor = model != null ? Weaver.DefinedNode : Weaver.Node;
+          }
+          instance = new Constructor(relation.source.nodeId, relation.source.graph);
+          if (model != null) {
+            instance.model = model;
+          }
+          instance._loadFromQuery(relation.source, constructorFunction, fullyLoaded, model);
+          this._loadRelationInFromQuery(key, instance, relation.nodeId, relation.graph);
+        }
+      }
+      ref1 = object.relations;
+      for (key in ref1) {
+        relations = ref1[key];
+        for (k = 0, len1 = relations.length; k < len1; k++) {
+          relation = relations[k];
           if (constructorFunction != null) {
             Constructor = constructorFunction(Weaver.Node.loadFromQuery(relation.target, void 0, void 0, model), this, key);
           }
@@ -105699,6 +105721,14 @@ module.exports={
 
     WeaverNode.prototype._loadRelationFromQuery = function(key, instance, nodeId, graph) {
       return this.relation(key).add(instance, nodeId, false, graph);
+    };
+
+    WeaverNode.prototype._loadRelationInFromQuery = function(key, instance, nodeId, graph) {
+      var base;
+      if ((base = this.relationsIn)[key] == null) {
+        base[key] = new WeaverRelationIn(key);
+      }
+      return this.relationsIn[key].addSource(instance);
     };
 
     WeaverNode.prototype.load = function() {
@@ -106202,7 +106232,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Operation":411,"./Weaver":413,"./WeaverError":416,"./util":432,"bluebird":72,"cuid":126,"lodash":229}],425:[function(require,module,exports){
+},{"./Operation":411,"./Weaver":413,"./WeaverError":416,"./WeaverRelationIn":429,"./util":433,"bluebird":72,"cuid":126,"lodash":229}],425:[function(require,module,exports){
 (function() {
   var Weaver, WeaverPlugin, fs, ss,
     slice = [].slice;
@@ -106540,6 +106570,7 @@ module.exports={
       this._select = void 0;
       this._selectRelations = void 0;
       this._selectOut = [];
+      this._selectIn = void 0;
       this._selectRecursiveOut = [];
       this._recursiveConditions = [];
       this._alwaysLoadRelations = [];
@@ -106983,6 +107014,16 @@ module.exports={
       return this;
     };
 
+    WeaverQuery.prototype.selectIn = function() {
+      var relationKeys;
+      relationKeys = 1 <= arguments.length ? slice.call(arguments, 0) : [];
+      if (this._selectIn == null) {
+        this._selectIn = [];
+      }
+      this._selectIn.push(relationKeys);
+      return this;
+    };
+
     WeaverQuery.prototype.findExistingNodes = function(nodes) {
       var map;
       map = {};
@@ -107117,7 +107158,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Weaver":413,"./util":432,"circular-json":112,"lodash":229}],428:[function(require,module,exports){
+},{"./Weaver":413,"./util":433,"circular-json":112,"lodash":229}],428:[function(require,module,exports){
 (function() {
   var Operation, Weaver, WeaverRelation, cuid,
     slice = [].slice;
@@ -107292,6 +107333,40 @@ module.exports={
 
 },{"./Operation":411,"./Weaver":413,"cuid":126}],429:[function(require,module,exports){
 (function() {
+  var Weaver, WeaverRelationIn, cuid;
+
+  cuid = require('cuid');
+
+  Weaver = require('./Weaver');
+
+  WeaverRelationIn = (function() {
+    function WeaverRelationIn(key) {
+      this.key = key;
+      this.nodes = [];
+    }
+
+    WeaverRelationIn.prototype.all = function() {
+      return this.nodes;
+    };
+
+    WeaverRelationIn.prototype.first = function() {
+      return this.all()[0];
+    };
+
+    WeaverRelationIn.prototype.addSource = function(node) {
+      return this.nodes.push(node);
+    };
+
+    return WeaverRelationIn;
+
+  })();
+
+  module.exports = WeaverRelationIn;
+
+}).call(this);
+
+},{"./Weaver":413,"cuid":126}],430:[function(require,module,exports){
+(function() {
   var Operation, Weaver, WeaverNode, WeaverRelationNode, cuid,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
@@ -107337,7 +107412,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Operation":411,"./Weaver":413,"./WeaverNode":424,"cuid":126}],430:[function(require,module,exports){
+},{"./Operation":411,"./Weaver":413,"./WeaverNode":424,"cuid":126}],431:[function(require,module,exports){
 (function() {
   var Weaver, WeaverRole, cuid;
 
@@ -107460,7 +107535,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Weaver":413,"cuid":126}],431:[function(require,module,exports){
+},{"./Weaver":413,"cuid":126}],432:[function(require,module,exports){
 (function() {
   var Promise, Weaver, WeaverUser, cuid;
 
@@ -107606,7 +107681,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Weaver":413,"bluebird":72,"cuid":126}],432:[function(require,module,exports){
+},{"./Weaver":413,"bluebird":72,"cuid":126}],433:[function(require,module,exports){
 (function() {
   var flatten, typeShouldBe;
 
