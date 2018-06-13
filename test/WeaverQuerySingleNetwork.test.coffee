@@ -365,3 +365,14 @@ describe 'WeaverQuery with single Network', ->
       expect(f).to.have.property('relationsIn').to.have.property('drives').to.have.property('nodes')
 
     )
+
+  it 'should support multiple same level selectIns', ->
+    new Weaver.Query()
+    .restrict(vettel.id())
+    .selectIn('beats')
+    .selectIn('isTeamMateOf')
+    .find()
+    .then((nodes) ->
+      expect(nodes[0].relationsIn).to.have.property('beats').to.have.property('nodes').to.have.length.be(1)
+      expect(nodes[0].relationsIn).to.have.property('isTeamMateOf').to.have.property('nodes').to.have.length.be(1)
+    )
