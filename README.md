@@ -599,11 +599,34 @@ Weaver.Node.load('hello-weaver')
 ##### Extra loading instructions
 ```coffeescript
   Weaver.Query.prototype.selectOut(relationKeys...)
-  # As above, but will recursively load
+  # Will fully load outgoing relations with a relation key matching any one of the passed arguments
 ```
 ```coffeescript
   Weaver.Query.prototype.selectRecursiveOut(relationKeys...)
-  # Will fully load outgoing relations with a relation key matching any one of the passed arguments
+  # As above, but will recursively load
+```
+```coffeescript
+  Weaver.Query.prototype.selectIn(relationKeys...)
+  # Will fully load incoming relations with a relation key matching any one of the passed arguments.
+  # The incoming relations become part of the _relationsIn_ member of the
+  # loaded nodes.
+  nodes[0].relationsIn['relationKey'].nodes
+  # If multiple relationKeys are specified in the same call, it will follow
+  # path along incoming relations. so a call with ('key1', 'key2') will load
+  # nodes with a 'key1' relation to a query result node, and then nodes with
+  # a 'key2' relation to the additionally loaded nodes. Nodes with a 'key2'
+  # relation to the original result node will not be loaded.
+  #
+  # To load nodes with different relations in to a query result node, use
+  # multiple selectIn calls.
+```
+```coffeescript
+  Weaver.Query.prototype.select(attributeKeys...)
+  # Will restrict the attributes of loaded nodes to those specified
+```
+```coffeescript
+  Weaver.Query.prototype.selectRelations(relationKeys...)
+  # Will restrict the relations of loaded nodes to those specified
 ```
 ##### Nesting queries / FOAF
 Any query which contains a node as an argument may instead be passed a nested query.
@@ -811,7 +834,7 @@ Use a [weaver sdk](https://github.com/weaverplatform/weaver-sdk-js) to reference
 ```coffee
 Weaver.Plugin.load('cloud-sync-service')
 .then((cloudSync) ->
-  cloudSync.myNewFunctionality()        
+  cloudSync.myNewFunctionality()
 )
 ```
 

@@ -348,3 +348,31 @@ describe 'WeaverQuery with single Network', ->
     ]).then((counts) ->
       expect(counts[0]).to.equal(counts[1])
     )
+
+  it 'should support selectIn', ->
+    new Weaver.Query().restrict(ferrari.id()).selectIn('drives').find().then((nodes) ->
+      expect(nodes).to.have.length.be(1)
+      expect(nodes[0]).to.have.property('relationsIn')
+      expect(nodes[0].relationsIn).to.have.property('drives')
+      expect(node.id() for node in nodes[0].relationsIn['drives'].nodes).to.have.members([ vettel.id(), raikonnen.id()])
+    )
+
+  it 'should support path selectIn', ->
+    new Weaver.Query().restrict(pirelli.id()).selectIn('hasTires', 'drives').find().then((nodes) ->
+      expect(nodes).to.have.length.be(1)
+      expect(nodes[0]).to.have.property('relationsIn').to.have.property('hasTires').to.have.property('nodes').to.have.length.be(1)
+      f = nodes[0].relationsIn['hasTires'].nodes[0]
+      expect(f).to.have.property('relationsIn').to.have.property('drives').to.have.property('nodes')
+
+    )
+
+  it 'should support multiple same level selectIns', ->
+    new Weaver.Query()
+    .restrict(vettel.id())
+    .selectIn('beats')
+    .selectIn('isTeamMateOf')
+    .find()
+    .then((nodes) ->
+      expect(nodes[0].relationsIn).to.have.property('beats').to.have.property('nodes').to.have.length.be(1)
+      expect(nodes[0].relationsIn).to.have.property('isTeamMateOf').to.have.property('nodes').to.have.length.be(1)
+    )
