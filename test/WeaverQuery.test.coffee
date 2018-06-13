@@ -984,10 +984,10 @@ describe 'WeaverQuery Test', ->
     )
 
 
-  it.skip 'should load in some secondary nodes with "selectIn"', ->
-    a = new Weaver.Node('a')
-    b = new Weaver.Node('b')
-    c = new Weaver.Node('c')
+  it 'should load in some secondary nodes with "selectIn"', ->
+    a = new Weaver.Node()
+    b = new Weaver.Node()
+    c = new Weaver.Node()
 
     a.relation('test').add(b)
     b.relation('link').add(c)
@@ -999,28 +999,29 @@ describe 'WeaverQuery Test', ->
       .selectIn('test')
       .find().then((nodes)->
         expect(nodes.length).to.equal(1)
-        checkNodeInResult(nodes, 'b')
-        expect(nodes[0].relationIn('test').nodes[a].get('name')).to.equal('alpha')
+        checkNodeInResult(nodes, b.id())
+        expect(nodes[0].relationsIn['test'].nodes).to.have.length.be(1)
+        expect(nodes[0].relationsIn['test'].nodes[0].id()).to.equal(a.id())
       )
     )
 
-  it.skip 'should ensure that nodes are not excluded based on the  "selectIn" flag', ->
-    a = new Weaver.Node('a')
-    b = new Weaver.Node('b')
-    c = new Weaver.Node('c')
-    d = new Weaver.Node('d')
+  it 'should ensure that nodes are not excluded based on the  "selectIn" flag', ->
+    a = new Weaver.Node()
+    b = new Weaver.Node()
+    c = new Weaver.Node()
+    d = new Weaver.Node()
     a.relation('test').add(b)
-    b.relation('link').add(c)
-    c.relation('link').add(d)
+    b.relation('link1234').add(c)
+    c.relation('link1234').add(d)
 
     a.save().then(->
       new Weaver.Query()
-      .hasRelationOut('link')
+      .hasRelationOut('link1234')
       .selectIn('test')
       .find().then((nodes)->
         expect(nodes.length).to.equal(2)
-        checkNodeInResult(nodes, 'b')
-        checkNodeInResult(nodes, 'c')
+        checkNodeInResult(nodes, b.id())
+        checkNodeInResult(nodes, c.id())
       )
     )
 

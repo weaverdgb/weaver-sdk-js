@@ -1,5 +1,9 @@
 # Changelist
 
+## 8.3.0
+- Adds the selectIn method on WeaverQuery, which allows you to load any
+  incomming relations if they are present.
+
 ## 8.2.1
 - Mention id and graph of node not found message.
 

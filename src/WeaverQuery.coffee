@@ -24,6 +24,7 @@ class WeaverQuery
     @_select             = undefined
     @_selectRelations    = undefined
     @_selectOut          = []
+    @_selectIn           = undefined
     @_selectRecursiveOut = []
     @_recursiveConditions= []
     @_alwaysLoadRelations= []
@@ -328,6 +329,11 @@ class WeaverQuery
 
   selectOut: (relationKeys...) ->
     @_selectOut.push(relationKeys)
+    @
+
+  selectIn: (relationKeys...) ->
+    @_selectIn = [] if !@_selectIn?
+    @_selectIn.push(relationKeys)
     @
 
   findExistingNodes: (nodes) ->
