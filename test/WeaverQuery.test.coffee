@@ -244,6 +244,12 @@ describe 'WeaverQuery Test', ->
         checkNodeInResult(nodes, 'c')
       )
 
+    it 'should handle edge case relOut, noRelIn query', ->
+      # use case: find all grandchildren who do not have children of their own
+      expect(new Weaver.Query()
+      .hasRelationOut('a', new Weaver.Query().hasRelationOut('a'))
+      .hasNoRelationIn('a').find()).to.not.throw()
+
     it 'should do specific relation hasNoRelationIn with id argument', ->
       new Weaver.Query()
       .noRelations()
