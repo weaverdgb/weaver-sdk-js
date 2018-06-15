@@ -829,6 +829,33 @@ describe 'WeaverQuery Test', ->
         expect(nodes[0].relation('rec').nodes[0].relation('rec').nodes[0].relation('rec').nodes[0].relation('rec').nodes[0].get('name')).to.equal("toprec")
       )
 
+    it 'should support recursive selectOut (where some results are the selectOut-ees of other results)', ->
+      a = new Weaver.Node('a')
+      b = new Weaver.Node('b')
+      c = new Weaver.Node('c')
+      d = new Weaver.Node('d')
+      e = new Weaver.Node('e')
+      a.relation('selector').add(b)
+      b.relation('selector').add(c)
+      c.relation('selector').add(d)
+      d.relation('selector').add(e)
+      e.relation('selector').add(a)
+      a.relation('rec').add(b)
+      b.relation('rec').add(c)
+      c.relation('rec').add(d)
+      d.relation('rec').add(e)
+      e.set('name', 'toprec')
+      a.save().then( ->
+        new Weaver.Query()
+        .hasRelationOut('selector')
+        .selectRecursiveOut('rec')
+        .find()
+      ).then((nodes) ->
+        for node in nodes
+          if node.id() is 'a'
+            expect(node.relation('rec').first().relation('rec').first().relation('rec').first().relation('rec').first().get('name')).to.equal("toprec")
+      )
+
     it 'should support multiple recursive selectOut relations', ->
       a = new Weaver.Node('a')
       b = new Weaver.Node('b')
