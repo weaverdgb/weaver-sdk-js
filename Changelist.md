@@ -1,5 +1,8 @@
 # Changelist
 
+## Develop
+- Add createdAt and createdBy methods to weaver node.
+
 ## 8.3.0
 - Adds the selectIn method on WeaverQuery, which allows you to load any
   incomming relations if they are present.
