@@ -22,7 +22,7 @@ class WeaverNode
     # All operations that need to get saved
     @pendingWrites = [Operation.Node(@).createNode()]
     @_createdAt = @pendingWrites[0].timestamp
-    @_createdBy = Weaver.getInstance().currentUser()?.userId
+    @_createdBy = Weaver.instance?.currentUser()?.userId
 
     Weaver.publish('node.created', @)
 

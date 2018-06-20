@@ -1026,23 +1026,23 @@ describe 'WeaverNode test', ->
       Weaver.instance = instance
 
   it 'should retrieve the createdAt field from a node', ->
-    node = new Weaver.Node('test')
+    node = new Weaver.Node('test-createdAt')
 
     expect(node.createdAt()).to.be.defined
 
     node.save().then(->
-      Weaver.Node.load('test')
+      Weaver.Node.load('test-createdAt')
     ).then((savedNode) ->
       expect(savedNode.createdAt()).to.be.defined
     )
 
   it 'should retrieve the createdBy field from a node', ->
-    node = new Weaver.Node('test')
+    node = new Weaver.Node('test-createdBy')
 
     expect(node.createdBy()).to.be.defined
 
     node.save().then(->
-      Weaver.Node.load('test')
+      Weaver.Node.load('test-createdBy')
     ).then((savedNode) ->
       expect(savedNode.createdBy()).to.be.defined
     )
