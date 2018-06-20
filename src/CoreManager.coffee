@@ -271,8 +271,9 @@ class CoreManager
     @POST("query", {query, unparsed: true}, target).then((res) ->
       try
         JSON.parse(res)
-      catch
+      catch err
         console.error(res)
+        Promise.reject(err)
     )
 
   nativeQuery: (query, target) ->
