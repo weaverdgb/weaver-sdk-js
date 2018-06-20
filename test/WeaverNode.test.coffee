@@ -113,7 +113,7 @@ describe 'WeaverNode test', ->
   it 'should mention id in not found error', ->
     Weaver.Node.load('non:existant')
     .should.eventually.be.rejected.and.has.property('message', 'Node ["non:existant"] not found in [null]')
-  
+
   it 'should set a new string attribute', ->
     node = new Weaver.Node()
 
@@ -1024,6 +1024,28 @@ describe 'WeaverNode test', ->
       expect(operations).to.have.length(2)
     finally
       Weaver.instance = instance
+
+  it 'should retrieve the createdAt field from a node', ->
+    node = new Weaver.Node('test-createdAt')
+
+    expect(node.createdAt()).to.be.defined
+
+    node.save().then(->
+      Weaver.Node.load('test-createdAt')
+    ).then((savedNode) ->
+      expect(savedNode.createdAt()).to.be.defined
+    )
+
+  it 'should retrieve the createdBy field from a node', ->
+    node = new Weaver.Node('test-createdBy')
+
+    expect(node.createdBy()).to.be.defined
+
+    node.save().then(->
+      Weaver.Node.load('test-createdBy')
+    ).then((savedNode) ->
+      expect(savedNode.createdBy()).to.be.defined
+    )
 
   describe 'equals', ->
     check = (node1id, node1graph, node2id, node2graph) ->

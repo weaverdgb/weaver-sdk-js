@@ -21,6 +21,8 @@ class WeaverNode
 
     # All operations that need to get saved
     @pendingWrites = [Operation.Node(@).createNode()]
+    @_createdAt = @pendingWrites[0].timestamp
+    @_createdBy = Weaver.instance?.currentUser()?.userId
 
     Weaver.publish('node.created', @)
 
@@ -68,6 +70,8 @@ class WeaverNode
 
     @_attributes = object.attributes
     @_loaded    = object.creator? && fullyLoaded
+    @_createdAt = object.created
+    @_createdBy = object.creator
 
     for key, relations of object.relationsIn
       for relation in relations
@@ -377,7 +381,6 @@ class WeaverNode
     cm.enqueue(=>
       cm.executeOperations((_.omit(i, "__pendingOpNode") for i in writes), project).then(=>
         Weaver.publish('node.saved', i.__pendingOpNode) for i in writes
-
         @_setStored()
         @
       ).catch((e) =>
@@ -459,6 +462,12 @@ class WeaverNode
 
   equals: (node) ->
     node instanceof WeaverNode and node.id() is @id() and node.getGraph() is @getGraph()
+
+  createdAt: ->
+    @_createdAt
+
+  createdBy: ->
+    @_createdBy
 
 # Export
 module.exports = WeaverNode
