@@ -28,6 +28,8 @@ class CoreManager
     @commController = new SocketController(endpoint, @options)
     @commController.connect()
 
+  disconnect: ->
+    @commController.disconnect()
 
   local: (routes) ->
     @commController = new LocalController(routes)
@@ -77,8 +79,12 @@ class CoreManager
 #  serverVersion: ->
 #    @POST('application.version')
 
-  cloneNode: (sourceId, targetId = cuid(), relationsToTraverse) ->
-    @POST('node.clone', { sourceId, targetId, relationsToTraverse})
+  cloneNode: (sourceId, targetId = cuid(), relationsToTraverse, sourceGraph, targetGraph) ->
+    targetGraph = sourceGraph if !targetGraph?
+    @POST('node.clone', {sourceId, sourceGraph, targetId, targetGraph, relationsToTraverse})
+
+  findExistingNodes: (nodes) ->
+    @POST('findExistingNodes', {nodes})
 
   serverVersion: ->
     @GET("application.version")
@@ -115,12 +121,15 @@ class CoreManager
     )
 
   executePluginFunction: (route, payload) ->
-    @POST(route, payload)
+    @STREAM(route, payload)
 
   getModel: (name, version) ->
     @POST("model.read", {name, version}).then((model) ->
       new Weaver.Model(model)
     )
+
+  listModels: ->
+    @GET("model.list")
 
   reloadModel: (name, version) ->
     @POST("model.reload", {name, version}).then((model) ->
@@ -201,14 +210,20 @@ class CoreManager
   freezeProject: (id) ->
     @GET("project.freeze", {id}, id)
 
+  isFrozenProject: (id) ->
+    @GET("project.isfrozen", {id}, id)
+
   unfreezeProject: (id) ->
     @GET("project.unfreeze", {id}, id)
 
-  addApp: (id, app) ->
-    @GET("project.app.add", {id, app}, id)
+  addProjectMetadata: (id, bundleKey, key, data) ->
+    @POST("project.metadata.add", {id, bundleKey, key, data}, id)
 
-  removeApp: (id, app) ->
-    @GET("project.app.remove", {id, app}, id)
+  removeProjectMetadata: (id, bundleKey, key) ->
+    @POST("project.metadata.remove", {id, bundleKey, key}, id)
+
+  getProjectMetadata: (id, bundleKey, key) ->
+    @GET("project.metadata.get", {id, bundleKey, key}, id)
 
   cloneProject: (id, clone_id, name) ->
     @POST("project.clone", {id: clone_id, name}, id)
@@ -228,8 +243,14 @@ class CoreManager
   dumpHistory: (payload, target)->
     @GET('history', payload, target)
 
-  snapshotProject: (target, zipped)->
-    @GET('snapshot', {zipped}, target)
+  snapshotProject: (target, json, zipped, stored)->
+    @GET('snapshot', {json, zipped, stored}, target)
+
+  snapshotProjectGraph: (target, graphs, fromGraphs, toGraphs, json, zipped, stored)->
+    @GET('snapshotGraph', {graphs, fromGraphs, toGraphs, json, zipped, stored}, target)
+
+  redirectGraph: (target, sourceGraph, oldTargetGraph, newTargetGraph, dryrun, performPartial) ->
+    @POST('graph.redirect', {sourceGraph, oldTargetGraph, newTargetGraph, dryrun, performPartial}, target)
 
   wipeProject: (target)->
     @POST('project.wipe', {}, target)
@@ -244,11 +265,12 @@ class CoreManager
     @POST('users.wipe', {}, target)
 
   query: (query) ->
-    # Remove target
     target = query.target
-    query  = _.omit(query, ['target', 'useConstructorFunction'])
+    query  = _.omit(query, ['model', 'target', 'constructorFunction'])
 
-    @POST("query", {query}, target)
+    @POST("query", {query, unparsed: true}, target).then((res) ->
+      JSON.parse(res)
+    )
 
   nativeQuery: (query, target) ->
     @POST("query.native", {query}, target)
@@ -295,6 +317,9 @@ class CoreManager
 
   deleteFile: (fileId) ->
     @POST("file.delete", {fileId})
+
+  cleanup: ->
+    @GET("cleanup")
 
   enqueue: (functionToEnqueue) ->
     op = @operationsQueue.then(->

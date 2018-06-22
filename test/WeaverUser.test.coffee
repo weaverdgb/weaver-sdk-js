@@ -28,6 +28,36 @@ describe 'WeaverUser Test', ->
       (i.username for i in users)
     ).should.eventually.eql(['in-project', 'in-project2'])
 
+  it 'should be able to change a users password as the user', ->
+    testUser = new Weaver.User('passwordChangeUser1', 'tests123', 'test@example.com')
+    testUser.create().then( ->
+      weaver.signInWithUsername('passwordChangeUser1', 'tests123')
+    ).then( ->
+      testUser.changePassword('newpassword')
+    )
+
+  it 'should be able to change a users password as admin', ->
+    testUser = new Weaver.User('passwordChangeUser', 'tests123', 'test@example.com')
+    testUser.create().then( ->
+      testUser.changePassword('newpassword')
+    )
+
+  it 'should be able to update a user as the user', ->
+    testUser = new Weaver.User('updateUser2', 'tests123', 'test@example.com')
+    testUser.create().then( ->
+      weaver.signInWithUsername('updateUser2', 'tests123')
+    ).then( ->
+      testUser.email = 'test@yup.com'
+      testUser.save()
+    )
+
+
+  it 'should be able to update a user as admin', ->
+    testUser = new Weaver.User('updateUser', 'tests123', 'test@example.com')
+    testUser.create().then( ->
+      testUser.email = 'test@yup.com'
+      testUser.save()
+    )
 
   it 'should sign up a user', (done) ->
     username = cuid()
@@ -100,26 +130,21 @@ describe 'WeaverUser Test', ->
 
 
 
-  it 'should sign out a user', (done) ->
+  it 'should sign out a user', ->
     weaver.signOut().then( ->
       # Writing is now not permitted
       node = new Weaver.Node()
       node.save()
-    ).catch((error) ->
-      # TODO: Assert error code
-      done()
-    )
-    return
+    ).should.be.rejectedWith(Weaver.Error.OTHER_CAUSE)
 
-
-  it 'should sign in the session if token is saved', ->
+  it.skip 'should sign in the session if token is saved', ->
     # TODO: Perhaps localforage is better for this instead of loki
     return
 
-  it 'should create a user without signing in', ->
+  it.skip 'should create a user without signing in', ->
     return
 
-  it 'should fail to login with incorrect username', (done) ->
+  it 'should fail to login with incorrect username', ->
     username = cuid()
     password = cuid()
     user     = new Weaver.User(username, password, "centaurus@univer.se")
@@ -131,15 +156,9 @@ describe 'WeaverUser Test', ->
     ).then(->
       # Sign in
       weaver.signInWithUsername('username', password)
-    ).catch((err) ->
-      # TODO: Assert error code
-      # assert.equal(err.code, Weaver.Error.USERNAME_NOT_FOUND)
+    ).should.be.rejectedWith(Weaver.Error.INVALID_USERNAME_PASSWORD)
 
-      done()
-    )
-    return
-
-  it 'should fail to login with incorrect password', (done) ->
+  it 'should fail to login with incorrect password', ->
     username = cuid()
     password = cuid()
     user     = new Weaver.User(username, password, "centaurus@univer.se")
@@ -151,41 +170,24 @@ describe 'WeaverUser Test', ->
     ).then(->
       # Sign in
       weaver.signInWithUsername(username, 'password')
-    ).catch((err) ->
-      # TODO: Assert error code
-      done()
-    )
-    return
+    ).should.be.rejectedWith(Weaver.Error.INVALID_USERNAME_PASSWORD)
 
-  it 'should fail to login with non valid token', (done) ->
+  it 'should fail to login with non valid token', ->
     weaver.signOut().then(->
       weaver.signInWithToken('some invalid token')
-    ).then((user) ->
-      assert(false)
-    ).catch((err) ->
-      done()
-    )
-    return
+    ).should.be.rejectedWith(Weaver.Error.INVALID_SESSION_TOKEN)
 
-  it 'should fail to login with non existing user', (done) ->
+  it 'should fail to login with non existing user', ->
     weaver.signOut().then(->
       # Sign in
       weaver.signInWithUsername('username', 'password')
-    ).catch((err) ->
-      # TODO: Assert error code
-      done()
-    )
-    return
+    ).should.be.rejectedWith(Weaver.Error.INVALID_USERNAME_PASSWORD)
 
-  it 'should fail to login with NoSQL injection', (done) ->
+  it 'should fail to login with NoSQL injection', ->
     weaver.signOut().then(->
       # Sign in
       weaver.signInWithUsername({"username": {"$regex": ["a?special-user","i"]}}, 'password')
-    ).catch((err) ->
-      # TODO: Assert error code
-      done()
-    )
-    return
+    ).should.be.rejectedWith(Weaver.Error.INVALID_USERNAME_PASSWORD)
 
   it 'should sign in a user with valid alphanumeric characters and - _', ->
     username = 'fo_0-B4r'
@@ -202,32 +204,24 @@ describe 'WeaverUser Test', ->
     weaver.signOut().then(->
       # Sign in
       weaver.signInWithUsername('', 'password')
-    ).catch((err) ->
-      assert.isTrue(err.toString().startsWith("Error: Username not valid"))
-    )
+    ).should.be.rejectedWith(Weaver.Error.INVALID_USERNAME_PASSWORD)
 
   it 'should fail to login with blanck string as username', ->
     weaver.signOut().then(->
       weaver.signInWithUsername('        ', 'password')
-    ).catch((err) ->
-      assert.isTrue(err.toString().startsWith("Error: Username not valid"))
-    )
+    ).should.be.rejectedWith(Weaver.Error.INVALID_USERNAME_PASSWORD)
 
   it 'should fail to login with non alphanumeric characters for username but - _', ->
     weaver.signOut().then(->
       # Sign in
       weaver.signInWithUsername('foo*bar', 'password')
-    ).catch((err) ->
-      assert.isTrue(err.toString().startsWith("Error: Username not valid"))
-    )
+    ).should.be.rejectedWith(Weaver.Error.INVALID_USERNAME_PASSWORD)
 
   it 'should fail to login with NoSQL injection', ->
     weaver.signOut().then(->
       # Sign in
       weaver.signInWithUsername({"username": {"$regex": ["a?special-user","i"]}}, 'password')
-    ).catch((err) ->
-      assert.isTrue(err.toString().startsWith("Error: Username not valid"))
-    )
+    ).should.be.rejectedWith(Weaver.Error.INVALID_USERNAME_PASSWORD)
 
   it 'should list all users', ->
     Promise.map([
@@ -326,6 +320,26 @@ describe 'WeaverUser Test', ->
       assert.fail()
     ).catch((err) ->
       expect(err).to.have.property('message').match(/Permission denied/)
+    )
+
+  it 'should not load a role which doesnt exist', ->
+    r1 = new Weaver.Role('role1')
+    r2 = new Weaver.Role('role2')
+    r3 = new Weaver.Role('role3')
+
+    u = new Weaver.User('abcdef', '123456', 'ghe')
+    u.create().then(->
+
+      r1.addUser(u)
+      r2.addUser(u)
+
+      Promise.map([r1,r2,r3], (r) -> r.save())
+    ).then(->
+      r1.destroy()
+      u.getRoles()
+    ).then((roles) ->
+      assert.equal(roles.length, 1)
+      assert.equal(roles[0].roleId, r2.id())
     )
 
   it.skip 'should create a new project by default on private ACL', (done) ->

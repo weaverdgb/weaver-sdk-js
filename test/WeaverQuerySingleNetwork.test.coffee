@@ -15,7 +15,14 @@ describe 'WeaverQuery with single Network', ->
   wheel            = new Weaver.Node()
   pirelli          = new Weaver.Node()
   vettel           = new Weaver.Node()
+  raikonnen        = new Weaver.Node()
   hamilton         = new Weaver.Node()
+
+  king             = new Weaver.Node(undefined, 'feudal')
+  duke             = new Weaver.Node(undefined, 'feudal')
+  serf             = new Weaver.Node(undefined, 'feudal')
+  serf.relation('isSubjectTo').add(duke)
+  duke.relation('isSubjectTo').add(king)
 
   tree.set('testset', '1')
 
@@ -48,13 +55,27 @@ describe 'WeaverQuery with single Network', ->
   vettel.set('testset', '2')
   vettel.relation('drives').add(ferrari)
 
+  raikonnen.set('testset', '2')
+  raikonnen.relation('drives').add(ferrari)
+
+  vettel.relation('isTeamMateOf').add(raikonnen)
+  raikonnen.relation('isTeamMateOf').add(vettel)
+
   hamilton.set('testset', '2')
   vettel.relation('beats').add(hamilton)
   hamilton.relation('beats').add(vettel)
 
+
   before ->
     wipeCurrentProject().then( ->
-      Promise.all([vettel.save(), garden.save()])
+      Promise.all([vettel.save(), garden.save(), serf.save()])
+    )
+
+  it 'should do hasRelationOut correctly', ->
+    new Weaver.Query()
+    .hasRelationOut('is-a', car)
+    .find().then((nodes) ->
+      expect(i.id() for i in nodes).to.eql([ ferrari.id() ])
     )
 
   it 'should support wildcard with nested Weaver.Query values', ->
@@ -62,7 +83,7 @@ describe 'WeaverQuery with single Network', ->
     new Weaver.Query()
     .hasRelationIn('*', new Weaver.Query().hasRelationOut('is-a', car))
     .find().then((nodes) ->
-      expect(i.id() for i in nodes).to.eql([ car.id(), pirelli.id() ])
+      expect(i.id() for i in nodes).to.have.members([ car.id(), pirelli.id() ])
     )
 
   it 'should support wildcard relation hasRelationOut', ->
@@ -99,6 +120,26 @@ describe 'WeaverQuery with single Network', ->
       checkNodeInResult(nodes, garden.id())
     )
 
+  it 'should support empty selectRelations', ->
+    new Weaver.Query()
+    .equalTo('testset', '2')
+    .restrict(raikonnen.id())
+    .selectRelations()
+    .find().then((nodes) ->
+      expect(nodes[0].relations()).to.not.have.property('drives')
+      expect(nodes[0]).to.have.property('_loaded').equal(false)
+    )
+
+  it 'should support selectRelation', ->
+    new Weaver.Query()
+    .equalTo('testset', '2')
+    .restrict(raikonnen.id())
+    .selectRelations('drives')
+    .find().then((nodes) ->
+      expect(nodes[0].relations()).to.not.have.property('isTeamMateOf')
+      expect(nodes[0].relations()).to.have.property('drives')
+    )
+
   it 'should support find() after count()', ->
     q = new Weaver.Query().equalTo('testset', '1')
 
@@ -111,8 +152,8 @@ describe 'WeaverQuery with single Network', ->
     .equalTo('theme', 'forest')
     .select('name').find().then((result) ->
       expect(result).to.have.length.be(1)
-      expect(result[0]).to.have.property('attributes').to.have.property('name')
-      expect(result[0]).to.have.property('attributes').to.not.have.property('theme')
+      expect(result[0].attributes()).to.have.property('name')
+      expect(result[0].attributes()).to.not.have.property('theme')
     )
 
   it 'should extend selects to selectOut nodes', ->
@@ -122,12 +163,12 @@ describe 'WeaverQuery with single Network', ->
     .selectOut('is-a').find().then((result)->
       expect(result).to.have.length.be(1)
       expect(result[0]).to.have.property('_loaded').equal(false)
-      expect(result[0]).to.have.property('relations').to.have.property('is-a')
-      types = result[0].relations['is-a'].all()
+      expect(result[0].relation('is-a').first()).to.be.defined
+      types = result[0].relation('is-a').all()
       expect(types).to.have.length.be(1)
       expect(types[0]).to.have.property('_loaded').equal(false)
-      expect(types[0]).to.have.property('attributes').to.have.property('description')
-      expect(types[0]).to.have.property('attributes').to.not.have.property('objectiveValue')
+      expect(types[0].attributes()).to.have.property('description')
+      expect(types[0].attributes()).to.not.have.property('objectiveValue')
     )
 
   it 'should extend selects to recursive select out nodes', ->
@@ -137,18 +178,18 @@ describe 'WeaverQuery with single Network', ->
     .selectRecursiveOut('is-a').find().then((result)->
       expect(result).to.have.length.be(1)
       expect(result[0]).to.have.property('_loaded').equal(false)
-      expect(result[0]).to.have.property('relations').to.have.property('is-a')
-      types = result[0].relations['is-a'].all()
+      expect(result[0].relation('is-a').first()).to.be.defined
+      types = result[0].relations()['is-a'].all()
       expect(types).to.have.length.be(1)
       expect(types[0]).to.have.property('_loaded').equal(false)
-      expect(types[0]).to.have.property('attributes').to.have.property('description')
-      expect(types[0]).to.have.property('attributes').to.not.have.property('objectiveValue')
-      expect(types[0]).to.have.property('relations').to.have.property('is-a')
-      parentTypes = result[0].relations['is-a'].all()
+      expect(types[0].attributes()).to.have.property('description')
+      expect(types[0].attributes()).to.not.have.property('objectiveValue')
+      expect(types[0].relation('is-a').first()).to.be.defined
+      parentTypes = result[0].relations()['is-a'].all()
       expect(parentTypes).to.have.length.be(1)
       expect(parentTypes[0]).to.have.property('_loaded').equal(false)
-      expect(parentTypes[0]).to.have.property('attributes').to.have.property('description')
-      expect(parentTypes[0]).to.have.property('attributes').to.not.have.property('could-be-electric')
+      expect(parentTypes[0].attributes()).to.have.property('description')
+      expect(parentTypes[0].attributes()).to.not.have.property('objectiveValue')
     )
 
   it 'should mark nodes loaded with a select as non-loaded', ->
@@ -163,20 +204,20 @@ describe 'WeaverQuery with single Network', ->
 
   it 'should mark nodes not loaded nodes as non-loaded', ->
     new Weaver.Query().restrict(ferrari.id()).find().then((res) ->
-      expect(res[0].relations['is-a'].all()[0]).to.have.property('_loaded').equal(false)
+      expect(res[0].relations()['is-a'].all()[0]).to.have.property('_loaded').equal(false)
     )
 
   it 'should mark selectOut nodes loaded without a select as loaded', ->
     new Weaver.Query().restrict(ferrari.id()).selectOut('is-a').find().then((res) ->
-      loadedCar = res[0].relations['is-a'].all()[0]
+      loadedCar = res[0].relations()['is-a'].all()[0]
       expect(loadedCar).to.have.property('_loaded').to.equal(true)
     )
 
   it 'should mark selectRecursiveOut nodes loaded without a select as loaded', ->
     new Weaver.Query().restrict(ferrari.id()).selectRecursiveOut('is-a').find().then((res) ->
-      loadedCar = res[0].relations['is-a'].all()[0]
+      loadedCar = res[0].relations()['is-a'].all()[0]
       expect(loadedCar).to.have.property('_loaded').to.equal(true)
-      loadedMotorizedVehicle = loadedCar.relations['is-a'].all()[0]
+      loadedMotorizedVehicle = loadedCar.relations()['is-a'].all()[0]
       expect(loadedMotorizedVehicle).to.have.property('_loaded').to.equal(true)
     )
 
@@ -189,50 +230,35 @@ describe 'WeaverQuery with single Network', ->
   it 'should support always including a relation of non-loaded relations', ->
     new Weaver.Query().alwaysLoadRelations('is-brand-of').restrict(ferrari.id()).find().then((nodes) ->
       expect(i.id() for i in nodes).to.eql([ferrari.id()])
-      expect(nodes[0])
-      .to.have.property('relations')
-      .to.have.property('hasTires')
-      .to.have.property('nodes')
-      .to.have.property(pirelli.id())
-      .to.have.property('relations')
-      .to.have.property('is-brand-of')
-      .to.have.property('nodes')
-      .to.have.property(wheel.id())
+      expect(nodes[0].relation('hasTires').all()).to.have.length.be(1)
+      assert.equal(nodes[0].relation('hasTires').first().id(), pirelli.id())
+      expect(nodes[0].relation('hasTires').first().relation('is-brand-of').all()).to.have.length.be(1)
+      assert.equal(nodes[0].relation('hasTires').first().relation('is-brand-of').first().id(), wheel.id())
     )
 
   it 'should support selectOut always including a relation of non-loaded relations', ->
     new Weaver.Query().selectOut('drives').alwaysLoadRelations('is-brand-of').restrict(vettel.id()).find().then((nodes) ->
       expect(i.id() for i in nodes).to.eql([vettel.id()])
-      expect(nodes[0])
-      .to.have.property('relations')
-      .to.have.property('drives')
-      .to.have.property('nodes')
-      .to.have.property(ferrari.id())
-      .to.have.property('relations')
-      .to.have.property('hasTires')
-      .to.have.property('nodes')
-      .to.have.property(pirelli.id())
-      .to.have.property('relations')
-      .to.have.property('is-brand-of')
-      .to.have.property('nodes')
-      .to.have.property(wheel.id())
+      assert.equal(nodes[0].relation('drives').first().id(), ferrari.id())
+      assert.equal(nodes[0].relation('drives').first().relation('hasTires').first().id(), pirelli.id())
+      assert.equal(nodes[0].relation('drives').first().relation('hasTires').first().relation('is-brand-of').first().id(), wheel.id())
     )
 
   it 'should allow hasRecursiveRelationOut not including self', ->
     new Weaver.Query().hasRecursiveRelationOut('is-a', motorizedVehicle.id()).find().then((nodes) ->
       expect(i.id() for i in nodes).to.have.members([ car.id(), ferrari.id()])
     )
-  
+
   it 'should allow hasRecursiveRelationOut including self', ->
     new Weaver.Query().hasRecursiveRelationOut('is-a', motorizedVehicle, true).find().then((nodes) ->
       expect(i.id() for i in nodes).to.have.members([ car.id(), ferrari.id(), motorizedVehicle.id()])
     )
-    
+
   it 'should allow hasRecursiveRelationIn not including self', ->
     new Weaver.Query().hasRecursiveRelationIn('is-a', ferrari.id()).find().then((nodes) ->
       expect(i.id() for i in nodes).to.have.members([ car.id(), motorizedVehicle.id()])
     )
-  
+
   it 'should allow hasRecursiveRelationIn including self', ->
     new Weaver.Query().hasRecursiveRelationIn('is-a', ferrari, true).find().then((nodes) ->
       expect(i.id() for i in nodes).to.have.members([ car.id(), ferrari.id(), motorizedVehicle.id()])
@@ -245,7 +271,7 @@ describe 'WeaverQuery with single Network', ->
     .find().then((nodes) ->
       expect(i.id() for i in nodes).to.not.have.members([ ferrari.id(), car.id() ])
     )
-  
+
   it 'should allow hasNoRecursiveRelationOut including self', ->
     new Weaver.Query()
     .equalTo('testset', '2')
@@ -253,7 +279,7 @@ describe 'WeaverQuery with single Network', ->
     .find().then((nodes) ->
       expect(i.id() for i in nodes).to.not.have.members([ motorizedVehicle.id(), ferrari.id(), car.id() ])
     )
-  
+
   it 'should allow hasNoRecursiveRelationIn not including self', ->
     new Weaver.Query()
     .equalTo('testset', '2')
@@ -261,11 +287,92 @@ describe 'WeaverQuery with single Network', ->
     .find().then((nodes) ->
       expect(i.id() for i in nodes).to.not.have.members([ motorizedVehicle.id(), car.id() ])
     )
-  
+
   it 'should allow hasNoRecursiveRelationIn including self', ->
     new Weaver.Query()
     .equalTo('testset', '2')
     .hasNoRecursiveRelationIn('is-a', ferrari, true)
     .find().then((nodes) ->
       expect(i.id() for i in nodes).to.not.have.members([ motorizedVehicle.id(), ferrari.id(), car.id() ])
+    )
+
+  it 'should support exists queries', ->
+    new Weaver.Query()
+      .equalTo('testset', '2')
+      .exists('objectiveValue')
+      .find().then((nodes) ->
+        expect(i.id() for i in nodes).to.eql([ car.id() ])
+      )
+
+  it 'should support not exists queries', ->
+    new Weaver.Query()
+      .equalTo('testset', '1')
+      .doesNotExist('theme')
+      .find().then((nodes) ->
+        expect(i.id() for i in nodes).to.eql([ tree.id() ])
+      )
+
+  it 'should support graph alwaysLoadRelationOut', ->
+    r = 'isSubjectTo'
+    new Weaver.Query()
+      .restrict(serf.id())
+      .alwaysLoadRelations(r)
+      .first().then((s) ->
+        #First level should be there
+        expect(s.relation(r).all()).to.have.length.be(1)
+        # Second too
+        expect(s.relation(r).first().relation(r).all()).to.have.length.be(1)
+
+        # Check that graphs are preserved
+        expect(s.relation(r).first().relation(r).first().getGraph()).to.equal('feudal')
+      )
+
+  it 'should have count and res.length be equal', ->
+    q = new Weaver.Query()
+    Promise.all([
+      q.find().then((res) ->
+        res.length
+      ),
+      q.count()
+    ]).then((counts) ->
+      expect(counts[0]).to.equal(counts[1])
+    )
+
+  it 'should have hasRelationOut count and res.length be equal', ->
+    q = new Weaver.Query().hasRelationOut("*", vettel, raikonnen, ferrari)
+    Promise.all([
+      q.find().then((res) ->
+        res.length
+      ),
+      q.count()
+    ]).then((counts) ->
+      expect(counts[0]).to.equal(counts[1])
+    )
+
+  it 'should support selectIn', ->
+    new Weaver.Query().restrict(ferrari.id()).selectIn('drives').find().then((nodes) ->
+      expect(nodes).to.have.length.be(1)
+      expect(nodes[0]).to.have.property('relationsIn')
+      expect(nodes[0].relationsIn).to.have.property('drives')
+      expect(node.id() for node in nodes[0].relationsIn['drives'].nodes).to.have.members([ vettel.id(), raikonnen.id()])
+    )
+
+  it 'should support path selectIn', ->
+    new Weaver.Query().restrict(pirelli.id()).selectIn('hasTires', 'drives').find().then((nodes) ->
+      expect(nodes).to.have.length.be(1)
+      expect(nodes[0]).to.have.property('relationsIn').to.have.property('hasTires').to.have.property('nodes').to.have.length.be(1)
+      f = nodes[0].relationsIn['hasTires'].nodes[0]
+      expect(f).to.have.property('relationsIn').to.have.property('drives').to.have.property('nodes')
+
+    )
+
+  it 'should support multiple same level selectIns', ->
+    new Weaver.Query()
+    .restrict(vettel.id())
+    .selectIn('beats')
+    .selectIn('isTeamMateOf')
+    .find()
+    .then((nodes) ->
+      expect(nodes[0].relationsIn).to.have.property('beats').to.have.property('nodes').to.have.length.be(1)
+      expect(nodes[0].relationsIn).to.have.property('isTeamMateOf').to.have.property('nodes').to.have.length.be(1)
     )

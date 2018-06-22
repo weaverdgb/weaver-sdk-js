@@ -12,14 +12,14 @@ describe 'WeaverQuery Test', ->
     a = new Weaver.Node("a")
     b = new Weaver.Node("b")
     c = new Weaver.Node("c")
+    d = new Weaver.Node("d", "d-graph")
 
     before ->
       wipeCurrentProject().then( ->
-        Promise.all([a.save(), b.save(), c.save()])
+        Promise.all([a.save(), b.save(), c.save(), d.save()])
       )
 
     it 'should restrict to a single node', ->
-
       new Weaver.Query()
       .restrict(a)
       .find().then((nodes) ->
@@ -27,8 +27,10 @@ describe 'WeaverQuery Test', ->
         checkNodeInResult(nodes, 'a')
       )
 
-    it 'should restrict to multiple nodes', ->
+    it 'should throw error with emtpy array restrict', ->
+      expect(-> new Weaver.Query().restrict([])).to.throw
 
+    it 'should restrict to multiple nodes', ->
       new Weaver.Query()
       .restrict([a,c])
       .find().then((nodes) ->
@@ -37,12 +39,40 @@ describe 'WeaverQuery Test', ->
         checkNodeInResult(nodes, 'c')
       )
 
-    it 'should count', ->
+    it 'should find all nodes', ->
+      new Weaver.Query()
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(4)
+      )
 
+    it 'should count', ->
       new Weaver.Query()
       .restrict([a,c])
       .count().then((count) ->
         expect(count).to.equal(2)
+      )
+
+    it 'should count per graph', ->
+
+      new Weaver.Query()
+      .countPerGraph().then((res) ->
+        expect(res.count).to.equal(4)
+        expect(res.defaultGraph).to.equal(3)
+        expect(res.graphs['d-graph']).to.equal(1)
+      )
+
+      new Weaver.Query()
+      .restrict([a,c])
+      .countPerGraph().then((res) ->
+        expect(res.count).to.equal(2)
+        expect(res.defaultGraph).to.equal(2)
+      )
+
+      new Weaver.Query()
+      .hasRelationOut('link')
+      .countPerGraph().then((res) ->
+        expect(res.count).to.equal(0)
+        expect(res.defaultGraph).to.equal(0)
       )
 
     it 'should return relations', ->
@@ -51,10 +81,11 @@ describe 'WeaverQuery Test', ->
       new Weaver.Query()
       .withRelations()
       .find().then((nodes) ->
-        expect(nodes.length).to.equal(3)
+        expect(nodes.length).to.equal(4)
         checkNodeInResult(nodes, 'a')
         checkNodeInResult(nodes, 'b')
         checkNodeInResult(nodes, 'c')
+        checkNodeInResult(nodes, 'd')
       )
 
     it 'should take an array of nodeIds or nodes, or single nodeId or node into restrict', ->
@@ -97,6 +128,14 @@ describe 'WeaverQuery Test', ->
       )
 
 
+    it 'should do relation hasRelationOut without supplying a node', ->
+      new Weaver.Query()
+      .hasRelationOut("link")
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+      )
+
     it 'should do relation hasRelationOut', ->
       new Weaver.Query()
       .hasRelationOut("link", b)
@@ -111,6 +150,14 @@ describe 'WeaverQuery Test', ->
       .find().then((nodes) ->
         expect(nodes.length).to.equal(1)
         checkNodeInResult(nodes, 'a')
+      )
+
+    it 'should do relation hasRelationIn without supplying a node', ->
+      new Weaver.Query()
+      .hasRelationIn("link")
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'b')
       )
 
     it 'should do relation hasRelationIn', ->
@@ -235,6 +282,65 @@ describe 'WeaverQuery Test', ->
         checkNodeInResult(nodes, 'b')
       )
 
+  describe 'clean nodes, with a-b and meta to-relation', ->
+
+    beforeEach ->
+      wipeCurrentProject()
+
+    it 'should return also relation on relation when query', ->
+      a = new Weaver.Node('a')
+      b = new Weaver.Node('b')
+      c = new Weaver.Node('c')
+
+      relNode = a.relation('to').add(b)
+      relNodeId = relNode.id()
+      assert.isTrue(relNode instanceof Weaver.RelationNode)
+      relNode.relation('meta').add(c)
+      a.save()
+      .then(->
+        new Weaver.Query()
+        .withRelations()
+        .find().then((nodes) ->
+          expect(nodes.length).to.equal(5)
+          checkNodeInResult(nodes, 'a')
+          checkNodeInResult(nodes, 'b')
+          checkNodeInResult(nodes, 'c')
+          for node in nodes
+            if node.id() is relNodeId
+              assert.isTrue(node instanceof Weaver.RelationNode)
+              assert.isTrue(node.fromNode instanceof Weaver.Node)
+              assert.isTrue(node.toNode instanceof Weaver.Node)
+              expect(node.key).to.equal("to")
+        )
+      )
+
+    it 'should return also relation on relation when relation out query', ->
+      a = new Weaver.Node('a')
+      b = new Weaver.Node('b', 'special')
+      c = new Weaver.Node('c')
+
+      relNode = a.relation('to').add(b)
+      relNodeId = relNode.id()
+      assert.isTrue(relNode instanceof Weaver.RelationNode)
+      relNode.relation('meta').add(c)
+      a.save()
+      .then(->
+        new Weaver.Query()
+        .withRelations()
+        .hasRelationOut('meta')
+        .find().then((nodes) ->
+          expect(nodes.length).to.equal(1)
+          assert.isTrue(nodes[0] instanceof Weaver.RelationNode)
+          assert.isTrue(nodes[0].fromNode instanceof Weaver.Node)
+          expect(nodes[0].fromNode.id()).to.equal('a')
+          assert.isTrue(nodes[0].toNode instanceof Weaver.Node)
+          expect(nodes[0].toNode.id()).to.equal('b')
+          expect(nodes[0].toNode.getGraph()).to.equal('special')
+        )
+      )
+
+
+
   describe 'clean nodes, with a-b-c named link-relations', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
@@ -283,6 +389,25 @@ describe 'WeaverQuery Test', ->
       )
 
 
+  describe 'clean nodes, with a-b b-c a-c link-relations', ->
+    a = new Weaver.Node('a')
+    b = new Weaver.Node('b')
+    c = new Weaver.Node('c')
+
+    before ->
+      wipeCurrentProject().then( ->
+        a.relation('link').add(b)
+        b.relation('link').add(c)
+        a.relation('link').add(c)
+        a.save()
+      )
+
+    it 'should support hasRelationOut hasNoRelationOut on the same key with a defined target', ->
+      expect(new Weaver.Query()
+      .hasRelationOut('link')
+      .hasNoRelationOut('link', 'b')
+      .find()).to.eventually.have.length.be(1)
+
   describe 'clean nodes, with a-b b-c link-relations', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
@@ -295,6 +420,18 @@ describe 'WeaverQuery Test', ->
         b.relation('redundant').add(c)
         a.save()
       )
+
+    it 'should support hasRelationOut hasNoRelationIn on same key', ->
+      expect(new Weaver.Query()
+      .hasRelationOut('link')
+      .hasNoRelationIn('link')
+      .find()).to.eventually.have.length.be(1)
+
+    it 'should support hasNoRelationOut hasRelationIn on same key', ->
+      expect(new Weaver.Query()
+      .hasNoRelationOut('link')
+      .hasRelationIn('link')
+      .find()).to.eventually.have.length.be(1)
 
     it 'should combine hasNoRelationOut seperate clauses correctly', ->
       new Weaver.Query()
@@ -469,8 +606,7 @@ describe 'WeaverQuery Test', ->
         .noRelations()
         .ascending(['name'])
         .find().then((nodes) ->
-          (i.attributes.name[0].value for i in nodes).should.eql(['a', 'b', 'c'])
-
+          (i.attributes().name for i in nodes).should.eql(['a', 'b', 'c'])
         )
       )
 
@@ -534,7 +670,7 @@ describe 'WeaverQuery Test', ->
         .find().then((nodes)->
           expect(nodes.length).to.equal(1)
           checkNodeInResult(nodes, 'a')
-          expect(nodes[0].relation('test').nodes['c'].get('name')).to.equal('bravo')
+          expect(nodes[0].relation('test').nodes[0].get('name')).to.equal('bravo')
         )
       )
 
@@ -553,9 +689,9 @@ describe 'WeaverQuery Test', ->
         .find().then((nodes)->
           expect(nodes.length).to.equal(1)
           checkNodeInResult(nodes, 'a')
-          loadedB = nodes[0].relation('link').nodes['b']
+          loadedB = nodes[0].relation('link').nodes[0]
           expect(loadedB).to.exist
-          expect(loadedB.relation('test').nodes['c'].get('name')).to.equal('grazitutti')
+          expect(loadedB.relation('test').nodes[0].get('name')).to.equal('grazitutti')
         )
       )
 
@@ -579,7 +715,7 @@ describe 'WeaverQuery Test', ->
         new Weaver.Query()
         .hasRelationOut('link')
         .selectOut('link', 'test')
-        .useConstructor((node)->
+        .setConstructorFunction((node)->
           if node.get('type') is 'typeA'
             SpecialNodeA
           else if node.get('type') is 'typeC'
@@ -589,8 +725,8 @@ describe 'WeaverQuery Test', ->
           expect(nodes.length).to.equal(1)
 
           loadedA = nodes[0]
-          loadedB = nodes[0].relation('link').nodes['b']
-          loadedC = loadedB.relation('test').nodes['c']
+          loadedB = nodes[0].relation('link').nodes[0]
+          loadedC = loadedB.relation('test').nodes[0]
 
           assert.isTrue(loadedA instanceof SpecialNodeA)
           assert.isTrue(loadedB instanceof Weaver.Node)
@@ -618,8 +754,8 @@ describe 'WeaverQuery Test', ->
       ).then((nodes) ->
         expect(nodes).to.have.length.be(1)
         checkNodeInResult(nodes, 'a')
-        expect(nodes[0].relation('beats').nodes['b'].get('name')).to.equal('Seb')
-        expect(nodes[0].relation('beatenBy').nodes['c'].get('name')).to.equal('Lewis')
+        expect(nodes[0].relation('beats').nodes[0].get('name')).to.equal('Seb')
+        expect(nodes[0].relation('beatenBy').nodes[0].get('name')).to.equal('Lewis')
       )
 
     it 'should not 503 on selectOut for no nodes', ->
@@ -666,8 +802,8 @@ describe 'WeaverQuery Test', ->
         .find().then((nodes)->
           expect(nodes.length).to.equal(1)
           checkNodeInResult(nodes, 'a')
-          expect(nodes[0].relation('test').nodes['c'].get('name')).to.equal('foxtrot')
-          expect(nodes[0].relation('link').nodes['b'].get('name')).to.equal('tango')
+          expect(nodes[0].relation('test').nodes[0].get('name')).to.equal('foxtrot')
+          expect(nodes[0].relation('link').nodes[0].get('name')).to.equal('tango')
         )
       )
 
@@ -690,7 +826,7 @@ describe 'WeaverQuery Test', ->
         .find()
       ).then((nodes) ->
         expect(nodes.length).to.equal(1)
-        expect(nodes[0].relation('rec').nodes['b'].relation('rec').nodes['c'].relation('rec').nodes['d'].relation('rec').nodes['e'].get('name')).to.equal("toprec")
+        expect(nodes[0].relation('rec').nodes[0].relation('rec').nodes[0].relation('rec').nodes[0].relation('rec').nodes[0].get('name')).to.equal("toprec")
       )
 
     it 'should support multiple recursive selectOut relations', ->
@@ -707,7 +843,7 @@ describe 'WeaverQuery Test', ->
         .find()
       ).then((nodes) ->
         expect(nodes.length).to.equal(1)
-        expect(nodes[0].relation('rec').nodes['b'].relation('test').nodes['c']).to.exist
+        expect(nodes[0].relation('rec').nodes[0].relation('test').nodes[0]).to.exist
       )
 
     it 'should not break on loops with recursive selectOut', ->
@@ -723,7 +859,7 @@ describe 'WeaverQuery Test', ->
         .find()
       ).then((nodes) ->
         expect(nodes.length).to.equal(1)
-        expect(nodes[0].relation('rec').nodes['b'].relation('rec').nodes['a']).to.exist
+        expect(nodes[0].relation('rec').nodes[0].relation('rec').nodes[0]).to.exist
       )
 
     it 'should be able to combine hasRelationIn queries with hasRelationOut', ->
@@ -780,7 +916,7 @@ describe 'WeaverQuery Test', ->
         .hasRelationOut('link',
           new Weaver.Query().hasRelationOut('link')
         ).find().then((nodes)->
-          expect(nodes[0].relation('link').nodes['b'].get('name')).to.be.undefined
+          expect(nodes[0].relation('link').nodes[0].get('name')).to.be.undefined
         )
       )
 
@@ -799,8 +935,8 @@ describe 'WeaverQuery Test', ->
         .find().then((nodes)->
           expect(nodes).to.have.length.be(1)
           checkNodeInResult(nodes, 'a')
-          expect(nodes[0]).to.have.property('relations').to.have.property('link')
-          expect(nodes[0].relations.link.all()).to.have.length.be(1)
+          expect(nodes[0].relation('link').first()).to.be.defined
+          expect(nodes[0].relation('link').all()).to.have.length.be(1)
         )
       )
 
@@ -816,14 +952,12 @@ describe 'WeaverQuery Test', ->
         .find().then((nodes)->
           expect(nodes).to.have.length.be(1)
           checkNodeInResult(nodes, 'a')
-          attrs = nodes[0].attributes
+          attrs = nodes[0].attributes()
           expect(attrs).to.have.property('name')
           expect(attrs).to.have.property('description')
           expect(attrs).to.not.have.property('skip')
         )
       )
-
-  # From this point on, no more beforeEach
 
   it 'should deny any other user than root to execute a native query', ->
     query = "select * where { ?s ?p ?o }"
@@ -850,10 +984,10 @@ describe 'WeaverQuery Test', ->
     )
 
 
-  it.skip 'should load in some secondary nodes with "selectIn"', ->
-    a = new Weaver.Node('a')
-    b = new Weaver.Node('b')
-    c = new Weaver.Node('c')
+  it 'should load in some secondary nodes with "selectIn"', ->
+    a = new Weaver.Node()
+    b = new Weaver.Node()
+    c = new Weaver.Node()
 
     a.relation('test').add(b)
     b.relation('link').add(c)
@@ -865,28 +999,29 @@ describe 'WeaverQuery Test', ->
       .selectIn('test')
       .find().then((nodes)->
         expect(nodes.length).to.equal(1)
-        checkNodeInResult(nodes, 'b')
-        expect(nodes[0].relationIn('test').nodes[a].get('name')).to.equal('alpha')
+        checkNodeInResult(nodes, b.id())
+        expect(nodes[0].relationsIn['test'].nodes).to.have.length.be(1)
+        expect(nodes[0].relationsIn['test'].nodes[0].id()).to.equal(a.id())
       )
     )
 
-  it.skip 'should ensure that nodes are not excluded based on the  "selectIn" flag', ->
-    a = new Weaver.Node('a')
-    b = new Weaver.Node('b')
-    c = new Weaver.Node('c')
-    d = new Weaver.Node('d')
+  it 'should ensure that nodes are not excluded based on the  "selectIn" flag', ->
+    a = new Weaver.Node()
+    b = new Weaver.Node()
+    c = new Weaver.Node()
+    d = new Weaver.Node()
     a.relation('test').add(b)
-    b.relation('link').add(c)
-    c.relation('link').add(d)
+    b.relation('link1234').add(c)
+    c.relation('link1234').add(d)
 
     a.save().then(->
       new Weaver.Query()
-      .hasRelationOut('link')
+      .hasRelationOut('link1234')
       .selectIn('test')
       .find().then((nodes)->
         expect(nodes.length).to.equal(2)
-        checkNodeInResult(nodes, 'b')
-        checkNodeInResult(nodes, 'c')
+        checkNodeInResult(nodes, b.id())
+        checkNodeInResult(nodes, c.id())
       )
     )
 
@@ -1010,35 +1145,13 @@ describe 'WeaverQuery Test', ->
       Weaver.Node.load('someNode')
     )
 
-  it 'should clear profilers', ->
+  it 'should clear profilers', (done) ->
 
     wipeCurrentProject().then(->
       Weaver.Query.profile((queryResult) ->
         expect(queryResult.nodes[0].nodeId).to.equal('someNode')
 
         Weaver.Query.clearProfilers()
-      )
-
-      node = new Weaver.Node('someNode')
-      node.save().then(->
-        Weaver.Node.load('someNode')
-      )
-    ).then(->
-      Weaver.Node.load('someNode')
-    )
-
-  it 'should know all timestamps and have them logically correct', (done) ->
-    wipeCurrentProject().then(->
-      Weaver.Query.profile((qr) ->
-        total = qr.totalTime
-        sum = qr.sdkToServer + qr.innerServerDelay + qr.serverToConn + qr.executionTime + qr.subqueryTime + qr.processingTime + qr.connToServer + qr.serverToSdk
-
-        Weaver.Query.clearProfilers()
-
-        # Because of the posibility of skipping 1 ms between start and stop times
-        # on operations we add an offset to the total value compared to the sum of timestamps
-        closeEnough = true if (total + 1 >= sum && total - 1 <= sum)
-        expect(closeEnough).to.be.true
         done()
       )
 
@@ -1050,3 +1163,282 @@ describe 'WeaverQuery Test', ->
       Weaver.Node.load('someNode')
     )
     return
+
+  it.skip 'should know all timestamps and have them logically correct', (done) ->
+    wipeCurrentProject().then(->
+      Weaver.Query.profile((qr) ->
+        total = qr.totalTime
+        sum = qr.times.sdkToServer + qr.times.innerServerDelay + qr.times.serverToConn + qr.times.executionTime + qr.times.processingTime + qr.times.connToServer + qr.times.serverToSdk
+        sum += qr.times.subQueryTime if qr.times.subQueryTime? # Sub query time is passed but never set
+
+        Weaver.Query.clearProfilers()
+
+        # Because of the posibility of skipping 1 ms between start and stop times
+        # on operations we add an offset to the total value compared to the sum of timestamps
+        expect(total).to.be.within(sum - 3, sum + 3)
+        done()
+      )
+
+      node = new Weaver.Node('someNode')
+      node.save().then(->
+        Weaver.Node.load('someNode')
+      )
+    )
+    return
+
+  it 'should not know any of the timestamps in the response object itself', (done) ->
+    wipeCurrentProject().then(->
+      Weaver.Query.profile((qr) ->
+
+        Weaver.Query.clearProfilers()
+
+        expect(qr.sdkToServer).to.be.undefined
+        expect(qr.innerServerDelay).to.be.undefined
+        expect(qr.serverToConn).to.be.undefined
+        expect(qr.executionTime).to.be.undefined
+        expect(qr.subQueryTime).to.be.undefined
+        expect(qr.processingTime).to.be.undefined
+        expect(qr.connToServer).to.be.undefined
+        expect(qr.serverToSdk).to.be.undefined
+
+        done()
+      )
+
+      node = new Weaver.Node('someNode')
+      node.save().then(->
+        Weaver.Node.load('someNode')
+      )
+    )
+    return
+
+  it 'should be able to check existence on a list of Weaver nodes in their graphs', ->
+    a = new Weaver.Node('a', 'graph');    b = new Weaver.Node('b', 'graph')
+    c = new Weaver.Node('c', 'graph');    d = new Weaver.Node('d', 'other-graph')
+    e = new Weaver.Node('e', 'graph');    f = new Weaver.Node('f', 'graph')
+    g = new Weaver.Node('g', 'graph');    h = new Weaver.Node('h', 'graph')
+    i = new Weaver.Node('i', 'graph');    j = new Weaver.Node('j')
+    k = new Weaver.Node('k', 'graph');    l = new Weaver.Node('l')
+    m = new Weaver.Node('m', 'graph');   a2 = new Weaver.Node('a', 'different-graph')
+    b2 = new Weaver.Node('b');           c2 = new Weaver.Node('c', 'different-graph')
+    myNodes = [a,b,c,m,d,e,f,g,h,i,j,k,l,a2,b2,c2]
+    Weaver.Node.batchSave([a,b,m,d,g,j,k,l,a2,c2])
+      .then( ->
+        new Weaver.Query().findExistingNodes(myNodes).then((result)->
+          trueNodes = [a,b,d,g,j,k,l,m,a2,c2]
+          falseNodes = [c,e,f,h,i,b2]
+
+          for t in trueNodes
+            expect(result[t.getGraph()][t.id()]).to.be.true
+
+          for f in falseNodes
+            expect(result[f.getGraph()][f.id()]).to.be.false
+
+          expect(Object.keys(result['different-graph']).length).to.equal(2)
+          expect(Object.keys(result['graph']).length).to.equal(10)
+          expect(Object.keys(result['undefined']).length).to.equal(3)
+          expect(Object.keys(result['other-graph']).length).to.equal(1)
+          expect(Object.keys(result).length).to.equal(4)
+        )
+      )
+
+  it 'should not find attributes when checking existence on a list of nodes', ->
+    n = new Weaver.Node('n')
+    o = new Weaver.Node('o')
+    n.set('name', 'Mathieu')
+    myNodes = [n,o]
+    Weaver.Node.batchSave([n,o])
+      .then(->
+        new Weaver.Query().findExistingNodes(myNodes).then((result) ->
+          expect(result[n.getGraph()][n.id()]).to.be.true
+          expect(result[o.getGraph()][o.id()]).to.be.true
+          expect(Object.keys(result['undefined']).length).to.equal(2)
+        )
+      )
+
+  it 'should not crash on weird characters when checking the existence of a node', ->
+    p = new Weaver.Node("I'm annoying, do you know why?","my,annoying,graph")
+    q = new Weaver.Node('q s',"graph,2")
+    r = new Weaver.Node('Do,you,think,Im,annoying')
+    myNodes = [p,q,r]
+    Weaver.Node.batchSave([p,q,r])
+      .then(->
+        new Weaver.Query().findExistingNodes(myNodes).then((result) ->
+          expect(result[p.getGraph()][p.id()]).to.be.true
+          expect(result[q.getGraph()][q.id()]).to.be.true
+          expect(result[r.getGraph()][r.id()]).to.be.true
+          expect(Object.keys(result['my,annoying,graph']).length).to.equal(1)
+          expect(Object.keys(result['graph,2']).length).to.equal(1)
+          expect(Object.keys(result['undefined']).length).to.equal(1)
+        )
+      )
+
+  # This test should only exist in a performance testing set
+  it.skip 'should be able to check existence on a list of many Weaver nodes', ->
+    myNodes = []
+    savedNodes = []
+    i = 0
+    while i < 5000
+      n = new Weaver.Node()
+      myNodes.push(n)
+      if i % 10 == 0
+        savedNodes.push(n)
+      i++
+    Weaver.Node.batchSave(savedNodes)
+    .then(->
+      new Weaver.Query().findExistingNodes(myNodes).then((result)->
+        countTrue = 0
+        countTrue += 1 for key, value of result when value is true
+        countFalse = 0
+        countFalse += 1 for key, value of result when value is false
+        expect(countTrue).to.equal(500)
+        expect(countFalse).to.equal(4500)
+        expect(Object.keys(result).length).to.equal(5000)
+      )
+    )
+  describe 'simple nodes, with age', ->
+    a = new Weaver.Node("a")
+    b = new Weaver.Node("b")
+    c = new Weaver.Node("c")
+    a.set('age', 4)
+    b.set('age', 8)
+    c.set('age', 12)
+    a.set('name','Aaay')
+    date = new Date().toISOString().slice(0, 19).replace('T', ' ')
+    a.set('time', date)
+    b.set('myboolean', false)
+    c.set('greeting', "Hello")
+
+    before ->
+      wipeCurrentProject().then( ->
+        Promise.all([a.save(), b.save(), c.save()])
+      )
+
+    it 'should do equalTo a wildcard', ->
+      new Weaver.Query()
+      .equalTo("name", '*')
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+      )
+
+    it 'should do notEqualTo', ->
+      new Weaver.Query()
+      .notEqualTo("age", 8)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(2)
+        checkNodeInResult(nodes, 'a')
+        checkNodeInResult(nodes, 'c')
+      )
+
+    it 'should do greaterThan', ->
+      new Weaver.Query()
+      .greaterThan("age", 8)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'c')
+      )
+
+    it 'should do lessThan', ->
+      new Weaver.Query()
+      .lessThan("age", 8)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+      )
+
+    it 'should do greaterThanOrEqualTo', ->
+      new Weaver.Query()
+      .greaterThanOrEqualTo("age", 8)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(2)
+        checkNodeInResult(nodes, 'b')
+        checkNodeInResult(nodes, 'c')
+      )
+
+    it 'should do lessThanOrEqualTo', ->
+      new Weaver.Query()
+      .lessThanOrEqualTo("age", 8)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(2)
+        checkNodeInResult(nodes, 'a')
+        checkNodeInResult(nodes, 'b')
+      )
+
+    it 'should be able to combine greaterThan and lessThan', ->
+      new Weaver.Query()
+      .lessThan("age", 12)
+      .greaterThan("age", 4)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'b')
+      )
+
+    it 'should be able to combine greaterThanOrEqualTo and lessThan', ->
+      new Weaver.Query()
+      .lessThanOrEqualTo("age", 12)
+      .greaterThan("age", 4)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(2)
+        checkNodeInResult(nodes, 'b')
+        checkNodeInResult(nodes, 'c')
+      )
+
+    it 'should be able to combine greaterThan and lessThanOrEqualTo', ->
+      new Weaver.Query()
+      .lessThan("age", 12)
+      .greaterThanOrEqualTo("age", 4)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(2)
+        checkNodeInResult(nodes, 'a')
+        checkNodeInResult(nodes, 'b')
+      )
+
+    it 'should be able to combine greaterThanOrEqualTo and lessThanOrEqualTo', ->
+      new Weaver.Query()
+      .lessThanOrEqualTo("age", 12)
+      .greaterThanOrEqualTo("age", 4)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(3)
+        checkNodeInResult(nodes, 'a')
+        checkNodeInResult(nodes, 'b')
+        checkNodeInResult(nodes, 'c')
+      )
+
+    it 'should be able to compare timestamps from attributes with current time', ->
+      new Weaver.Query()
+      .equalTo('time', date)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+      )
+
+    it 'should be able to compare timestamps from attributes', ->
+      new Weaver.Query()
+      .notEqualTo('time', '2017-01-03 12:59:27')
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+      )
+
+    it 'should be able to compare Strings from attributes as lessThan', ->
+      new Weaver.Query()
+      .lessThan('greeting', "World")
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'c')
+      )
+
+    it 'should be able to compare Strings from attributes as greaterThan', ->
+      new Weaver.Query()
+      .greaterThan('greeting', "World")
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(0)
+      )
+
+    it 'should be able to compare Booleans from attributes', ->
+      new Weaver.Query()
+      .notEqualTo('myboolean', true)
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'b')
+      )

@@ -1,6 +1,7 @@
 util        = require('./util')
 Weaver      = require('./Weaver')
 _           = require('lodash')
+cjson       = require('circular-json')
 
 # Converts a string into a regex that matches it.
 # Surrounding with \Q .. \E does this, we just need to escape any \E's in
@@ -8,13 +9,6 @@ _           = require('lodash')
 quote = (s) ->
   '\\Q' + s.replace('\\E', '\\E\\\\E\\Q') + '\\E'
 
-nodeId = (node) ->
-  if _.isString(node)
-    node
-  else if node instanceof Weaver.Node
-    node.id()
-  else
-    throw new Error("Unsupported type")
 
 
 class WeaverQuery
@@ -28,31 +22,63 @@ class WeaverQuery
     @_conditions         = {}
     @_include            = []
     @_select             = undefined
+    @_selectRelations    = undefined
     @_selectOut          = []
+    @_selectIn           = undefined
     @_selectRecursiveOut = []
     @_recursiveConditions= []
     @_alwaysLoadRelations= []
     @_noRelations        = true
     @_noAttributes       = true
     @_count              = false
+    @_countPerGraph      = false
     @_hollow             = false
     @_limit              = 99999
     @_skip               = 0
     @_order              = []
     @_ascending          = true
     @_arrayCount         = 0
+    @_inGraph            = undefined
+
+  getNodeIdFromStringOrNode: (node) ->
+    if _.isString(node)
+      node
+    else if node instanceof Weaver.Node
+      {
+        id: node.id()
+        graph: node.getGraph()
+      }
+    else
+      throw new Error("Unsupported type: #{node}")
+
+  nodeRelationArrayValue: (nodes) ->
+    if nodes.length > 0
+      (@getNodeIdFromStringOrNode(i) for i in nodes)
+    else
+      ["*"]
+
+  stripQuery: (query) ->
+    if query.destruct?
+      query.destruct()
+    else
+      query
+
+  queryRelationArrayValue: (queries) ->
+    if queries.length > 0
+      (@stripQuery(query) for query in queries)
+    else
+      queries
 
   find: (Constructor) ->
 
     if Constructor?
-      @useConstructorFunction = -> Constructor
+      @setConstructorFunction(-> Constructor)
 
     Weaver.getCoreManager().query(@).then((result) =>
       Weaver.Query.notify(result)
       list = []
       for node in result.nodes
-        castedNode = Weaver.Node.loadFromQuery(node, @useConstructorFunction, !@_select?)
-
+        castedNode = Weaver.Node.loadFromQuery(node, @constructorFunction, !@_selectRelations? && !@_select?, @model)
         list.push(castedNode)
       list
     )
@@ -66,20 +92,33 @@ class WeaverQuery
       @_count = false
     )
 
+  countPerGraph: ->
+    @_countPerGraph = true
+    Weaver.getCoreManager().query(@).then((result) ->
+      Weaver.Query.notify(result)
+      result
+    ).finally(=>
+      @_countPerGraph = false
+    )
+
   first: (Constructor) ->
     @_limit = 1
-    @find(Constructor).then((res) ->
+    @find(Constructor).then((res) =>
       if res.length is 0
-        Promise.reject({code:101, "Node not found"})
+        Promise.reject({code:101, message:"Node #{JSON.stringify(@_restrict)} not found in #{JSON.stringify(@_inGraph)}"})
       else
         res[0]
     )
 
-  get: (node, Constructor) ->
+  get: (node, Constructor, graph) ->
     @restrict(node)
+    @restrictGraphs(graph)
     @first(Constructor)
 
   restrict: (nodes) ->
+
+    if nodes? and nodes.length is 0
+      throw new Error('Do not set a restriction to an empty array, this means you are querying the whole database.')
 
     addRestrict = (node) =>
       if util.isString(node)
@@ -93,6 +132,24 @@ class WeaverQuery
     else
       addRestrict(nodes)
 
+    @
+
+  _addRestrictGraph: (graph) ->
+    if !@_inGraph?
+      @_inGraph = []
+
+    @_inGraph.push(graph)
+
+  inGraph: (graphs...) ->
+    @_addRestrictGraph(i) for i in graphs
+    @
+
+  restrictGraphs: (graphs) ->
+    @_inGraph = [] # Clear
+    if util.isArray(graphs)
+      @_addRestrictGraph(graph) for graph in graphs
+    else
+      @_addRestrictGraph(graphs)
     @
 
   _addAttributeCondition: (key, condition, value) ->
@@ -131,44 +188,49 @@ class WeaverQuery
     if _.isArray(key)
       @_addRelationCondition("$relationArray${@arrayCount++}", '$relIn', key)
     else if node.length is 1 and node[0] instanceof WeaverQuery
-      @_addRelationCondition(key, '$relIn', node)
+      @_addRelationCondition(key, '$relIn', @queryRelationArrayValue(node))
     else
-      @_addRelationCondition(key, '$relIn', if node.length > 0 then (nodeId(i) or i for i in node) else ['*'])
+      @_addRelationCondition(key, '$relIn', @nodeRelationArrayValue(node))
 
   hasRelationOut: (key, node...) ->
     if _.isArray(key)
       @_addRelationCondition("$relationArray${@arrayCount++}", '$relOut', key)
     else if node.length is 1 and node[0] instanceof WeaverQuery
-      @_addRelationCondition(key, '$relOut', node)
+      @_addRelationCondition(key, '$relOut', @queryRelationArrayValue(node))
     else
-      @_addRelationCondition(key, '$relOut', if node.length > 0 then (nodeId(i) or i for i in node) else ['*'])
+      @_addRelationCondition(key, '$relOut', @nodeRelationArrayValue(node))
     @
 
   hasNoRelationIn: (key, node...) ->
     if _.isArray(key)
       @_addRelationCondition("$relationArray${@arrayCount++}", '$noRelIn', key)
     else if node.length is 1 and node[0] instanceof WeaverQuery
-      @_addRelationCondition(key, '$noRelIn', node)
+      @_addRelationCondition(key, '$noRelIn', @queryRelationArrayValue(node))
     else
-      @_addRelationCondition(key, '$noRelIn', if node.length > 0 then (nodeId(i) or i for i in node) else ['*'])
+      @_addRelationCondition(key, '$noRelIn', @nodeRelationArrayValue(node))
 
   hasNoRelationOut: (key, node...) ->
     if _.isArray(key)
       @_addRelationCondition("$relationArray${@arrayCount++}", '$noRelOut', key)
     else if node.length is 1 and node[0] instanceof WeaverQuery
-      @_addRelationCondition(key, '$noRelOut', node)
+      @_addRelationCondition(key, '$noRelOut', @queryRelationArrayValue(node))
     else
-      @_addRelationCondition(key, '$noRelOut', if node.length > 0 then (nodeId(i) or i for i in node) else ['*'])
+      node = node.destruct() if node.destruct?
+      @_addRelationCondition(key, '$noRelOut', @nodeRelationArrayValue(node))
 
   _addRecursiveCondition: (op, relation, node, includeSelf) ->
-    target = if node instanceof Weaver.Node
-      node.id()
+    nodeId = ''
+    graph = undefined
+    if node instanceof Weaver.Node
+      nodeId = node.id()
+      graph  = node.getGraph()
     else
-      node
+      nodeId = node
     @_recursiveConditions.push({
       operation: op
       relation
-      nodeId: target
+      nodeId
+      nodeGraph: graph
       includeSelf
     })
     @
@@ -257,6 +319,10 @@ class WeaverQuery
     @_include = keys
     @
 
+  selectRelations: (keys...) ->
+    @_selectRelations = keys
+    @
+
   select: (keys...) ->
     @_select = keys
     @
@@ -264,6 +330,54 @@ class WeaverQuery
   selectOut: (relationKeys...) ->
     @_selectOut.push(relationKeys)
     @
+
+  selectIn: (relationKeys...) ->
+    @_selectIn = [] if !@_selectIn?
+    @_selectIn.push(relationKeys)
+    @
+
+  findExistingNodes: (nodes) ->
+    map = {}
+
+    Weaver.getCoreManager().findExistingNodes(nodes).then((results) =>
+      nodeResults = resultsToNodes(results)
+
+      sortedNodes   = _.sortBy(nodes, ['nodeId', 'graph'])
+      sortedResults = _.sortBy(nodeResults, ['nodeId', 'graph'])
+
+      compareSortedNodeLists(sortedNodes, sortedResults)
+    )
+
+  resultsToNodes = (nodes) ->
+    newList = []
+    for n in nodes
+      id = Object.keys(n)[0]
+      graph = n[id]
+      if graph == 'undefined'
+        graph = undefined
+      node = new Weaver.Node(id, graph)
+      newList.push(node)
+    newList
+
+  compareSortedNodeLists = (nodes, compare) =>
+    graphMap = {}
+
+    #First set all nodes to false, follow loops will only check for true values
+    for node in nodes
+      if !graphMap[node.getGraph()]?
+        graphMap[node.getGraph()] = {}
+      graphMap[node.getGraph()][node.id()] = false
+
+    # Algorithm to find all existing nodes, twice as fast as nested for loop on 10000 nodes.
+    i = 0; j = 0
+    while i < nodes.length && j < compare.length
+      if nodes[i].id() == compare[j].id() && nodes[i].getGraph() == compare[j].getGraph()
+        graphMap[nodes[i].getGraph()][nodes[i].id()] = true
+        i++; j++
+      else if nodes[i].id() < compare[j].id()
+        i++
+      else j++
+    graphMap
 
   selectRecursiveOut: (relationKeys...) ->
     @_selectRecursiveOut = relationKeys
@@ -296,8 +410,8 @@ class WeaverQuery
     for callback in Weaver.Query.profilers
       callback(result)
 
-  useConstructor: (useConstructorFunction) ->
-    @useConstructorFunction = useConstructorFunction
+  setConstructorFunction: (constructorFunction) ->
+    @constructorFunction = constructorFunction
     @
 
   # Create, Update, Enter, Leave, Delete
@@ -306,6 +420,9 @@ class WeaverQuery
 
   nativeQuery: (query)->
     Weaver.getCoreManager().nativeQuery(query, Weaver.getInstance().currentProject().id())
+
+  @destruct: ->
+    @
 
 # Export
 module.exports = WeaverQuery

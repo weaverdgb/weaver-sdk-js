@@ -249,6 +249,8 @@ WeaverError.WRITE_OPERATION_NOT_EXISTS = 344;
 # Some necessary fields in the write operation json is missing
 WeaverError.WRITE_OPERATION_INVALID = 345;
 
+# Failed executing batch, message given from connector, this should never occur though.
+WeaverError.WRITE_OPERATION_FAILED = 366;
 
 # Error code indicating that there were multiple errors. Aggregate errors
 # have an "errors" property, which is an array of error objects with more
@@ -281,5 +283,10 @@ WeaverError.CANNOT_SET_DEEP_STATIC = 605
 WeaverError.MODEL_NOT_FOUND = 206
 
 WeaverError.MODEL_VERSION_NOT_FOUND = 207
+
+WeaverError.MODEL_INCLUSION_CYCLE = 209
+
+# Invalid Username or Password
+WeaverError.INVALID_USERNAME_PASSWORD = 212
 
 module.exports = WeaverError

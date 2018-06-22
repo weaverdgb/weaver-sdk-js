@@ -7,23 +7,76 @@ class WeaverModelQuery extends Weaver.Query
   constructor: (@model = Weaver.currentModel(), target) ->
     super(target)
 
+
+
     # Define constructor function
-    @useConstructor((node) =>
-      if node.relation('_proto').first()?
-        [modelName, className] = node.relation('_proto').first().id().split(":")
-        @model[className]
-      else
+    constructorFunction = (node, owner, key) =>
+      defs = []
+      for def in node.relation(@model.getMemberKey()).all()
+        if def.id().indexOf(':') > -1
+          modelName = @model.definition.name
+          modelName = def.id().split(':')[0] if def.id().indexOf(':') > -1
+          if @model.modelMap[modelName]?
+            defs.push(def.id())
+      if defs.length is 0
         Weaver.Node
-    )
+      else if defs.length is 1
+        [modelName, className] = defs[0].split(":")
+        @model.modelMap[modelName][className]
+
+      # First order node from resultset, no incoming relation to help decide
+      else if not owner?
+        if not @preferredConstructor?
+          console.info("Could not choose contructing first order node between type #{JSON.stringify(defs)}")
+          return Weaver.DefinedNode
+
+        return @preferredConstructor
+      else
+
+        if not owner instanceof Weaver.ModelClass
+          console.info("Could not choose contructing node between type #{JSON.stringify(defs)}")
+          return Weaver.DefinedNode
+
+        modelKey = owner.lookUpModelKey(key)
+        ranges = owner.getToRanges(modelKey, node)
+        if ranges.length < 1
+          console.warn("Could not find a range for constructing second order node between type #{JSON.stringify(defs)}")
+          return Weaver.Node
+        else if ranges.length > 1
+          console.log("Construct DefinedNode from ranges #{JSON.stringify(ranges)} for constructing second order node between type #{JSON.stringify(defs)}")
+          return Weaver.DefinedNode
+        else
+          range = ranges[0]
+          modelName = @model.definition.name
+          className = range
+          if range.indexOf(':') > -1
+            [modelName, className] = range.split(':')
+          return @model.modelMap[modelName][className]
+
+    @setConstructorFunction(constructorFunction)
+
+
+  getNodeIdFromStringOrNode: (node) ->
+    try
+      super(node)
+    catch err
+      if node.model?
+        {
+          id: "#{node.model.definition.name}:#{node.className}"
+          graph: node.model.getGraph()
+        }
+      else
+        throw err
+
 
   class: (modelClass) ->
-    @hasRelationOut("_proto", modelClass.classId())
+    @hasRelationOut(@model.getMemberKey(), Weaver.Node.getFromGraph(modelClass.classId(), @model.getGraph()))
 
   # Key is composed of Class.modelAttribute
   _mapKeys: (keys, source) ->
     databaseKeys = []
     for key in keys
-      if ['_proto', '*'].includes(key)
+      if [@model.getMemberKey(), '*'].includes(key)
         databaseKeys.push(key)
       else
         if key.indexOf(".") is -1
@@ -31,9 +84,9 @@ class WeaverModelQuery extends Weaver.Query
 
         [className, modelKey] = key.split(".")
         modelClass = @model[className]
-        defintion  = modelClass.classDefinition
+        definition  = modelClass.totalClassDefinition
 
-        databaseKeys.push(defintion[source]?[modelKey]?.key or modelKey)
+        databaseKeys.push(definition[source]?[modelKey]?.key or modelKey)
 
     databaseKeys
 
@@ -57,17 +110,26 @@ class WeaverModelQuery extends Weaver.Query
 
   select: (keys...) ->
     super(key) for key in @_mapKeys(keys, "attributes")
+    @
 
   selectOut: (keys...) ->
-    super(key) for key in @_mapKeys(keys, "relations")
+    # Note that calling selectOut(1, 2) differs from calling selectOut(1);
+    # selectOut(2). Arrayity matters
+    super(@_mapKeys(keys, "relations")...)
+    @
 
   selectRecursiveOut: (keys...) ->
     super(key) for key in @_mapKeys(keys, "relations")
+    @
 
-  find: (Constructor) ->
-    # Always get the _proto relation to map to the correct modelclass
-    @alwaysLoadRelations('_proto')
+  find: (@preferredConstructor) ->
+    # Always get the member relation to map to the correct modelclass
+    @alwaysLoadRelations(@model.getMemberKey())
 
-    super(Constructor)
+    super()
+
+  destruct: ->
+    delete @model
+    @
 
 module.exports = WeaverModelQuery

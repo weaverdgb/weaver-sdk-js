@@ -26,14 +26,17 @@ class SocketController
 
       @io.on('connect', =>
         resolve()
-      ).on('connect_error', ->
-        reject('connect_error')
+      ).on('connect_error', (err) ->
+        reject(err or 'connect_error')
       ).on('connect_timeout', ->
         reject('connect_timeout')
       ).on('error', (err) ->
         reject(err or 'error')
       )
     )
+
+  disconnect: ->
+    @io.disconnect()
 
   emit: (key, body) ->
     new Promise((resolve, reject) =>
@@ -53,18 +56,32 @@ class SocketController
           resolve()
         else
           resolve(response)
-        @_calculateTimestamps(response, emitStart, Date.now())
+        if (response.times?)
+          @_calculateTimestamps(response, emitStart, Date.now())
+        response
       )
     )
 
   _calculateTimestamps: (response, emitStart, emitEnd) ->
-    # response.serverEnterTimestamp = response.serverStart
-    response.sdkToServer  = response.serverStart - emitStart
-    response.innerServerDelay = response.serverStartConnector - response.serverStart
-    response.serverToConn = response.executionTimeStart - response.serverStartConnector
-    response.connToServer = response.serverEnd - response.processingTimeEnd
-    response.serverToSdk  = emitEnd - response.serverEnd
+
+    sdkToServer  = response.times.serverStart - emitStart
+    innerServerDelay = response.times.serverStartConnector - response.times.serverStart
+    serverToConn = response.times.executionTimeStart - response.times.serverStartConnector
+    connToServer = response.times.serverEnd - response.times.processingTimeEnd
+    serverToSdk  = emitEnd - response.times.serverEnd
+
     response.totalTime = emitEnd - emitStart
+    response.times = {
+      'sdkToServer': sdkToServer,
+      'innerServerDelay': innerServerDelay,
+      'serverToConn': serverToConn,
+      'connToServer': connToServer,
+      'serverToSdk': serverToSdk,
+      'executionTime': response.times.executionTime,
+      'subQueryTime': response.times.subQueryTime, # never set
+      'processingTime': response.times.processingTime,
+    }
+
     response
 
   GET: (path, body) ->

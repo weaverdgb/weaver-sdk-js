@@ -7,3 +7,5 @@ bower_components
 coverage/
 *.iml
 test-server/postgresql
+config/local.coffee
+*.swp

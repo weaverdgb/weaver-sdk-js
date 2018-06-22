@@ -1,0 +1,100 @@
+name: test-model
+version: 1.2.0
+author:
+  name: Mohamad Alamili
+  email: mohamad@sysunite.com
+
+member: 'rdf:type'
+inherit: 'rdfs:subClassOf'
+
+includes:
+  td:
+    name: test-doc-model
+    version: 0.2.0
+
+
+classes:
+  Human:
+  City:
+    init: [Delft, Rotterdam, Leiden, CityState]
+  CityState:
+  Area:
+    attributes:
+      squareMeter:
+        datatype: integer
+    relations:
+      intersection:
+        range: [Area]
+  AreaSection:
+    super: Area
+    attributes:
+      areaName:
+        datatype: string
+  Country:
+    super: AreaSection
+  Construction:
+    attributes:
+      yearOfConstruction:
+        datatype: integer
+    relations:
+      buildBy:
+        range: [Person]
+        card:  [1,2]
+  Building:
+    super: Construction
+    relations:
+      placedIn:
+        range: [Area]
+  House:
+    super: Building
+  Office:
+    super: Building
+  Head:
+  Person:
+    super: Human
+    attributes:
+      fullName:
+        key: 'hasFullName'
+        required: true
+        datatype: string
+      age:
+        datatype: integer
+    relations:
+      hasFriend:
+        range: [Person]
+      comesFrom:
+        range:
+          Country: [0,1]
+          City: [0,2]
+      hasHead:
+        range: [Head]
+      hasRelation:
+      isIn:
+        range: [House, Office]
+      livesIn:
+        key: 'livesInSomeBuilding'
+        range: [House]
+      worksIn:
+        range: [Office]
+      signed:
+        range: [td.Document]
+  DeliveryNotice:
+    super: td.Document
+    attributes:
+      at:
+        key: 'at'
+        required: true
+        datatype: xsd:dateTime
+  Passport:
+    super: td.Document
+    relations:
+      ownedBy:
+        range: [Person]
+  Shelf:
+    relations:  
+      supports: 
+        range: [td.Document]
+  BookShelf:
+    super: Shelf
+
+

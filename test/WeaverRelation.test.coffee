@@ -29,12 +29,12 @@ describe 'Weaver relation and WeaverRelationNode test', ->
 
       Weaver.Node.load(foo.id())
     ).then((loadedNode) ->
-      assert.isDefined(loadedNode.relation('comesBefore').nodes[bar.id()])
+      assert.isDefined(loadedNode.relation('comesBefore').nodes.find((x) -> x.equals(bar)))
 
       assert(loadedNode._loaded)
       assert(loadedNode._stored)
-      expect(loadedNode.relation('comesBefore').nodes[bar.id()]).to.have.property('_loaded').equal(false)
-      assert(loadedNode.relation('comesBefore').nodes[bar.id()]._stored)
+      expect(loadedNode.relation('comesBefore').nodes.find((x) -> x.equals(bar))).to.have.property('_loaded').equal(false)
+      assert(loadedNode.relation('comesBefore').nodes.find((x) -> x.equals(bar))._stored)
 
       loadedNode.relation('comesBefore').to(bar)
     ).then((relation) ->
@@ -46,14 +46,27 @@ describe 'Weaver relation and WeaverRelationNode test', ->
   it 'should add a new relation with id', ->
     foo = new Weaver.Node()
     bar = new Weaver.Node()
-    foo.relation('comesBefore').add(bar, 'abc')
-
+    rel = foo.relation('comesBefore').add(bar, 'abc')
+    expect(rel).to.be.instanceOf(Weaver.RelationNode)
     foo.save().then(->
-
       Weaver.Node.load('abc', undefined, undefined, true)
     ).then((loadedNode) ->
-
       assert.isDefined(loadedNode)
+    )
+
+
+  it 'should save a new relation on relation on node save', ->
+    foo = new Weaver.Node()
+    bar = new Weaver.Node()
+    bass = new Weaver.Node()
+    rel = foo.relation('comesBefore').add(bar)
+    expect(rel).to.be.instanceOf(Weaver.RelationNode)
+    rel.relation('item').add(bass)
+    foo.save().then(->
+      Weaver.Node.load(rel.id(), undefined, undefined, true)
+    ).then((loadedRelNode) ->
+      assert.isDefined(loadedRelNode)
+      expect(loadedRelNode.relation('item').all()).to.have.length.be(1)
     )
 
   it 'should update a relation', ->
@@ -67,8 +80,26 @@ describe 'Weaver relation and WeaverRelationNode test', ->
     ).then(->
       Weaver.Node.load(foo.id())
     ).then((loadedNode) ->
-      expect(loadedNode.relation('comesBefore').nodes[ono.id()]).to.be.defined
-      expect(loadedNode.relation('comesBefore').nodes[bar.id()]).to.not.be.defined
+      expect(loadedNode.relation('comesBefore').nodes.find((x) -> x.equals(ono))).to.be.defined
+      expect(loadedNode.relation('comesBefore').nodes.find((x) -> x.equals(bar))).to.not.be.defined
+    )
+
+  it 'should remove a relation from the loaded result', ->
+    foo = new Weaver.Node()
+    bar = new Weaver.Node()
+    zoo = new Weaver.Node()
+    foo.relation('comesBefore').add(bar)
+    foo.relation('comesBefore').add(zoo)
+
+    foo.save().then(->
+      Weaver.Node.load(foo.id())
+    ).then((loadedNode) ->
+      expect(i.id() for i in loadedNode.relation('comesBefore').all()).to.have.length.be(2)
+      loadedNode.relation('comesBefore').remove(loadedNode.relation('comesBefore').first())
+    ).then( ->
+      Weaver.Node.load(foo.id())
+    ).then((loadedNode) ->
+      expect(i.id() for i in loadedNode.relation('comesBefore').all()).to.have.length.be(1)
     )
 
   it 'should remove a relation', ->
@@ -82,12 +113,10 @@ describe 'Weaver relation and WeaverRelationNode test', ->
       Weaver.Node.load(foo.id())
     ).then((loadedNode) ->
       loadedNode.relation('comesBefore').remove(bar)
-      loadedNode.save()
     ).then( ->
       Weaver.Node.load(foo.id())
     ).then((loadedNode) ->
-      relations = (k for k of loadedNode.relations)
-      assert.lengthOf(relations, 1)
+      expect(i.id() for i in loadedNode.relation('comesBefore').all()).to.have.length.be(1)
     )
 
   it 'should load all nodes in the relation', ->
@@ -118,3 +147,45 @@ describe 'Weaver relation and WeaverRelationNode test', ->
     foo.relation('comesBefore').add(ono)
 
     assert.equal(foo.relation('comesBefore').first(), bar)
+
+  it 'should support relations on relations', ->
+    a = new Weaver.Node()
+    b = new Weaver.Node()
+    c = new Weaver.Node()
+    relationNode = a.relation('test').add(b)
+    relationNode.relation('relationRelation').add(c)
+    a.save().then(->
+      Weaver.Node.load(relationNode.id(), undefined, undefined, true)
+    ).then((node) ->
+      expect(node.relation('relationRelation')).to.have.property('nodes').to.have.length.be(1)
+    )
+
+  describe 'with graphs', ->
+    a  = new Weaver.Node('a', 'relationWithGraph1')
+    b  = new Weaver.Node('b', 'relationWithGraph1')
+    af = new Weaver.Node('a', 'relationWithGraph2')
+
+    b.relation('test').add(a)
+# This relation can't be created here because of:
+#    http://jira.sysunite.com/browse/WEAV-251
+#
+#    b.relation('test').add(af)
+
+    before ->
+      Weaver.Node.batchSave([a, b, af]).then(->
+        b.relation('test').add(af)
+        b.save()
+      )
+
+    it 'should allow relations to the same node id in different graphs', ->
+      expect(Weaver.Node.loadFromGraph('b', 'relationWithGraph1').then((node) ->
+        node.relation('test').all()
+      )).to.eventually.have.length.be(2)
+
+    it 'should be able to get the relation node for both relations', ->
+      Weaver.Node.loadFromGraph('b', 'relationWithGraph1').then((node) ->
+        rel = node.relation('test')
+        Promise.all([ rel.to(a), rel.to(af) ])
+      ).then((res) ->
+        expect(res[0].id()).to.not.equal(res[1].id())
+      )

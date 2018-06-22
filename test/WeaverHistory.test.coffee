@@ -153,22 +153,16 @@ describe 'WeaverHistory test', ->
       )
     )
 
-  it.skip 'should not allow sql injection in queries', ->
+  it 'should not allow history query sql injection', ->
     new Weaver.Node().save().then(->
       new Weaver.Node().save()
     ).then(->
       history = new Weaver.History()
       history.limit('10; TRUNCATE TABLE `trackerdb`; --')
       history.dumpHistory()
-    ).then(->
-      new Weaver.Node().save()
-    ).then(->
-      history = new Weaver.History()
-      history.limit(10)
-      history.dumpHistory()
-    ).should.eventually.have.length.be(3)
+    ).should.be.rejected
 
-  it 'should not allow sql injection queries', ->
+  it 'should not allow sql injection in node creation', ->
     new Weaver.Node("'; TRUNCATE TABLE `trackerdb`; --").save().then(->
       history = new Weaver.History()
       history.dumpHistory()
@@ -185,6 +179,8 @@ describe 'WeaverHistory test', ->
     ).then((p)->
       weaver.useProject(p)
       new Weaver.User('testuser', 'testpassword', 'test@example.com').signUp()
+    ).then(->
+      weaver.signInWithUsername('testuser', 'testpassword')
     ).then(->
       new Weaver.History().dumpHistory()
     ).should.be.rejectedWith(/Permission denied/)

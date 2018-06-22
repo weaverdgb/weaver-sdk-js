@@ -18,200 +18,669 @@
 </div>
 
 
-## Weaver SDK for JavaScript
+# Weaver SDK for JavaScript
 A library that gives you access to the Weaver platform from your JavaScript app.
 
-## API
+- **[Getting started](#getting-started)**
+  - Weaver
+  - Nodes
+- **[Reference API](#reference-api)**
+  * **[Weaver](#weaver)**
+    * Class Methods
+    * Instance methods
+  * **[Weaver.Node](#weavernode)**
+    * Class methods
+    * Instance methods
+  * **[Weaver.Relation](#weaverrelation)**
+    * Instance methods
+  * **[Weaver.Project](#weaverproject)**
+    * Class methods
+    * Instance Methods
+  * **[Weaver.User](#weaveruser)**
+    * Class Methods]
+    * Instance Methods
+  * **[Weaver.Query](#weaverquery)**
+    * Class methods
+    * Instance methods
+      - Exclusion Criteria
+      - Extra loading instructions
+      - Nesting queries / FOAF
+  * **[Weaver.Model](#weavermodel)**
+    * Creating
+      - Step 1: Define a model]
+      - Step 2: Instantiate a member]
+      - Step 3: Nest models to describe complex structures
+  * **[Weaver.Plugin](#weaverplugin)**
+    * Class methods
+    * Instance methods
+- **[Creating your own plugins](#creatingplugins)**
+- **[Building locally](#building-locally)**
+- **[Tests](#tests)**
 
-### Object: Weaver
+<a id="getting-started"></a>
 
-##### Initialize
-- weaver = new Weaver()
-- weaver.connect(socketUrl)
-- weaver.database(localDatabase)
-- weaver.authenticate(token)
+---
+## Getting started
+---
 
-##### Interact
-- weaver.add(data, type, id)
-- weaver.addPromise(data, type, id): Same as weaver.add, but returns a promise which is fulfilled through the server.
-- weaver.collection(data, id)
-- weaver.get(id, {eagerness})
+### Weaver
 
-### Object: Entity
-
-##### Read
-- entity.$id()
-- entity.$type()
-- entity.$values()
-- entity.$links()
-- entity.$linksArray()
-- entity.$isFetched({eagerness})
-- entity.$fetch({eagerness})
-
-##### Persist
-- entity.$push(key, value)
-- entity.$push(entity)
-- entity.$remove(key)
-- entity.$remove(entity)
-- entity.$destroy()
-
-##### Events
-- entity.$on('key', callback)
-
-
-## Examples
-
-##### Creating a new Weaver instance connected to a socket
-```javascript
-var weaver = new Weaver();
-weaver.connect('https://weaver-server.herokuapp.com');
+Installation:
+```
+npm i -S weaver-sdk
 ```
 
-##### Creating a new Weaver instance connected to a local database
-```javascript
-var weaver = new Weaver();
-weaver.database(database);
+Create the instance
+```coffeescript
+Weaver = require('weaver-sdk')
+weaver = new Weaver()
 ```
 
-##### Authenticating using a token
-
-Authentication is optional (but enforced if the server is configured so)
-
-```javascript
-weaver.authenticate('token123')
+Be sure to only create a single `Weaver` instance. If you need to get a reference to a previously instantiated `Weaver` instance later, or within devtools, just do:
+```coffeescript
+weaver = Weaver.getInstance()
 ```
 
-Returns a promise with a javascript object containing information about whether the client is authorized to perform the following operations:
-```javascript
-{
-  read: true,
-  write: false
-}
-
-```
-##### Creating an entity
-```javascript
-var john = weaver.add({name: 'John Doe', age: 27, male: true});
+Connect to a running weaver-server
+```coffeescript
+weaver.connect('http://my-weaver-server-url.com')
+.then(->
+  ...
 ```
 
-##### Getting an entity
-```javascript
-weaver.get('id_01', {eagerness: 1}).then(function(entity){
-	...
-});
+Sign in with an existing user account for your weaver-server (or `admin : admin` if you've just cloned a weaver-server and there are no accounts yet)
+```coffeescript
+weaver.signInWithUsername('admin','admin')
+.then(->
+  ...
 ```
 
-##### Fetching an entity
-```javascript
-john.$fetch({eagerness: 3});
+Select or create a new Project
+
+```coffeescript
+# select an existing project
+Weaver.Project.list().then((projects)->
+  weaver.useProject(projects[0])
+)
+
+# .. or create
+p = new Weaver.Project(projectName, projectId)
+p.create() # Required. Spins up a new database on weaver-server, which will forevermore be linked with this Weaver.Project
+.then(->
+  weaver.useProject(p)
+  ...
 ```
 
-##### Updating an entity
-```javascript
-john.color = 'Red';
-john.$push('color');
+You have now:
+  - [x] Instantiated weaver
+  - [x] Connected to a running server
+  - [x] Signed-in with a valid user account
+  - [x] Selected a project to work on
+
+You're ready to start creating and interacting with nodes.
+ <a id="nodes"></a>
+
+### Nodes
+
+```coffeescript
+# creates a node (only client side for now)
+n = new Weaver.Node('hello-weaver')
+n.id()
+# -> 'hello-weaver'
+```
+```coffeescript
+# set a name attribute
+n.set('name', 'The First Node')
+...
+n.get('name')
+# -> 'The First Node'
+```
+```coffeescript
+# create a relation
+o = new Weaver.Node('how-are-you-weaver')
+o.set('name', 'The Second Node')
+n.relation('hasDescendant').add(o)
+```
+```coffeescript
+# getting relations
+n.relation('hasDescendant')
+# this returns a Weaver.RelationNode, which has a bunch of properties, among them a 'nodes' array, which contains all the nodes which are linked from the node 'n' via the relation 'hasDescendant'
+
+n.relation('hasDescendant').first()
+# -> returns the first relation for this relation key, in this case, the Weaver.Node object referenced by o
+
+# gets the name attribute of the first relation from 'n' for the relation key 'hasDescendant'
+n.relation('hasDescendant').first().get('name')
+# -> 'The Second Node'
+```
+```coffeescript
+# saving to db
+n.save()
+.then(->
+  ...
+# this collects all the pending writes on the node n, and pushes them to the database.
+```
+In our example, calling `n.save()` will execute several write operations on the database:
+- a create node operation for node `n`
+- a create attribute operation for the `name` attribute we set for `n`
+- a create relation operation for node `n` to node `o`, using the relation key `hasDescendant`
+
+In addition, `Weaver.Node.prototype.save` is downwards recursive, so it will collect and execute all pending writes on all relations of `n`, and all relations of those nodes, etc.
+So, calling `n.save()` in our example above, will also collect and execute the pending write operations on node `o`:
+- a create node operation for node `o`
+- a create attribute operation for the `name` attribute we set for `o`
+
+, as `o` is a relation of `n`. Pretty sweet, right?
+
+```coffeescript
+# loading saved nodes from the database
+Weaver.Node.load('hello-weaver')
+.then((node)->
+  node.get('name')
+)
+# -> 'The First Node'
+```
+```coffeescript
+  # nodes are loaded with a depth/eagerness of 1
+  # relations will therefore need to be loaded explicitly
+  Weaver.Node.load('hello-weaver')
+  .then((node)->
+    node.relation('hasDescendant').first().get('name')
+    # -> undefined
+
+    node.relation('hasDescendant').first().load()
+
+  ).then((o)->
+    o.get('name')
+    # -> 'The Second Node'
+  )
+
+```
+<a id="reference-api"></a>
+
+## Reference API
+
+<a id="weaver"></a>
+
+### Weaver
+#### Class Methods
+```coffeescript
+  Weaver.getInstance()
+  # return the weaver instance
+```
+```coffeescript
+  Weaver.useModel(model)
+  # set's the Weaver.Model to be used by default
+```
+```coffeescript
+  Weaver.currentModel()
+  # returns the current default model
+```
+```coffeescript
+  Weaver.shout(message)
+  # Shout a message to other connected clients
+```
+```coffeescript
+  Weaver.sniff(callback)
+  # Listen to shouted messages and perform the supplied callback
 ```
 
-###### or
-```javascript
-john.$push('color', 'Red');
+```coffeescript
+  Weaver.subscribe(operationType, callback)
+  # Listen perform the supplied callback when events of the provided type are published to the server
+  subscription = Weaver.subscribe('node.created', (msg, node) ->
+    if node.id() is 'hello-world'
+      console.log 'hello-weaver'
+  )
+
+  new Weaver.Node('hello-world')
+
+  # -> 'hello-weaver'
 ```
-
-##### Linking to another entity
-```javascript
-john.friend = lisa;
-john.$push('friend');
+```coffeescript
+  Weaver.unsubscribe(subscription)
+  # Unsubscribe from a specific subscription
 ```
-
-###### or
-```javascript
-john.$push('friend', lisa);
+```coffeescript
+  Weaver.clearAllSubscriptions()
+  # Unsubscribe from all subscriptions
 ```
-
-##### Linking to multiple entities
-```javascript
-john.friends = weaver.collection();
-john.$push('friends');
-john.friends.$push(lisa)
+#### Instance methods
+```coffeescript
+  Weaver.prototype.version()
+  # returns sdk version
 ```
-
-###### or
-```javascript
-john.friends.$push(lisa.id(), lisa);
+```coffeescript
+  Weaver.prototype.serverVersion().then(console.log)
+  # logs version of connected server
 ```
-
-###### or
-```javascript
-john.friends[lisa.id()] = lisa;
-john.friends.$push(lisa.id());
+```coffeescript
+  Weaver.prototype.connect(endpoint)
+  # sets endpoint of weaver-server to connect to
 ```
-
-##### Removing entity key
-```javascript
-john.age = '28';
-john.$remove('age');
+```coffeescript
+  Weaver.prototype.disconnect()
+  # breaks connection with weaver-server, if connected to one
 ```
-
-###### or
-```javascript
-john.friend = lisa;
-john.$remove('friend');
+```coffeescript
+  Weaver.prototype.useProject(project)
+  # sets current project to read from/write to
 ```
-
-##### Destroying an entity
-```javascript
-john.$destroy();
+```coffeescript
+  Weaver.prototype.currentProject()
+  # returns the current project
 ```
+```coffeescript
+  Weaver.prototype.signOut()
+  # signs out the current user
+```
+```coffeescript
+  Weaver.prototype.currentUser()
+  # returns the currently signed-in user
+```
+```coffeescript
+  Weaver.prototype.signInWithUsername(username, password)
+  # retrieves a user token, and a user object.
+```
+```coffeescript
+  Weaver.prototype.signInWithToken(authToken)
+  # signs in a user using a token retrieved from the server
+```
+```coffeescript
+  Weaver.prototype.wipe
+  # wipes:
+  #   - all projects on the server
+  #   - all user data on the server
+```
+ <a id="weavernode"></a>
+---
+### Weaver.Node
+---
 
-## Install - Development
+#### Class methods
+```coffeescript
+  new Weaver.Node(nodeId, graph)
+  # creates a new Weaver.Node, don't forget to call `save` to persist to db
+```
+```coffeescript
+  Weaver.Node.load(nodeId)
+  # returns a Promise which will resolve the specified node if it exists
+```
+```coffeescript
+  Weaver.Node.get(nodeId)
+  # creates a shallow Node with the specified id
+  # note: does not create a create.node operation in pendingWrites, so node.save() will not push a node creation operation to the server.
+  # not recommended unless you know what you're doing, use Weaver.Node.load instead
+```
+```coffeescript
+  Weaver.Node.firstOrCreate(nodeId)
+  # gets the node matching the id if it exists, or constructs a new node with the specified id
+```
+```coffeescript
+  Weaver.Node.batchSave(array)
+  # pass an array of nodes with pendingWrites to save them all at once with a single server transaction
+```
+```coffeescript
+  Weaver.Node.batchDestroy(array)
+  # pass an array of nodes to destroy them all at once with a single server transaction
+```
+#### Instance methods
+```coffeescript
+  Weaver.Node.prototype.load()
+  # same as Weaver.Node.load(Weaver.Node.prototype.id())
+```
+```coffeescript
+  Weaver.Node.prototype.id()
+  # returns the id of a node
+```
+```coffeescript
+  Weaver.Node.prototype.attributes()
+  # returns a map of loaded attributes on this node
+```
+```coffeescript
+  Weaver.Node.prototype.relations()
+  # returns a map of loaded relations on this node
+```
+```coffeescript
+  Weaver.Node.prototype.set(key, value)
+  # sets an attribute on the node
+```
+```coffeescript
+  Weaver.Node.prototype.unset(key)
+  # unsets an attribute on the node
+```
+```coffeescript
+  Weaver.Node.prototype.get(key)
+  # gets the value for a given attribute key on the node
+```
+```coffeescript
+  Weaver.Node.prototype.relation(key)
+  # returns a Weaver.Relation for the given relation key
+  # note, creates an empty Weaver.Relation object if no loaded relation are found.
+```
+```coffeescript
+  Weaver.Node.prototype.clone(newId, relationsToTraverse...)
+  # clones a node.
+  # recursively clones relations of the node if relationsToTraverse is defined
+```
+```coffeescript
+  Weaver.Node.prototype.equals(node)
+  # checks if the supplied node refers to the same node as the instance from a database perspective (id comparison)
+```
+```coffeescript
+  Weaver.Node.prototype.save()
+  # executes all pending db writes on the instance
+  # is recursively called on all loaded relations of this node
+```
+```coffeescript
+  Weaver.Node.prototype.destroy()
+  # destroys the instance, also on the db
+```
+<a id="weaverrelation"></a>
+---
+### Weaver.Relation
+---
 
-`$ npm install`
+#### Instance methods
+```coffeescript
+  Weaver.Relation.prototype.load()
+  # loads all nodes on this relation, so they will no longer be shallow
+```
+```coffeescript
+  Weaver.Node.prototype.to(node)
+  # returns the relationNode linking to the passed node, or throws an error if no relationNode is present linking to the passed node
+```
+```coffeescript
+  Weaver.Node.prototype.all()
+  # returns all nodes linked to with the current relation key
+```
+```coffeescript
+  Weaver.Node.prototype.first()
+  # returns the first node linked to with the current relation key
+```
+```coffeescript
+  Weaver.Node.prototype.add()
+  # links to the passed node from the instance relation
+```
+```coffeescript
+  Weaver.Node.prototype.remove(node)
+  # unlinks the passed node from the relation instance
+```
+<a id="weaverproject"></a>
+---
+### Weaver.Project
+---
 
-If you want to add weaver-sdk-js to your webApp, use [grunt](http://gruntjs.com/) to create the js. Two main commands.
+#### Class methods
+```coffeescript
+  Weaver.Project.list()
+  # Lists all projects on the server that the logged in user has access to.
+```
+#### Instance Methods
+```coffeescript
+  new Weaver.Project(@name, @projectId)
+  # creates a new Weaver.Project clientside
+```
+```coffeescript
+  Weaver.Project.prototype.create()
+  # Publishes a create-project operation on the server.
+  # Consider this as the persistent constructor
+```
+```coffeescript
+  Weaver.Project.prototype.destroy()
+  # Self-explanatory. This is a persisting operation.
+```
+```coffeescript
+  Weaver.Project.prototype.wipe()
+  # Wipes all data from this project, without deleting the project itself
+```
+```coffeescript
+  Weaver.Project.prototype.freeze()
+  # Freezes project in it's current state, preventing any further writing
+```
+```coffeescript
+  Weaver.Project.prototype.unfreeze()
+  # Unfreezes project, allowing writing as normal
+```
+```coffeescript
+  Weaver.Project.prototype.isFrozen()
+  # Return's the frozen state of this project
+```
+```coffeescript
+  Weaver.Project.prototype.rename(name)
+  # Renames this project on the server
+```
+```coffeescript
+  Weaver.Project.prototype.clone()
+  # Clone's this project in it's entirety
+```
+```coffeescript
+  Weaver.Project.prototype.getSnapshot(shouldBeJson, shouldBeZipped)
+  # Returns a snapshot of this project, defaults to zipped = false, shouldBeJson = true
+```
+```coffeescript
+  Weaver.Project.prototype.clone()
+  # Clone's this project in it's entirety
+```
+```coffeescript
+  Weaver.Project.prototype.addApp(appName, appData)
+  # Add some meta data to this project relating to a specific app
+```
+```coffeescript
+  Weaver.Project.prototype.removeApp(appName)
+  # Removes some meta data from this project relating to a specific app
+```
+```coffeescript
+  Weaver.Project.prototype.getApps()
+  # Returns a map which contains metadata for each app relating to this project, keyed by the app's name
+```
+<a id="weaveruser"></a>
+---
+### Weaver.User
+---
 
-For production environments:
+#### Class Methods
+```coffeescript
+  Weaver.User.get(authToken)
+  # create a shallow Weaver.User with aupplied userToken set
+```
+```coffeescript
+  Weaver.User.list()
+  # lists all users on the server
+```
+```coffeescript
+  Weaver.User.listProjectUsers()
+  # lists all users with access to the current project
+```
+#### Instance Methods
+```coffeescript
+  Weaver.User.prototype.id()
+  # Returns the userId for the User instance
+```
+```coffeescript
+  Weaver.User.prototype.save()
+  # Persists user data to server
+```
+```coffeescript
+  Weaver.User.prototype.changePassword(password)
+  # Changes a user's password
+```
+```coffeescript
+  Weaver.User.prototype.signUp()
+  # Saves the user and signs in as currentUser
+```
+```coffeescript
+  Weaver.User.prototype.destroy()
+  # Destroys the user
+```
+```coffeescript
+  Weaver.User.prototype.getProjectsForUser()
+  # Returns the projects a user has access to
+```
+<a id="weaverquery"></a>
+---
+### Weaver.Query
+---
 
-`$ grunt dist`
+#### Class methods
+```coffeescript
+  Weaver.Query.profile(callback)
+  # Fires the callback whenever a query is resolved.
+  # The callback is passed one argument, which contains information about the query which was just resolved
+```
+```coffeescript
+  Weaver.Query.clearProfilers()
+  # Destroys any notifiers which were created
+```
+#### Instance methods
+```coffeescript
+  Weaver.Query.prototype.find(Constructor)
+  # Executes the query and returns results constructed with the supplied Constructor, if one is given
+```
+```coffeescript
+  Weaver.Query.prototype.count()
+  # Executes the query and returns a count of the results
+```
+```coffeescript
+  Weaver.Query.prototype.first()
+  # Executes the query and returns the first result
+```
+```coffeescript
+  Weaver.Query.prototype.limit(limit)
+  # Limits the amount of results (default/maximum permitted is 1,000)
+```
+```coffeescript
+  Weaver.Query.prototype.skip(skip)
+  # Skips the passed amount of results. Useful for Result pagination
+```
+```coffeescript
+  Weaver.Query.prototype.order(keys, ascending)
+  # Orders results based on their value for a given attribute key
+```
+##### Exclusion Criteria
+```coffeescript
+  Weaver.Query.prototype.restrict(nodes)
+  # Adds a restriction on the query based on the ids of the array of passed nodes. (an array of ids is acceptable here too)
+```
+```coffeescript
+  Weaver.Query.prototype.equalTo(key, value)
+  # Restricts based on attributes. Results must match the passed key : value args
+```
+```coffeescript
+  Weaver.Query.prototype.notEqualTo(key, value)
+  # Restricts based on attributes. Results must not match the passed key : value args
+```
+```coffeescript
+  Weaver.Query.prototype.startsWith(key, value)
+  Weaver.Query.prototype.endsWith(key, value)
+  # Restricts based on attributes. Results must have a value which matches the passed key, and which value matches the rule described.
+```
+```coffeescript
+  Weaver.Query.prototype.lessThan(key, value)
+  Weaver.Query.prototype.greaterThan(key, value)
+  Weaver.Query.prototype.lessThanOrEqualTo(key, value)
+  Weaver.Query.prototype.greaterThanOrEqualTo(key, value)
+  # These all restrict based on attributes. The attribute value must respect the mathematical rule described
+```
+```coffeescript
+  Weaver.Query.prototype.hasRelationIn(key, node...)
+  Weaver.Query.prototype.hasNoRelationIn(key, node...)
+  # These restrict based on incoming relations. key is the relation key, and node is the node which the relation must originate from. node is an optional argument here, if node is not passed, then this criteria is considered passed if ANY relation exists for the passed key.
+```
+```coffeescript
+  Weaver.Query.prototype.hasRelationOut(key, node...)
+  Weaver.Query.prototype.hasNoRelationOut(key, node...)
+  # Same as above, but for outgoing relations instead
+```
+```coffeescript
+  Weaver.Query.prototype.
+  #
+```
+##### Extra loading instructions
+```coffeescript
+  Weaver.Query.prototype.selectOut(relationKeys...)
+  # Will fully load outgoing relations with a relation key matching any one of the passed arguments
+```
+```coffeescript
+  Weaver.Query.prototype.selectRecursiveOut(relationKeys...)
+  # As above, but will recursively load
+```
+```coffeescript
+  Weaver.Query.prototype.selectIn(relationKeys...)
+  # Will fully load incoming relations with a relation key matching any one of the passed arguments.
+  # The incoming relations become part of the _relationsIn_ member of the
+  # loaded nodes.
+  nodes[0].relationsIn['relationKey'].nodes
+  # If multiple relationKeys are specified in the same call, it will follow
+  # path along incoming relations. so a call with ('key1', 'key2') will load
+  # nodes with a 'key1' relation to a query result node, and then nodes with
+  # a 'key2' relation to the additionally loaded nodes. Nodes with a 'key2'
+  # relation to the original result node will not be loaded.
+  #
+  # To load nodes with different relations in to a query result node, use
+  # multiple selectIn calls.
+```
+```coffeescript
+  Weaver.Query.prototype.select(attributeKeys...)
+  # Will restrict the attributes of loaded nodes to those specified
+```
+```coffeescript
+  Weaver.Query.prototype.selectRelations(relationKeys...)
+  # Will restrict the relations of loaded nodes to those specified
+```
+##### Nesting queries / FOAF
+Any query which contains a node as an argument may instead be passed a nested query.
+```coffeescript
+  new Weaver.Query().hasRelationOut('hasChild',
+    new Weaver.Query().hasRelationOut('attendsSchool', '*')
+  )
+  # will return all nodes which have an outgoing hasChild relation to a node which has an outgoing attendsSchool relation.
+```
+<a id="weaverplugin"></a>
+---
+### Weaver.Plugin
+---
 
-For development environments:
+#### Class Methods
+```coffeescript
+  Weaver.Plugin.load(pluginName)
+  # Load a Weaver.Plugin which exists on the server
+```
+```coffeescript
+  Weaver.Plugin.list()
+  # lists all plugins on the server
+```
+#### Instance Methods
 
-`$ grunt dev`
+```coffeescript
+  Weaver.Plugin.prototype.printFunctions()
+  # Prints the functions available for this plugin
+```
+```coffeescript
+  Weaver.Plugin.prototype.getPluginName()
+  # Returns the plugin name
+```
+```coffeescript
+  Weaver.Plugin.prototype.getPluginVersion()
+  # Returns the plugin version
+```
+```coffeescript
+  Weaver.Plugin.prototype.getPluginAuthor()
+  # Returns the plugin author
+```
+```coffeescript
+  Weaver.Plugin.prototype.getPluginDescription()
+  # Returns the plugin description
+```
+<a id="weavermodel"></a>
 
-## Tests
+---
+### Weaver.Model
+---
 
-### NodeJS test
+#### Creating
 
-Based on mocha
-
-`$ npm run node-test`
-
-### Browser test
-
-Based on electron mocha
-
-`$ npm run browser-test`
-
-
-## Todo
-- further implement local listening and removing
-- error handling
-- repository weaver under $
-- add more tests
-
-## Future work
-- fetch incoming links
-- add created and updated metadata
-- add date field
-- enable paging
-- authentication
-- querying data
-
-
-# Weaver Model
-
-## Creating
-
-#### Step 1: Define a model
+##### Step 1: Define a model
 
 
  This will create a new Model with the name 'Man'
@@ -248,7 +717,7 @@ Based on electron mocha
 	trump = new Man()
  ```
 
-#### Step 2: Instantiate a member
+##### Step 2: Instantiate a member
 
 Model members extend `Weaver.Node`. They can be saved to the database, to be loaded later, and if their constructor is passed an argument,
 The root node of that member will be initialized with that argument as an id.
@@ -271,7 +740,7 @@ the model will figure out what to do based on the structure you provided earlier
 		.save()
 ```
 
-### Step 3: Nest models to describe complex structures
+##### Step 3: Nest models to describe complex structures
 
 Include a model member in the definition for another model.
 ```javascript
@@ -317,3 +786,69 @@ Include a model member in the definition for another model.
 
     trump.destroy()           //would that it were so easy..
  ```
+<a id="creatingplugins"></a>
+ ## Creating your own plugins
+
+Got something special that you wish your weaver-server could do? Build your own `Weaver.Plugin` to add server-side functionality.
+Define any functionality you want to offload to the server within a `Weaver.Plugin`, and then access it using an integrated prebuilt interface within the sdk.
+
+We have built a weaver-service bootstrapper [here](https://github.com/weaverplatform/generator-weaver-service) to get you started, so download that, and bootstrap your new service to get started.
+
+The directory in which you bootstrapped your service will already have generated a README.md, but we'll explain what to do here also for ease of reference.
+
+Let's say we made a cloud-sync service, to sync some data with a separate cloud store.
+First we'll install the bootstrapper: (and _yeoman_ if you haven't already got it)
+```
+$ npm install -g yo
+$ npm install -g generator-weaver-service
+```
+
+Then we'll run the bootstrapper:
+```
+$ yo weaver-service
+# be careful not to use any capital letters in the organization name
+```
+
+Then we'll add some configuration to our local weaver-server instance so that it picks up our new service
+```yaml
+# in #{weaver-server-root-folder}/config/default.coffee
+...
+
+pluggableServices:
+    'cloud-sync-service': 'http://localhost:2525' #or whatever port number you chose during bootstrapping
+
+...
+```
+
+Then, back in `/cloud-sync-service`
+```
+$ npm run prepublish
+$ node lib/index.js
+```
+Your service should now be up-and-running!
+Restart your weaver-server and make sure you see some acknowledgement of your new service in the startup logs.
+```
+2018-05-31 14:06:49 | INFO | Service plugin cloud-sync-service loaded with 3 Swagger paths parsed
+```
+Use a [weaver sdk](https://github.com/weaverplatform/weaver-sdk-js) to reference your new service, and start playing!
+```coffee
+Weaver.Plugin.load('cloud-sync-service')
+.then((cloudSync) ->
+  cloudSync.myNewFunctionality()
+)
+```
+
+
+## Building locally
+
+```
+$ git clone https://github.com/weaverplatform/weaver-sdk-js.git
+$ npm i
+$ npm run prepublish
+```
+
+## Tests
+
+```
+$ npm test
+```

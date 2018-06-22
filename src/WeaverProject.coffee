@@ -1,11 +1,12 @@
-cuid        = require('cuid')
-Weaver  = require('./Weaver')
+cuid   = require('cuid')
+Weaver = require('./Weaver')
+Ops    = require('./Operation')
 
 class WeaverProject
 
   @READY_RETRY_TIMEOUT: 200
 
-  constructor: (@name, @projectId, @acl, @_stored = false, @apps = {}) ->
+  constructor: (@name, @projectId, @acl, @_stored = false) ->
     @name = @name or 'unnamed'
     @projectId = @projectId or cuid()
 
@@ -39,9 +40,7 @@ class WeaverProject
     Weaver.getCoreManager().executeZippedWriteOperations(@id(), filename)
 
   destroy: ->
-    super().then(=>
-      Weaver.getCoreManager().deleteProject(@id())
-    )
+    Weaver.getCoreManager().deleteProject(@id())
 
   freeze: ->
     Weaver.getCoreManager().freezeProject(@id())
@@ -49,16 +48,17 @@ class WeaverProject
   unfreeze: ->
     Weaver.getCoreManager().unfreezeProject(@id())
 
-  addApp: (app) ->
-    @apps[app] = true
-    Weaver.getCoreManager().addApp(@id(), app)
+  isFrozen: ->
+    Weaver.getCoreManager().isFrozenProject(@id())
 
-  removeApp: (app) ->
-    delete @apps[app]
-    Weaver.getCoreManager().removeApp(@id(), app)
+  addMetadata: (bundleKey, key, data) ->
+    Weaver.getCoreManager().addProjectMetadata(@id(), bundleKey, key, data)
 
-  getApps: ->
-    (name for name of @apps)
+  removeMetadata: (bundleKey, key) ->
+    Weaver.getCoreManager().removeProjectMetadata(@id(), bundleKey, key)
+
+  getMetadata: (bundleKey, key) ->
+    Weaver.getCoreManager().getProjectMetadata(@id(),bundleKey, key)
 
   getAllNodes: (attributes)->
     Weaver.getCoreManager().getAllNodes(attributes, @id())
@@ -71,8 +71,11 @@ class WeaverProject
     @name = name
     renamed
 
-  getSnapshot: (zipped = false) ->
-    Weaver.getCoreManager().snapshotProject(@id(), zipped)
+  getSnapshot: (json=true, zipped=false, stored=false) ->
+    Weaver.getCoreManager().snapshotProject(@id(), json, zipped, stored)
+
+  getSnapshotGraph: (graphs=[], fromGraphs=[], toGraphs=[], json=true, zipped=false, stored=false) ->
+    Weaver.getCoreManager().snapshotProjectGraph(@id(), graphs, fromGraphs, toGraphs, json, zipped, stored)
 
   clone: (id, name) ->
     Weaver.getCoreManager().cloneProject(@id(), id, name).then((acl) ->
@@ -92,5 +95,14 @@ class WeaverProject
     Weaver.getCoreManager().listProjects().then((list) ->
       ( new Weaver.Project(p.name, p.id, p.acl, true, p.apps) for p in list )
     )
+
+  truncateGraph: (graph, removeNode) ->
+    removeNode.save().then( ->
+      Weaver.getCoreManager().executeOperations([ Ops.Graph(graph).truncate(removeNode.id(), removeNode.getGraph()) ])
+    )
+
+  redirectGraph: (sourceGraph, oldTargetGraph, newTargetGraph, dryrun = false, performPartial = false) ->
+    Weaver.getCoreManager().redirectGraph(@id(), sourceGraph, oldTargetGraph, newTargetGraph, dryrun, performPartial)
+
 
 module.exports = WeaverProject

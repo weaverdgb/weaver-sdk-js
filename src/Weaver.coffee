@@ -13,6 +13,7 @@ class Weaver
     # Make Weaver objects available through the instance
     # FIXME: Should probably be done with a for loop or something
     @Node = Weaver.Node
+    @DefinedNode = Weaver.DefinedNode
     @ACL = Weaver.ACL
     @CoreManager = Weaver.CoreManager
     @History = Weaver.History
@@ -58,11 +59,12 @@ class Weaver
       @coreManager.updateLocalTimeOffset()
     )
 
+  disconnect: ->
+    @coreManager.disconnect()
+
   getCoreManager: ->
     @coreManager
 
-  getUsersDB: ->
-    @coreManager.getUsersDB()
 
   useProject: (project) ->
     @coreManager.currentProject = project
@@ -142,6 +144,7 @@ window.Weaver  = Weaver if window?  # Browser
 # Require Weaver objects after exporting Weaver to prevent circular dependency
 # issues
 module.exports.Node         = require('./WeaverNode')
+module.exports.DefinedNode  = require('./WeaverDefinedNode')
 module.exports.ACL          = require('./WeaverACL')
 module.exports.CoreManager  = require('./CoreManager')
 module.exports.History      = require('./WeaverHistory')
