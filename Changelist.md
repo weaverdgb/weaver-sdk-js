@@ -2,6 +2,7 @@
 
 ## Develop
 - Add createdAt and createdBy methods to weaver node.
+- adds try/catch to JSON.parsing in cm.prototype.query
 
 ## 8.3.0
 - Adds the selectIn method on WeaverQuery, which allows you to load any
@@ -168,4 +169,3 @@
 ## 6.0.1
 - Fixes a bug where the weaver-server embedded sdk would not send GET request
   bodies
-

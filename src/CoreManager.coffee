@@ -269,7 +269,9 @@ class CoreManager
     query  = _.omit(query, ['model', 'target', 'constructorFunction'])
 
     @POST("query", {query, unparsed: true}, target).then((res) ->
-      JSON.parse(res)
+      if typeof res isnt 'object'
+        JSON.parse(res)
+      else Promise.reject(res)
     )
 
   nativeQuery: (query, target) ->
