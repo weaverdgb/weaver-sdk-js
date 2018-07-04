@@ -160,6 +160,29 @@ describe 'Weaver relation and WeaverRelationNode test', ->
       expect(node.relation('relationRelation')).to.have.property('nodes').to.have.length.be(1)
     )
 
+  it 'should use the given constructor, if supplied during Weaver.Relation.prototype.load', ->
+    j = {}
+
+    class Person extends Weaver.Node
+      age: ->
+        @.get('age')
+
+    johnny = new Person('johnny')
+    tim = new Person('tim')
+
+    johnny.set('name','Johnny')
+    tim.set('name','Timothy')
+
+    johnny.relation('hasFriend').add(tim)
+    johnny.save().then(->
+      Weaver.Node.load('johnny')
+    ).then((_j)->
+      j = _j
+      j.relation('hasFriend').load(Person)
+    ).then(->
+      expect(j.relation('hasFriend').first().constructor.name).to.equal('Person')
+    )
+
   describe 'with graphs', ->
     a  = new Weaver.Node('a', 'relationWithGraph1')
     b  = new Weaver.Node('b', 'relationWithGraph1')
