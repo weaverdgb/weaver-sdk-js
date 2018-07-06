@@ -133,6 +133,17 @@ describe 'WeaverModelQuery test', ->
         expect(q).to.have.property('_selectOut').to.have.length.be(1)
         expect(q._selectOut[0]).to.have.length.be(2)
 
+      it 'should do selectRelation correctly', ->
+        new Weaver.ModelQuery()
+        .hasRelationOut("Person.comesFrom")
+        .hasRelationOut("Person.hasHead")
+        .selectRelations("Person.comesFrom")
+        .first().then((res)->
+          expect(r).to.be.instanceOf(model.Person)
+          expect(r.relation('comesFrom').first().to.be.defined)
+          expect(r.relation('hasHead').first().to.not.be.defined)
+        )
+
       it 'should do a hasRelationIn WeaverModelQuery', ->
         new Weaver.ModelQuery()
         .hasRelationIn("Person.someRelation")
@@ -253,4 +264,3 @@ describe 'WeaverModelQuery test', ->
     q = new Weaver.ModelQuery(model)
     q.contains('Passport.fileName', 'someFilename')
     expect(q._conditions['hasFileName']).to.be.not.undefined
-
