@@ -28,8 +28,8 @@ class WeaverRelation
   _removeRelationNodeForTarget: (oldNode) ->
     @relationNodes = @relationNodes.filter((x) -> not x.to().equals(oldNode))
 
-  load: ->
-    new Weaver.Query().hasRelationIn(@key, @owner).find()
+  load: (constructor)->
+    new Weaver.Query().hasRelationIn(@key, @owner).find(constructor)
       .then((nodes) =>
         @_addNodes(nodes...)
         @nodes
