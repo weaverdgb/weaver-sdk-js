@@ -123,8 +123,7 @@ class WeaverModelQuery extends Weaver.Query
     @
 
   selectRelations: (keys...) ->
-    keys.push('member')
-    super(@_mapKeys(keys, "relations")...)
+    super(@_mapKeys(keys, "relations")..., @model.definition['member'])
     @
 
   find: (@preferredConstructor) ->

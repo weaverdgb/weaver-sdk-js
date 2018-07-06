@@ -134,14 +134,14 @@ describe 'WeaverModelQuery test', ->
         expect(q._selectOut[0]).to.have.length.be(2)
 
       it 'should do selectRelation correctly', ->
-        new Weaver.ModelQuery()
+        new Weaver.ModelQuery(model)
         .hasRelationOut("Person.comesFrom")
         .hasRelationOut("Person.hasHead")
         .selectRelations("Person.comesFrom")
-        .first().then((res)->
+        .first().then((r)->
           expect(r).to.be.instanceOf(model.Person)
-          expect(r.relation('comesFrom').first().to.be.defined)
-          expect(r.relation('hasHead').first().to.not.be.defined)
+          expect(r.relation('comesFrom').first()).to.be.defined
+          expect(r.relation('hasHead').first()).to.not.be.defined
         )
 
       it 'should do a hasRelationIn WeaverModelQuery', ->
