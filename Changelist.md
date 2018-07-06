@@ -1,6 +1,6 @@
 # Changelist
 
-## Develop
+## 8.4.0
 - Add createdAt and createdBy methods to weaver node.
 - adds try/catch to JSON.parsing in cm.prototype.query
 - Allows a Constructor function to be passed to Weaver.Relation.prototype.load

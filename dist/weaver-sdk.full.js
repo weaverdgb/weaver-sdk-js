@@ -102428,7 +102428,7 @@ module.exports = yeast;
 },{}],407:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "8.3.0",
+  "version": "8.4.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -102436,7 +102436,7 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "^4.10.0",
+    "requiredConnectorVersion": "^4.10.3",
     "requiredServerVersion": "^3.13.3"
   },
   "main": "lib/Weaver.js",
@@ -102979,7 +102979,11 @@ module.exports={
         query: query,
         unparsed: true
       }, target).then(function(res) {
-        return JSON.parse(res);
+        if (typeof res !== 'object') {
+          return JSON.parse(res);
+        } else {
+          return Promise.reject(res);
+        }
       });
     };
 
@@ -105590,6 +105594,7 @@ module.exports={
 
   WeaverNode = (function() {
     function WeaverNode(nodeId1, graph1) {
+      var ref, ref1;
       this.nodeId = nodeId1;
       this.graph = graph1;
       if (this.nodeId == null) {
@@ -105601,6 +105606,8 @@ module.exports={
       this._relations = {};
       this.relationsIn = {};
       this.pendingWrites = [Operation.Node(this).createNode()];
+      this._createdAt = this.pendingWrites[0].timestamp;
+      this._createdBy = (ref = Weaver.instance) != null ? (ref1 = ref.currentUser()) != null ? ref1.userId : void 0 : void 0;
       Weaver.publish('node.created', this);
     }
 
@@ -105676,6 +105683,8 @@ module.exports={
       }
       this._attributes = object.attributes;
       this._loaded = (object.creator != null) && fullyLoaded;
+      this._createdAt = object.created;
+      this._createdBy = object.creator;
       ref = object.relationsIn;
       for (key in ref) {
         relations = ref[key];
@@ -106222,6 +106231,14 @@ module.exports={
 
     WeaverNode.prototype.equals = function(node) {
       return node instanceof WeaverNode && node.id() === this.id() && node.getGraph() === this.getGraph();
+    };
+
+    WeaverNode.prototype.createdAt = function() {
+      return this._createdAt;
+    };
+
+    WeaverNode.prototype.createdBy = function() {
+      return this._createdBy;
     };
 
     return WeaverNode;
