@@ -25,6 +25,20 @@ class WeaverModelRelation extends Weaver.Relation
     throw new Error("Model #{@className} is not allowed to have relation #{@modelKey} to #{node.id()}"+
                     " of def #{JSON.stringify(defs)}, allowed ranges are #{JSON.stringify(allowed)}")
 
+  _checkCorrectConstructor: (ctor) ->
+    allowed = false
+    @owner.getRanges(@modelKey).map((range)=>
+      try
+        keys = range.split(':')
+        modelName = keys[0]
+        className = keys[1]
+        if @model.modelMap[modelName][className] is ctor
+          allowed = true
+    )
+    return true if allowed
+    throw new Error("Model #{@className} is not allowed to have relation #{@modelKey} to instance"+
+      " of def #{ctor.className}.")
+
   add: (node, relId, addToPendingWrites = true) ->
     @_checkCorrectClass(node)
     super(node, relId, addToPendingWrites)
@@ -32,5 +46,10 @@ class WeaverModelRelation extends Weaver.Relation
   update: (oldNode, newNode) ->
     @_checkCorrectClass(newNode)
     super(oldNode, newNode)
+
+
+  load: (constructor)->
+    @_checkCorrectConstructor(constructor)
+    super(constructor)
 
 module.exports = WeaverModelRelation
