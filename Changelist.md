@@ -1,6 +1,8 @@
 # Changelist
 
 ## Develop
+
+## 8.5.0
 - Allows a Constructor function to be passed to Weaver.Relation.prototype.load
 - Implements selectRelation for Weaver.ModelQuery
 - Implements Weaver.ModelRelation.prototype.load (with validity checking)
