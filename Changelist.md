@@ -1,16 +1,18 @@
 # Changelist
 
 ## Develop
-- Implements selectRelation for Weaver.ModelQuery
 - Allows a Constructor function to be passed to Weaver.Relation.prototype.load
+- Implements selectRelation for Weaver.ModelQuery
+- Implements Weaver.ModelRelation.prototype.load (with validity checking)
 
 ## 8.4.0
 - Add createdAt and createdBy methods to weaver node.
 - adds try/catch to JSON.parsing in cm.prototype.query
 
+
 ## 8.3.0
 - Adds the selectIn method on WeaverQuery, which allows you to load any
-  incomming relations if they are present.
+  incoming relations if they are present.
 
 ## 8.2.1
 - Mention id and graph of node not found message.
