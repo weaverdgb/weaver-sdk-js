@@ -2,6 +2,7 @@
 
 ## Develop
 - Allows a Constructor function to be passed to Weaver.Relation.prototype.load
+- Implements selectRelation for Weaver.ModelQuery
 - Implements Weaver.ModelRelation.prototype.load (with validity checking)
 
 ## 8.4.0
