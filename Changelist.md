@@ -1,6 +1,7 @@
 # Changelist
 
 ## Develop
+- Allow specifying graph in load function on ModelClass
 
 ## 8.5.0
 - Allows a Constructor function to be passed to Weaver.Relation.prototype.load
