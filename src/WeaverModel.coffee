@@ -61,6 +61,7 @@ class WeaverModel
     carrier[className].classDefinition      = classDefinition
     carrier[className].totalClassDefinition = model._collectFromSupers(classDefinition)
 
+    # Also undefind is a valid as agrument for graph
     load = (loadClass) => (nodeId, graph) =>
       query = new Weaver.ModelQuery(model)
       .class(carrier[loadClass])
