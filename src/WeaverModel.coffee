@@ -62,10 +62,11 @@ class WeaverModel
     carrier[className].totalClassDefinition = model._collectFromSupers(classDefinition)
 
     load = (loadClass) => (nodeId, graph) =>
-      new Weaver.ModelQuery(model)
-        .class(carrier[loadClass])
-        .restrict(nodeId)
-        .first(carrier[loadClass])
+      query = new Weaver.ModelQuery(model)
+      .class(carrier[loadClass])
+      .restrict(nodeId)
+      query.restrictGraphs([graph]) if arguments.length > 1
+      query.first(carrier[loadClass])
 
     carrier[className].load = load(className)
 
