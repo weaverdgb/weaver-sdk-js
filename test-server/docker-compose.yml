@@ -36,3 +36,10 @@ services:
     volumes:
     - "./weaver-server-config/local.coffee:/usr/src/app/config/local.coffee"
     - "./weaver-server-models:/usr/src/app/models"
+
+  calculator:
+    image: sysunite/calculator:1.0.0
+    expose:
+    - "1414"
+    ports:
+    - "1414:1414"

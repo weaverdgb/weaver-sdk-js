@@ -4,7 +4,7 @@ Weaver = require('../src/Weaver')
 describe 'WeaverPlugin test', ->
   it 'should list available plugins', ->
     Weaver.Plugin.list().then((plugins) ->
-      expect(plugins).to.have.length.be.at.least(2)
+      expect(plugins).to.have.length.be.at.least(0)
     )
 
   it 'should get a single plugin', ->
