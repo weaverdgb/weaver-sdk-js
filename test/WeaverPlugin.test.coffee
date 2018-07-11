@@ -32,15 +32,6 @@ describe 'WeaverPlugin test', ->
       assert.equal(result, 100)
     )
 
-  it 'should call plugin functions on nodes-counter', ->
-    plugin = null
-    Weaver.Plugin.load('nodes-counter').then((p) ->
-      plugin = p
-      plugin.countNodes()
-    ).then((result) ->
-      assert.equal(result, '500')
-    )
-
   it 'should raise an error when a function is incorrectly called', ->
     Weaver.Plugin.load('calculator').then((plugin) ->
       plugin.add(4) # Missing field y
