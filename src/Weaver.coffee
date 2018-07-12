@@ -16,7 +16,6 @@ class Weaver
     @DefinedNode = Weaver.DefinedNode
     @ACL = Weaver.ACL
     @CoreManager = Weaver.CoreManager
-    @History = Weaver.History
     @Plugin = Weaver.Plugin
     @Project = Weaver.Project
     @Query = Weaver.Query
@@ -147,7 +146,6 @@ module.exports.Node         = require('./WeaverNode')
 module.exports.DefinedNode  = require('./WeaverDefinedNode')
 module.exports.ACL          = require('./WeaverACL')
 module.exports.CoreManager  = require('./CoreManager')
-module.exports.History      = require('./WeaverHistory')
 module.exports.Plugin       = require('./WeaverPlugin')
 module.exports.Project      = require('./WeaverProject')
 module.exports.Query        = require('./WeaverQuery')

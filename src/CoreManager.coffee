@@ -237,12 +237,6 @@ class CoreManager
   getAllRelations: (target)->
     @GET('relations', target)
 
-  getHistory: (payload, target)->
-    @GET('history', payload, target)
-
-  dumpHistory: (payload, target)->
-    @GET('history', payload, target)
-
   snapshotProject: (target, json, zipped, stored)->
     @GET('snapshot', {json, zipped, stored}, target)
 
