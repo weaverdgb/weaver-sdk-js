@@ -102428,7 +102428,7 @@ module.exports = yeast;
 },{}],407:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "8.4.0",
+  "version": "8.5.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -102436,8 +102436,8 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "^4.10.3",
-    "requiredServerVersion": "^3.13.3"
+    "requiredConnectorVersion": "^4.10.1",
+    "requiredServerVersion": "^3.13.3 || 3.14.0-beta.0"
   },
   "main": "lib/Weaver.js",
   "license": "GPL-3.0",
@@ -104537,7 +104537,12 @@ module.exports={
       load = (function(_this) {
         return function(loadClass) {
           return function(nodeId, graph) {
-            return new Weaver.ModelQuery(model)["class"](carrier[loadClass]).restrict(nodeId).first(carrier[loadClass]);
+            var query;
+            query = new Weaver.ModelQuery(model)["class"](carrier[loadClass]).restrict(nodeId);
+            if (arguments.length > 1) {
+              query.restrictGraphs([graph]);
+            }
+            return query.first(carrier[loadClass]);
           };
         };
       })(this);
@@ -105413,6 +105418,13 @@ module.exports={
       return this;
     };
 
+    WeaverModelQuery.prototype.selectRelations = function() {
+      var keys;
+      keys = 1 <= arguments.length ? slice.call(arguments, 0) : [];
+      WeaverModelQuery.__super__.selectRelations.apply(this, slice.call(this._mapKeys(keys, "relations")).concat([this.model.definition['member']]));
+      return this;
+    };
+
     WeaverModelQuery.prototype.find = function(preferredConstructor) {
       this.preferredConstructor = preferredConstructor;
       this.alwaysLoadRelations(this.model.getMemberKey());
@@ -105477,6 +105489,28 @@ module.exports={
       throw new Error(("Model " + this.className + " is not allowed to have relation " + this.modelKey + " to " + (node.id())) + (" of def " + (JSON.stringify(defs)) + ", allowed ranges are " + (JSON.stringify(allowed))));
     };
 
+    WeaverModelRelation.prototype._checkCorrectConstructor = function(ctor) {
+      var allowed;
+      allowed = false;
+      this.owner.getRanges(this.modelKey).map((function(_this) {
+        return function(range) {
+          var className, keys, modelName;
+          try {
+            keys = range.split(':');
+            modelName = keys[0];
+            className = keys[1];
+            if (_this.model.modelMap[modelName][className] === ctor) {
+              return allowed = true;
+            }
+          } catch (error) {}
+        };
+      })(this));
+      if (allowed) {
+        return true;
+      }
+      throw new Error(("Model " + this.className + " is not allowed to have relation " + this.modelKey + " to instance") + (" of def " + ctor.className + "."));
+    };
+
     WeaverModelRelation.prototype.add = function(node, relId, addToPendingWrites) {
       if (addToPendingWrites == null) {
         addToPendingWrites = true;
@@ -105488,6 +105522,11 @@ module.exports={
     WeaverModelRelation.prototype.update = function(oldNode, newNode) {
       this._checkCorrectClass(newNode);
       return WeaverModelRelation.__super__.update.call(this, oldNode, newNode);
+    };
+
+    WeaverModelRelation.prototype.load = function(constructor) {
+      this._checkCorrectConstructor(constructor);
+      return WeaverModelRelation.__super__.load.call(this, constructor);
     };
 
     return WeaverModelRelation;
@@ -107244,8 +107283,8 @@ module.exports={
       });
     };
 
-    WeaverRelation.prototype.load = function() {
-      return new Weaver.Query().hasRelationIn(this.key, this.owner).find().then((function(_this) {
+    WeaverRelation.prototype.load = function(constructor) {
+      return new Weaver.Query().hasRelationIn(this.key, this.owner).find(constructor).then((function(_this) {
         return function(nodes) {
           _this._addNodes.apply(_this, nodes);
           return _this.nodes;
