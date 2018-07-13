@@ -1,7 +1,9 @@
 # Changelist
 
-## Develop
+## 9.0.0
 - Allow specifying graph in load function on ModelClass
+- Remove History
+- Remove non-Service plugin support
 
 ## 8.5.0
 - Allows a Constructor function to be passed to Weaver.Relation.prototype.load
