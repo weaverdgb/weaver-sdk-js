@@ -38,7 +38,8 @@ deploy:
     secure: S1LYxY0eao74Xoo8IlIwvgkdQiWRjI6n+tdf/fPVV+uBLtktOR3lWNOZltaa0TXV6koKhsPK9FWnDzf5/Ii3BhSvAwT8uKAVZUNY5qiyzo0uhD4V6f8bZfh7yAnxdg1G4XAOHZrusHweH7EI5i2Ei2c7DgLAWu0bYluMSIB2dQUKBPyAkteZ+nnuMyRtBnTL0IYLAsdgGYAUsG1b9vefbT0C7uWiZa+9R2eEzBfwjNfgW8kpWH5+g56foqSxrHJ0OeIhmfwVfyJcpri6v4qtHxr5G8rjBC2zdzSTnXe6m4PPDDBdH5R40p54W/iaiWHp9SSbY/WwV+oqYOk/sFjC61ZJ4l1jJvx8Ypbj7LMCyVb8aSUAWRnOEH5YhUeCo2SY28+sXYbRV5zNQBdkHsH0hUZj4sb05pQvNJJLahi0XjgayV1mGtzDzVM2N7oScK14OCtBk0nWvw80ofinnajhOvMC/N2Z1fXKshGq2eMSfFVVvdtirEgqBlVbtyTdtM6KVwTDY5AoduOroYiBUpAQLZV2XTJaicemzCg/ZHrmQKlqj1l9jwXUQ8Q4kEQ9uneL5clhFPpd8C0jendSxoKi33rGWxiUUI+VOVywkX4hpAR1R5YKhpv/QkXjbzejXuiK9sW/+YTlGpvsNjcaJNGyjqDQ/wyhSdo7xzM1DK/FTsE=
   on:
     repo: weaverplatform/weaver-sdk-js
-    branch: master
+    tags: true
+
 
 after_script:
   - docker-compose -f ./test-server/docker-compose.yml logs weaver-server
