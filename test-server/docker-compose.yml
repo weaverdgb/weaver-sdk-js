@@ -38,7 +38,7 @@ services:
     - "./weaver-server-models:/usr/src/app/models"
 
   calculator:
-    image: sysunite/calculator:1.0.0
+    image: sysunite/calculator:1.1.0
     expose:
     - "1414"
     ports:
