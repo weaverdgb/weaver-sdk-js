@@ -166,7 +166,7 @@ class WeaverNode
     else if fieldArray.length is 1
       return @_getAttributeValue(fieldArray[0])
     else
-      return fieldArray
+      return fieldArray[0]
 
   getGraph: ->
     @graph
