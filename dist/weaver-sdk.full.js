@@ -104527,14 +104527,13 @@ module.exports={
 
     WeaverModel.prototype._registerClass = function(carrier, model, className, classDefinition) {
       var js, load;
-      js = new Function('Weaver', "return class " + className + " extends Weaver.ModelClass {\n  constructor(nodeId, graph) {\n    super(nodeId, graph, " + className + ".model);\n\n    // Reflect class fields inward to instance\n    this.className            = \"" + className + "\";\n    this.model                = " + className + ".model;\n    this.definition           = " + className + ".definition;\n    this.classDefinition      = " + className + ".classDefinition;\n    this.totalClassDefinition = " + className + ".totalClassDefinition;\n  }\n}");
-      carrier[className] = js(Weaver);
-      carrier[className].className = className;
+      js = "(function() {\n  var " + className + " = class " + className + " extends Weaver.ModelClass {\n    constructor(nodeId, graph) {\n      super(nodeId, graph, " + className + ".model)\n      this.model                = " + className + ".model;\n      this.definition           = " + className + ".definition;\n      this.className            = \"" + className + "\";\n      this.classDefinition      = " + className + ".classDefinition;\n      this.totalClassDefinition = " + className + ".totalClassDefinition;\n    }\n    classId() {\n      return " + className + ".definition.name + \":\" + " + className + ".className;\n    };\n  };\n\n  return " + className + ";\n})();";
+      carrier[className] = eval(js);
       carrier[className].model = model;
       carrier[className].definition = model.definition;
+      carrier[className].className = className;
       carrier[className].classDefinition = classDefinition;
       carrier[className].totalClassDefinition = model._collectFromSupers(classDefinition);
-      carrier[className].classId = model.definition.name + ":" + className;
       load = (function(_this) {
         return function(loadClass) {
           return function(nodeId, graph) {
@@ -104893,7 +104892,7 @@ module.exports={
     };
 
     WeaverModelClass.getNode = function() {
-      return Weaver.Node.getFromGraph(this.classId, this.model.getGraph());
+      return Weaver.Node.getFromGraph(this.classId(), this.model.getGraph());
     };
 
     function WeaverModelClass(nodeId, graph, model) {
@@ -104903,7 +104902,7 @@ module.exports={
       }
       WeaverModelClass.__super__.constructor.call(this, nodeId, graph);
       this.model = model;
-      classId = this.constructor.classId;
+      classId = this.constructor.classId();
       classNode = Weaver.Node.getFromGraph(classId, this.model.getGraph());
       this.nodeRelation(this.model.getMemberKey()).addInGraph(classNode, this.graph);
     }
@@ -105343,7 +105342,7 @@ module.exports={
     };
 
     WeaverModelQuery.prototype["class"] = function(modelClass) {
-      return this.hasRelationOut(this.model.getMemberKey(), Weaver.Node.getFromGraph(modelClass.classId, this.model.getGraph()));
+      return this.hasRelationOut(this.model.getMemberKey(), Weaver.Node.getFromGraph(modelClass.classId(), this.model.getGraph()));
     };
 
     WeaverModelQuery.prototype._mapKeys = function(keys, source) {
