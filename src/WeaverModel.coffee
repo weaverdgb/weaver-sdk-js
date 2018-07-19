@@ -34,32 +34,27 @@ class WeaverModel
 
   _registerClass: (carrier, model, className, classDefinition)->
 
-    js = """
-      (function() {
-        var #{className} = class #{className} extends Weaver.ModelClass {
-          constructor(nodeId, graph) {
-            super(nodeId, graph, #{className}.model)
-            this.model                = #{className}.model;
-            this.definition           = #{className}.definition;
-            this.className            = "#{className}";
-            this.classDefinition      = #{className}.classDefinition;
-            this.totalClassDefinition = #{className}.totalClassDefinition;
-          }
-          classId() {
-            return #{className}.definition.name + ":" + #{className}.className;
-          };
-        };
+    js = new Function('Weaver', """
+      return class #{className} extends Weaver.ModelClass {
+        constructor(nodeId, graph) {
+          super(nodeId, graph, #{className}.model);
 
-        return #{className};
-      })();
-    """
+          // Reflect class fields inward to instance
+          this.className            = "#{className}";
+          this.model                = #{className}.model;
+          this.definition           = #{className}.definition;
+          this.classDefinition      = #{className}.classDefinition;
+          this.totalClassDefinition = #{className}.totalClassDefinition;
+        }
+      }""")
 
-    carrier[className] = eval(js)
+    carrier[className] = js(Weaver)
+    carrier[className].className            = className
     carrier[className].model                = model
     carrier[className].definition           = model.definition
-    carrier[className].className            = className
     carrier[className].classDefinition      = classDefinition
     carrier[className].totalClassDefinition = model._collectFromSupers(classDefinition)
+    carrier[className].classId              = -> return @definition.name + ':' + @className
 
     # Also undefind is a valid as agrument for graph
     load = (loadClass) => (nodeId, graph) =>
