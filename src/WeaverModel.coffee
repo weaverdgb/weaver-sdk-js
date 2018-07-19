@@ -54,7 +54,7 @@ class WeaverModel
     carrier[className].definition           = model.definition
     carrier[className].classDefinition      = classDefinition
     carrier[className].totalClassDefinition = model._collectFromSupers(classDefinition)
-    carrier[className].classId              = -> return @definition.name + ':' + @className
+    carrier[className].classId              = "#{model.definition.name}:#{className}""
 
     # Also undefind is a valid as agrument for graph
     load = (loadClass) => (nodeId, graph) =>
