@@ -104527,13 +104527,16 @@ module.exports={
 
     WeaverModel.prototype._registerClass = function(carrier, model, className, classDefinition) {
       var js, load;
-      js = "(function() {\n  var " + className + " = class " + className + " extends Weaver.ModelClass {\n    constructor(nodeId, graph) {\n      super(nodeId, graph, " + className + ".model)\n      this.model                = " + className + ".model;\n      this.definition           = " + className + ".definition;\n      this.className            = \"" + className + "\";\n      this.classDefinition      = " + className + ".classDefinition;\n      this.totalClassDefinition = " + className + ".totalClassDefinition;\n    }\n    classId() {\n      return " + className + ".definition.name + \":\" + " + className + ".className;\n    };\n  };\n\n  return " + className + ";\n})();";
-      carrier[className] = eval(js);
+      js = new Function('Weaver', "return class " + className + " extends Weaver.ModelClass {\n  constructor(nodeId, graph) {\n    super(nodeId, graph, " + className + ".model);\n\n    // Reflect class fields inward to instance\n    this.className            = \"" + className + "\";\n    this.model                = " + className + ".model;\n    this.definition           = " + className + ".definition;\n    this.classDefinition      = " + className + ".classDefinition;\n    this.totalClassDefinition = " + className + ".totalClassDefinition;\n  }\n}");
+      carrier[className] = js(Weaver);
+      carrier[className].className = className;
       carrier[className].model = model;
       carrier[className].definition = model.definition;
-      carrier[className].className = className;
       carrier[className].classDefinition = classDefinition;
       carrier[className].totalClassDefinition = model._collectFromSupers(classDefinition);
+      carrier[className].classId = function() {
+        return model.definition.name + ":" + className;
+      };
       load = (function(_this) {
         return function(loadClass) {
           return function(nodeId, graph) {
