@@ -1,6 +1,7 @@
 # Changelist
 
 ## Develop
+- Rewritten subclassing mechanism of ModelClass
 - Allow specifying graph in load function on ModelClass
 - When attributes is an array, return the first instead of the array
 
