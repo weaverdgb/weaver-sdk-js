@@ -15,13 +15,20 @@ class WeaverModel
     # Load included models
     includeList = [] if not includeList?
     includeList.push(@definition.name)
-    @modelMap = {}
+
+    # Map classId to ModelClass
+    @classList = {} 
+    
+    # Deprecated
+    @modelMap = {}  
     @modelMap[@definition.name] = @
     @_loadIncludes(includeList, @modelMap).then(=>
 
       new WeaverModelValidator(@definition, @includes).validate()
+      # Attach classes for including model
       for className, classDefinition of @definition.classes
         @_registerClass(@, @, className, classDefinition)
+      # Attach classes for included models
       for prefix, incl of @includes
         @[prefix] = {}
         for className, classDefinition of incl.definition.classes
@@ -71,10 +78,13 @@ class WeaverModel
     @definition.includes = {} if not @definition.includes?
 
     # Map prefix to included model
+    # Deprecated
     @includes = {}
     includeDefs = ({prefix: key, name: obj.name, version: obj.version} for key, obj of @definition.includes)
 
     Promise.map(includeDefs, (incl)=>
+
+      # Deprecated, allow cycles in future
       if incl.name in includeList
         error = new Error("Model #{@definition.name} tries to include #{incl.name} but this introduces a cycle")
         error.code = 209

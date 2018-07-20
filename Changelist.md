@@ -14,7 +14,6 @@
 - Add createdAt and createdBy methods to weaver node.
 - adds try/catch to JSON.parsing in cm.prototype.query
 
-
 ## 8.3.0
 - Adds the selectIn method on WeaverQuery, which allows you to load any
   incoming relations if they are present.
