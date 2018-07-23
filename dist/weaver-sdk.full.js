@@ -102428,7 +102428,7 @@ module.exports = yeast;
 },{}],407:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "8.5.1",
+  "version": "8.6.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -103117,10 +103117,10 @@ module.exports={
 },{"./Error":409,"./LocalController":410,"./SocketController":412,"./Weaver":413,"./WeaverError":416,"bluebird":72,"cuid":126,"lodash":229,"request":298,"socket.io-client":329}],409:[function(require,module,exports){
 (function() {
   module.exports = function(code, message) {
-    return {
-      code: code,
-      message: message
-    };
+    var error;
+    error = new Error(message);
+    error.code = code;
+    return error;
   };
 
 }).call(this);
