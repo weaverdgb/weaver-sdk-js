@@ -102428,7 +102428,7 @@ module.exports = yeast;
 },{}],407:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "8.5.1",
+  "version": "8.6.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -103117,10 +103117,10 @@ module.exports={
 },{"./Error":409,"./LocalController":410,"./SocketController":412,"./Weaver":413,"./WeaverError":416,"bluebird":72,"cuid":126,"lodash":229,"request":298,"socket.io-client":329}],409:[function(require,module,exports){
 (function() {
   module.exports = function(code, message) {
-    return {
-      code: code,
-      message: message
-    };
+    var error;
+    error = new Error(message);
+    error.code = code;
+    return error;
   };
 
 }).call(this);
@@ -104495,6 +104495,7 @@ module.exports={
         includeList = [];
       }
       includeList.push(this.definition.name);
+      this.classList = {};
       this.modelMap = {};
       this.modelMap[this.definition.name] = this;
       return this._loadIncludes(includeList, this.modelMap).then((function(_this) {
@@ -104526,15 +104527,15 @@ module.exports={
     };
 
     WeaverModel.prototype._registerClass = function(carrier, model, className, classDefinition) {
-      var js, load;
+      var js, load, modelClass;
       js = new Function('Weaver', "return class " + className + " extends Weaver.ModelClass {\n  constructor(nodeId, graph) {\n    super(nodeId, graph, " + className + ".model);\n\n    // Reflect class fields inward to instance\n    this.className            = \"" + className + "\";\n    this.model                = " + className + ".model;\n    this.definition           = " + className + ".definition;\n    this.classDefinition      = " + className + ".classDefinition;\n    this.totalClassDefinition = " + className + ".totalClassDefinition;\n  }\n}");
-      carrier[className] = js(Weaver);
-      carrier[className].className = className;
-      carrier[className].model = model;
-      carrier[className].definition = model.definition;
-      carrier[className].classDefinition = classDefinition;
-      carrier[className].totalClassDefinition = model._collectFromSupers(classDefinition);
-      carrier[className].classId = function() {
+      modelClass = js(Weaver);
+      modelClass.className = className;
+      modelClass.model = model;
+      modelClass.definition = model.definition;
+      modelClass.classDefinition = classDefinition;
+      modelClass.totalClassDefinition = model._collectFromSupers(classDefinition);
+      modelClass.classId = function() {
         return model.definition.name + ":" + className;
       };
       load = (function(_this) {
@@ -104549,7 +104550,9 @@ module.exports={
           };
         };
       })(this);
-      return carrier[className].load = load(className);
+      modelClass.load = load(className);
+      carrier[className] = modelClass;
+      return this.classList[modelClass.classId] = modelClass;
     };
 
     WeaverModel.prototype._loadIncludes = function(includeList, modelMap) {
@@ -104580,10 +104583,8 @@ module.exports={
             error.code = 209;
             return Promise.reject(error);
           }
-          return WeaverModel.load(incl.name, incl.version, includeList).then(function(loaded) {
-            _this.includes[incl.prefix] = loaded;
-            return modelMap[incl.name] = loaded;
-          });
+          _this.includes[incl.prefix] = _this;
+          return modelMap[incl.name] = _this;
         };
       })(this));
     };
