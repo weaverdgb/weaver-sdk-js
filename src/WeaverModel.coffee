@@ -22,6 +22,7 @@ class WeaverModel
     # Deprecated
     @modelMap = {}  
     @modelMap[@definition.name] = @
+    # Deprecated
     @_loadIncludes(includeList, @modelMap).then(=>
 
       new WeaverModelValidator(@definition, @includes).validate()
@@ -55,13 +56,13 @@ class WeaverModel
         }
       }""")
 
-    carrier[className] = js(Weaver)
-    carrier[className].className            = className
-    carrier[className].model                = model
-    carrier[className].definition           = model.definition
-    carrier[className].classDefinition      = classDefinition
-    carrier[className].totalClassDefinition = model._collectFromSupers(classDefinition)
-    carrier[className].classId              = -> "#{model.definition.name}:#{className}"
+    modelClass = js(Weaver)
+    modelClass.className            = className
+    modelClass.model                = model
+    modelClass.definition           = model.definition
+    modelClass.classDefinition      = classDefinition
+    modelClass.totalClassDefinition = model._collectFromSupers(classDefinition)
+    modelClass.classId              = -> "#{model.definition.name}:#{className}"
 
     # Also undefind is a valid as agrument for graph
     load = (loadClass) => (nodeId, graph) =>
@@ -71,14 +72,16 @@ class WeaverModel
       query.restrictGraphs([graph]) if arguments.length > 1
       query.first(carrier[loadClass])
 
-    carrier[className].load = load(className)
+    modelClass.load = load(className)
 
+    carrier[className] = modelClass
+    @classList[modelClass.classId] = modelClass
 
+  # Deprecated
   _loadIncludes: (includeList, modelMap)->
     @definition.includes = {} if not @definition.includes?
 
     # Map prefix to included model
-    # Deprecated
     @includes = {}
     includeDefs = ({prefix: key, name: obj.name, version: obj.version} for key, obj of @definition.includes)
 
@@ -90,10 +93,10 @@ class WeaverModel
         error.code = 209
         return Promise.reject(error)
 
-      WeaverModel.load(incl.name, incl.version, includeList).then((loaded)=>
-        @includes[incl.prefix] = loaded
-        modelMap[incl.name] = loaded
-      )
+      # WeaverModel.load(incl.name, incl.version, includeList).then((loaded)=>
+      @includes[incl.prefix] = @
+      modelMap[incl.name] = @
+      # )
     )
 
   _collectFromSupers: (classDefinition)->
