@@ -1,19 +1,19 @@
 # Changelist
 
 ## Develop
-- Rewritten subclassing mechanism of ModelClass
-- Allow specifying graph in load function on ModelClass
-- When attributes is an array, return the first instead of the array
+- Rewritten subclassing mechanism of ModelClass.
+- Allow specifying graph in load function on ModelClass.
+- When attributes is an array, return the first instead of the array.
+- Let the Legacy Error object be a JS Error instead just a {} object.
 
 ## 8.5.0
-- Allows a Constructor function to be passed to Weaver.Relation.prototype.load
-- Implements selectRelation for Weaver.ModelQuery
-- Implements Weaver.ModelRelation.prototype.load (with validity checking)
+- Allows a Constructor function to be passed to Weaver.Relation.prototype.load.
+- Implements selectRelation for Weaver.ModelQuery.
+- Implements Weaver.ModelRelation.prototype.load (with validity checking).
 
 ## 8.4.0
 - Add createdAt and createdBy methods to weaver node.
-- adds try/catch to JSON.parsing in cm.prototype.query
-
+- Adds try/catch to JSON.parsing in cm.prototype.query.
 
 ## 8.3.0
 - Adds the selectIn method on WeaverQuery, which allows you to load any
