@@ -1,6 +1,6 @@
 # Changelist
 
-## 8.6.1
+## Develop
 - Remove level-fs dependency.
 
 ## 8.6.0
