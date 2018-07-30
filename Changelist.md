@@ -1,5 +1,8 @@
 # Changelist
 
+## Develop
+- Remove level-fs dependency.
+
 ## 8.6.0
 - Rewritten subclassing mechanism of ModelClass.
 - Allow specifying graph in load function on ModelClass.
