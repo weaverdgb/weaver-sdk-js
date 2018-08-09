@@ -2,6 +2,7 @@
 
 ## Develop
 - Remove level-fs dependency.
+- Added the test proposed by Michiel for limiting ordered queries.
 
 ## 8.6.0
 - Rewritten subclassing mechanism of ModelClass.
