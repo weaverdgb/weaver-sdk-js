@@ -1442,3 +1442,23 @@ describe 'WeaverQuery Test', ->
         expect(nodes.length).to.equal(1)
         checkNodeInResult(nodes, 'b')
       )
+
+    it 'should get the same amount of results for ordering ascending and descending with limit', ->
+      nodes = []
+      for i in [0..100]
+        node = new Weaver.Node()
+        node.set('label', i)
+        nodes.push(node)
+
+      query = new Weaver.Query()
+      query.limit(10)
+      ascendingLength = 0
+
+      Weaver.Node.batchSave(nodes).then(->
+        query.order(['label'], true).count()
+      ).then((length) ->
+        ascendingLength = length
+        query.order(['label'], false).count()
+      ).then((descendingLength) ->
+        expect(ascendingLength).to.equal(descendingLength)
+      )
