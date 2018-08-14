@@ -104789,27 +104789,36 @@ module.exports={
     };
 
     WeaverModel.prototype._bootstrapClasses = function(existingNodes, nodesToCreate) {
-      var ModelClass, className, classObj, i, id, itemName, len, node, ref, ref1, ref2, superClassNode, superId;
+      var ModelClass, addMember, className, classObj, i, id, itemName, j, len, len1, node, ref, ref1, ref2, ref3, superClassNode, superId;
       if (nodesToCreate == null) {
         nodesToCreate = {};
       }
       ref = this.definition.classes;
       for (className in ref) {
         classObj = ref[className];
-        if (!(classObj.init != null)) {
+        if (!((classObj.init != null) || (classObj.members != null))) {
           continue;
         }
         ModelClass = this[className];
-        ref1 = classObj.init;
-        for (i = 0, len = ref1.length; i < len; i++) {
-          itemName = ref1[i];
-          node = new ModelClass(this.definition.name + ":" + itemName, this.getGraph());
-          if (existingNodes[this.definition.name + ":" + itemName] == null) {
+        addMember = function(itemName, owner) {
+          var node;
+          node = new ModelClass(owner.definition.name + ":" + itemName, owner.getGraph());
+          if (existingNodes[owner.definition.name + ":" + itemName] == null) {
             nodesToCreate[node.id()] = node;
           } else {
             node._clearPendingWrites();
           }
-          this[className][itemName] = node;
+          return owner[className][itemName] = node;
+        };
+        ref1 = classObj.init;
+        for (i = 0, len = ref1.length; i < len; i++) {
+          itemName = ref1[i];
+          addMember(itemName, owner);
+        }
+        ref2 = classObj.members;
+        for (j = 0, len1 = ref2.length; j < len1; j++) {
+          itemName = ref2[j];
+          addMember(itemName, owner);
         }
       }
       for (className in this.definition.classes) {
@@ -104821,9 +104830,9 @@ module.exports={
           }
         }
       }
-      ref2 = this.definition.classes;
-      for (className in ref2) {
-        classObj = ref2[className];
+      ref3 = this.definition.classes;
+      for (className in ref3) {
+        classObj = ref3[className];
         if (!(classObj["super"] != null)) {
           continue;
         }

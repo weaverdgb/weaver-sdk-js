@@ -195,8 +195,11 @@ describe 'WeaverModel test', ->
           new Weaver.Query().restrict('test-model:Person').find()
         ).should.eventually.have.length.be(1)
 
-      it 'should have init member after a bootstrap', ->
+      it 'should have init member after a bootstrap using deprecated init block', ->
         expect(model).to.have.property('City').to.have.property('Rotterdam').be.defined
+
+      it 'should have init member after a bootstrap using members block', ->
+        expect(model).to.have.property('Country').to.have.property('Nepal').be.defined
 
       it 'should have init member on load a rebootstrap', ->
         Weaver.Model.load(model.definition.name, model.definition.version).then((reloaded) ->

@@ -1,6 +1,7 @@
 # Changelist
 
 ## Develop
+- Add members field as alterative to init in model.yml.
 - Remove level-fs dependency.
 - Added the test proposed by Michiel for limiting ordered queries.
 

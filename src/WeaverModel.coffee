@@ -219,16 +219,19 @@ class WeaverModel
   _bootstrapClasses: (existingNodes, nodesToCreate={}) ->
 
     # First create all class instances
-    for className, classObj of @definition.classes when classObj.init?
+    for className, classObj of @definition.classes when classObj.init? or classObj.members?
       ModelClass = @[className]
 
-      for itemName in classObj.init
-        node = new ModelClass("#{@definition.name}:#{itemName}", @getGraph())
-        if !existingNodes["#{@definition.name}:#{itemName}"]?
+      addMember = (itemName, owner)->
+        node = new ModelClass("#{owner.definition.name}:#{itemName}", owner.getGraph())
+        if !existingNodes["#{owner.definition.name}:#{itemName}"]?
           nodesToCreate[node.id()] = node
         else
           node._clearPendingWrites()
-        @[className][itemName] = node
+        owner[className][itemName] = node
+
+      addMember(itemName, owner) for itemName in classObj.init # deprecaded
+      addMember(itemName, owner) for itemName in classObj.members
 
     # Now add all the nodes that are not a model class
     for className of @definition.classes

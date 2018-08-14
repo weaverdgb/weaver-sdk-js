@@ -32,6 +32,7 @@ classes:
         datatype: string
   Country:
     super: AreaSection
+    members: [Nepal]
   Construction:
     attributes:
       yearOfConstruction:
