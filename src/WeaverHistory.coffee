@@ -52,6 +52,9 @@ class WeaverHistory
     froms = if typeIsArray fromField then fromField else [fromField] if fromField?
     Weaver.getCoreManager().getHistory({ids, keys, froms, tos, @fromDateTime, @beforeDateTime, @users, @limit, @sorted, @offset})
 
+  forNode: (nodeId) ->
+    Weaver.getCoreManager().getHistoryForNode({nodeId})
+
 
 # Export
 module.exports = WeaverHistory

@@ -264,3 +264,26 @@ describe 'WeaverHistory test', ->
         assert.equal(response[9].seqnr,12)
       )
     )
+
+describe 'New WeaverHistory test', ->
+  beforeEach ->
+    wipeCurrentProject()
+
+  it 'should retrieve the history for an id node', ->
+    node = new Weaver.Node()
+    nodeB = new Weaver.Node()
+
+    node.save().then((node) ->
+      node.set('name', 'Foo')
+      node.save()
+    ).then(->
+      node.set('name', 'Bar')
+      node.save()
+    ).then((node)->
+      console.log node.id()
+      history = new Weaver.History()
+      history.forNode(node.id())
+    ).then((nodeHistory)->
+      console.log nodeHistory
+    )
+

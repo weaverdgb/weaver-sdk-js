@@ -240,6 +240,9 @@ class CoreManager
   getHistory: (payload, target)->
     @GET('history', payload, target)
 
+  getHistoryForNode: (payload, target)->
+    @GET('history.node', payload, target)
+
   dumpHistory: (payload, target)->
     @GET('history', payload, target)
 
