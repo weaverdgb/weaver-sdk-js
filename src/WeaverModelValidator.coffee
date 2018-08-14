@@ -1,17 +1,9 @@
 class WeaverModelValidator
 
-  constructor: (@definition, @includes) ->
+  constructor: (@definition) ->
 
   isClass: (key)->
-    if key.indexOf('.') > -1
-      prefix = key.substr(0, key.indexOf('.'))
-      tail = key.substr(key.indexOf('.') + 1)
-      if not @includes[prefix]?
-        throw new Error("Using prefix #{prefix} in #{key} but not including a model using this prefix.")
-      @includes[prefix].definition.classes[tail]?
-    else
-      @definition.classes[key]?
-
+    @definition.classes[key]?
 
   validate: ->
     for className of @definition.classes

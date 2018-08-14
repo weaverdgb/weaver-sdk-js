@@ -2,45 +2,51 @@ cuid                 = require('cuid')
 Promise              = require('bluebird')
 semver               = require('semver')
 Weaver               = require('./Weaver')
-WeaverModelValidator = require('./WeaverModelValidator')
+ModelContext         = require('./WeaverModelContext')
+ModelValidator       = require('./WeaverModelValidator')
+WeaverError          = require('./Error')
 _                    = require('lodash')
 
-class WeaverModel
+class WeaverModel extends ModelContext
 
-  constructor: (@definition) ->
+  constructor: (definition) ->
+    super(definition)
     @_graph = "#{@definition.name}-#{semver.major(@definition.version)}"
 
-  init: (includeList)->
-
-    # Load included models
-    includeList = [] if not includeList?
-    includeList.push(@definition.name)
+  init: ->
 
     # Map classId to ModelClass
     @classList = {} 
+
+    # Maps 'model-name@version' to the context object
+    @contextMap = {}
+    @contextMap["#{@definition.name}@#{@definition.version}"] = @
+    @loadMap = {}
+    @loadMap[@definition.name] = @definition.version
     
     # Deprecated
     @modelMap = {}  
     @modelMap[@definition.name] = @
-    # Deprecated
-    @_loadIncludes(includeList, @modelMap).then(=>
+    @includes = {}
+    
+    @_loadIncludes(@definition)
+    .then(=> 
+      # # todo: validate everything
+      # new ModelValidator(@definition).validate() 
 
-      new WeaverModelValidator(@definition, @includes).validate()
-      # Attach classes for including model
-      for className, classDefinition of @definition.classes
-        @_registerClass(@, @, className, classDefinition)
-      # Attach classes for included models
-      for prefix, incl of @includes
-        @[prefix] = {}
-        for className, classDefinition of incl.definition.classes
-          if @modelMap[incl.definition.name]?[className]?
-            @[prefix][className] = @modelMap[incl.definition.name][className]
-          else
-            @_registerClass(@[prefix], incl, className, classDefinition)
+      # Bring model to life
+      for modelTag, context of @contextMap
+        # Attach included models to context
+        for prefix, incl of context.definition.modelPrefixes
+          context[prefix] = @contextMap[incl.tag]
+        # Attach classes to context
+        for className, classDefinition of context.definition.classes
+          @_registerClass(context, className, classDefinition) if context.isNativeClass(className)
+          
       @
     )
 
-  _registerClass: (carrier, model, className, classDefinition)->
+  _registerClass: (context, className, classDefinition)->
 
     js = new Function('Weaver', """
       return class #{className} extends Weaver.ModelClass {
@@ -50,56 +56,70 @@ class WeaverModel
           // Reflect class fields inward to instance
           this.className            = "#{className}";
           this.model                = #{className}.model;
+          this.context              = #{className}.context;
           this.definition           = #{className}.definition;
           this.classDefinition      = #{className}.classDefinition;
           this.totalClassDefinition = #{className}.totalClassDefinition;
+          this.totalRangesMap       = #{className}.totalRangesMap;
         }
       }""")
 
     modelClass = js(Weaver)
     modelClass.className            = className
-    modelClass.model                = model
-    modelClass.definition           = model.definition
+    modelClass.model                = @
+    modelClass.context              = context
+    modelClass.definition           = @.definition
     modelClass.classDefinition      = classDefinition
-    modelClass.totalClassDefinition = model._collectFromSupers(classDefinition)
-    modelClass.classId              = -> "#{model.definition.name}:#{className}"
+    modelClass.totalClassDefinition = @_collectFromSupers(classDefinition, context)
+    modelClass.totalRangesMap       = @_buildRanges(modelClass.totalClassDefinition, context)
+    modelClass.classId              = -> @.context.getNodeNameByKey(@.className)
 
     # Also undefind is a valid as agrument for graph
     load = (loadClass) => (nodeId, graph) =>
-      query = new Weaver.ModelQuery(model)
-      .class(carrier[loadClass])
+      query = new Weaver.ModelQuery(@)
+      .class(context[loadClass])
       .restrict(nodeId)
       query.restrictGraphs([graph]) if arguments.length > 1
-      query.first(carrier[loadClass])
+      query.first(context[loadClass])
 
     modelClass.load = load(className)
 
-    carrier[className] = modelClass
-    @classList[modelClass.classId] = modelClass
+    context[className] = modelClass
+    @classList[modelClass.classId()] = modelClass
 
-  # Deprecated
-  _loadIncludes: (includeList, modelMap)->
-    @definition.includes = {} if not @definition.includes?
+  # Recurs over all definitions filling the contextMap
+  _loadIncludes: (definition) ->
+    return Promise.resolve() if not definition.includes?
 
-    # Map prefix to included model
-    @includes = {}
-    includeDefs = ({prefix: key, name: obj.name, version: obj.version} for key, obj of @definition.includes)
+    # Add map with local prefix to contextMap key
+    definition.modelPrefixes = {}
+    definition.modelPrefixes[key] = {prefix: key, name: obj.name, version: obj.version, tag: "#{obj.name}@#{obj.version}"} for key, obj of definition.includes
 
-    Promise.map(includeDefs, (incl)=>
+    # Depth first to prevent concurrent version checks
+    Promise.mapSeries((inc for key, inc of definition.modelPrefixes), (obj)=>
 
-      # Deprecated, allow cycles in future
-      if incl.name in includeList
-        error = new Error("Model #{@definition.name} tries to include #{incl.name} but this introduces a cycle")
-        error.code = 209
-        return Promise.reject(error)
+      if @loadMap[obj.name]?
+        if @loadMap[obj.name] isnt obj.version
+          error = new WeaverError(209, "Model #{@definition.name} tries to include #{obj.name} but this introduces a cycle")
+          return Promise.reject(error) 
+        else
+          # Definition is already loaded
+          return Promise.resolve()
 
-      # WeaverModel.load(incl.name, incl.version, includeList).then((loaded)=>
-      @includes[incl.prefix] = @
-      modelMap[incl.name] = @
-      # )
+      @loadMap[inc.name] = inc.version
+
+      # Deprecated
+      @includes[obj.prefix] = @
+      @modelMap[obj.name] = @
+
+      WeaverModel._loadDefinition(obj.name, obj.version)
+      .then((def)=>
+        @contextMap[obj.tag] = new ModelContext(def)
+        @_loadIncludes(def)
+      )
     )
 
-  _collectFromSupers: (classDefinition)->
+  _collectFromSupers: (classDefinition, context)->
     addFromSuper = (cd, definition = @definition, totalDefinition = {attributes: {}, relations: {}}) =>
 
       # Start with supers so lower specifications override the super ones
@@ -121,7 +141,7 @@ class WeaverModel
               ranges = v.range
               ranges = _.keys(ranges) if not _.isArray(ranges)
               for range in ranges
-                updated = @getNodeNameByKey(range)
+                updated = context.getNodeNameByKey(range)
                 updatedRanges.push(updated)
               totalDefinition[source][k].range = updatedRanges
 
@@ -133,23 +153,62 @@ class WeaverModel
     addFromSuper(classDefinition)
 
 
-  # eg test-model:td.Document is processed from [test-model:td][Document] to [test-doc-model][Document]
-  getNodeNameByKey: (dotPath) ->
-    [first, rest...] = dotPath.split('.')
-    return "#{@definition.name}:#{dotPath}" if rest.length is 0 and dotPath.indexOf(':') < 0
-    return "#{dotPath}" if rest.length is 0 and dotPath.indexOf(':') >= 0
+  _buildRanges: (totalClassDefinition) ->
+    map = {}
+    map[key] = @_getRanges(key, totalClassDefinition) for key, obj of totalClassDefinition.relations
+    map
 
-    if first.indexOf(':') < 0
-      if @includes[first]?
-        m = @includes[first]
-        return m.getNodeNameByKey(rest.join('.'))
-    else
-      [modelName, prefix] = first.split(':')
-      if @modelMap[modelName]? and @modelMap[modelName].includes[prefix]?
-        m = @modelMap[modelName].includes[prefix]
-        return m.getNodeNameByKey(rest.join('.'))
+  _getRanges: (key, totalClassDefinition)->
 
-    return null
+    addSubRange = (range, ranges = []) =>
+
+      for modelTag, context of @contextMap
+        for className, definition of context.definition.classes
+          if definition?.super?
+            superClassName = context.getNodeNameByKey(definition.super)
+            if superClassName is range
+              ranges.push(context.getNodeNameByKey(className))
+              # Follow again for this subclass
+              addSubRange(context.getNodeNameByKey(className), ranges)
+
+      ranges
+
+    totalRanges = []
+    for rangeKey in @_getRangeKeys(key, totalClassDefinition)
+      totalRanges.push(rangeKey)
+      totalRanges = totalRanges.concat(addSubRange(rangeKey))
+
+    totalRanges
+
+  _getRangeKeys: (key, totalClassDefinition)->
+    return [] if not totalClassDefinition.relations?
+    ranges = totalClassDefinition.relations[key]?.range or []
+    ranges = _.keys(ranges) if not _.isArray(ranges)
+    (range for range in ranges)
+
+  addSupers: (ids) ->
+    adds = []
+    for id in ids
+      node = @classList[id]
+      context = node.context
+      definition = node.classDefinition
+
+      console.log definition
+
+      if definition?.super?
+        superId = context.getNodeNameByKey(definition.super)
+        console.log superId
+        adds.push(superId) if superId not in adds
+        @addSupers(adds)
+    
+    ids.push(id) for id in adds if id not in ids
+    ids
+
+  # getContextForNodeId: (id) ->
+  #   [modelName, className] = id.split(':')
+  #   @contextMap["#{modelName}@#{@loadMap[modelName]}"]
+
+
 
   getGraphName: ->
     console.warn('Deprecated function WeaverModel.getGraphName() used. Use WeaverModel.getGraph().')
@@ -159,8 +218,11 @@ class WeaverModel
     @_graph
 
   # Load given model from server
+  @_loadDefinition: (name, version) ->
+    Weaver.getCoreManager().getModel(name, version)
+
   @load: (name, version, includeList) ->
-    Weaver.getCoreManager().getModel(name, version).then((model)->
+    WeaverModel._loadDefinition(name, version).then((model)->
       model.init(includeList)
     )
 
@@ -203,31 +265,32 @@ class WeaverModel
     @_bootstrap(project)
 
   _bootstrap: (project, save=true)->
-    # Bootstrap the include models in bottom up order because first order models can extend concepts from included models
-    Promise.all((incl._bootstrap(project, false) for prefix, incl of @includes))
-    .then((resList)=>
+    # # Bootstrap the include models in bottom up order because first order models can extend concepts from included models
+    # Promise.all((incl._bootstrap(project, false) for prefix, incl of @includes))
+    # .then((resList)=>
 
-      existingNodes = {}
-      existingNodes[id] = node for id, node of res.existingNodes for res in resList
+    #   existingNodes = {}
+    #   existingNodes[id] = node for id, node of res.existingNodes for res in resList
 
-      nodesToCreate = {}
-      nodesToCreate[id] = node for id, node of res.nodesToCreate for res in resList
+    #   nodesToCreate = {}
+    #   nodesToCreate[id] = node for id, node of res.nodesToCreate for res in resList
 
-      new Weaver.Query(project)
-      .contains('id', "#{@definition.name}:")
-      .restrictGraphs(@getGraph())
-      .find().then((nodes) =>
-        existingNodes[n.id()] = n for n in nodes
-        resList = @_bootstrapClasses(existingNodes, nodesToCreate)
-        nodesToCreate = resList.nodesToCreate
-        existingNodes = resList.existingNodes
+    #   new Weaver.Query(project)
+    #   .contains('id', "#{@definition.name}:")
+    #   .restrictGraphs(@getGraph())
+    #   .find().then((nodes) =>
+    #     existingNodes[n.id()] = n for n in nodes
+    #     resList = @_bootstrapClasses(existingNodes, nodesToCreate)
+    #     nodesToCreate = resList.nodesToCreate
+    #     existingNodes = resList.existingNodes
 
-        if save
-          Weaver.Node.batchSave((node for id, node of nodesToCreate), project)
-        else
-          {nodesToCreate, existingNodes}
-      )
-    )
+    #     if save
+    #       Weaver.Node.batchSave((node for id, node of nodesToCreate), project)
+    #     else
+    #       {nodesToCreate, existingNodes}
+    #   )
+    # )
+    Promise.resolve()
 
   _bootstrapClasses: (existingNodes, nodesToCreate={}) ->
 

@@ -3,6 +3,14 @@ Promise     = require('bluebird')
 Weaver      = require('./Weaver')
 _           = require('lodash')
 
+# These have context
+# modelClass.definition
+# modelClass.classDefinition
+# modelClass.totalClassDefinition
+#
+#
+# This class should act on maps that are set during init
+
 class WeaverModelClass extends Weaver.Node
 
   @classId: ->
@@ -78,74 +86,26 @@ class WeaverModelClass extends Weaver.Node
     @totalClassDefinition.relations[key].key or key
 
 
-
-
-
   getRanges: (key)->
+    @totalRangesMap[key]
 
-    addSubRange = (range, ranges = []) =>
-
-      for modelName, modelObject of @model.modelMap
-        for className, definition of modelObject.definition.classes
-          if definition.super?
-            superClassName = @model.getNodeNameByKey(definition.super)
-            if superClassName is range
-              ranges.push("#{modelName}:#{className}")
-              # Follow again for this subclass
-              addSubRange("#{modelName}:#{className}", ranges)
-
-      ranges
-
-    totalRanges = []
-    for rangeKey in @_getRangeKeys(key)
-      totalRanges.push(rangeKey)
-      totalRanges = totalRanges.concat(addSubRange(rangeKey))
-
-    totalRanges
 
   lookUpModelKey: (databaseKey)->
     return key for key, obj of @totalClassDefinition.relations when obj? and obj.key? and obj.key is databaseKey
     databaseKey
 
 
-  _getRangeKeys: (key)->
-    return [] if not @totalClassDefinition.relations?
-    ranges = @totalClassDefinition.relations[key].range
-    ranges = _.keys(ranges) if not _.isArray(ranges)
-    (range for range in ranges)
-
   getDefinitions: ->
+    defs = (def.id() for def in @nodeRelation(@model.getMemberKey()).all())
+    console.log 'defs'
+    console.log defs
+    @.model.addSupers(defs)
+    console.log defs
+    defs
 
-    addSuperDefs = (def, defs = []) =>
-      res = []
-      modelName = @model.definition.name
-      className = def
-      if def.indexOf(':') > -1
-        [modelName, className] = def.split(':')
-      if not @model.modelMap[modelName]?
-        console.log "#{modelName} in #{modelName}:#{className} is not available on model #{@model.definition.name}"
-      definition = @model.modelMap[modelName].definition.classes[className]
-      if definition.super?
-        superClassName = @model.modelMap[modelName].getNodeNameByKey(definition.super)
-        res.push(superClassName) if superClassName not in defs
-        res = res.concat(addSuperDefs(superClassName, defs))
-        res
-      else
-        res
-
-    defs = []
-    defs = (def.id() for def in @.nodeRelation(@model.getMemberKey()).all())
-
-    totalDefs = (def for def in defs when def.indexOf(':') > -1)
-    totalDefs = totalDefs.concat(addSuperDefs(def, defs)) for def in defs when def.indexOf(':') > -1
-    totalDefs
 
   getToRanges: (key, to)->
-    if to instanceof Weaver.ModelClass
-      defs = to.getDefinitions()
-      ranges = @getRanges(key)
-      (def for def in defs when def in ranges)
-    else if to instanceof Weaver.DefinedNode
+    if to instanceof Weaver.ModelClass or to instanceof Weaver.DefinedNode
       defs = to.getDefinitions()
       ranges = @getRanges(key)
       (def for def in defs when def in ranges)
