@@ -230,8 +230,8 @@ class WeaverModel
           node._clearPendingWrites()
         owner[className][itemName] = node
 
-      addMember(itemName, @) for itemName in classObj.init # deprecaded
-      addMember(itemName, @) for itemName in classObj.members
+      addMember(itemName, @) for itemName in classObj.init if classObj.init? # deprecaded
+      addMember(itemName, @) for itemName in classObj.members if classObj.members? 
 
     # Now add all the nodes that are not a model class
     for className of @definition.classes
