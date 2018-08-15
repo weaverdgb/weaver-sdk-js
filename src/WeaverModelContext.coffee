@@ -24,16 +24,8 @@ class WeaverModelContext
         context = @model[first]
         return context.getNodeNameByKey(rest.join('.'))
     else
-      throw new Error("This needs a refactor, but i never happens")
-      # [modelName, prefix] = first.split(':')
-      # if @modelMap[modelName]? and @modelMap[modelName].includes[prefix]?
-      #   m = @modelMap[modelName].includes[prefix]
-      #   return m.getNodeNameByKey(rest.join('.'))
+      throw new Error("This route is deprecated")
 
     return null
-
-
-
-    
 
 module.exports = WeaverModelContext
