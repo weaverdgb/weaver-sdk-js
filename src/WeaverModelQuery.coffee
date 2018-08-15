@@ -4,10 +4,9 @@ Weaver      = require('./Weaver')
 
 class WeaverModelQuery extends Weaver.Query
 
-  constructor: (@model = Weaver.currentModel(), target) ->
+  constructor: (model = Weaver.currentModel(), target) ->
     super(target)
-
-
+    @model = model
 
     # Define constructor function
     constructorFunction = (node, owner, key) =>
@@ -70,7 +69,7 @@ class WeaverModelQuery extends Weaver.Query
 
 
   class: (modelClass) ->
-    @hasRelationOut(@model.getMemberKey(), Weaver.Node.getFromGraph(modelClass.classId(), @model.getGraph()))
+    @hasRelationOut(@model.getMemberKey(), Weaver.Node.getFromGraph(modelClass.classId(), modelClass.context.getGraph()))
 
   # Key is composed of Class.modelAttribute
   _mapKeys: (keys, source) ->
