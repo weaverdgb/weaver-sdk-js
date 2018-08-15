@@ -1,7 +1,9 @@
 Promise              = require('bluebird')
 
 class WeaverModelContext
-  constructor: (@definition) ->
+  constructor: (definition, model) ->
+    @definition = definition
+    @model = model or @
 
   isNativeClass: (className) ->
     className.indexOf('.') is -1
@@ -13,14 +15,15 @@ class WeaverModelContext
     return "#{dotPath}" if rest.length is 0 and dotPath.indexOf(':') >= 0
 
     if first.indexOf(':') < 0
-      if @includes[first]?
-        m = @includes[first]
-        return m.getNodeNameByKey(rest.join('.'))
+      if @model[first]?
+        context = @model[first]
+        return context.getNodeNameByKey(rest.join('.'))
     else
-      [modelName, prefix] = first.split(':')
-      if @modelMap[modelName]? and @modelMap[modelName].includes[prefix]?
-        m = @modelMap[modelName].includes[prefix]
-        return m.getNodeNameByKey(rest.join('.'))
+      throw new Error("This needs a refactor, but i never happens")
+      # [modelName, prefix] = first.split(':')
+      # if @modelMap[modelName]? and @modelMap[modelName].includes[prefix]?
+      #   m = @modelMap[modelName].includes[prefix]
+      #   return m.getNodeNameByKey(rest.join('.'))
 
     return null
 

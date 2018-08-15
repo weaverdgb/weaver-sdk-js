@@ -39,9 +39,18 @@ class WeaverModel extends ModelContext
         # Attach included models to context
         for prefix, incl of context.definition.modelPrefixes
           context[prefix] = @contextMap[incl.tag]
-        # Attach classes to context
+
+      for modelTag, context of @contextMap
         for className, classDefinition of context.definition.classes
           @_registerClass(context, className, classDefinition) if context.isNativeClass(className)
+
+      for modelTag, context of @contextMap
+        for className, classDefinition of context.definition.classes
+          context[className].totalClassDefinition = @_collectFromSupers(classDefinition, context) if context.isNativeClass(className)
+
+      for modelTag, context of @contextMap
+        for className, classDefinition of context.definition.classes
+          context[className].totalRangesMap = @_buildRanges(context[className].totalClassDefinition, context) if context.isNativeClass(className)
           
       @
     )
@@ -70,8 +79,6 @@ class WeaverModel extends ModelContext
     modelClass.context              = context
     modelClass.definition           = @.definition
     modelClass.classDefinition      = classDefinition
-    modelClass.totalClassDefinition = @_collectFromSupers(classDefinition, context)
-    modelClass.totalRangesMap       = @_buildRanges(modelClass.totalClassDefinition, context)
     modelClass.classId              = -> @.context.getNodeNameByKey(@.className)
 
     # Also undefind is a valid as agrument for graph
@@ -114,7 +121,7 @@ class WeaverModel extends ModelContext
 
       WeaverModel._loadDefinition(obj.name, obj.version)
       .then((model)=>
-        @contextMap[obj.tag] = new ModelContext(model.definition)
+        @contextMap[obj.tag] = new ModelContext(model.definition, @)
         @_loadIncludes(model.definition)
       )
     )
@@ -124,13 +131,9 @@ class WeaverModel extends ModelContext
 
       # Start with supers so lower specifications override the super ones
       if cd?.super?
-        def = definition
-        className = cd.super
-        if cd.super.indexOf('.') > -1
-          [prefix, className] = cd.super.split('.')
-          def = @includes[prefix].definition
-        superDefinition = def.classes[className]
-        addFromSuper(superDefinition, def, totalDefinition)
+        superClassId = context.getNodeNameByKey(cd.super)
+        superDefinition = @classList[superClassId].definition
+        addFromSuper(superDefinition, definition, totalDefinition)
 
       transfer = (source) =>
         for k, v of cd?[source]
@@ -153,7 +156,7 @@ class WeaverModel extends ModelContext
     addFromSuper(classDefinition)
 
 
-  _buildRanges: (totalClassDefinition) ->
+  _buildRanges: (totalClassDefinition, context) ->
     map = {}
     map[key] = @_getRanges(key, totalClassDefinition) for key, obj of totalClassDefinition.relations
     map
@@ -165,8 +168,8 @@ class WeaverModel extends ModelContext
       for modelTag, context of @contextMap
         for className, definition of context.definition.classes
           if definition?.super?
-            superClassName = context.getNodeNameByKey(definition.super)
-            if superClassName is range
+            superClassId = context.getNodeNameByKey(definition.super)
+            if superClassId is range
               ranges.push(context.getNodeNameByKey(className))
               # Follow again for this subclass
               addSubRange(context.getNodeNameByKey(className), ranges)
