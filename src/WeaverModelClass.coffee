@@ -97,11 +97,8 @@ class WeaverModelClass extends Weaver.Node
 
   getDefinitions: ->
     defs = (def.id() for def in @nodeRelation(@model.getMemberKey()).all())
-    console.log 'defs'
-    console.log defs
     @.model.addSupers(defs)
-    console.log defs
-    defs
+
 
 
   getToRanges: (key, to)->

@@ -186,23 +186,18 @@ class WeaverModel extends ModelContext
     ranges = _.keys(ranges) if not _.isArray(ranges)
     (range for range in ranges)
 
-  addSupers: (ids) ->
-    adds = []
+  addSupers: (ids, total=[]) ->
     for id in ids
+      total.push(id) if id not in total
       node = @classList[id]
       context = node.context
       definition = node.classDefinition
 
-      console.log definition
-
       if definition?.super?
         superId = context.getNodeNameByKey(definition.super)
-        console.log superId
-        adds.push(superId) if superId not in adds
-        @addSupers(adds)
-    
-    ids.push(id) for id in adds if id not in ids
-    ids
+        @addSupers([superId], total) if superId not in total
+        
+    total
 
   # getContextForNodeId: (id) ->
   #   [modelName, className] = id.split(':')
