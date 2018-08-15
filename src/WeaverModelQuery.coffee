@@ -17,8 +17,7 @@ class WeaverModelQuery extends Weaver.Query
       if defs.length is 0
         Weaver.Node
       else if defs.length is 1
-        [modelName, className] = defs[0].split(":")
-        @model.modelMap[modelName][className]
+        @model.classList[defs[0]]
 
       # First order node from resultset, no incoming relation to help decide
       else if not owner?
