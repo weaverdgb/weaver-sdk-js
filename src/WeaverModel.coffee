@@ -36,21 +36,23 @@ class WeaverModel extends ModelContext
 
       # Bring model to life
       for modelTag, context of @contextMap
-        # Attach included models to context
         for prefix, incl of context.definition.modelPrefixes
           context[prefix] = @contextMap[incl.tag]
 
       for modelTag, context of @contextMap
         for className, classDefinition of context.definition.classes
-          @_registerClass(context, className, classDefinition) if context.isNativeClass(className)
+          if context.isNativeClass(className)
+            @_registerClass(context, className, classDefinition) 
 
       for modelTag, context of @contextMap
         for className, classDefinition of context.definition.classes
-          context[className].totalClassDefinition = @_collectFromSupers(classDefinition, context) if context.isNativeClass(className)
+          if context.isNativeClass(className)
+            context[className].totalClassDefinition = @_collectFromSupers(classDefinition, context)
 
       for modelTag, context of @contextMap
         for className, classDefinition of context.definition.classes
-          context[className].totalRangesMap = @_buildRanges(context[className].totalClassDefinition, context) if context.isNativeClass(className)
+          if context.isNativeClass(className)
+            context[className].totalRangesMap = @_buildRanges(context[className].totalClassDefinition, context) 
           
       @
     )
@@ -132,7 +134,7 @@ class WeaverModel extends ModelContext
       # Start with supers so lower specifications override the super ones
       if cd?.super?
         superClassId = context.getNodeNameByKey(cd.super)
-        superDefinition = @classList[superClassId].definition
+        superDefinition = @classList[superClassId].classDefinition
         addFromSuper(superDefinition, definition, totalDefinition)
 
       transfer = (source) =>
