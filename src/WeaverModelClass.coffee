@@ -85,21 +85,17 @@ class WeaverModelClass extends Weaver.Node
 
     @totalClassDefinition.relations[key].key or key
 
-
   getRanges: (key)->
     @totalRangesMap[key]
-
 
   lookUpModelKey: (databaseKey)->
     return key for key, obj of @totalClassDefinition.relations when obj? and obj.key? and obj.key is databaseKey
     databaseKey
 
-
   getDefinitions: ->
     defs = (def.id() for def in @nodeRelation(@model.getMemberKey()).all())
-    @.model.addSupers(defs)
-
-
+    defs = @model.addSupers(defs)
+    defs
 
   getToRanges: (key, to)->
     if to instanceof Weaver.ModelClass or to instanceof Weaver.DefinedNode

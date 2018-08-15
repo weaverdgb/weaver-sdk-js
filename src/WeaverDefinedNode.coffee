@@ -10,7 +10,7 @@ class WeaverDefinedNode extends Weaver.Node
 
   getDefinitions: ->
     defs = (def.id() for def in @relation(@model.getMemberKey()).all())
-    @.model.addSupers(defs)
+    defs = @model.addSupers(defs)
     defs
     
 # Export
