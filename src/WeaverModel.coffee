@@ -251,45 +251,48 @@ class WeaverModel extends ModelContext
         existingNodes[n.id()] = n for n in nodes
       )
     ).then(=>
-      nodesToCreate = @_bootstrapClasses(existingNodes, context)        
+      nodesToCreate = @_bootstrapClasses(existingNodes)
       Weaver.Node.batchSave((node for id, node of nodesToCreate), project) if save
     )
 
-  _bootstrapClasses: (existingNodes, context) ->
+  _bootstrapClasses: (existingNodes) ->
 
     nodesToCreate = {}
 
     # First create all class instances
-    for className, classObj of context.definition.classes when classObj?.init?
-      ModelClass = context[className]
+    for tag, context of @contextMap
+      for className, classObj of context.definition.classes when classObj?.init?
+        ModelClass = context[className]
 
-      for itemName in classObj.init
-        node = new ModelClass("#{context.definition.name}:#{itemName}", context.getGraph())
-        if !existingNodes["#{context.definition.name}:#{itemName}"]?
-          nodesToCreate[node.id()] = node
-        else
-          node._clearPendingWrites()
-        context[className][itemName] = node
+        for itemName in classObj.init
+          node = new ModelClass("#{context.definition.name}:#{itemName}", context.getGraph())
+          if !existingNodes["#{context.definition.name}:#{itemName}"]?
+            nodesToCreate[node.id()] = node
+          else
+            node._clearPendingWrites()
+          context[className][itemName] = node
 
     # Now add all the nodes that are not a model class
-    for className of context.definition.classes
-      id = context.getNodeNameByKey(className)
-      if !existingNodes[id]?
-        if not nodesToCreate[id]?
-          node = new Weaver.Node(id, context.getGraph())
-          nodesToCreate[node.id()] = node
+    for tag, context of @contextMap
+      for className of context.definition.classes
+        id = context.getNodeNameByKey(className)
+        if !existingNodes[id]?
+          if not nodesToCreate[id]?
+            node = new Weaver.Node(id, context.getGraph())
+            nodesToCreate[node.id()] = node
 
     # Link inheritance
-    for className, classObj of context.definition.classes when classObj?.super?
-      id = context.getNodeNameByKey(className)
-      superId = context.getNodeNameByKey(classObj.super)
-      if !existingNodes[id]?
-        node = nodesToCreate[id]
-        superClassNode = nodesToCreate[superId] or existingNodes[superId] or throw new Error("Failed linking to super node #{superId}")
-        if node instanceof Weaver.ModelClass
-          node.nodeRelation(@getInheritKey()).add(superClassNode)
-        else
-          node.relation(@getInheritKey()).add(superClassNode)
+    for tag, context of @contextMap
+      for className, classObj of context.definition.classes when classObj?.super?
+        id = context.getNodeNameByKey(className)
+        superId = context.getNodeNameByKey(classObj.super)
+        if !existingNodes[id]?
+          node = nodesToCreate[id]
+          superClassNode = nodesToCreate[superId] or existingNodes[superId] or throw new Error("Failed linking to super node #{superId}")
+          if node instanceof Weaver.ModelClass
+            node.nodeRelation(@getInheritKey()).add(superClassNode)
+          else
+            node.relation(@getInheritKey()).add(superClassNode)
 
     nodesToCreate
 
