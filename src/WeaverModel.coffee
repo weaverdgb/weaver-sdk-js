@@ -113,9 +113,9 @@ class WeaverModel extends ModelContext
       @modelMap[obj.name] = @
 
       WeaverModel._loadDefinition(obj.name, obj.version)
-      .then((def)=>
-        @contextMap[obj.tag] = new ModelContext(def)
-        @_loadIncludes(def)
+      .then((model)=>
+        @contextMap[obj.tag] = new ModelContext(model.definition)
+        @_loadIncludes(model.definition)
       )
     )
 
