@@ -1,6 +1,5 @@
 cuid                 = require('cuid')
 Promise              = require('bluebird')
-semver               = require('semver')
 Weaver               = require('./Weaver')
 ModelContext         = require('./WeaverModelContext')
 ModelValidator       = require('./WeaverModelValidator')
@@ -11,7 +10,6 @@ class WeaverModel extends ModelContext
 
   constructor: (definition) ->
     super(definition)
-    @_graph = "#{@definition.name}-#{semver.major(@definition.version)}"
 
   init: ->
 
@@ -208,14 +206,9 @@ class WeaverModel extends ModelContext
   #   [modelName, className] = id.split(':')
   #   @contextMap["#{modelName}@#{@loadMap[modelName]}"]
 
-
-
   getGraphName: ->
-    console.warn('Deprecated function WeaverModel.getGraphName() used. Use WeaverModel.getGraph().')
-    @_graph
-
-  getGraph: ->
-    @_graph
+    console.warn('Deprecated function WeaverModel.getGraphName() used. Use WeaverModelContext.getGraph().')
+    @getGraph()
 
   # Load given model from server
   @_loadDefinition: (name, version) ->
@@ -244,80 +237,52 @@ class WeaverModel extends ModelContext
     console.warn('Deprecated function WeaverModel.getPrototypeKey() used. Use WeaverModel.getMemberKey().')
     @getMemberKey()
 
-  # get id of node for className
-  _getClassNodeId: (key)->
-
-    # look in included models if needed
-    if key.indexOf('.') > -1
-      prefix = key.substr(0, key.indexOf('.'))
-      tail = key.substr(key.indexOf('.') + 1)
-      if not @includes[prefix]?
-        throw new Error("Using prefix #{prefix} in #{key} but not including a model using this prefix.")
-      modelName = @includes[prefix].definition.name
-      "#{modelName}:#{tail}"
-
-    # look in the main model
-    else
-      modelName = @definition.name
-      "#{modelName}:#{key}"
-
   bootstrap: (project)->
     @_bootstrap(project)
 
   _bootstrap: (project, save=true)->
-    # # Bootstrap the include models in bottom up order because first order models can extend concepts from included models
-    # Promise.all((incl._bootstrap(project, false) for prefix, incl of @includes))
-    # .then((resList)=>
+    existingNodes = {}
 
-    #   existingNodes = {}
-    #   existingNodes[id] = node for id, node of res.existingNodes for res in resList
+    Promise.map((context for tag, context of @contextMap), (context)=>
+      new Weaver.Query(project)
+      .contains('id', "#{context.definition.name}:")
+      .restrictGraphs(context.getGraph())
+      .find().then((nodes) =>
+        existingNodes[n.id()] = n for n in nodes
+      )
+    ).then(=>
+      nodesToCreate = @_bootstrapClasses(existingNodes, context)        
+      Weaver.Node.batchSave((node for id, node of nodesToCreate), project) if save
+    )
 
-    #   nodesToCreate = {}
-    #   nodesToCreate[id] = node for id, node of res.nodesToCreate for res in resList
+  _bootstrapClasses: (existingNodes, context) ->
 
-    #   new Weaver.Query(project)
-    #   .contains('id', "#{@definition.name}:")
-    #   .restrictGraphs(@getGraph())
-    #   .find().then((nodes) =>
-    #     existingNodes[n.id()] = n for n in nodes
-    #     resList = @_bootstrapClasses(existingNodes, nodesToCreate)
-    #     nodesToCreate = resList.nodesToCreate
-    #     existingNodes = resList.existingNodes
-
-    #     if save
-    #       Weaver.Node.batchSave((node for id, node of nodesToCreate), project)
-    #     else
-    #       {nodesToCreate, existingNodes}
-    #   )
-    # )
-    Promise.resolve()
-
-  _bootstrapClasses: (existingNodes, nodesToCreate={}) ->
+    nodesToCreate = {}
 
     # First create all class instances
-    for className, classObj of @definition.classes when classObj.init?
-      ModelClass = @[className]
+    for className, classObj of context.definition.classes when classObj?.init?
+      ModelClass = context[className]
 
       for itemName in classObj.init
-        node = new ModelClass("#{@definition.name}:#{itemName}", @getGraph())
-        if !existingNodes["#{@definition.name}:#{itemName}"]?
+        node = new ModelClass("#{context.definition.name}:#{itemName}", context.getGraph())
+        if !existingNodes["#{context.definition.name}:#{itemName}"]?
           nodesToCreate[node.id()] = node
         else
           node._clearPendingWrites()
-        @[className][itemName] = node
+        context[className][itemName] = node
 
     # Now add all the nodes that are not a model class
-    for className of @definition.classes
-      id = @_getClassNodeId(className)
+    for className of context.definition.classes
+      id = context.getNodeNameByKey(className)
       if !existingNodes[id]?
         if not nodesToCreate[id]?
-          node = new Weaver.Node(id, @getGraph())
+          node = new Weaver.Node(id, context.getGraph())
           nodesToCreate[node.id()] = node
 
     # Link inheritance
-    for className, classObj of @definition.classes when classObj.super?
-      id = @_getClassNodeId(className)
-      superId = @_getClassNodeId(classObj.super)
+    for className, classObj of context.definition.classes when classObj?.super?
+      id = context.getNodeNameByKey(className)
+      superId = context.getNodeNameByKey(classObj.super)
       if !existingNodes[id]?
         node = nodesToCreate[id]
         superClassNode = nodesToCreate[superId] or existingNodes[superId] or throw new Error("Failed linking to super node #{superId}")
@@ -326,6 +291,6 @@ class WeaverModel extends ModelContext
         else
           node.relation(@getInheritKey()).add(superClassNode)
 
-    {nodesToCreate, existingNodes}
+    nodesToCreate
 
 module.exports = WeaverModel

@@ -1,9 +1,14 @@
 Promise              = require('bluebird')
+semver               = require('semver')
 
 class WeaverModelContext
   constructor: (definition, model) ->
     @definition = definition
     @model = model or @
+    @_graph = "#{@definition.name}-#{semver.major(@definition.version)}"
+
+  getGraph: ->
+    @_graph
 
   isNativeClass: (className) ->
     className.indexOf('.') is -1
