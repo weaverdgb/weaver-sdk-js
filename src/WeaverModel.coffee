@@ -129,13 +129,13 @@ class WeaverModel extends ModelContext
     )
 
   _collectFromSupers: (classDefinition, context)->
-    addFromSuper = (cd, definition = @definition, totalDefinition = {attributes: {}, relations: {}}) =>
+    addFromSuper = (cd, context, definition = @definition, totalDefinition = {attributes: {}, relations: {}}) =>
 
       # Start with supers so lower specifications override the super ones
       if cd?.super?
         superClassId = context.getNodeNameByKey(cd.super)
         superDefinition = @classList[superClassId].classDefinition
-        addFromSuper(superDefinition, definition, totalDefinition)
+        addFromSuper(superDefinition, @classList[superClassId].context, definition, totalDefinition)
 
       transfer = (source) =>
         for k, v of cd?[source]
@@ -155,15 +155,15 @@ class WeaverModel extends ModelContext
 
       totalDefinition
 
-    addFromSuper(classDefinition)
+    addFromSuper(classDefinition, context)
 
 
   _buildRanges: (totalClassDefinition, context) ->
     map = {}
-    map[key] = @_getRanges(key, totalClassDefinition) for key, obj of totalClassDefinition.relations
+    map[key] = @_getRanges(key, totalClassDefinition, context) for key, obj of totalClassDefinition.relations
     map
 
-  _getRanges: (key, totalClassDefinition)->
+  _getRanges: (key, totalClassDefinition, context)->
 
     addSubRange = (range, ranges = []) =>
 
