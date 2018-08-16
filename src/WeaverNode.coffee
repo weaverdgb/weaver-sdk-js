@@ -47,23 +47,23 @@ class WeaverNode
       @load(nodeId, undefined, undefined, false, false, graph)
 
 
-  @loadFromQuery: (node, constructorFunction, fullyLoaded=true, model) ->
+  @loadFromQuery: (object, constructorFunction, fullyLoaded=true, model) ->
 
     if constructorFunction?
-      Constructor = constructorFunction(Weaver.Node.loadFromQuery(node, undefined, undefined, model))
+      Constructor = constructorFunction(Weaver.Node.loadFromQuery(object, undefined, undefined, model))
     if !Constructor?
       Constructor = if model? then Weaver.DefinedNode else Weaver.Node
-    if node.relationSource? and node.relationTarget?
+    if object.relationSource? and object.relationTarget?
       Constructor = Weaver.RelationNode
 
-    instance = new Constructor(node.nodeId, node.graph)
+    instance = new Constructor(object.nodeId, object.graph)
     instance.model = model if model?
-    instance._loadFromQuery(node, constructorFunction, fullyLoaded, model)
+    instance._loadFromQuery(object, constructorFunction, fullyLoaded, model)
     instance._setStored()
     if instance instanceof Weaver.RelationNode
-      instance.fromNode = WeaverNode.loadFromQuery(node.relationSource, undefined, false)
-      instance.toNode   = WeaverNode.loadFromQuery(node.relationTarget, undefined, false)
-      instance.key      = node.relationKey
+      instance.fromNode = WeaverNode.loadFromQuery(object.relationSource, undefined, false)
+      instance.toNode   = WeaverNode.loadFromQuery(object.relationTarget, undefined, false)
+      instance.key      = object.relationKey
     instance
 
   _loadFromQuery: (object, constructorFunction, fullyLoaded=true, model) ->
