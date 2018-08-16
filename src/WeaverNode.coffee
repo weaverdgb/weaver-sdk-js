@@ -56,8 +56,7 @@ class WeaverNode
     if object.relationSource? and object.relationTarget?
       Constructor = Weaver.RelationNode
 
-    instance = new Constructor(object.nodeId, object.graph)
-    instance.model = model if model?
+    instance = new Constructor(object.nodeId, object.graph, model)
     instance._loadFromQuery(object, constructorFunction, fullyLoaded, model)
     instance._setStored()
     if instance instanceof Weaver.RelationNode
@@ -80,8 +79,7 @@ class WeaverNode
         if !Constructor?
           Constructor = if model? then Weaver.DefinedNode else Weaver.Node
 
-        instance = new Constructor(relation.source.nodeId, relation.source.graph)
-        instance.model = model if model?
+        instance = new Constructor(relation.source.nodeId, relation.source.graph, model)
         instance._loadFromQuery(relation.source, constructorFunction, fullyLoaded, model)
         @._loadRelationInFromQuery(key, instance, relation.nodeId, relation.graph)
 
@@ -93,8 +91,7 @@ class WeaverNode
         if !Constructor?
           Constructor = if model? then Weaver.DefinedNode else Weaver.Node
 
-        instance = new Constructor(relation.target.nodeId, relation.target.graph)
-        instance.model = model if model?
+        instance = new Constructor(relation.target.nodeId, relation.target.graph, model)
         instance._loadFromQuery(relation.target, constructorFunction, fullyLoaded, model)
         @._loadRelationFromQuery(key, instance, relation.nodeId, relation.graph)
 
