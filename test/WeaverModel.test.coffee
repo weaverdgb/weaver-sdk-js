@@ -205,6 +205,26 @@ describe 'WeaverModel test', ->
           )
         )
 
+      it 'should load the to model nodes by using load function on half loaded node', ->
+        loadedNode = null
+        p = new model.Person('p')
+        o = new model.Office('o')
+        c = new model.Country('c')
+        p.relation('worksIn').add(o)
+        o.relation('placedIn').add(c)
+        p.save()
+        .then(->
+          model.Person.load('p')
+        ).then((node)->
+          expect(node).to.be.instanceOf(model.Person)
+          node.relation('worksIn').first().load()
+        ).then((node)->
+          expect(node).to.be.instanceOf(model.Office)
+          node.relation('placedIn').first().load()
+        ).then((node)->
+          expect(node).to.be.instanceOf(model.Country)
+        )
+
       it 'should succeed saving with type definition that is bootstrapped', ->
         Person = model.Person
         person = new Person()
