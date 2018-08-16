@@ -10,6 +10,13 @@ class WeaverModelContext
   getGraph: ->
     @_graph
 
+  includeKeyToModelTab: (key) ->
+    object = @definition.includes[key]
+    if object?
+      "#{object.name}@#{object.version}"
+    else
+      null
+
   isNativeClass: (className) ->
     className.indexOf('.') is -1
 
@@ -20,8 +27,9 @@ class WeaverModelContext
     return "#{dotPath}" if rest.length is 0 and dotPath.indexOf(':') >= 0
 
     if first.indexOf(':') < 0
-      if @model[first]?
-        context = @model[first]
+      tag = @includeKeyToModelTab(first)
+      if tag?
+        context = @model.contextMap[tag]
         return context.getNodeNameByKey(rest.join('.'))
     else
       throw new Error("This route is deprecated")
