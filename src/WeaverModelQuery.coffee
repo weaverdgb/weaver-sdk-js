@@ -28,7 +28,7 @@ class WeaverModelQuery extends Weaver.Query
         return @preferredConstructor
       else
 
-        if not owner instanceof Weaver.ModelClass
+        if owner not instanceof Weaver.ModelClass
           console.info("Could not choose contructing node between type #{JSON.stringify(defs)}")
           return Weaver.DefinedNode
 
