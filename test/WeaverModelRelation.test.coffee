@@ -65,3 +65,23 @@ describe 'Weaver Model relation test', ->
     ).then((j)->
       expect(j.relation('hasFriend').first().get('fullName')).to.equal('Jill O\' Quill')
     )
+
+  it 'should load the to model nodes of a relation', ->
+    loadedNode = null
+    p = new model.Person('p')
+    o = new model.Office('o')
+    c = new model.Country('c')
+    p.relation('worksIn').add(o)
+    o.relation('placedIn').add(c)
+    p.save().then(->
+      model.Person.load('p')
+    ).then((node)->
+      loadedNode = node
+      expect(loadedNode).to.be.instanceOf(model.Person)
+      assert.throws((->loadedNode.relation('worksIn').load(model.Country)))
+
+      loadedNode.relation('worksIn').load(model.Office)
+    ).then(->
+      expect(loadedNode.relation('worksIn').first()).to.be.instanceOf(model.Office)
+      expect(loadedNode.relation('worksIn').first().relation('placedIn').first()).to.be.instanceOf(model.Country)
+    )
