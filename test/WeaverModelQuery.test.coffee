@@ -118,12 +118,17 @@ describe 'WeaverModelQuery test', ->
           persons[0].should.be.instanceOf(model.Person)
         )
 
-      it.skip 'handles selectOut correctly', ->
+      it 'handles selectOut correctly', ->
         new Weaver.ModelQuery()
-          .restrict("personB")
-          .selectOut("Person.livesIn", "Building.placedBy")
-          .find()
-          # This needs a check to see that the area is loaded
+        .restrict("personB")
+        .selectOut("Person.livesIn", "Building.placedBy")
+        .first().then((p)->
+          expect(p).to.be.instanceOf(model.Person)
+          b = p.relation('livesIn').first()
+          expect(b).to.be.instanceOf(model.House)
+          a = b.relation('placedIn').first()
+          expect(a).to.be.instanceOf(model.Area)
+        )
 
       it 'translates selectOut correctly (whitebox testing)', ->
         q = new Weaver.ModelQuery()
