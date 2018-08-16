@@ -7,6 +7,11 @@ author:
 member: 'rdf:type'
 inherit: 'rdfs:subClassOf'
 
+includes:
+  test:
+    name: test-model
+    version: 1.2.0
+
 classes:
   Document:
     attributes:
@@ -21,3 +26,6 @@ classes:
     relations:
       carbonCopy:
         range: [Document]
+
+  Clerk:
+    super: test.Person
