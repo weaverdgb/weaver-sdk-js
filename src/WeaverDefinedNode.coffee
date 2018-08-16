@@ -3,10 +3,9 @@ Promise     = require('bluebird')
 
 class WeaverDefinedNode extends Weaver.Node
 
-  constructor: (nodeId, graph) ->
+  constructor: (nodeId, graph, model) ->
     super(nodeId, graph)
-    @nodeId = nodeId
-    @graph = graph
+    @model = model
 
   getDefinitions: ->
     defs = (def.id() for def in @relation(@model.getMemberKey()).all())
