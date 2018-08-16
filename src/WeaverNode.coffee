@@ -111,7 +111,7 @@ class WeaverNode
 
   # Loads current node
   load: ->
-    Weaver.Node.load(@nodeId).then((loadedNode) =>
+    @constructor.load(@id()).then((loadedNode) =>
       @[key] = value for key, value of loadedNode when !_.isFunction(value)
       @
     )
