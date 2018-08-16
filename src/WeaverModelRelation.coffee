@@ -10,32 +10,24 @@ class WeaverModelRelation extends Weaver.Relation
     node.className
 
   # Check if relation is allowed according to definition
-  _checkCorrectClass: (node) ->
+  _checkCorrectClass: (to) ->
     defs = []
-    if node instanceof Weaver.ModelClass or node instanceof Weaver.DefinedNode 
-      defs = node.getDefinitions()
+    if to instanceof Weaver.ModelClass or to instanceof Weaver.DefinedNode 
+      defs = to.getDefinitions()
     else
       return
 
-    found = @owner.getToRanges(@modelKey, node)
+    found = @owner.getToRanges(@modelKey, to)
     allowed = @owner.getRanges(@modelKey)
     return true if found? and found.length > 0
-    throw new Error("Model #{@className} is not allowed to have relation #{@modelKey} to #{node.id()}"+
+    throw new Error("Model #{@className} is not allowed to have relation #{@modelKey} to #{to.id()}"+
                     " of def #{JSON.stringify(defs)}, allowed ranges are #{JSON.stringify(allowed)}")
 
-  _checkCorrectConstructor: (ctor) ->
-    allowed = false
-    @owner.getRanges(@modelKey).map((range)=>
-      try
-        keys = range.split(':')
-        modelName = keys[0]
-        className = keys[1]
-        if @model.modelMap[modelName][className] is ctor
-          allowed = true
-    )
-    return true if allowed
+  _checkCorrectConstructor: (constructor) ->
+    for range in @owner.getRanges(@modelKey)
+      return true if @model.classList[range] is constructor
     throw new Error("Model #{@className} is not allowed to have relation #{@modelKey} to instance"+
-      " of def #{ctor.className}.")
+      " of def #{constructor.className}.")
 
   add: (node, relId, addToPendingWrites = true) ->
     @_checkCorrectClass(node)
@@ -44,7 +36,6 @@ class WeaverModelRelation extends Weaver.Relation
   update: (oldNode, newNode) ->
     @_checkCorrectClass(newNode)
     super(oldNode, newNode)
-
 
   load: (constructor)->
     @_checkCorrectConstructor(constructor)
