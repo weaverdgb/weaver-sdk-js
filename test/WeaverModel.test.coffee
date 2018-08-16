@@ -146,6 +146,12 @@ describe 'WeaverModel test', ->
       person.relation("hasFriend").add(new Person())
       person.relation("livesIn").add(new House())
 
+    it 'should add allowed relations by correct sub range', ->
+      p = new model.td.test.td.test.Person()
+      c = new model.td.Clerk()
+      p.relation("hasFriend").add(c)
+      c.relation("hasFriend").add(p)
+
     it 'should deny allowed relations by different range', ->
       Person   = model.Person
       Building = model.Building
