@@ -3,6 +3,9 @@
 ## Develop
 - Remove level-fs dependency.
 - Added the test proposed by Michiel for limiting ordered queries.
+- Replace model inclusion of models into one model with one classList
+  for simplified and more powerfull usage (e.g. ModelQuery crossing
+  model inclusion hops).
 
 ## 8.6.0
 - Rewritten subclassing mechanism of ModelClass.
