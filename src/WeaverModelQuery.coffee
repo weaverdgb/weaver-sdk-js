@@ -50,7 +50,6 @@ class WeaverModelQuery extends Weaver.Query
 
     @setConstructorFunction(constructorFunction)
 
-
   getNodeIdFromStringOrNode: (node) ->
     try
       super(node)

@@ -50,17 +50,12 @@ class WeaverModelClass extends Weaver.Node
     console.warn('Deprecated function WeaverModelClass.getPrototype() used. Use WeaverModelClass.getMember().')
     @getMember()
 
-  # Returns a definition where all super definitions are collected into
-
-
-  # override
+  # Override
   _loadRelationFromQuery: (key, instance, nodeId, graph)->
     if @totalClassDefinition.relations[key]?
       @relation(key).add(instance, nodeId, false, graph)
     else
       @nodeRelation(key).add(instance, nodeId, false, graph)
-
-
 
   _getAttributeKey: (field) ->
 
