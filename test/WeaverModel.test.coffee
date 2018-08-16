@@ -247,15 +247,18 @@ describe 'WeaverModel test', ->
           expect(loaded.id()).to.equal(document.id())
         )
 
-      it 'should succeed saving with extended type definition of an included model', ->
+      it 'should succeed setting attribuges at an extended type definition of an included model', ->
         Document = model.DeliveryNotice
         document = new Document()
         document.set('at', 'work')
+        document.set('fileName', 'print.pdf')
         document.save()
         .then(->
           Document.load(document.id())
         ).then((loaded)->
           expect(loaded.id()).to.equal(document.id())
+          expect(loaded.get('at')).to.equal('work')
+          expect(loaded.get('fileName')).to.equal('print.pdf')
         )
 
       it 'should succeed save one instance with single type', ->
