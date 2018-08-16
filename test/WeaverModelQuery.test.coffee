@@ -47,6 +47,7 @@ describe 'WeaverModelQuery test', ->
       spain = {}
       hongkong = {}
       personB = undefined
+      personBas = undefined
 
       before ->
         head    = new model.Head("headA")
@@ -256,7 +257,16 @@ describe 'WeaverModelQuery test', ->
               expect(to).to.be.instanceOf(model.DeliveryNotice)
             if to.id() is 'basContract'
               expect(to).to.be.instanceOf(model.td.Document)
+        )
 
+      it 'should support mixing classes from main model and included models', ->
+        new Weaver.ModelQuery()
+        .class(model.td.Document)
+        .hasRelationIn('Person.signed', personBas)
+        .find()
+        .then((instances) ->
+          assert.equal(instances.length, 1)
+          expect(instances[0]).to.be.instanceOf(model.td.Document)
         )
 
   it 'should remove the model from the query when using \'destruct\' function', ->
