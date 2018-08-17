@@ -40,11 +40,11 @@ class WeaverNode
       query.withAttributes() if includeAttributes
       query.get(nodeId, Constructor, graph)
 
-  @loadFromGraph: (nodeId, graph) ->
+  @loadFromGraph: (nodeId, graph, Constructor) ->
     if !nodeId?
       Promise.reject("Cannot load nodes with an undefined id")
     else
-      @load(nodeId, undefined, undefined, false, false, graph)
+      @load(nodeId, undefined, Constructor, false, false, graph)
 
 
   @loadFromQuery: (object, constructorFunction, fullyLoaded=true, model) ->
@@ -108,7 +108,7 @@ class WeaverNode
 
   # Loads current node
   load: ->
-    @constructor.load(@id()).then((loadedNode) =>
+    @constructor.loadFromGraph(@id(), @getGraph()).then((loadedNode) =>
       @[key] = value for key, value of loadedNode when !_.isFunction(value)
       @
     )
