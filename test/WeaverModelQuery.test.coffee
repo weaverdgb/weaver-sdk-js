@@ -48,6 +48,7 @@ describe 'WeaverModelQuery test', ->
       hongkong = {}
       personB = undefined
       personBas = undefined
+      clerk = undefined
 
       before ->
         head    = new model.Head("headA")
@@ -81,6 +82,9 @@ describe 'WeaverModelQuery test', ->
         delivery = new model.DeliveryNotice('basDeliveryOrder')
         personBas.relation('signed').add(contract)
         personBas.relation('signed').add(delivery)
+        clerk = new model.td.Clerk('clerk')
+        clerk.relation('comesFrom').add(model.City.Rotterdam)
+        clerk.relation('authorised').add(contract)
 
 
         building = new model.House()
@@ -89,7 +93,7 @@ describe 'WeaverModelQuery test', ->
         building.relation("buildBy").add(personA)
         personB.relation("livesIn").add(building)
         personC.relation('comesFrom').add(model.City.CityState)
-        Weaver.Node.batchSave([head, spain, nlds, personA, personB, personC, personD, person人物, basshouse, personBas])
+        Weaver.Node.batchSave([head, spain, nlds, personA, personB, personC, personD, person人物, basshouse, personBas, clerk])
 
       it 'should do an equalTo WeaverModelQuery', ->
         new Weaver.ModelQuery()
@@ -166,7 +170,7 @@ describe 'WeaverModelQuery test', ->
         new Weaver.ModelQuery().hasRelationOut('Person.comesFrom', spain).find().should.eventually.have.length.be(2)
 
       it 'should allow relations to a model class instance', ->
-        new Weaver.ModelQuery().hasRelationOut('Person.comesFrom', model.City.Rotterdam).find().should.eventually.have.length.be(3)
+        new Weaver.ModelQuery().hasRelationOut('Person.comesFrom', model.City.Rotterdam).find().should.eventually.have.length.be(4)
 
       it 'should allow relations to a model class instance that is also a class', ->
         new Weaver.ModelQuery().hasRelationOut('Person.comesFrom', model.City.CityState).find().should.eventually.have.length.be(1)
@@ -267,6 +271,56 @@ describe 'WeaverModelQuery test', ->
         .then((instances) ->
           assert.equal(instances.length, 1)
           expect(instances[0]).to.be.instanceOf(model.td.Document)
+        )
+
+      it 'should support dot referencing class from included models', ->
+        new Weaver.ModelQuery()
+        .class(model.td.Clerk)
+        .hasRelationOut('Person.comesFrom')
+        .find()
+        .then((instances) ->
+          assert.equal(instances.length, 1)
+          expect(instances[0]).to.be.instanceOf(model.td.Clerk)
+        )
+
+      it 'should support setting reference context', ->
+        new Weaver.ModelQuery(model.td)
+        .class(model.td.Clerk)
+        .hasRelationOut('Person.comesFrom')
+        .find()
+        .then((instances) ->
+          assert.equal(instances.length, 1)
+          expect(instances[0]).to.be.instanceOf(model.td.Clerk)
+        )
+
+      it 'should query inside referenced context plain', ->
+        new Weaver.ModelQuery(model)
+        .class(model.td.Clerk)
+        .hasRelationOut('td.Clerk.authorised')
+        .find()
+        .then((instances) ->
+          assert.equal(instances.length, 1)
+          expect(instances[0]).to.be.instanceOf(model.td.Clerk)
+        )
+
+      it 'should query inside referenced context reversed', ->
+        new Weaver.ModelQuery(model.td)
+        .class(model.td.Clerk)
+        .hasRelationOut('Clerk.authorised')
+        .find()
+        .then((instances) ->
+          assert.equal(instances.length, 1)
+          expect(instances[0]).to.be.instanceOf(model.td.Clerk)
+        )
+        
+      it 'should query inside referenced context implicit', ->
+        new Weaver.ModelQuery(model)
+        .class(model.td.Clerk)
+        .hasRelationOut('Clerk.authorised')
+        .find()
+        .then((instances) ->
+          assert.equal(instances.length, 1)
+          expect(instances[0]).to.be.instanceOf(model.td.Clerk)
         )
 
   it 'should remove the model from the query when using \'destruct\' function', ->
