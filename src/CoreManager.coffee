@@ -266,7 +266,7 @@ class CoreManager
 
   query: (query) ->
     target = query.target
-    query  = _.omit(query, ['model', 'context', 'target', 'constructorFunction'])
+    query  = _.omit(query, ['model', 'context', 'target', 'preferredConstructor', 'constructorFunction'])
 
     @POST("query", {query, unparsed: true}, target).then((res) ->
       if typeof res isnt 'object'
