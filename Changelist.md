@@ -1,6 +1,6 @@
 # Changelist
 
-## Develop
+## 8.7.0
 - Remove level-fs dependency.
 - Added the test proposed by Michiel for limiting ordered queries.
 - Replace model inclusion of models into one model with one classList
