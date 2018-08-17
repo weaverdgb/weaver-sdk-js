@@ -140,6 +140,10 @@ class WeaverModelQuery extends Weaver.Query
 
   destruct: ->
     delete @model
+    delete @context
+    delete @target
+    delete @preferredConstructor
+    delete @constructorFunction
     @
 
 module.exports = WeaverModelQuery

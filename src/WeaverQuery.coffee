@@ -421,7 +421,9 @@ class WeaverQuery
   nativeQuery: (query)->
     Weaver.getCoreManager().nativeQuery(query, Weaver.getInstance().currentProject().id())
 
-  @destruct: ->
+  destruct: ->
+    delete @target
+    delete @constructorFunction
     @
 
 # Export
