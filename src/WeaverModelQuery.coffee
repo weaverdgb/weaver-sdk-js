@@ -6,7 +6,9 @@ class WeaverModelQuery extends Weaver.Query
 
   constructor: (model = Weaver.currentModel(), target) ->
     super(target)
-    @model = model
+    @model = model 
+    # For backward compabibility use when a context object is given
+    @model = model.model if model not instanceof Weaver.Model 
 
     # Define constructor function
     constructorFunction = (node, owner, key) =>
