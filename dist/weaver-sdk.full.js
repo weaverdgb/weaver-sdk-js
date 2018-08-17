@@ -102421,7 +102421,7 @@ module.exports = yeast;
 },{}],408:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "8.7.0-beta.4",
+  "version": "8.7.0-beta.5",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -102966,7 +102966,7 @@ module.exports={
     CoreManager.prototype.query = function(query) {
       var target;
       target = query.target;
-      query = _.omit(query, ['model', 'context', 'target', 'constructorFunction']);
+      query = _.omit(query, ['model', 'context', 'target', 'preferredConstructor', 'constructorFunction']);
       return this.POST("query", {
         query: query,
         unparsed: true
