@@ -102421,7 +102421,7 @@ module.exports = yeast;
 },{}],408:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "8.7.0-beta.5",
+  "version": "8.7.0-beta.6",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -105431,6 +105431,10 @@ module.exports={
 
     WeaverModelQuery.prototype.destruct = function() {
       delete this.model;
+      delete this.context;
+      delete this.target;
+      delete this.preferredConstructor;
+      delete this.constructorFunction;
       return this;
     };
 
@@ -107166,7 +107170,9 @@ module.exports={
       return Weaver.getCoreManager().nativeQuery(query, Weaver.getInstance().currentProject().id());
     };
 
-    WeaverQuery.destruct = function() {
+    WeaverQuery.prototype.destruct = function() {
+      delete this.target;
+      delete this.constructorFunction;
       return this;
     };
 
