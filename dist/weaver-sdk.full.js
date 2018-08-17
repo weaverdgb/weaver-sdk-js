@@ -102421,7 +102421,7 @@ module.exports = yeast;
 },{}],408:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "8.7.0-beta.2",
+  "version": "8.7.0-beta.3",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -105254,6 +105254,9 @@ module.exports={
       }
       WeaverModelQuery.__super__.constructor.call(this, target);
       this.model = model;
+      if (!(model instanceof Weaver.Model)) {
+        this.model = model.model;
+      }
       constructorFunction = (function(_this) {
         return function(node, owner, key) {
           var className, def, defs, i, len, modelKey, modelName, range, ranges, ref, ref1;
