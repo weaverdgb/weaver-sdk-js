@@ -33,3 +33,6 @@ classes:
 
   Clerk:
     super: test.Person
+    relations:
+      authorised:
+        range: [Document]

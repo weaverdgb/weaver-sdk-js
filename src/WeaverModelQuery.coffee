@@ -4,11 +4,10 @@ Weaver      = require('./Weaver')
 
 class WeaverModelQuery extends Weaver.Query
 
-  constructor: (model = Weaver.currentModel(), target) ->
+  constructor: (context = Weaver.currentModel(), target) ->
     super(target)
-    @model = model 
-    # For backward compabibility use when a context object is given
-    @model = model.model if model not instanceof Weaver.Model 
+    @context = context
+    @model = context.model
 
     # Define constructor function
     constructorFunction = (node, owner, key) =>
@@ -75,13 +74,24 @@ class WeaverModelQuery extends Weaver.Query
       if [@model.getMemberKey(), '*'].includes(key)
         databaseKeys.push(key)
       else
-        if key.indexOf(".") is -1
+        if key.indexOf('.') is -1
           throw new Error("Key should be in the form of ModelClass.key")
 
-        [className, modelKey] = key.split(".")
-        modelClass = @model[className]
-        definition  = modelClass.totalClassDefinition
+        [dotPath..., modelKey] = key.split('.')
+        classId = @context.getNodeNameByKey(dotPath.join('.'))
+        modelClass = @model.classList[classId]
 
+        if !modelClass?
+          # Try all namespaces, throw Error on name collision
+          for modelTag, context of @model.contextMap
+            className = classId.split(':').pop()
+            candidate = "#{context.definition.name}:#{className}"
+            if @model.classList[candidate]?
+              throw new Error("Multiple models have a class named #{className}, please specify context") if modelClass?
+              modelClass = @model.classList[candidate]
+
+        throw new Error("Could not locate class for #{key}") if !modelClass?
+        definition  = modelClass.totalClassDefinition
         databaseKeys.push(definition[source]?[modelKey]?.key or modelKey)
 
     databaseKeys
