@@ -102421,7 +102421,7 @@ module.exports = yeast;
 },{}],408:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "8.7.0-beta.6",
+  "version": "8.7.0-beta.7",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -104527,6 +104527,7 @@ module.exports={
         };
       })(this);
       modelClass.load = load(className);
+      modelClass.loadFromGraph = load(className);
       context[className] = modelClass;
       return this.classList[modelClass.classId()] = modelClass;
     };
@@ -105658,11 +105659,11 @@ module.exports={
       }
     };
 
-    WeaverNode.loadFromGraph = function(nodeId, graph) {
+    WeaverNode.loadFromGraph = function(nodeId, graph, Constructor) {
       if (nodeId == null) {
         return Promise.reject("Cannot load nodes with an undefined id");
       } else {
-        return this.load(nodeId, void 0, void 0, false, false, graph);
+        return this.load(nodeId, void 0, Constructor, false, false, graph);
       }
     };
 
@@ -105750,7 +105751,7 @@ module.exports={
     };
 
     WeaverNode.prototype.load = function() {
-      return this.constructor.load(this.id()).then((function(_this) {
+      return this.constructor.loadFromGraph(this.id(), this.getGraph()).then((function(_this) {
         return function(loadedNode) {
           var key, value;
           for (key in loadedNode) {
