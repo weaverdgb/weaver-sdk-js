@@ -102421,7 +102421,7 @@ module.exports = yeast;
 },{}],408:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "8.7.0-beta.3",
+  "version": "8.7.0-beta.4",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -102966,7 +102966,7 @@ module.exports={
     CoreManager.prototype.query = function(query) {
       var target;
       target = query.target;
-      query = _.omit(query, ['model', 'target', 'constructorFunction']);
+      query = _.omit(query, ['model', 'context', 'target', 'constructorFunction']);
       return this.POST("query", {
         query: query,
         unparsed: true
@@ -105247,16 +105247,14 @@ module.exports={
   WeaverModelQuery = (function(superClass) {
     extend(WeaverModelQuery, superClass);
 
-    function WeaverModelQuery(model, target) {
+    function WeaverModelQuery(context, target) {
       var constructorFunction;
-      if (model == null) {
-        model = Weaver.currentModel();
+      if (context == null) {
+        context = Weaver.currentModel();
       }
       WeaverModelQuery.__super__.constructor.call(this, target);
-      this.model = model;
-      if (!(model instanceof Weaver.Model)) {
-        this.model = model.model;
-      }
+      this.context = context;
+      this.model = context.model;
       constructorFunction = (function(_this) {
         return function(node, owner, key) {
           var className, def, defs, i, len, modelKey, modelName, range, ranges, ref, ref1;
@@ -105328,20 +105326,38 @@ module.exports={
     };
 
     WeaverModelQuery.prototype._mapKeys = function(keys, source) {
-      var className, databaseKeys, definition, i, key, len, modelClass, modelKey, ref, ref1, ref2;
+      var candidate, classId, className, context, databaseKeys, definition, dotPath, i, j, key, len, modelClass, modelKey, modelTag, ref, ref1, ref2, ref3;
       databaseKeys = [];
       for (i = 0, len = keys.length; i < len; i++) {
         key = keys[i];
         if ([this.model.getMemberKey(), '*'].includes(key)) {
           databaseKeys.push(key);
         } else {
-          if (key.indexOf(".") === -1) {
+          if (key.indexOf('.') === -1) {
             throw new Error("Key should be in the form of ModelClass.key");
           }
-          ref = key.split("."), className = ref[0], modelKey = ref[1];
-          modelClass = this.model[className];
+          ref = key.split('.'), dotPath = 2 <= ref.length ? slice.call(ref, 0, j = ref.length - 1) : (j = 0, []), modelKey = ref[j++];
+          classId = this.context.getNodeNameByKey(dotPath.join('.'));
+          modelClass = this.model.classList[classId];
+          if (modelClass == null) {
+            ref1 = this.model.contextMap;
+            for (modelTag in ref1) {
+              context = ref1[modelTag];
+              className = classId.split(':').pop();
+              candidate = context.definition.name + ":" + className;
+              if (this.model.classList[candidate] != null) {
+                if (modelClass != null) {
+                  throw new Error("Multiple models have a class named " + className + ", please specify context");
+                }
+                modelClass = this.model.classList[candidate];
+              }
+            }
+          }
+          if (modelClass == null) {
+            throw new Error("Could not locate class for " + key);
+          }
           definition = modelClass.totalClassDefinition;
-          databaseKeys.push(((ref1 = definition[source]) != null ? (ref2 = ref1[modelKey]) != null ? ref2.key : void 0 : void 0) || modelKey);
+          databaseKeys.push(((ref2 = definition[source]) != null ? (ref3 = ref2[modelKey]) != null ? ref3.key : void 0 : void 0) || modelKey);
         }
       }
       return databaseKeys;
