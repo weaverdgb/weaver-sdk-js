@@ -508,6 +508,22 @@ describe 'WeaverNode test', ->
       assert.equal(incompleteNode.get('name'), 'Foo')
     )
 
+  it 'should load an incomplete node thats stored in another graph', ->
+    incompleteNode = null
+
+    node = new Weaver.Node('a', 'some-graph')
+    node.set('name', 'Foo')
+
+    node.save()
+    .then(->
+      incompleteNode = new Weaver.Node(node.id(), node.getGraph())
+      incompleteNode.load()
+    ).then(->
+      assert.equal(incompleteNode.id(), 'a')
+      assert.equal(incompleteNode.getGraph(), 'some-graph')
+      assert.equal(incompleteNode.get('name'), 'Foo')
+    )
+
   it 'should create and return a node if it doesn\'t exist', ->
     Weaver.Node.firstOrCreate('firstOrCreate')
       .then((node) ->

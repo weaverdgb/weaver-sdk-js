@@ -90,6 +90,7 @@ class WeaverModel extends ModelContext
       query.first(context[loadClass])
 
     modelClass.load = load(className)
+    modelClass.loadFromGraph = load(className)
 
     context[className] = modelClass
     @classList[modelClass.classId()] = modelClass

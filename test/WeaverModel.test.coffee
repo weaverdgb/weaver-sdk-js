@@ -233,6 +233,25 @@ describe 'WeaverModel test', ->
           expect(node).to.be.instanceOf(model.Country)
         )
 
+      it 'should load the to model nodes if the node is in another graph', ->
+        loadedNode = null
+        p = new model.Person('p')
+        o = new model.Office('o', 'some-graph')
+        c = new model.Country('c')
+        p.relation('worksIn').add(o)
+        o.relation('placedIn').add(c)
+        p.save()
+        .then(->
+          model.Person.load('p')
+        ).then((node)->
+          expect(node).to.be.instanceOf(model.Person)
+          node.relation('worksIn').first().load()
+        ).then((node)->
+          expect(node).to.be.instanceOf(model.Office)
+          expect(node.getGraph()).to.equal('some-graph')
+          expect(node.relation('placedIn').first().id()).to.equal('c')
+        )
+
       it 'should succeed saving with type definition that is bootstrapped', ->
         Person = model.Person
         person = new Person()
