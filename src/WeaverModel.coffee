@@ -114,14 +114,13 @@ class WeaverModel extends ModelContext
           return Promise.resolve()
       
       @loadMap[obj.name] = obj.version
-
-      # Deprecated
-      @includes[obj.prefix] = @
-      @modelMap[obj.name] = @
+      @modelMap[obj.name] = @ # Deprecated, set for backbward compatibility
 
       WeaverModel._loadDefinition(obj.name, obj.version)
       .then((includedModel)=>
-        @contextMap[obj.tag] = new ModelContext(includedModel.definition, @)
+        context = new ModelContext(includedModel.definition, @)
+        @contextMap[obj.tag] = context
+        @includes[obj.prefix] = context  # Deprecated, set for backbward compatibility
         @_loadIncludes(includedModel.definition)
       )
     )
