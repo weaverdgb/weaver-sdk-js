@@ -11,7 +11,7 @@ class WeaverModelContext
     @_graph
 
   includeKeyToModelTab: (key) ->
-    object = @definition.includes[key]
+    object = @definition.includes?[key]
     if object?
       "#{object.name}@#{object.version}"
     else
