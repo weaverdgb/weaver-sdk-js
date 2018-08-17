@@ -102421,7 +102421,7 @@ module.exports = yeast;
 },{}],408:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "8.7.0-beta.1",
+  "version": "8.7.0-beta.2",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -104568,10 +104568,12 @@ module.exports={
             }
           }
           _this.loadMap[obj.name] = obj.version;
-          _this.includes[obj.prefix] = _this;
           _this.modelMap[obj.name] = _this;
           return WeaverModel._loadDefinition(obj.name, obj.version).then(function(includedModel) {
-            _this.contextMap[obj.tag] = new ModelContext(includedModel.definition, _this);
+            var context;
+            context = new ModelContext(includedModel.definition, _this);
+            _this.contextMap[obj.tag] = context;
+            _this.includes[obj.prefix] = context;
             return _this._loadIncludes(includedModel.definition);
           });
         };
