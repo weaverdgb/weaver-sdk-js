@@ -243,6 +243,11 @@ describe 'WeaverModel test', ->
           node.relation('rdf:type').all().should.have.length.be(1)
         )
 
+      it 'should have bootstrapped some instance with two types', ->
+        Weaver.Node.loadFromGraph('test-model:EmpireState', model.getGraph()).then((node)->
+          node.relation('rdf:type').all().should.have.length.be(2)
+        )
+
       it 'should succeed save inherit relation', ->
         Weaver.Node.loadFromGraph('test-model:AreaSection', model.getGraph()).then((node)->
           assert.isDefined(node.relation('rdfs:subClassOf').first())
