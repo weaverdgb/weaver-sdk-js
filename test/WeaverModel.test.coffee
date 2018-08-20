@@ -243,6 +243,11 @@ describe 'WeaverModel test', ->
           node.relation('rdf:type').all().should.have.length.be(1)
         )
 
+      it 'should have bootstrapped some instance with two types', ->
+        Weaver.Node.loadFromGraph('test-model:EmpireState', model.getGraph()).then((node)->
+          node.relation('rdf:type').all().should.have.length.be(2)
+        )
+
       it 'should succeed save inherit relation', ->
         Weaver.Node.loadFromGraph('test-model:AreaSection', model.getGraph()).then((node)->
           assert.isDefined(node.relation('rdfs:subClassOf').first())
@@ -251,7 +256,7 @@ describe 'WeaverModel test', ->
       it 'should succeed saving all instances', ->
         new Weaver.Query().restrictGraphs(model.getGraph()).hasRelationOut('rdf:type', Weaver.Node.getFromGraph('test-model:City', model.getGraph()))
         .find().then((nodes) -> i.id() for i in nodes)
-        .should.eventually.have.members(["test-model:Delft", "test-model:Rotterdam", "test-model:Leiden", "test-model:CityState"])
+        .should.eventually.have.members(["test-model:Delft", "test-model:Rotterdam", "test-model:Leiden", "test-model:CityState", "test-model:EmpireState"])
 
       it 'should have the init instances as members of the model class', ->
         expect(model).to.have.property('City').to.have.property('Rotterdam')

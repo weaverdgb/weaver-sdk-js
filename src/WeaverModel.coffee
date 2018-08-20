@@ -223,12 +223,17 @@ class WeaverModel
       ModelClass = @[className]
 
       for itemName in classObj.init
-        node = new ModelClass("#{@definition.name}:#{itemName}", @getGraph())
-        if !existingNodes["#{@definition.name}:#{itemName}"]?
-          nodesToCreate[node.id()] = node
+        nodeId = "#{@definition.name}:#{itemName}"
+        if !existingNodes[nodeId]?
+          nodesToCreate[nodeId] = new ModelClass(nodeId, @getGraph())
+          @[className][itemName] = nodesToCreate[nodeId]
         else
-          node._clearPendingWrites()
-        @[className][itemName] = node
+          nodesToCreate[nodeId] = existingNodes[nodeId] if !nodesToCreate[nodeId]?
+          if existingNodes[nodeId] instanceof Weaver.ModelClass
+            existingNodes[nodeId].nodeRelation(@getMemberKey()).add(ModelClass.getNode())
+          else
+            existingNodes[nodeId].relation(@getMemberKey()).add(ModelClass.getNode())
+          @[className][itemName] = existingNodes[nodeId]
 
     # Now add all the nodes that are not a model class
     for className of @definition.classes
