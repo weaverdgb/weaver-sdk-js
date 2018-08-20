@@ -3,6 +3,8 @@
 ## Develop
 - Remove level-fs dependency.
 - Added the test proposed by Michiel for limiting ordered queries.
+- Allow one model instances to be in the init block of more then
+  one class in a model.
 
 ## 8.6.0
 - Rewritten subclassing mechanism of ModelClass.
