@@ -1,6 +1,6 @@
 # Changelist
 
-## Develop
+## 8.6.1
 - Remove level-fs dependency.
 - Added the test proposed by Michiel for limiting ordered queries.
 - Allow one model instances to be in the init block of more then

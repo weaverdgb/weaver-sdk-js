@@ -102421,7 +102421,7 @@ module.exports = yeast;
 },{}],408:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "8.6.0",
+  "version": "8.6.1",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -104789,7 +104789,7 @@ module.exports={
     };
 
     WeaverModel.prototype._bootstrapClasses = function(existingNodes, nodesToCreate) {
-      var ModelClass, className, classObj, i, id, itemName, len, node, ref, ref1, ref2, superClassNode, superId;
+      var ModelClass, className, classObj, i, id, itemName, len, node, nodeId, ref, ref1, ref2, superClassNode, superId;
       if (nodesToCreate == null) {
         nodesToCreate = {};
       }
@@ -104803,13 +104803,21 @@ module.exports={
         ref1 = classObj.init;
         for (i = 0, len = ref1.length; i < len; i++) {
           itemName = ref1[i];
-          node = new ModelClass(this.definition.name + ":" + itemName, this.getGraph());
-          if (existingNodes[this.definition.name + ":" + itemName] == null) {
-            nodesToCreate[node.id()] = node;
+          nodeId = this.definition.name + ":" + itemName;
+          if (existingNodes[nodeId] == null) {
+            nodesToCreate[nodeId] = new ModelClass(nodeId, this.getGraph());
+            this[className][itemName] = nodesToCreate[nodeId];
           } else {
-            node._clearPendingWrites();
+            if (nodesToCreate[nodeId] == null) {
+              nodesToCreate[nodeId] = existingNodes[nodeId];
+            }
+            if (existingNodes[nodeId] instanceof Weaver.ModelClass) {
+              existingNodes[nodeId].nodeRelation(this.getMemberKey()).add(ModelClass.getNode());
+            } else {
+              existingNodes[nodeId].relation(this.getMemberKey()).add(ModelClass.getNode());
+            }
+            this[className][itemName] = existingNodes[nodeId];
           }
-          this[className][itemName] = node;
         }
       }
       for (className in this.definition.classes) {
