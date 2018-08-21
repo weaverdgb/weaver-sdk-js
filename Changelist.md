@@ -1,6 +1,6 @@
 # Changelist
 
-## develop
+## 8.6.2
 - Rewrite init code for model for 8.6.1 version.
 
 ## 8.6.1

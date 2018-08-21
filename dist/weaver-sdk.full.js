@@ -102421,7 +102421,7 @@ module.exports = yeast;
 },{}],408:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "8.6.1",
+  "version": "8.6.2",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -104789,10 +104789,30 @@ module.exports={
     };
 
     WeaverModel.prototype._bootstrapClasses = function(existingNodes, nodesToCreate) {
-      var ModelClass, className, classObj, i, id, itemName, len, node, nodeId, ref, ref1, ref2, superClassNode, superId;
+      var ModelClass, className, classObj, firstOrCreate, i, id, itemName, len, node, nodeId, ref, ref1, ref2, superId, superNode;
       if (nodesToCreate == null) {
         nodesToCreate = {};
       }
+      firstOrCreate = function(id, graph, create) {
+        var node;
+        if (create == null) {
+          create = true;
+        }
+        if (nodesToCreate[id] != null) {
+          return nodesToCreate[id];
+        }
+        if (existingNodes[id] != null) {
+          node = existingNodes[id];
+          nodesToCreate[id] = node;
+          return node;
+        }
+        if (!create) {
+          throw new Error("Node " + id + " in graph " + graph + " should already exist in this phase of bootstrapping");
+        }
+        node = new Weaver.Node(id, graph);
+        nodesToCreate[id] = node;
+        return node;
+      };
       ref = this.definition.classes;
       for (className in ref) {
         classObj = ref[className];
@@ -104804,30 +104824,14 @@ module.exports={
         for (i = 0, len = ref1.length; i < len; i++) {
           itemName = ref1[i];
           nodeId = this.definition.name + ":" + itemName;
-          if (existingNodes[nodeId] == null) {
-            nodesToCreate[nodeId] = new ModelClass(nodeId, this.getGraph());
-            this[className][itemName] = nodesToCreate[nodeId];
-          } else {
-            if (nodesToCreate[nodeId] == null) {
-              nodesToCreate[nodeId] = existingNodes[nodeId];
-            }
-            if (existingNodes[nodeId] instanceof Weaver.ModelClass) {
-              existingNodes[nodeId].nodeRelation(this.getMemberKey()).add(ModelClass.getNode());
-            } else {
-              existingNodes[nodeId].relation(this.getMemberKey()).add(ModelClass.getNode());
-            }
-            this[className][itemName] = existingNodes[nodeId];
-          }
+          node = firstOrCreate(nodeId, this.getGraph());
+          node.relation(this.getMemberKey()).add(ModelClass.getNode());
+          this[className][itemName] = node;
         }
       }
       for (className in this.definition.classes) {
         id = this._getClassNodeId(className);
-        if (existingNodes[id] == null) {
-          if (nodesToCreate[id] == null) {
-            node = new Weaver.Node(id, this.getGraph());
-            nodesToCreate[node.id()] = node;
-          }
-        }
+        firstOrCreate(id, this.getGraph());
       }
       ref2 = this.definition.classes;
       for (className in ref2) {
@@ -104837,17 +104841,9 @@ module.exports={
         }
         id = this._getClassNodeId(className);
         superId = this._getClassNodeId(classObj["super"]);
-        if (existingNodes[id] == null) {
-          node = nodesToCreate[id];
-          superClassNode = nodesToCreate[superId] || existingNodes[superId] || (function() {
-            throw new Error("Failed linking to super node " + superId);
-          })();
-          if (node instanceof Weaver.ModelClass) {
-            node.nodeRelation(this.getInheritKey()).add(superClassNode);
-          } else {
-            node.relation(this.getInheritKey()).add(superClassNode);
-          }
-        }
+        node = firstOrCreate(id, this.getGraph());
+        superNode = firstOrCreate(superId, this.getGraph(), false);
+        node.relation(this.getInheritKey()).add(superNode);
       }
       return {
         nodesToCreate: nodesToCreate,
