@@ -32,6 +32,8 @@ classes:
         datatype: string
   Country:
     super: AreaSection
+  EmpireState:
+    super: Country
   Construction:
     attributes:
       yearOfConstruction:
