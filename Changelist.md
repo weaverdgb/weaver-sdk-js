@@ -1,5 +1,8 @@
 # Changelist
 
+## develop
+- Rewrite init code for model for 8.6.1 version.
+
 ## 8.6.1
 - Remove level-fs dependency.
 - Added the test proposed by Michiel for limiting ordered queries.
