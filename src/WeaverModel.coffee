@@ -255,7 +255,7 @@ class WeaverModel extends ModelContext
       Weaver.Node.batchSave((node for id, node of nodesToCreate), project) if save
     )
 
-  _bootstrapClasses: (existingNodes) ->
+  _bootstrapClasses: (existingNodes, nodesToCreate={}) ->
 
     firstOrCreate = (id, graph, Constructor=Weaver.Node, create=true) ->
       return nodesToCreate[id] if nodesToCreate[id]?

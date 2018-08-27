@@ -102421,7 +102421,7 @@ module.exports = yeast;
 },{}],408:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "8.7.0-beta.8",
+  "version": "8.7.0-beta.9",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -104812,8 +104812,11 @@ module.exports={
       })(this));
     };
 
-    WeaverModel.prototype._bootstrapClasses = function(existingNodes) {
+    WeaverModel.prototype._bootstrapClasses = function(existingNodes, nodesToCreate) {
       var className, classObj, context, firstOrCreate, i, id, itemName, len, node, nodeId, owner, ownerId, ref, ref1, ref2, ref3, ref4, ref5, superId, superNode, tag;
+      if (nodesToCreate == null) {
+        nodesToCreate = {};
+      }
       firstOrCreate = function(id, graph, Constructor, create) {
         var node;
         if (Constructor == null) {
