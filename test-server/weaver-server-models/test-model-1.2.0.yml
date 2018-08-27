@@ -19,7 +19,7 @@ includes:
 classes:
   Human:
   City:
-    init: [Delft, Rotterdam, Leiden, CityState]
+    init: [Delft, Rotterdam, Leiden, CityState, EmpireState]
   CityState:
   Area:
     attributes:
@@ -35,6 +35,8 @@ classes:
         datatype: string
   Country:
     super: AreaSection
+  EmpireState:
+    super: Country
   Construction:
     attributes:
       yearOfConstruction:
@@ -45,6 +47,7 @@ classes:
         card:  [1,2]
   Building:
     super: Construction
+    init: [EmpireState]
     relations:
       placedIn:
         range: [Area]

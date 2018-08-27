@@ -257,7 +257,16 @@ class WeaverModel extends ModelContext
 
   _bootstrapClasses: (existingNodes) ->
 
-    nodesToCreate = {}
+    firstOrCreate = (id, graph, create=true) ->
+      return nodesToCreate[id] if nodesToCreate[id]?
+      if existingNodes[id]?
+        node = existingNodes[id]
+        nodesToCreate[id] = node
+        return node
+      throw new Error("Node #{id} in graph #{graph} should already exist in this phase of bootstrapping") if !create
+      node = new Weaver.Node(id, graph)
+      nodesToCreate[id] = node
+      node
 
     # First create all class instances
     for tag, context of @contextMap
@@ -265,34 +274,25 @@ class WeaverModel extends ModelContext
         ModelClass = context[className]
 
         for itemName in classObj.init
-          node = new ModelClass("#{context.definition.name}:#{itemName}", context.getGraph())
-          if !existingNodes["#{context.definition.name}:#{itemName}"]?
-            nodesToCreate[node.id()] = node
-          else
-            node._clearPendingWrites()
+          nodeId = "#{context.definition.name}:#{itemName}"
+          node = firstOrCreate(nodeId, context.getGraph())
+          node.relation(@getMemberKey()).add(ModelClass.getNode())
           context[className][itemName] = node
 
-    # Now add all the nodes that are not a model class
-    for tag, context of @contextMap
-      for className of context.definition.classes
-        id = context.getNodeNameByKey(className)
-        if !existingNodes[id]?
-          if not nodesToCreate[id]?
-            node = new Weaver.Node(id, context.getGraph())
-            nodesToCreate[node.id()] = node
+      # Now add all the nodes that represent a model class
+      for tag, context of @contextMap
+        for className of context.definition.classes
+          id = context.getNodeNameByKey(className)
+          firstOrCreate(id, context.getGraph())
 
-    # Link inheritance
-    for tag, context of @contextMap
-      for className, classObj of context.definition.classes when classObj?.super?
-        id = context.getNodeNameByKey(className)
-        superId = context.getNodeNameByKey(classObj.super)
-        if !existingNodes[id]?
-          node = nodesToCreate[id]
-          superClassNode = nodesToCreate[superId] or existingNodes[superId] or throw new Error("Failed linking to super node #{superId}")
-          if node instanceof Weaver.ModelClass
-            node.nodeRelation(@getInheritKey()).add(superClassNode)
-          else
-            node.relation(@getInheritKey()).add(superClassNode)
+      # Link inheritance
+      for tag, context of @contextMap
+        for className, classObj of context.definition.classes when classObj?.super?
+          id = context.getNodeNameByKey(className)
+          superId = context.getNodeNameByKey(classObj.super)
+          node = firstOrCreate(id, context.getGraph())
+          superNode = firstOrCreate(superId, context.getGraph(), false)
+          node.relation(@getInheritKey()).add(superNode)
 
     nodesToCreate
 

@@ -1,11 +1,18 @@
 # Changelist
 
 ## 8.7.0
-- Remove level-fs dependency.
-- Added the test proposed by Michiel for limiting ordered queries.
 - Replace model inclusion of models into one model with one classList
   for simplified and more powerfull usage (e.g. ModelQuery crossing
   model inclusion hops).
+
+## 8.6.2
+- Rewrite init code for model for 8.6.1 version.
+
+## 8.6.1
+- Remove level-fs dependency.
+- Added the test proposed by Michiel for limiting ordered queries.
+- Allow one model instances to be in the init block of more then
+  one class in a model.
 
 ## 8.6.0
 - Rewritten subclassing mechanism of ModelClass.

@@ -102421,7 +102421,7 @@ module.exports = yeast;
 },{}],408:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "8.7.0-beta.7",
+  "version": "8.7.0-beta.8",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -104813,8 +104813,27 @@ module.exports={
     };
 
     WeaverModel.prototype._bootstrapClasses = function(existingNodes) {
-      var ModelClass, className, classObj, context, i, id, itemName, len, node, nodesToCreate, ref, ref1, ref2, ref3, ref4, ref5, superClassNode, superId, tag;
-      nodesToCreate = {};
+      var ModelClass, className, classObj, context, firstOrCreate, i, id, itemName, len, node, nodeId, ref, ref1, ref2, ref3, ref4, ref5, superId, superNode, tag;
+      firstOrCreate = function(id, graph, create) {
+        var node;
+        if (create == null) {
+          create = true;
+        }
+        if (nodesToCreate[id] != null) {
+          return nodesToCreate[id];
+        }
+        if (existingNodes[id] != null) {
+          node = existingNodes[id];
+          nodesToCreate[id] = node;
+          return node;
+        }
+        if (!create) {
+          throw new Error("Node " + id + " in graph " + graph + " should already exist in this phase of bootstrapping");
+        }
+        node = new Weaver.Node(id, graph);
+        nodesToCreate[id] = node;
+        return node;
+      };
       ref = this.contextMap;
       for (tag in ref) {
         context = ref[tag];
@@ -104828,50 +104847,34 @@ module.exports={
           ref2 = classObj.init;
           for (i = 0, len = ref2.length; i < len; i++) {
             itemName = ref2[i];
-            node = new ModelClass(context.definition.name + ":" + itemName, context.getGraph());
-            if (existingNodes[context.definition.name + ":" + itemName] == null) {
-              nodesToCreate[node.id()] = node;
-            } else {
-              node._clearPendingWrites();
-            }
+            nodeId = context.definition.name + ":" + itemName;
+            node = firstOrCreate(nodeId, context.getGraph());
+            node.relation(this.getMemberKey()).add(ModelClass.getNode());
             context[className][itemName] = node;
           }
         }
-      }
-      ref3 = this.contextMap;
-      for (tag in ref3) {
-        context = ref3[tag];
-        for (className in context.definition.classes) {
-          id = context.getNodeNameByKey(className);
-          if (existingNodes[id] == null) {
-            if (nodesToCreate[id] == null) {
-              node = new Weaver.Node(id, context.getGraph());
-              nodesToCreate[node.id()] = node;
-            }
+        ref3 = this.contextMap;
+        for (tag in ref3) {
+          context = ref3[tag];
+          for (className in context.definition.classes) {
+            id = context.getNodeNameByKey(className);
+            firstOrCreate(id, context.getGraph());
           }
         }
-      }
-      ref4 = this.contextMap;
-      for (tag in ref4) {
-        context = ref4[tag];
-        ref5 = context.definition.classes;
-        for (className in ref5) {
-          classObj = ref5[className];
-          if (!((classObj != null ? classObj["super"] : void 0) != null)) {
-            continue;
-          }
-          id = context.getNodeNameByKey(className);
-          superId = context.getNodeNameByKey(classObj["super"]);
-          if (existingNodes[id] == null) {
-            node = nodesToCreate[id];
-            superClassNode = nodesToCreate[superId] || existingNodes[superId] || (function() {
-              throw new Error("Failed linking to super node " + superId);
-            })();
-            if (node instanceof Weaver.ModelClass) {
-              node.nodeRelation(this.getInheritKey()).add(superClassNode);
-            } else {
-              node.relation(this.getInheritKey()).add(superClassNode);
+        ref4 = this.contextMap;
+        for (tag in ref4) {
+          context = ref4[tag];
+          ref5 = context.definition.classes;
+          for (className in ref5) {
+            classObj = ref5[className];
+            if (!((classObj != null ? classObj["super"] : void 0) != null)) {
+              continue;
             }
+            id = context.getNodeNameByKey(className);
+            superId = context.getNodeNameByKey(classObj["super"]);
+            node = firstOrCreate(id, context.getGraph());
+            superNode = firstOrCreate(superId, context.getGraph(), false);
+            node.relation(this.getInheritKey()).add(superNode);
           }
         }
       }
