@@ -54,6 +54,21 @@ describe 'Weaver relation and WeaverRelationNode test', ->
       assert.isDefined(loadedNode)
     )
 
+  it 'should load the to nodes of a relation', ->
+    loadedNode = null
+    foo = new Weaver.Node('foo')
+    bar = new Weaver.Node('bar')
+    kik = new Weaver.Node('kik')
+    foo.relation('link').add(bar)
+    bar.relation('link').add(kik)
+    foo.save().then(->
+      Weaver.Node.load(foo.id())
+    ).then((node)->
+      loadedNode = node
+      loadedNode.relation('link').load(Weaver.Node)
+    ).then(->
+      expect(loadedNode.relation('link').first().relation('link').first()).to.be.instanceOf(Weaver.Node)
+    )
 
   it 'should save a new relation on relation on node save', ->
     foo = new Weaver.Node()

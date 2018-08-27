@@ -1,6 +1,7 @@
-cuid = require('cuid')
-Operation = require('./Operation')
-Weaver  = require('./Weaver')
+cuid        = require('cuid')
+Operation   = require('./Operation')
+Weaver      = require('./Weaver')
+Promise     = require('bluebird')
 
 class WeaverRelation
 
@@ -29,11 +30,17 @@ class WeaverRelation
     @relationNodes = @relationNodes.filter((x) -> not x.to().equals(oldNode))
 
   load: (constructor)->
-    new Weaver.Query().hasRelationIn(@key, @owner).find(constructor)
-      .then((nodes) =>
+    new Weaver.Query()
+    .hasRelationIn(@key, @owner)
+    .selectRelations(@key)
+    .find(constructor)
+    .then((nodes)=>
+      Promise.map(nodes, (node)->node.load())
+      .then(=>
         @_addNodes(nodes...)
         @nodes
       )
+    )
 
   query: ->
     Promise.resolve([])

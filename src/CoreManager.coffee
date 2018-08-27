@@ -124,16 +124,16 @@ class CoreManager
     @STREAM(route, payload)
 
   getModel: (name, version) ->
-    @POST("model.read", {name, version}).then((model) ->
-      new Weaver.Model(model)
+    @POST("model.read", {name, version}).then((definition) ->
+      new Weaver.Model(definition)
     )
 
   listModels: ->
     @GET("model.list")
 
   reloadModel: (name, version) ->
-    @POST("model.reload", {name, version}).then((model) ->
-      new Weaver.Model(model)
+    @POST("model.reload", {name, version}).then((definition) ->
+      new Weaver.Model(definition)
     )
 
   createRole: (role) ->
@@ -266,7 +266,7 @@ class CoreManager
 
   query: (query) ->
     target = query.target
-    query  = _.omit(query, ['model', 'target', 'constructorFunction'])
+    query  = _.omit(query, ['model', 'context', 'target', 'preferredConstructor', 'constructorFunction'])
 
     @POST("query", {query, unparsed: true}, target).then((res) ->
       if typeof res isnt 'object'

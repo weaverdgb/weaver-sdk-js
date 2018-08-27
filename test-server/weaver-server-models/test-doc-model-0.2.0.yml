@@ -7,6 +7,15 @@ author:
 member: 'rdf:type'
 inherit: 'rdfs:subClassOf'
 
+includes:
+  test:
+    name: test-model
+    version: 1.2.0
+  beaver:
+    name: beaver-model
+    version: 1.0.0
+
+
 classes:
   Document:
     attributes:
@@ -20,4 +29,10 @@ classes:
   Autograph:
     relations:
       carbonCopy:
+        range: [Document]
+
+  Clerk:
+    super: test.Person
+    relations:
+      authorised:
         range: [Document]

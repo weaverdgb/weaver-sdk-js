@@ -4,25 +4,21 @@ Weaver      = require('./Weaver')
 
 class WeaverModelQuery extends Weaver.Query
 
-  constructor: (@model = Weaver.currentModel(), target) ->
+  constructor: (context = Weaver.currentModel(), target) ->
     super(target)
-
-
+    @context = context
+    @model = context.model
 
     # Define constructor function
     constructorFunction = (node, owner, key) =>
       defs = []
       for def in node.relation(@model.getMemberKey()).all()
-        if def.id().indexOf(':') > -1
-          modelName = @model.definition.name
-          modelName = def.id().split(':')[0] if def.id().indexOf(':') > -1
-          if @model.modelMap[modelName]?
-            defs.push(def.id())
+        if @model.classList[def.id()]?
+          defs.push(def.id())
       if defs.length is 0
         Weaver.Node
       else if defs.length is 1
-        [modelName, className] = defs[0].split(":")
-        @model.modelMap[modelName][className]
+        @model.classList[defs[0]]
 
       # First order node from resultset, no incoming relation to help decide
       else if not owner?
@@ -33,7 +29,7 @@ class WeaverModelQuery extends Weaver.Query
         return @preferredConstructor
       else
 
-        if not owner instanceof Weaver.ModelClass
+        if owner not instanceof Weaver.ModelClass
           console.info("Could not choose contructing node between type #{JSON.stringify(defs)}")
           return Weaver.DefinedNode
 
@@ -55,7 +51,6 @@ class WeaverModelQuery extends Weaver.Query
 
     @setConstructorFunction(constructorFunction)
 
-
   getNodeIdFromStringOrNode: (node) ->
     try
       super(node)
@@ -70,7 +65,7 @@ class WeaverModelQuery extends Weaver.Query
 
 
   class: (modelClass) ->
-    @hasRelationOut(@model.getMemberKey(), Weaver.Node.getFromGraph(modelClass.classId(), @model.getGraph()))
+    @hasRelationOut(@model.getMemberKey(), Weaver.Node.getFromGraph(modelClass.classId(), modelClass.context.getGraph()))
 
   # Key is composed of Class.modelAttribute
   _mapKeys: (keys, source) ->
@@ -79,13 +74,24 @@ class WeaverModelQuery extends Weaver.Query
       if [@model.getMemberKey(), '*'].includes(key)
         databaseKeys.push(key)
       else
-        if key.indexOf(".") is -1
+        if key.indexOf('.') is -1
           throw new Error("Key should be in the form of ModelClass.key")
 
-        [className, modelKey] = key.split(".")
-        modelClass = @model[className]
-        definition  = modelClass.totalClassDefinition
+        [dotPath..., modelKey] = key.split('.')
+        classId = @context.getNodeNameByKey(dotPath.join('.'))
+        modelClass = @model.classList[classId]
 
+        if !modelClass?
+          # Try all namespaces, throw Error on name collision
+          for modelTag, context of @model.contextMap
+            className = classId.split(':').pop()
+            candidate = "#{context.definition.name}:#{className}"
+            if @model.classList[candidate]?
+              throw new Error("Multiple models have a class named #{className}, please specify context") if modelClass?
+              modelClass = @model.classList[candidate]
+
+        throw new Error("Could not locate class for #{key}") if !modelClass?
+        definition  = modelClass.totalClassDefinition
         databaseKeys.push(definition[source]?[modelKey]?.key or modelKey)
 
     databaseKeys
@@ -134,6 +140,10 @@ class WeaverModelQuery extends Weaver.Query
 
   destruct: ->
     delete @model
+    delete @context
+    delete @target
+    delete @preferredConstructor
+    delete @constructorFunction
     @
 
 module.exports = WeaverModelQuery

@@ -1,0 +1,8 @@
+name: animal-model
+version: 1.0.0
+author:
+  name: Bastiaan Bijl
+  email: bastiaan@sysunite.com
+
+classes:
+  Animal:

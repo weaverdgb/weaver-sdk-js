@@ -37,8 +37,10 @@ describe 'WeaverModel test', ->
   it 'should fail on a not existing model', ->
     Weaver.Model.load('ghost-model', '1.1.2').should.be.rejectedWith(Weaver.Error.MODEL_NOT_FOUND)
 
-  it 'should fail on an include cycle', ->
-    Weaver.Model.load('test-cycle-model', '0.0.1').should.be.rejectedWith(Weaver.Error.MODEL_INCLUSION_CYCLE)
+  it 'should be possible to have an include cycle', ->
+    Weaver.Model.load('test-cycle-model', '0.0.1').then((model)->
+      r = new model.cycle.cycle.cycle.cycle.Robot()
+    )
 
   it 'should fail on a not existing version of an existing model', ->
     Weaver.Model.load('test-model', '1.99.1').should.be.rejectedWith(Weaver.Error.MODEL_VERSION_NOT_FOUND)
@@ -140,11 +142,17 @@ describe 'WeaverModel test', ->
       person.getRanges('isIn').should.eql(['test-model:House', 'test-model:Office'])
 
     it 'should add allowed relations by correct range', ->
-      Person   = model.Person
+      Person = model.Person
       House = model.House
       person = new Person()
       person.relation("hasFriend").add(new Person())
       person.relation("livesIn").add(new House())
+
+    it 'should add allowed relations by correct sub range', ->
+      p = new model.td.test.td.test.Person()
+      c = new model.td.Clerk()
+      p.relation("hasFriend").add(c)
+      c.relation("hasFriend").add(p)
 
     it 'should deny allowed relations by different range', ->
       Person   = model.Person
@@ -205,6 +213,45 @@ describe 'WeaverModel test', ->
           )
         )
 
+      it 'should load the to model nodes by using load function on half loaded node', ->
+        loadedNode = null
+        p = new model.Person()
+        o = new model.Office()
+        c = new model.Country()
+        p.relation('worksIn').add(o)
+        o.relation('placedIn').add(c)
+        p.save()
+        .then(->
+          model.Person.load(p.id())
+        ).then((node)->
+          expect(node).to.be.instanceOf(model.Person)
+          node.relation('worksIn').first().load()
+        ).then((node)->
+          expect(node).to.be.instanceOf(model.Office)
+          node.relation('placedIn').first().load()
+        ).then((node)->
+          expect(node).to.be.instanceOf(model.Country)
+        )
+
+      it 'should load the to model nodes if the node is in another graph', ->
+        loadedNode = null
+        p = new model.Person()
+        o = new model.Office(undefined, 'some-graph')
+        c = new model.Country()
+        p.relation('worksIn').add(o)
+        o.relation('placedIn').add(c)
+        p.save()
+        .then(->
+          model.Person.load(p.id())
+        ).then((node)->
+          expect(node).to.be.instanceOf(model.Person)
+          node.relation('worksIn').first().load()
+        ).then((node)->
+          expect(node).to.be.instanceOf(model.Office)
+          expect(node.getGraph()).to.equal('some-graph')
+          expect(node.relation('placedIn').first().id()).to.equal(c.id())
+        )
+
       it 'should succeed saving with type definition that is bootstrapped', ->
         Person = model.Person
         person = new Person()
@@ -227,15 +274,18 @@ describe 'WeaverModel test', ->
           expect(loaded.id()).to.equal(document.id())
         )
 
-      it 'should succeed saving with extended type definition of an included model', ->
+      it 'should succeed setting attribuges at an extended type definition of an included model', ->
         Document = model.DeliveryNotice
         document = new Document()
         document.set('at', 'work')
+        document.set('fileName', 'print.pdf')
         document.save()
         .then(->
           Document.load(document.id())
         ).then((loaded)->
           expect(loaded.id()).to.equal(document.id())
+          expect(loaded.get('at')).to.equal('work')
+          expect(loaded.get('fileName')).to.equal('print.pdf')
         )
 
       it 'should succeed save one instance with single type', ->

@@ -77,8 +77,8 @@ class WeaverQuery
     Weaver.getCoreManager().query(@).then((result) =>
       Weaver.Query.notify(result)
       list = []
-      for node in result.nodes
-        castedNode = Weaver.Node.loadFromQuery(node, @constructorFunction, !@_selectRelations? && !@_select?, @model)
+      for object in result.nodes
+        castedNode = Weaver.Node.loadFromQuery(object, @constructorFunction, !@_selectRelations? && !@_select?, @model)
         list.push(castedNode)
       list
     )
@@ -421,7 +421,9 @@ class WeaverQuery
   nativeQuery: (query)->
     Weaver.getCoreManager().nativeQuery(query, Weaver.getInstance().currentProject().id())
 
-  @destruct: ->
+  destruct: ->
+    delete @target
+    delete @constructorFunction
     @
 
 # Export

@@ -11,6 +11,9 @@ includes:
   td:
     name: test-doc-model
     version: 0.2.0
+  animal:
+    name: animal-model
+    version: 1.0.0
 
 
 classes:
