@@ -215,14 +215,14 @@ describe 'WeaverModel test', ->
 
       it 'should load the to model nodes by using load function on half loaded node', ->
         loadedNode = null
-        p = new model.Person('p')
-        o = new model.Office('o')
-        c = new model.Country('c')
+        p = new model.Person()
+        o = new model.Office()
+        c = new model.Country()
         p.relation('worksIn').add(o)
         o.relation('placedIn').add(c)
         p.save()
         .then(->
-          model.Person.load('p')
+          model.Person.load(p.id())
         ).then((node)->
           expect(node).to.be.instanceOf(model.Person)
           node.relation('worksIn').first().load()
@@ -235,21 +235,21 @@ describe 'WeaverModel test', ->
 
       it 'should load the to model nodes if the node is in another graph', ->
         loadedNode = null
-        p = new model.Person('p')
-        o = new model.Office('o', 'some-graph')
-        c = new model.Country('c')
+        p = new model.Person()
+        o = new model.Office(undefined, 'some-graph')
+        c = new model.Country()
         p.relation('worksIn').add(o)
         o.relation('placedIn').add(c)
         p.save()
         .then(->
-          model.Person.load('p')
+          model.Person.load(p.id())
         ).then((node)->
           expect(node).to.be.instanceOf(model.Person)
           node.relation('worksIn').first().load()
         ).then((node)->
           expect(node).to.be.instanceOf(model.Office)
           expect(node.getGraph()).to.equal('some-graph')
-          expect(node.relation('placedIn').first().id()).to.equal('c')
+          expect(node.relation('placedIn').first().id()).to.equal(c.id())
         )
 
       it 'should succeed saving with type definition that is bootstrapped', ->
