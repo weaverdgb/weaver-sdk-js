@@ -4,6 +4,7 @@
 - Replace model inclusion of models into one model with one classList
   for simplified and more powerfull usage (e.g. ModelQuery crossing
   model inclusion hops).
+- Use a DefinedNode for constructing init block members of a model.
 
 ## 8.6.2
 - Rewrite init code for model for 8.6.1 version.

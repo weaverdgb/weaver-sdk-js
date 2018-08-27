@@ -257,26 +257,28 @@ class WeaverModel extends ModelContext
 
   _bootstrapClasses: (existingNodes) ->
 
-    firstOrCreate = (id, graph, create=true) ->
+    firstOrCreate = (id, graph, Constructor=Weaver.Node, create=true) ->
       return nodesToCreate[id] if nodesToCreate[id]?
       if existingNodes[id]?
         node = existingNodes[id]
         nodesToCreate[id] = node
         return node
       throw new Error("Node #{id} in graph #{graph} should already exist in this phase of bootstrapping") if !create
-      node = new Weaver.Node(id, graph)
+      node = new Constructor(id, graph)
       nodesToCreate[id] = node
       node
 
     # First create all class instances
     for tag, context of @contextMap
       for className, classObj of context.definition.classes when classObj?.init?
-        ModelClass = context[className]
+        ownerId = context.getNodeNameByKey(className)
+        owner = firstOrCreate(ownerId, context.getGraph())
 
         for itemName in classObj.init
           nodeId = "#{context.definition.name}:#{itemName}"
-          node = firstOrCreate(nodeId, context.getGraph())
-          node.relation(@getMemberKey()).add(ModelClass.getNode())
+          node = firstOrCreate(nodeId, context.getGraph(), Weaver.DefinedNode)
+          node.model = @
+          node.relation(@getMemberKey()).add(owner)
           context[className][itemName] = node
 
       # Now add all the nodes that represent a model class
@@ -291,7 +293,7 @@ class WeaverModel extends ModelContext
           id = context.getNodeNameByKey(className)
           superId = context.getNodeNameByKey(classObj.super)
           node = firstOrCreate(id, context.getGraph())
-          superNode = firstOrCreate(superId, context.getGraph(), false)
+          superNode = firstOrCreate(superId, context.getGraph(), undefined, false)
           node.relation(@getInheritKey()).add(superNode)
 
     nodesToCreate
