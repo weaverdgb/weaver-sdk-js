@@ -104813,9 +104813,12 @@ module.exports={
     };
 
     WeaverModel.prototype._bootstrapClasses = function(existingNodes) {
-      var ModelClass, className, classObj, context, firstOrCreate, i, id, itemName, len, node, nodeId, ref, ref1, ref2, ref3, ref4, ref5, superId, superNode, tag;
-      firstOrCreate = function(id, graph, create) {
+      var className, classObj, context, firstOrCreate, i, id, itemName, len, node, nodeId, owner, ownerId, ref, ref1, ref2, ref3, ref4, ref5, superId, superNode, tag;
+      firstOrCreate = function(id, graph, Constructor, create) {
         var node;
+        if (Constructor == null) {
+          Constructor = Weaver.Node;
+        }
         if (create == null) {
           create = true;
         }
@@ -104830,7 +104833,7 @@ module.exports={
         if (!create) {
           throw new Error("Node " + id + " in graph " + graph + " should already exist in this phase of bootstrapping");
         }
-        node = new Weaver.Node(id, graph);
+        node = new Constructor(id, graph);
         nodesToCreate[id] = node;
         return node;
       };
@@ -104843,13 +104846,15 @@ module.exports={
           if (!((classObj != null ? classObj.init : void 0) != null)) {
             continue;
           }
-          ModelClass = context[className];
+          ownerId = context.getNodeNameByKey(className);
+          owner = firstOrCreate(ownerId, context.getGraph());
           ref2 = classObj.init;
           for (i = 0, len = ref2.length; i < len; i++) {
             itemName = ref2[i];
             nodeId = context.definition.name + ":" + itemName;
-            node = firstOrCreate(nodeId, context.getGraph());
-            node.relation(this.getMemberKey()).add(ModelClass.getNode());
+            node = firstOrCreate(nodeId, context.getGraph(), Weaver.DefinedNode);
+            node.model = this;
+            node.relation(this.getMemberKey()).add(owner);
             context[className][itemName] = node;
           }
         }
@@ -104873,7 +104878,7 @@ module.exports={
             id = context.getNodeNameByKey(className);
             superId = context.getNodeNameByKey(classObj["super"]);
             node = firstOrCreate(id, context.getGraph());
-            superNode = firstOrCreate(superId, context.getGraph(), false);
+            superNode = firstOrCreate(superId, context.getGraph(), void 0, false);
             node.relation(this.getInheritKey()).add(superNode);
           }
         }
