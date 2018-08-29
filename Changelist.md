@@ -1,5 +1,8 @@
 # Changelist
 
+## develop
+- Warn if a user tries to give a sub ModelQuery to a recursive condition.
+
 ## 8.7.0
 - Replace model inclusion of models into one model with one classList
   for simplified and more powerfull usage (e.g. ModelQuery crossing
