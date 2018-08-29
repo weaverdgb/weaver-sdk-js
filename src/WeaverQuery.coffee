@@ -221,7 +221,9 @@ class WeaverQuery
   _addRecursiveCondition: (op, relation, node, includeSelf) ->
     nodeId = ''
     graph = undefined
-    if node instanceof Weaver.Node
+    if node instanceof Weaver.Query
+      throw new Error('Not allowed to give sub query to recursive condition')
+    else if node instanceof Weaver.Node
       nodeId = node.id()
       graph  = node.getGraph()
     else
