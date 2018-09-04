@@ -1462,3 +1462,25 @@ describe 'WeaverQuery Test', ->
       ).then((descendingLength) ->
         expect(ascendingLength).to.equal(descendingLength)
       )
+
+  describe 'query a lot of nodes', ->
+    @timeout(200000)
+    nodes = []
+    nodes.push(new Weaver.Node()) for i in [10000..99999]
+
+    before ->
+      wipeCurrentProject().then( ->
+        Weaver.Node.batchSave(nodes)
+      )
+
+    it 'should only find the using the default limit', ->
+      new Weaver.Query()
+      .find().then((nodes) ->
+        expect(nodes.length).to.equal(1000)
+      )
+
+    it 'should find all the many nodes', ->
+      new Weaver.Query()
+      .unlimited().then((nodes) ->
+        expect(nodes.length).to.equal(90000)
+      )

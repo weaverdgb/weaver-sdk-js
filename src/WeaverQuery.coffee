@@ -69,6 +69,18 @@ class WeaverQuery
     else
       queries
 
+  unlimited: (chunkSize=800, skip=0, total=[])->
+    @limit(chunkSize)
+    @skip(skip)
+    @find()
+    .then((result) =>
+      total.push(node) for node in result
+      if result.length is chunkSize
+        @unlimited(chunkSize, skip + chunkSize, total)
+      else
+        total
+    )
+
   find: (Constructor) ->
 
     if Constructor?

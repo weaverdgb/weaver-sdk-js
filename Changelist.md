@@ -2,6 +2,7 @@
 
 ## develop
 - Warn if a user tries to give a sub ModelQuery to a recursive condition.
+- Add unlimited query.
 
 ## 8.7.0
 - Replace model inclusion of models into one model with one classList
