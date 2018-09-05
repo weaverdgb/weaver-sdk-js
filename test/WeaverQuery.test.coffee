@@ -1464,23 +1464,79 @@ describe 'WeaverQuery Test', ->
       )
 
   describe 'query a lot of nodes', ->
-    @timeout(200000)
-    nodes = []
-    nodes.push(new Weaver.Node()) for i in [10000..99999]
 
     before ->
-      wipeCurrentProject().then( ->
-        Weaver.Node.batchSave(nodes)
+      wipeCurrentProject()
+
+    it 'should find 100 nodes', ->
+
+      Weaver.Node.batchSave((new Weaver.Node() for i in [0...100]))
+      .then(->
+        new Weaver.Query().find()
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(100)
+        new Weaver.Query().unlimited(50)
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(100)
+        new Weaver.Query().unlimited(100)
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(100)
+        new Weaver.Query().unlimited(1500)
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(100)
       )
 
-    it 'should only find the using the default limit', ->
-      new Weaver.Query()
-      .find().then((nodes) ->
+    it 'should find 1000 nodes', ->
+
+      Weaver.Node.batchSave((new Weaver.Node() for i in [0...900]))
+      .then(->
+        new Weaver.Query().find()
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(1000)
+        new Weaver.Query().unlimited(50)
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(1000)
+        new Weaver.Query().unlimited(100)
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(1000)
+        new Weaver.Query().unlimited(1500)
+      ).then((nodes) ->
         expect(nodes.length).to.equal(1000)
       )
 
-    it 'should find all the many nodes', ->
-      new Weaver.Query()
-      .unlimited().then((nodes) ->
-        expect(nodes.length).to.equal(90000)
+    it 'should find 1500 nodes', ->
+
+      Weaver.Node.batchSave((new Weaver.Node() for i in [0...500]))
+      .then(->
+        new Weaver.Query().find()
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(1000)
+        new Weaver.Query().unlimited(50)
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(1500)
+        new Weaver.Query().unlimited(100)
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(1500)
+        new Weaver.Query().unlimited(1500)
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(1500)
       )
+
+    it 'should find 2500 nodes', ->
+
+      Weaver.Node.batchSave((new Weaver.Node() for i in [0...1000]))
+      .then(->
+        new Weaver.Query().find()
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(1000)
+        new Weaver.Query().unlimited(50)
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(2500)
+        new Weaver.Query().unlimited(100)
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(2500)
+        new Weaver.Query().unlimited(1500)
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(2500)
+      )
+      
