@@ -373,11 +373,12 @@ Weaver.Node.load('hello-weaver')
   # is recursively called on all loaded relations of this node
 ```
 ```coffeescript
-  Weaver.Node.prototype.destroy(target?, unrecoverableRemove?, propogates?)
+  Weaver.Node.prototype.destroy(target?, unrecoverableRemove?, propogates?, propagationDepth?)
   # destroys the instance, also on the db
   # target :: String (optional) = id of the target project
   # unrecoverableRemove :: bool (optional) = whether all evidence of this node should be removed from the db. Set this to true if you need to use this node's id again
-  # propagates :: Array (optional) = predicate keys of the relations you want this delete to (recursively) propagate to.
+  # propagates :: Array (optional) = predicate keys of the relations you want this delete to propagate to.
+  # propagationDepth :: Number (optional:default=1) = depth you want to permit for recursive deletions based on the `propagates` argument. -1 is infinite.
 ```
 <a id="weaverrelation"></a>
 ---
