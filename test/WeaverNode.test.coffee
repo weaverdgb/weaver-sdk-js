@@ -981,8 +981,26 @@ describe 'WeaverNode test', ->
     b.relation('gaveBirthTo').add(c)
 
     a.save().then(->
+      a.destroy(weaver.currentProject().projectId, true, ['gaveBirthTo'], 2)
+    ).then(->
+      Weaver.Node.load('Child')
+    ).should.be.rejectedWith(Weaver.Error.NODE_NOT_FOUND)
+
+  it 'should stop propogation at the correct depth', ->
+    a = new Weaver.Node('Grandmother')
+    b = new Weaver.Node('Mother')
+    c = new Weaver.Node('Child')
+    a.relation('gaveBirthTo').add(b)
+    b.relation('gaveBirthTo').add(c)
+
+    a.save().then(->
       a.destroy(weaver.currentProject().projectId, true, ['gaveBirthTo'])
-    )
+    ).then(->
+      Weaver.Node.load('Child')
+    ).then((node)->
+      expect(node.id()).to.equal('Child')
+      Weaver.Node.load('Mother')
+    ).should.be.rejectedWith(Weaver.Error.NODE_NOT_FOUND)
 
   it 'should not propogate destroy to unspecified relations', ->
     a = new Weaver.Node('Grandfather')
@@ -995,7 +1013,7 @@ describe 'WeaverNode test', ->
     b.relation('hasBrother').add(c)
 
     a.save().then(->
-      a.destroy(weaver.currentProject().projectId, true, ['raised'])
+      a.destroy(weaver.currentProject().projectId, true, ['raised'], 2)
     ).then(->
       Weaver.Node.load('Brother')
     ).then((node)->
