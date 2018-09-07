@@ -1,7 +1,7 @@
 # Changelist
 
 ## develop
-- Adds propogate-delete functionality
+- Adds propagate-delete functionality
 
 ## 8.8.0
 - Warn if a user tries to give a sub ModelQuery to a recursive condition.
