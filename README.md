@@ -373,7 +373,7 @@ Weaver.Node.load('hello-weaver')
   # is recursively called on all loaded relations of this node
 ```
 ```coffeescript
-  Weaver.Node.prototype.destroy(target?, unrecoverableRemove?, propogates?, propagationDepth?)
+  Weaver.Node.prototype.destroy(target?, unrecoverableRemove?, propagates?, propagationDepth?)
   # destroys the instance, also on the db
   # target :: String (optional) = id of the target project
   # unrecoverableRemove :: bool (optional) = whether all evidence of this node should be removed from the db. Set this to true if you need to use this node's id again
