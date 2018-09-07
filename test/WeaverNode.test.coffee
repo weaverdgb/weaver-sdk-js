@@ -1002,6 +1002,22 @@ describe 'WeaverNode test', ->
       expect(node.id()).to.equal('Brother')
     )
 
+  it 'should propogate destroy to specified relations, even when there are also unspecified relations', ->
+    a = new Weaver.Node('Grandfather')
+    b = new Weaver.Node('Father')
+    c = new Weaver.Node('Brother')
+    d = new Weaver.Node('Son')
+
+    a.relation('raised').add(b)
+    b.relation('raised').add(d)
+    b.relation('hasBrother').add(c)
+
+    a.save().then(->
+      a.destroy(weaver.currentProject().projectId, true, ['raised'])
+    ).then(->
+      Weaver.Node.load('Son')
+    ).should.be.rejectedWith(Weaver.Error.NODE_NOT_FOUND)
+
   it 'should add create and remove statements to pendingWrites with graphs', ->
     node = new Weaver.Node('node1', 'first-graph')
     target = new Weaver.Node(null, 'second-graph')
