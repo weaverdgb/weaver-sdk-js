@@ -410,7 +410,7 @@ class WeaverNode
 
   # Removes node, with the option to remove it unrecoverable
   destroy: (project, unrecoverableRemove = false, propagates = [], propagationDepth = 1) =>
-    if propagationDepth > 0
+    if propagationDepth isnt 0
       for predicate in propagates
         @relation(predicate).all().map((node)->
           node.destroy(project, unrecoverableRemove, propagates, --propagationDepth)
