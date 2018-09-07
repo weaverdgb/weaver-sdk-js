@@ -409,7 +409,12 @@ class WeaverNode
     )
 
   # Removes node, with the option to remove it unrecoverable
-  destroy: (project, unrecoverableRemove = false) ->
+  destroy: (project, unrecoverableRemove = false, propogates = []) =>
+    for predicate in propogates
+      @relation(predicate).all().map((node)->
+        node.destroy(project, unrecoverableRemove, propogates)
+      )
+
     cm = Weaver.getCoreManager()
     cm.enqueue( =>
 

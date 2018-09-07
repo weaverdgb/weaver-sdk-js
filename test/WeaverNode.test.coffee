@@ -973,6 +973,35 @@ describe 'WeaverNode test', ->
       # Node should not exist at all, not even in the garbage can.
     ).should.be.rejectedWith(Weaver.Error.NODE_NOT_FOUND)
 
+  it 'should be able to propogate destroy to specified relations', ->
+    a = new Weaver.Node('Grandmother')
+    b = new Weaver.Node('Mother')
+    c = new Weaver.Node('Child')
+    a.relation('gaveBirthTo').add(b)
+    b.relation('gaveBirthTo').add(c)
+
+    a.save().then(->
+      a.destroy(weaver.currentProject().projectId, true, ['gaveBirthTo'])
+    )
+
+  it 'should not propogate destroy to unspecified relations', ->
+    a = new Weaver.Node('Grandfather')
+    b = new Weaver.Node('Father')
+    c = new Weaver.Node('Brother')
+    d = new Weaver.Node('Son')
+
+    a.relation('raised').add(b)
+    b.relation('raised').add(d)
+    b.relation('hasBrother').add(c)
+
+    a.save().then(->
+      a.destroy(weaver.currentProject().projectId, true, ['raised'])
+    ).then(->
+      Weaver.Node.load('Brother')
+    ).then((node)->
+      expect(node.id()).to.equal('Brother')
+    )
+
   it 'should add create and remove statements to pendingWrites with graphs', ->
     node = new Weaver.Node('node1', 'first-graph')
     target = new Weaver.Node(null, 'second-graph')
