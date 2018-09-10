@@ -50,7 +50,16 @@ class WeaverModel extends ModelContext
       for modelTag, context of @contextMap
         for className, classDefinition of context.definition.classes
           if context.isNativeClass(className)
-            context[className].totalRangesMap = @_buildRanges(context[className].totalClassDefinition, context) 
+            context[className].totalRangesMap = @_buildRanges(context[className].totalClassDefinition, context)
+
+      for tag, context of @contextMap
+        for className, classObj of context.definition.classes when classObj?.init?
+          for itemName in classObj.init
+            nodeId = "#{context.definition.name}:#{itemName}"
+            node = new context[className](nodeId, context.getGraph(), @)
+            node.pendingWrites = []
+            node.nodeRelation(@getMemberKey).pendingWrites = []
+            context[className][itemName] = node
           
       @
     )
@@ -279,7 +288,7 @@ class WeaverModel extends ModelContext
           node = firstOrCreate(nodeId, context.getGraph(), Weaver.DefinedNode)
           node.model = @
           node.relation(@getMemberKey()).add(owner)
-          context[className][itemName] = node
+          # context[className][itemName] = node
 
       # Now add all the nodes that represent a model class
       for tag, context of @contextMap
