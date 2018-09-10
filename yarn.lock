@@ -1123,15 +1123,19 @@ code-point-at@^1.0.0:
   version "1.1.0"
   resolved "https://npm.sysunite.com/code-point-at/-/code-point-at-1.1.0.tgz#0d070b4d043a5bea33a2f1a40e2edb3d9a4ccf77"
 
-coffee-coverage@^3.0.0:
-  version "3.0.0"
-  resolved "https://npm.sysunite.com/coffee-coverage/-/coffee-coverage-3.0.0.tgz#4e15507fa293fb12bb4e4df3e0af551253ca07cb"
+coffee-coverage@2.0.1:
+  version "2.0.1"
+  resolved "https://npm.sysunite.com/coffee-coverage/-/coffee-coverage-2.0.1.tgz#78c91a6b2786e85148b1540c236593a3d459cd55"
   dependencies:
     argparse "^1.0.2"
-    coffeescript "^2.0.2"
+    coffee-script ">=1.6.2"
     lodash "^4.14.0"
     minimatch "^3.0.2"
     pkginfo ">=0.2.3"
+
+coffee-script@>=1.6.2:
+  version "1.12.7"
+  resolved "https://npm.sysunite.com/coffee-script/-/coffee-script-1.12.7.tgz#c05dae0cb79591d05b3070a8433a98c9a89ccc53"
 
 coffeeify@^3.0.1:
   version "3.0.1"
@@ -1144,7 +1148,7 @@ coffeescript@^1.10.0:
   version "1.12.7"
   resolved "https://npm.sysunite.com/coffeescript/-/coffeescript-1.12.7.tgz#e57ee4c4867cf7f606bfc4a0f2d550c0981ddd27"
 
-coffeescript@^2.0.2, coffeescript@^2.2.4:
+coffeescript@^2.2.4:
   version "2.3.1"
   resolved "https://npm.sysunite.com/coffeescript/-/coffeescript-2.3.1.tgz#a25f69c251d25805c9842e57fc94bfc453ef6aed"
 
@@ -1531,7 +1535,7 @@ debug@~2.2.0:
   dependencies:
     ms "0.7.1"
 
-debuglog@*, debuglog@^1.0.1:
+debuglog@^1.0.1:
   version "1.0.1"
   resolved "https://npm.sysunite.com/debuglog/-/debuglog-1.0.1.tgz#aa24ffb9ac3df9a2351837cfb2d279360cd78492"
 
@@ -3050,7 +3054,7 @@ immediate@~3.0.5:
   version "3.0.6"
   resolved "https://npm.sysunite.com/immediate/-/immediate-3.0.6.tgz#9db1dbd0faf8de6fbe0f5dd5e56bb606280de69b"
 
-imurmurhash@*, imurmurhash@^0.1.4:
+imurmurhash@^0.1.4:
   version "0.1.4"
   resolved "https://npm.sysunite.com/imurmurhash/-/imurmurhash-0.1.4.tgz#9218b9b2b928a238b13dc4fb6b6d576f231453ea"
 
@@ -3774,10 +3778,6 @@ lodash._basecreate@^3.0.0:
   version "3.0.3"
   resolved "https://npm.sysunite.com/lodash._basecreate/-/lodash._basecreate-3.0.3.tgz#1bc661614daa7fc311b7d03bf16806a0213cf821"
 
-lodash._baseindexof@*:
-  version "3.1.0"
-  resolved "https://npm.sysunite.com/lodash._baseindexof/-/lodash._baseindexof-3.1.0.tgz#fe52b53a1c6761e42618d654e4a25789ed61822c"
-
 lodash._basetostring@^3.0.0:
   version "3.0.1"
   resolved "https://npm.sysunite.com/lodash._basetostring/-/lodash._basetostring-3.0.1.tgz#d1861d877f824a52f669832dcaf3ee15566a07d5"
@@ -3793,20 +3793,6 @@ lodash._basevalues@^3.0.0:
   version "3.0.0"
   resolved "https://npm.sysunite.com/lodash._basevalues/-/lodash._basevalues-3.0.0.tgz#5b775762802bde3d3297503e26300820fdf661b7"
 
-lodash._bindcallback@*:
-  version "3.0.1"
-  resolved "https://npm.sysunite.com/lodash._bindcallback/-/lodash._bindcallback-3.0.1.tgz#e531c27644cf8b57a99e17ed95b35c748789392e"
-
-lodash._cacheindexof@*:
-  version "3.0.2"
-  resolved "https://npm.sysunite.com/lodash._cacheindexof/-/lodash._cacheindexof-3.0.2.tgz#3dc69ac82498d2ee5e3ce56091bafd2adc7bde92"
-
-lodash._createcache@*:
-  version "3.1.2"
-  resolved "https://npm.sysunite.com/lodash._createcache/-/lodash._createcache-3.1.2.tgz#56d6a064017625e79ebca6b8018e17440bdcf093"
-  dependencies:
-    lodash._getnative "^3.0.0"
-
 lodash._createset@~4.0.0:
   version "4.0.3"
   resolved "https://npm.sysunite.com/lodash._createset/-/lodash._createset-4.0.3.tgz#0f4659fbb09d75194fa9e2b88a6644d363c9fe26"
@@ -3821,7 +3807,7 @@ lodash._escapestringchar@~2.4.1:
   version "2.4.1"
   resolved "https://npm.sysunite.com/lodash._escapestringchar/-/lodash._escapestringchar-2.4.1.tgz#ecfe22618a2ade50bfeea43937e51df66f0edb72"
 
-lodash._getnative@*, lodash._getnative@^3.0.0:
+lodash._getnative@^3.0.0:
   version "3.9.1"
   resolved "https://npm.sysunite.com/lodash._getnative/-/lodash._getnative-3.9.1.tgz#570bc7dede46d61cdcde687d65d3eecbaa3aaff5"
 
@@ -3945,7 +3931,7 @@ lodash.memoize@~3.0.3:
   version "3.0.4"
   resolved "https://npm.sysunite.com/lodash.memoize/-/lodash.memoize-3.0.4.tgz#2dcbd2c287cbc0a55cc42328bd0c736150d53e3f"
 
-lodash.restparam@*, lodash.restparam@^3.0.0:
+lodash.restparam@^3.0.0:
   version "3.6.1"
   resolved "https://npm.sysunite.com/lodash.restparam/-/lodash.restparam-3.6.1.tgz#936a4e309ef330a7645ed4145986c85ae5b20805"
 
@@ -5543,7 +5529,7 @@ readable-stream@~2.2.9:
     string_decoder "~1.0.0"
     util-deprecate "~1.0.1"
 
-readdir-scoped-modules@*, readdir-scoped-modules@^1.0.0:
+readdir-scoped-modules@^1.0.0:
   version "1.0.2"
   resolved "https://npm.sysunite.com/readdir-scoped-modules/-/readdir-scoped-modules-1.0.2.tgz#9fafa37d286be5d92cbaebdee030dc9b5f406747"
   dependencies:
@@ -6924,7 +6910,7 @@ v8flags@^3.0.1:
   dependencies:
     homedir-polyfill "^1.0.1"
 
-validate-npm-package-license@*, validate-npm-package-license@^3.0.1:
+validate-npm-package-license@^3.0.1:
   version "3.0.4"
   resolved "https://npm.sysunite.com/validate-npm-package-license/-/validate-npm-package-license-3.0.4.tgz#fc91f6b9c7ba15c857f4cb2c5defeec39d4f410a"
   dependencies:
