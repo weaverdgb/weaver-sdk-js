@@ -185,12 +185,17 @@ describe 'WeaverNode test', ->
 
   it 'should set a new number attribute', ->
     node = new Weaver.Node()
-    node.set('length', 3)
 
-    node.save().then(->
+    node.save().then((node) ->
+      node.set('number', 1.2)
+      assert.equal(node.getDataType('number'), 'double')
+
+      node.save()
+    ).then(->
       Weaver.Node.load(node.id())
     ).then((loadedNode) ->
-      assert.equal(loadedNode.get('length'), 3)
+      assert.equal(loadedNode.get('number'), 1.2)
+      assert.equal(loadedNode.getDataType('number'), 'double')
     )
 
   it 'should set a date attribute', ->
