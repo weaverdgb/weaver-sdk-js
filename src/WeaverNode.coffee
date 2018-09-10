@@ -154,6 +154,9 @@ class WeaverNode
     else
       return attribute.value
 
+  _getAttributeDataType: (attribute) ->
+    return attribute.dataType
+
   # Gets attributes
   get: (field) ->
     fieldArray = @_attributes[field]
@@ -162,6 +165,14 @@ class WeaverNode
       return undefined
     else
       return @_getAttributeValue(fieldArray[0])
+
+  getDataType: (field) ->
+    fieldArray = @_attributes[field]
+
+    if not fieldArray? or fieldArray.length is 0
+      return undefined
+    else
+      return @_getAttributeDataType(fieldArray[0])
 
   getGraph: ->
     @graph
