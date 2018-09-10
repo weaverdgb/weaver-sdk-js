@@ -102646,7 +102646,7 @@ module.exports = yeast;
 },{}],408:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "8.8.0",
+  "version": "8.9.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -102678,7 +102678,7 @@ module.exports={
     "browserify": "^14.3.0",
     "chai": "^3.0.0",
     "chai-as-promised": "^6.0.0",
-    "coffee-coverage": "^3.0.0",
+    "coffee-coverage": "2.0.1",
     "coffeeify": "^3.0.1",
     "coffeescript": "^2.2.4",
     "david": "^11.0.0",
@@ -104679,7 +104679,7 @@ module.exports={
       this.includes = {};
       return this._loadIncludes(this.definition).then((function(_this) {
         return function() {
-          var classDefinition, className, context, incl, modelTag, prefix, ref, ref1, ref2, ref3, ref4, ref5, ref6, ref7;
+          var classDefinition, className, classObj, context, i, incl, itemName, len, modelTag, node, nodeId, prefix, ref, ref1, ref10, ref2, ref3, ref4, ref5, ref6, ref7, ref8, ref9, tag;
           ref = _this.contextMap;
           for (modelTag in ref) {
             context = ref[modelTag];
@@ -104719,6 +104719,25 @@ module.exports={
               classDefinition = ref7[className];
               if (context.isNativeClass(className)) {
                 context[className].totalRangesMap = _this._buildRanges(context[className].totalClassDefinition, context);
+              }
+            }
+          }
+          ref8 = _this.contextMap;
+          for (tag in ref8) {
+            context = ref8[tag];
+            ref9 = context.definition.classes;
+            for (className in ref9) {
+              classObj = ref9[className];
+              if ((classObj != null ? classObj.init : void 0) != null) {
+                ref10 = classObj.init;
+                for (i = 0, len = ref10.length; i < len; i++) {
+                  itemName = ref10[i];
+                  nodeId = context.definition.name + ":" + itemName;
+                  node = new context[className](nodeId, context.getGraph(), _this);
+                  node.pendingWrites = [];
+                  node.nodeRelation(_this.getMemberKey).pendingWrites = [];
+                  context[className][itemName] = node;
+                }
               }
             }
           }
@@ -105083,7 +105102,6 @@ module.exports={
             node = firstOrCreate(nodeId, context.getGraph(), Weaver.DefinedNode);
             node.model = this;
             node.relation(this.getMemberKey()).add(owner);
-            context[className][itemName] = node;
           }
         }
         ref3 = this.contextMap;
@@ -105828,6 +105846,7 @@ module.exports={
 },{}],426:[function(require,module,exports){
 (function() {
   var Operation, Promise, Weaver, WeaverError, WeaverNode, WeaverRelationIn, _, cuid, util,
+    bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     slice = [].slice,
     indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
@@ -105852,6 +105871,7 @@ module.exports={
       var ref, ref1;
       this.nodeId = nodeId1;
       this.graph = graph1;
+      this.destroy = bind(this.destroy, this);
       if (this.nodeId == null) {
         this.nodeId = cuid();
       }
@@ -106399,10 +106419,24 @@ module.exports={
       })(this));
     };
 
-    WeaverNode.prototype.destroy = function(project, unrecoverableRemove) {
-      var cm;
+    WeaverNode.prototype.destroy = function(project, unrecoverableRemove, propagates, propagationDepth) {
+      var cm, j, len, predicate;
       if (unrecoverableRemove == null) {
         unrecoverableRemove = false;
+      }
+      if (propagates == null) {
+        propagates = [];
+      }
+      if (propagationDepth == null) {
+        propagationDepth = 1;
+      }
+      if (propagationDepth !== 0) {
+        for (j = 0, len = propagates.length; j < len; j++) {
+          predicate = propagates[j];
+          this.relation(predicate).all().map(function(node) {
+            return node.destroy(project, unrecoverableRemove, propagates, --propagationDepth);
+          });
+        }
       }
       cm = Weaver.getCoreManager();
       return cm.enqueue((function(_this) {
