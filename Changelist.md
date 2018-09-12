@@ -1,5 +1,6 @@
 # Changelist
 
+## 8.10.0
 - Add function to get data type of attribute.
 
 ## 8.9.0

@@ -1,6 +1,6 @@
 {
   "name": "weaver-sdk",
-  "version": "8.9.0",
+  "version": "8.10.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -8,7 +8,7 @@
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "^4.10.0 || ^4.11.0-beta.0",
+    "requiredConnectorVersion": "^4.10.0",
     "requiredServerVersion": "^3.13.3"
   },
   "main": "lib/Weaver.js",
