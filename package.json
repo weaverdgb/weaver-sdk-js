@@ -1,6 +1,6 @@
 {
   "name": "weaver-sdk",
-  "version": "8.7.0",
+  "version": "8.10.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -32,7 +32,7 @@
     "browserify": "^14.3.0",
     "chai": "^3.0.0",
     "chai-as-promised": "^6.0.0",
-    "coffee-coverage": "^2.0.1",
+    "coffee-coverage": "2.0.1",
     "coffeeify": "^3.0.1",
     "coffeescript": "^2.2.4",
     "david": "^11.0.0",

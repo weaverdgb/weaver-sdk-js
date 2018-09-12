@@ -323,6 +323,20 @@ describe 'WeaverModelQuery test', ->
           expect(instances[0]).to.be.instanceOf(model.td.Clerk)
         )
 
+      it 'should do a hasRelationOut sub model query', ->
+        new Weaver.ModelQuery(model)
+        .class(model.Person)
+        .hasRelationOut('Person.comesFrom', new Weaver.ModelQuery(model).class(model.Country))
+        .find()
+        .then((instances) ->
+          assert.equal(instances.length, 3)
+        )
+
+      it 'should warn if hasRecursiveRelationIn is given a sub model query', ->
+        query = new Weaver.ModelQuery(model)
+        .class(model.td.Document)
+        assert.throws(->query.hasRecursiveRelationIn('Person.signed', new Weaver.ModelQuery().class(model.td.Document)))
+
   it 'should remove the model from the query when using \'destruct\' function', ->
     q = new Weaver.ModelQuery(model)
     expect(q.model).to.be.not.undefined

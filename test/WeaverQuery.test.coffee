@@ -1443,22 +1443,134 @@ describe 'WeaverQuery Test', ->
         checkNodeInResult(nodes, 'b')
       )
 
-    it 'should get the same amount of results for ordering ascending and descending with limit', ->
+  describe 'count behaviour', ->
+    query = (withRelations = false, limit = false, sortOrder = undefined) ->
+      q = new Weaver.Query()
+      q.withRelations if withRelations
+      q.limit(10) if limit
+      q.order(['label'], sortOrder) if sortOrder?
+      q.count()
+
+    before ->
       nodes = []
       for i in [0..100]
         node = new Weaver.Node()
         node.set('label', i)
         nodes.push(node)
 
-      query = new Weaver.Query()
-      query.limit(10)
-      ascendingLength = 0
-
-      Weaver.Node.batchSave(nodes).then(->
-        query.order(['label'], true).count()
-      ).then((length) ->
-        ascendingLength = length
-        query.order(['label'], false).count()
-      ).then((descendingLength) ->
-        expect(ascendingLength).to.equal(descendingLength)
+      wipeCurrentProject().then( ->
+        Weaver.Node.batchSave(nodes)
       )
+
+    it 'count should be correct', ->
+      query().then((c) ->
+        expect(c).to.equal(101)
+      )
+
+    it 'count with limit should be correct', ->
+      query(false, true).then((c) ->
+        expect(c).to.equal(101)
+      )
+
+    it 'ascendingLength should equal unorderedLength', ->
+      query(false, true, true).then((c) ->
+        expect(c).to.equal(101)
+      )
+
+    it 'descendingLength should equal ascendingLength', ->
+      query(false, true, false).then((c) ->
+        expect(c).to.equal(101)
+      )
+
+    it 'withRelations should not matter', ->
+      query(true, true).then((c) ->
+        expect(c).to.equal(101)
+      )
+
+    it 'ascendingLength withRelations should be correct', ->
+      query(true, true, true).then((c) ->
+        expect(c).to.equal(101)
+      )
+
+    it 'descendingLength withRelations should be correct', ->
+      query(true, true, false).then((c) ->
+        expect(c).to.equal(101)
+      )
+
+  describe 'query a lot of nodes', ->
+
+    before ->
+      wipeCurrentProject()
+
+    it 'should find 100 nodes', ->
+
+      Weaver.Node.batchSave((new Weaver.Node() for i in [0...100]))
+      .then(->
+        new Weaver.Query().find()
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(100)
+        new Weaver.Query().unlimited(50)
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(100)
+        new Weaver.Query().unlimited(100)
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(100)
+        new Weaver.Query().unlimited(1500)
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(100)
+      )
+
+    it 'should find 1000 nodes', ->
+
+      Weaver.Node.batchSave((new Weaver.Node() for i in [0...900]))
+      .then(->
+        new Weaver.Query().find()
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(1000)
+        new Weaver.Query().unlimited(50)
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(1000)
+        new Weaver.Query().unlimited(100)
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(1000)
+        new Weaver.Query().unlimited(1500)
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(1000)
+      )
+
+    it 'should find 1500 nodes', ->
+
+      Weaver.Node.batchSave((new Weaver.Node() for i in [0...500]))
+      .then(->
+        new Weaver.Query().find()
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(1000)
+        new Weaver.Query().unlimited(50)
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(1500)
+        new Weaver.Query().unlimited(100)
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(1500)
+        new Weaver.Query().unlimited(1500)
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(1500)
+      )
+
+    it 'should find 2500 nodes', ->
+
+      Weaver.Node.batchSave((new Weaver.Node() for i in [0...1000]))
+      .then(->
+        new Weaver.Query().find()
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(1000)
+        new Weaver.Query().unlimited(50)
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(2500)
+        new Weaver.Query().unlimited(100)
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(2500)
+        new Weaver.Query().unlimited(1500)
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(2500)
+      )
+      

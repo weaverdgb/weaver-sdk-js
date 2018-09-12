@@ -154,6 +154,9 @@ class WeaverNode
     else
       return attribute.value
 
+  _getAttributeDataType: (attribute) ->
+    return attribute.dataType
+
   # Gets attributes
   get: (field) ->
     fieldArray = @_attributes[field]
@@ -162,6 +165,14 @@ class WeaverNode
       return undefined
     else
       return @_getAttributeValue(fieldArray[0])
+
+  getDataType: (field) ->
+    fieldArray = @_attributes[field]
+
+    if not fieldArray? or fieldArray.length is 0
+      return undefined
+    else
+      return @_getAttributeDataType(fieldArray[0])
 
   getGraph: ->
     @graph
@@ -409,7 +420,13 @@ class WeaverNode
     )
 
   # Removes node, with the option to remove it unrecoverable
-  destroy: (project, unrecoverableRemove = false) ->
+  destroy: (project, unrecoverableRemove = false, propagates = [], propagationDepth = 1) =>
+    if propagationDepth isnt 0
+      for predicate in propagates
+        @relation(predicate).all().map((node)->
+          node.destroy(project, unrecoverableRemove, propagates, --propagationDepth)
+        )
+
     cm = Weaver.getCoreManager()
     cm.enqueue( =>
 

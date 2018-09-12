@@ -1,5 +1,16 @@
 # Changelist
 
+## 8.10.0
+- Add function to get data type of attribute.
+
+## 8.9.0
+- Adds propagate-delete functionality (incl propagationDepth).
+- Load init instances on Model Context without the need to call bootstrap.
+
+## 8.8.0
+- Warn if a user tries to give a sub ModelQuery to a recursive condition.
+- Add unlimited query.
+
 ## 8.7.0
 - Replace model inclusion of models into one model with one classList
   for simplified and more powerfull usage (e.g. ModelQuery crossing

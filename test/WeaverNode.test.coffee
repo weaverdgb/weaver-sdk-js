@@ -128,18 +128,36 @@ describe 'WeaverNode test', ->
       assert.equal(loadedNode.get('name'), 'Foo')
     )
 
-  it 'should set a new string attribute with special datatype', ->
+  it 'should set a new string attribute with special datatype uri', ->
     node = new Weaver.Node()
 
     node.save().then((node) ->
       node.set('url', 'http://www.yahoo.com/bean', 'xsd:anyURI')
       assert.equal(node.get('url'), 'http://www.yahoo.com/bean')
+      assert.equal(node.getDataType('url'), 'xsd:anyURI')
 
       node.save()
     ).then(->
       Weaver.Node.load(node.id())
     ).then((loadedNode) ->
       assert.equal(loadedNode.get('url'), 'http://www.yahoo.com/bean')
+      assert.equal(loadedNode.getDataType('url'), 'xsd:anyURI')
+    )
+
+  it 'should set a new string attribute with special datatype integer', ->
+    node = new Weaver.Node()
+
+    node.save().then((node) ->
+      node.set('count', 1, 'xsd:integer')
+      assert.equal(node.get('count'), 1)
+      assert.equal(node.getDataType('count'), 'xsd:integer')
+
+      node.save()
+    ).then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.get('count'), 1)
+      assert.equal(loadedNode.getDataType('count'), 'xsd:integer')
     )
 
   it 'should update a string attribute', ->
@@ -167,12 +185,17 @@ describe 'WeaverNode test', ->
 
   it 'should set a new number attribute', ->
     node = new Weaver.Node()
-    node.set('length', 3)
 
-    node.save().then(->
+    node.save().then((node) ->
+      node.set('number', 1.2)
+      assert.equal(node.getDataType('number'), 'double')
+
+      node.save()
+    ).then(->
       Weaver.Node.load(node.id())
     ).then((loadedNode) ->
-      assert.equal(loadedNode.get('length'), 3)
+      assert.equal(loadedNode.get('number'), 1.2)
+      assert.equal(loadedNode.getDataType('number'), 'double')
     )
 
   it 'should set a date attribute', ->
@@ -971,6 +994,69 @@ describe 'WeaverNode test', ->
       weaver.setOptions({unrecoverableRemove: false})
       # Error.code isn't fully working on this one, should have its own code. Node not found is working if node is in the deleted table
       # Node should not exist at all, not even in the garbage can.
+    ).should.be.rejectedWith(Weaver.Error.NODE_NOT_FOUND)
+
+  it 'should be able to propogate destroy to specified relations', ->
+    a = new Weaver.Node('Grandmother')
+    b = new Weaver.Node('Mother')
+    c = new Weaver.Node('Child')
+    a.relation('gaveBirthTo').add(b)
+    b.relation('gaveBirthTo').add(c)
+
+    a.save().then(->
+      a.destroy(weaver.currentProject().projectId, true, ['gaveBirthTo'], 2)
+    ).then(->
+      Weaver.Node.load('Child')
+    ).should.be.rejectedWith(Weaver.Error.NODE_NOT_FOUND)
+
+  it 'should stop propogation at the correct depth', ->
+    a = new Weaver.Node('Grandmother')
+    b = new Weaver.Node('Mother')
+    c = new Weaver.Node('Child')
+    a.relation('gaveBirthTo').add(b)
+    b.relation('gaveBirthTo').add(c)
+
+    a.save().then(->
+      a.destroy(weaver.currentProject().projectId, true, ['gaveBirthTo'])
+    ).then(->
+      Weaver.Node.load('Child')
+    ).then((node)->
+      expect(node.id()).to.equal('Child')
+      Weaver.Node.load('Mother')
+    ).should.be.rejectedWith(Weaver.Error.NODE_NOT_FOUND)
+
+  it 'should not propogate destroy to unspecified relations', ->
+    a = new Weaver.Node('Grandfather')
+    b = new Weaver.Node('Father')
+    c = new Weaver.Node('Brother')
+    d = new Weaver.Node('Son')
+
+    a.relation('raised').add(b)
+    b.relation('raised').add(d)
+    b.relation('hasBrother').add(c)
+
+    a.save().then(->
+      a.destroy(weaver.currentProject().projectId, true, ['raised'], 2)
+    ).then(->
+      Weaver.Node.load('Brother')
+    ).then((node)->
+      expect(node.id()).to.equal('Brother')
+    )
+
+  it 'should propogate destroy to specified relations, even when there are also unspecified relations', ->
+    a = new Weaver.Node('Grandfather')
+    b = new Weaver.Node('Father')
+    c = new Weaver.Node('Brother')
+    d = new Weaver.Node('Son')
+
+    a.relation('raised').add(b)
+    b.relation('raised').add(d)
+    b.relation('hasBrother').add(c)
+
+    a.save().then(->
+      a.destroy(weaver.currentProject().projectId, true, ['raised'])
+    ).then(->
+      Weaver.Node.load('Son')
     ).should.be.rejectedWith(Weaver.Error.NODE_NOT_FOUND)
 
   it 'should add create and remove statements to pendingWrites with graphs', ->
