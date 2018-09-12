@@ -60,7 +60,7 @@ class WeaverModelClass extends Weaver.Node
   _getAttributeKey: (field) ->
 
     if not @totalClassDefinition.attributes?
-      throw new Error("#{@className} model is not allowed to have attributes")
+      throw new Error("For #{@id()} of class #{@className} model is not allowed to have attributes")
     if not @totalClassDefinition.attributes[field]?
       throw new Error("#{@className} model is not allowed to have the #{field} attribute")
 
