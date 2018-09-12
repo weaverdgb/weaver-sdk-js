@@ -6,3 +6,8 @@ author:
 
 classes:
   Animal:
+  WikiPage:
+    attributes:
+      summary:
+      location:
+        datatype: 'xsd:anyURI'

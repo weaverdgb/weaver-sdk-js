@@ -469,3 +469,27 @@ describe 'WeaverModel test', ->
             rel = personOne.relation('hasFriend')
             rel.to(rel.all()[0])
           )
+
+  describe 'with the animal model', ->
+    model = {}
+
+    before ->
+      Weaver.Model.load("animal-model", "1.0.0").then((m) ->
+        model = m
+        model.bootstrap()
+      )
+
+    it 'set briefly defined attributes', ->
+      page = new model.WikiPage()
+      page.set('summary', '🦒')
+      assert.equal(page.get('summary'), '🦒')
+      page.save().then(->
+        model.WikiPage.load(page.id())
+      ).then((node)->
+        assert.equal(node.get('summary'), '🦒')
+      )
+
+    it 'use the datatype specified in the model', ->
+      page = new model.WikiPage()
+      page.set('location', 'https://en.wikipedia.org/wiki/Giraffe')
+      assert.equal(page.getDataType('location'), 'xsd:anyURI')
