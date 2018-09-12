@@ -128,18 +128,36 @@ describe 'WeaverNode test', ->
       assert.equal(loadedNode.get('name'), 'Foo')
     )
 
-  it 'should set a new string attribute with special datatype', ->
+  it 'should set a new string attribute with special datatype uri', ->
     node = new Weaver.Node()
 
     node.save().then((node) ->
       node.set('url', 'http://www.yahoo.com/bean', 'xsd:anyURI')
       assert.equal(node.get('url'), 'http://www.yahoo.com/bean')
+      assert.equal(node.getDataType('url'), 'xsd:anyURI')
 
       node.save()
     ).then(->
       Weaver.Node.load(node.id())
     ).then((loadedNode) ->
       assert.equal(loadedNode.get('url'), 'http://www.yahoo.com/bean')
+      assert.equal(loadedNode.getDataType('url'), 'xsd:anyURI')
+    )
+
+  it 'should set a new string attribute with special datatype integer', ->
+    node = new Weaver.Node()
+
+    node.save().then((node) ->
+      node.set('count', 1, 'xsd:integer')
+      assert.equal(node.get('count'), 1)
+      assert.equal(node.getDataType('count'), 'xsd:integer')
+
+      node.save()
+    ).then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      assert.equal(loadedNode.get('count'), 1)
+      assert.equal(loadedNode.getDataType('count'), 'xsd:integer')
     )
 
   it 'should update a string attribute', ->
@@ -167,12 +185,17 @@ describe 'WeaverNode test', ->
 
   it 'should set a new number attribute', ->
     node = new Weaver.Node()
-    node.set('length', 3)
 
-    node.save().then(->
+    node.save().then((node) ->
+      node.set('number', 1.2)
+      assert.equal(node.getDataType('number'), 'double')
+
+      node.save()
+    ).then(->
       Weaver.Node.load(node.id())
     ).then((loadedNode) ->
-      assert.equal(loadedNode.get('length'), 3)
+      assert.equal(loadedNode.get('number'), 1.2)
+      assert.equal(loadedNode.getDataType('number'), 'double')
     )
 
   it 'should set a date attribute', ->
