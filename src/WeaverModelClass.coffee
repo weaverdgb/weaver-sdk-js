@@ -61,10 +61,10 @@ class WeaverModelClass extends Weaver.Node
 
     if not @totalClassDefinition.attributes?
       throw new Error("#{@className} model is not allowed to have attributes")
-    if not @totalClassDefinition.attributes[field]?
+    if field not in Object.keys(@totalClassDefinition.attributes)
       throw new Error("#{@className} model is not allowed to have the #{field} attribute")
 
-    @totalClassDefinition.attributes[field].key or field
+    @totalClassDefinition.attributes[field]?.key or field
 
   _getRelationKey: (key) ->
 
@@ -164,7 +164,7 @@ class WeaverModelClass extends Weaver.Node
 
   save: (project) ->
     # Check required attributes
-    for key, attribute of @totalClassDefinition.attributes when attribute.required
+    for key, attribute of @totalClassDefinition.attributes when attribute?.required
       if not @get(key)?
         console.warn("Attribute #{key} is required for a #{@className} model")
 
