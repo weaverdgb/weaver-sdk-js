@@ -1,5 +1,7 @@
 # Changelist
 
+- Add function to get data type of attribute.
+
 ## 8.9.0
 - Adds propagate-delete functionality (incl propagationDepth).
 - Load init instances on Model Context without the need to call bootstrap.
