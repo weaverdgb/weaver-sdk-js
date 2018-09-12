@@ -1,7 +1,8 @@
 # Changelist
 
-## develop
-- Adds propagate-delete functionality (incl propagationDepth)
+## 8.9.0
+- Adds propagate-delete functionality (incl propagationDepth).
+- Load init instances on Model Context without the need to call bootstrap.
 
 ## 8.8.0
 - Warn if a user tries to give a sub ModelQuery to a recursive condition.
