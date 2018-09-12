@@ -66,6 +66,15 @@ class WeaverModelClass extends Weaver.Node
 
     @totalClassDefinition.attributes[field]?.key or field
 
+  _getAttributeKeyDataType: (field) ->
+
+    if not @totalClassDefinition.attributes?
+      throw new Error("#{@className} model is not allowed to have attributes")
+    if field not in Object.keys(@totalClassDefinition.attributes)
+      throw new Error("#{@className} model is not allowed to have the #{field} attribute")
+
+    @totalClassDefinition.attributes[field]?.datatype or undefined
+
   _getRelationKey: (key) ->
 
     if key is @model.getInheritKey()
@@ -132,8 +141,9 @@ class WeaverModelClass extends Weaver.Node
 
   set: (field, value) ->
     key = @_getAttributeKey(field)
+    datatype = @_getAttributeKeyDataType(field)
     return null if not key?
-    super(key, value)
+    super(key, value, datatype)
 
   unset: (field, value) ->
     key = @_getAttributeKey(field)
