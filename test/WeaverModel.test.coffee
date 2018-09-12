@@ -277,15 +277,19 @@ describe 'WeaverModel test', ->
       it 'should succeed setting attribuges at an extended type definition of an included model', ->
         Document = model.DeliveryNotice
         document = new Document()
-        document.set('at', 'work')
+        document.set('at', '2017-01-02')
+        expect(document.getDataType('at')).to.equal('xsd:dateTime')
         document.set('fileName', 'print.pdf')
+        expect(document.getDataType('hasFileName')).to.equal('string')
         document.save()
         .then(->
           Document.load(document.id())
         ).then((loaded)->
           expect(loaded.id()).to.equal(document.id())
-          expect(loaded.get('at')).to.equal('work')
+          expect(loaded.get('at')).to.equal(1483315200000)
           expect(loaded.get('fileName')).to.equal('print.pdf')
+          expect(loaded.getDataType('at')).to.equal('xsd:dateTime')
+          expect(loaded.getDataType('hasFileName')).to.equal('string')
         )
 
       it 'should succeed save one instance with single type', ->
