@@ -15,7 +15,7 @@ classes:
   Area:
     attributes:
       squareMeter:
-        datatype: integer
+        datatype: double
     relations:
       intersection:
         range: [Area]
@@ -29,7 +29,7 @@ classes:
   Construction:
     attributes:
       yearOfConstruction:
-        datatype: integer
+        datatype: double
     relations:
       buildBy:
         range: [Person]
@@ -52,7 +52,7 @@ classes:
         required: true
         datatype: string
       age:
-        datatype: integer
+        datatype: double
     relations:
       hasFriend:
         range: [Person]
