@@ -1,6 +1,6 @@
 # Changelist
 
-## Develop
+## 8.11.0
 - Read default data type for attributes from model.
 
 ## 8.10.0

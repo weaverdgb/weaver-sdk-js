@@ -102646,7 +102646,7 @@ module.exports = yeast;
 },{}],408:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "8.10.0",
+  "version": "8.11.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -105214,13 +105214,25 @@ module.exports={
     };
 
     WeaverModelClass.prototype._getAttributeKey = function(field) {
+      var ref;
+      if (this.totalClassDefinition.attributes == null) {
+        throw new Error("For " + (this.id()) + " of class " + this.className + " model is not allowed to have attributes");
+      }
+      if (indexOf.call(Object.keys(this.totalClassDefinition.attributes), field) < 0) {
+        throw new Error(this.className + " model is not allowed to have the " + field + " attribute");
+      }
+      return ((ref = this.totalClassDefinition.attributes[field]) != null ? ref.key : void 0) || field;
+    };
+
+    WeaverModelClass.prototype._getAttributeKeyDataType = function(field) {
+      var ref;
       if (this.totalClassDefinition.attributes == null) {
         throw new Error(this.className + " model is not allowed to have attributes");
       }
-      if (this.totalClassDefinition.attributes[field] == null) {
+      if (indexOf.call(Object.keys(this.totalClassDefinition.attributes), field) < 0) {
         throw new Error(this.className + " model is not allowed to have the " + field + " attribute");
       }
-      return this.totalClassDefinition.attributes[field].key || field;
+      return ((ref = this.totalClassDefinition.attributes[field]) != null ? ref.datatype : void 0) || void 0;
     };
 
     WeaverModelClass.prototype._getRelationKey = function(key) {
@@ -105338,12 +105350,13 @@ module.exports={
     };
 
     WeaverModelClass.prototype.set = function(field, value) {
-      var key;
+      var datatype, key;
       key = this._getAttributeKey(field);
+      datatype = this._getAttributeKeyDataType(field);
       if (key == null) {
         return null;
       }
-      return WeaverModelClass.__super__.set.call(this, key, value);
+      return WeaverModelClass.__super__.set.call(this, key, value, datatype);
     };
 
     WeaverModelClass.prototype.unset = function(field, value) {
@@ -105392,7 +105405,7 @@ module.exports={
       ref = this.totalClassDefinition.attributes;
       for (key in ref) {
         attribute = ref[key];
-        if (attribute.required) {
+        if (attribute != null ? attribute.required : void 0) {
           if (this.get(key) == null) {
             console.warn("Attribute " + key + " is required for a " + this.className + " model");
           }
