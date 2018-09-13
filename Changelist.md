@@ -1,7 +1,7 @@
 # Changelist
 
 ## Develop
-- Read default data type for attributes fro model.
+- Read default data type for attributes from model.
 
 ## 8.10.0
 - Add function to get data type of attribute.
