@@ -61,10 +61,19 @@ class WeaverModelClass extends Weaver.Node
 
     if not @totalClassDefinition.attributes?
       throw new Error("For #{@id()} of class #{@className} model is not allowed to have attributes")
-    if not @totalClassDefinition.attributes[field]?
+    if field not in Object.keys(@totalClassDefinition.attributes)
       throw new Error("#{@className} model is not allowed to have the #{field} attribute")
 
-    @totalClassDefinition.attributes[field].key or field
+    @totalClassDefinition.attributes[field]?.key or field
+
+  _getAttributeKeyDataType: (field) ->
+
+    if not @totalClassDefinition.attributes?
+      throw new Error("#{@className} model is not allowed to have attributes")
+    if field not in Object.keys(@totalClassDefinition.attributes)
+      throw new Error("#{@className} model is not allowed to have the #{field} attribute")
+
+    @totalClassDefinition.attributes[field]?.datatype or undefined
 
   _getRelationKey: (key) ->
 
@@ -132,8 +141,9 @@ class WeaverModelClass extends Weaver.Node
 
   set: (field, value) ->
     key = @_getAttributeKey(field)
+    datatype = @_getAttributeKeyDataType(field)
     return null if not key?
-    super(key, value)
+    super(key, value, datatype)
 
   unset: (field, value) ->
     key = @_getAttributeKey(field)
@@ -164,7 +174,7 @@ class WeaverModelClass extends Weaver.Node
 
   save: (project) ->
     # Check required attributes
-    for key, attribute of @totalClassDefinition.attributes when attribute.required
+    for key, attribute of @totalClassDefinition.attributes when attribute?.required
       if not @get(key)?
         console.warn("Attribute #{key} is required for a #{@className} model")
 
