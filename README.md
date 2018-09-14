@@ -8,6 +8,7 @@
   <p>
     <a href="https://www.npmjs.com/package/weaver-sdk"><img src="https://img.shields.io/npm/v/weaver-sdk.svg?maxAge=3600" alt="NPM version" /></a>
     <a href="https://www.npmjs.com/package/weaver-sdk"><img src="https://img.shields.io/npm/dt/weaver-sdk.svg?maxAge=3600" alt="NPM downloads" /></a>
+		<a href="https://gitter.im/weaver-platform/weaver-sdk-js"><img src="https://img.shields.io/gitter/room/nwjs/nw.js.svg" alt="Gitter" /></a>
 		<a href="https://codecov.io/gh/weaverplatform/weaver-sdk-js"><img src="https://img.shields.io/codecov/c/github/weaverplatform/weaver-sdk-js/develop.svg?maxAge=0" alt="Code coverage" /></a>
     <a href="https://travis-ci.org/weaverplatform/weaver-sdk-js"><img src="https://travis-ci.org/weaverplatform/weaver-sdk-js.svg" alt="Build status" /></a>
     <a href="https://david-dm.org/weaverplatform/weaver-sdk-js"><img src="https://img.shields.io/david/weaverplatform/weaver-sdk-js.svg?maxAge=3600" alt="Dependencies" /></a>
