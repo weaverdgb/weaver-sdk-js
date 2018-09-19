@@ -1,5 +1,8 @@
 # Changelist
 
+## Develop
+- adds Weaver.ModelClass.getSuperClass() and Weaver.ModelClass.getSubClasses() methods
+
 ## 8.11.0
 - Read default data type for attributes from model.
 
