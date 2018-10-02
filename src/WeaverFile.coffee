@@ -1,4 +1,3 @@
-fs               = require('fs')
 path             = require('path')
 Promise          = require('bluebird')
 Weaver           = require('./Weaver')
@@ -6,6 +5,9 @@ WeaverError      = require('./WeaverError')
 Error            = require('./Error')
 ss               = require('socket.io-stream')
 EventEmitter     = require('events').EventEmitter
+
+getFs = ->
+  require('fs')
 
 class WeaverFile extends EventEmitter
 
