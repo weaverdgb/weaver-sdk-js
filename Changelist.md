@@ -1,5 +1,6 @@
 # Changelist
 
+## 8.11.1-beta.0
 - Use a getter function for fs so it doesnt fail when not required
 
 ## 8.11.0
