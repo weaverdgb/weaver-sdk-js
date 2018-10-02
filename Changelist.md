@@ -1,5 +1,7 @@
 # Changelist
 
+- Use a getter function for fs so it doesnt fail when not required
+
 ## 8.11.0
 - Read default data type for attributes from model.
 

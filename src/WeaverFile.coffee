@@ -1,4 +1,3 @@
-fs               = require('fs')
 path             = require('path')
 Promise          = require('bluebird')
 Weaver           = require('./Weaver')
@@ -6,6 +5,9 @@ WeaverError      = require('./WeaverError')
 Error            = require('./Error')
 ss               = require('socket.io-stream')
 EventEmitter     = require('events').EventEmitter
+
+getFs = ->
+  require('fs')
 
 class WeaverFile extends EventEmitter
 
@@ -95,11 +97,11 @@ class WeaverFile extends EventEmitter
   # @returns {fs.Stats}
   ###
   _fileExists: (filePath) ->
-    fs.existsSync(filePath)
+    getFs().existsSync(filePath)
 
   _getFileStats: (filePath) ->
     try
-      _stats = fs.statSync(filePath)
+      _stats = getFs().statSync(filePath)
       @setName(path.basename(filePath))
       @setExtension(path.extname(filePath))
       @fileSize = _stats.size
@@ -136,7 +138,7 @@ class WeaverFile extends EventEmitter
   upload: ->
     if (File? and @filePath instanceof File) or @_fileExists(@filePath)
       stream = ss.createStream()
-      readStream = if File? and @filePath instanceof File then ss.createBlobReadStream(@filePath) else fs.createReadStream(@filePath)
+      readStream = if File? and @filePath instanceof File then ss.createBlobReadStream(@filePath) else getFs().createReadStream(@filePath)
       _uploadedBytes = 0
 
       readStream.on('data', (chunk) =>
@@ -166,7 +168,7 @@ class WeaverFile extends EventEmitter
       .downloadFile(@fileId)
       .then((stream) =>
         _downloadedBytes = 0
-        writeStream = fs.createWriteStream(@filePath)
+        writeStream = getFs().createWriteStream(@filePath)
 
         stream.on('data', (chunk) =>
           _downloadedBytes += chunk.length
