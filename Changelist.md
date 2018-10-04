@@ -1,7 +1,9 @@
 # Changelist
 
 ## Develop
-- adds Weaver.ModelClass.getSuperClass() and Weaver.ModelClass.getSubClasses() methods
+- adds Weaver.ModelClass.getSuperClass() method
+- changes Weaver.ModelQuery().prototype.class() method to return valid for all subclasses of a model class, as well as the class itself
+- adds Weaver.Model.prototype.getIncludesKey() method
 
 ## 8.11.0
 - Read default data type for attributes from model.
