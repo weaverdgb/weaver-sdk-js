@@ -14,23 +14,23 @@ class WeaverModel extends ModelContext
   init: ->
 
     # Map classId to ModelClass
-    @classList = {} 
+    @classList = {}
 
     # Maps 'model-name@version' to the context object
     @contextMap = {}
     @contextMap["#{@definition.name}@#{@definition.version}"] = @
     @loadMap = {}
     @loadMap[@definition.name] = @definition.version
-    
+
     # Deprecated
-    @modelMap = {}  
+    @modelMap = {}
     @modelMap[@definition.name] = @
     @includes = {}
-    
+
     @_loadIncludes(@definition)
-    .then(=> 
+    .then(=>
       # # todo: validate everything
-      # new ModelValidator(@definition).validate() 
+      # new ModelValidator(@definition).validate()
 
       # Bring model to life
       for modelTag, context of @contextMap
@@ -40,7 +40,7 @@ class WeaverModel extends ModelContext
       for modelTag, context of @contextMap
         for className, classDefinition of context.definition.classes
           if context.isNativeClass(className)
-            @_registerClass(context, className, classDefinition) 
+            @_registerClass(context, className, classDefinition)
 
       for modelTag, context of @contextMap
         for className, classDefinition of context.definition.classes
@@ -60,7 +60,7 @@ class WeaverModel extends ModelContext
             node.pendingWrites = []
             node.nodeRelation(@getMemberKey).pendingWrites = []
             context[className][itemName] = node
-          
+
       @
     )
 
@@ -118,11 +118,11 @@ class WeaverModel extends ModelContext
       if @loadMap[obj.name]?
         if @loadMap[obj.name] isnt obj.version
           error = new WeaverError(209, "Model #{@definition.name} tries to include #{obj.name} but this introduces a cycle")
-          return Promise.reject(error) 
+          return Promise.reject(error)
         else
           # Definition is already loaded
           return Promise.resolve()
-      
+
       @loadMap[obj.name] = obj.version
       @modelMap[obj.name] = @ # Deprecated, set for backbward compatibility
 
@@ -208,7 +208,7 @@ class WeaverModel extends ModelContext
       if definition?.super?
         superId = context.getNodeNameByKey(definition.super)
         @addSupers([superId], total) if superId not in total
-        
+
     total
 
   # getContextForNodeId: (id) ->
@@ -245,6 +245,10 @@ class WeaverModel extends ModelContext
   getPrototypeKey: ->
     console.warn('Deprecated function WeaverModel.getPrototypeKey() used. Use WeaverModel.getMemberKey().')
     @getMemberKey()
+
+  getIncludesKey: (str)->
+    for key,val of @includes
+      return key if val.definition.name is str
 
   bootstrap: (project)->
     @_bootstrap(project)

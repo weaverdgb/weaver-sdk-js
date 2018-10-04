@@ -54,13 +54,13 @@ describe 'WeaverModel test', ->
         model.bootstrap()
       )
 
-    it 'should return the superclasses', ->
+    it 'should return the superClasses', ->
       supers = model.Office.getSuperClasses()
       assert.equal(supers.length, 2)
       assert.equal(supers[0], model.Building)
       assert.equal(supers[1], model.Construction)
 
-    it 'should return an empty array if no superclass exists', ->
+    it 'should return an empty array if no superClass exists', ->
       assert.equal(model.Construction.getSuperClasses().length, 0)
 
     it 'should set the type definition to the model class', ->

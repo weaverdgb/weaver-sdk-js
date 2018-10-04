@@ -178,7 +178,7 @@ describe 'WeaverModelQuery test', ->
       it 'should allow relations to a model class', ->
         new Weaver.ModelQuery().hasRelationOut('Person.comesFrom', model.CityState).find().should.eventually.have.length.be(1)
 
-      it 'should includes instances of sub classes when querying for a model class', ->
+      it 'should include instances of shallow sub classes when querying for a model class', ->
         building = new model.Building('building').save()
         office = new model.Office('office').save()
         house = new model.House('house').save()
@@ -195,24 +195,37 @@ describe 'WeaverModelQuery test', ->
             if n.id() is 'house'  then houseFound = true
             if n.id() is 'office' then officeFound = true
           )
-          assert.equal(res.length, 6)
           assert.equal(houseFound, true)
           assert.equal(officeFound, true)
         )
 
-      it 'should query for direct super classes of a model class', ->
+      it 'should include instances of deep sub classes when querying for a model class', ->
         new Weaver.ModelQuery(model)
         .class(model.Construction)
         .find().then((res)->
-          console.log res.map((n)-> "#{n.className} #{n.id()}")
+          officeFound = false
+          res.map((n)->
+            if n.id() is 'office' then officeFound = true
+          )
+          assert.equal(officeFound, true)
         )
 
-      it 'should query for deep sub classes of a model class', ->
-        true
-
-      it 'should query for deep super classes of a model class', ->
-        true
-
+      it 'should query correctly for model instances with multiple classes', ->
+        new Weaver.ModelQuery(model)
+        .class(model.Office)
+        .find().then((res)->
+          assert.equal(res[0].id(), 'basshouse')
+        ).then(->
+          new Weaver.ModelQuery(model)
+          .class(model.House)
+          .find()
+        ).then((res)->
+          bassFound = false
+          res.map((n)->
+            if n.id() is 'basshouse' then bassFound = true
+          )
+          assert.equal(bassFound, true)
+        )
 
       it 'should correctly find the constructor for multi range', ->
         new Weaver.ModelQuery()
