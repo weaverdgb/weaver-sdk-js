@@ -147,11 +147,11 @@ class WeaverModelQuery extends Weaver.Query
     super(@_mapKeys(keys, "relations")..., @model.definition['member'])
     @
 
-  find: (@preferredConstructor = @preferredConstructor) ->
+  find: (@preferredConstructor) ->
     # Always get the member relation to map to the correct modelclass
     @alwaysLoadRelations(@model.getMemberKey())
 
-    super(@preferredConstructor)
+    super()
 
   destruct: ->
     delete @model

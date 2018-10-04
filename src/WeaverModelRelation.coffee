@@ -12,7 +12,7 @@ class WeaverModelRelation extends Weaver.Relation
   # Check if relation is allowed according to definition
   _checkCorrectClass: (to) ->
     defs = []
-    if to instanceof Weaver.ModelClass or to instanceof Weaver.DefinedNode 
+    if to instanceof Weaver.ModelClass or to instanceof Weaver.DefinedNode
       defs = to.getDefinitions()
     else
       return

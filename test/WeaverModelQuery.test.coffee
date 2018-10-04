@@ -191,7 +191,6 @@ describe 'WeaverModelQuery test', ->
           houseFound = false
           officeFound = false
           res.map((n)->
-            assert.equal(n.className, model.Building.className)
             if n.id() is 'house'  then houseFound = true
             if n.id() is 'office' then officeFound = true
           )
