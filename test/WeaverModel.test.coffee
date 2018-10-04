@@ -54,19 +54,14 @@ describe 'WeaverModel test', ->
         model.bootstrap()
       )
 
-    it 'should return the superclass', ->
-      assert.equal(model.Building.getSuperClass(), model.Construction)
+    it 'should return the superclasses', ->
+      supers = model.Office.getSuperClasses()
+      assert.equal(supers.length, 2)
+      assert.equal(supers[0], model.Building)
+      assert.equal(supers[1], model.Construction)
 
-    it 'should return undefined if no superclass exissts', ->
-      assert.isUndefined(model.Construction.getSuperClass())
-
-    it 'should return the subclass(es)', ->
-      assert.equal(model.Building.getSubClasses().length, 2)
-      assert.equal(model.Building.getSubClasses()[0], model.House)
-      assert.equal(model.Building.getSubClasses()[1], model.Office)
-
-    it 'should return an empty array if no subclasses exist', ->
-      assert.equal(model.Office.getSubClasses().length, 0)
+    it 'should return an empty array if no superclass exists', ->
+      assert.equal(model.Construction.getSuperClasses().length, 0)
 
     it 'should set the type definition to the model class', ->
       Person = model.Person

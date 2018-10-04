@@ -178,6 +178,42 @@ describe 'WeaverModelQuery test', ->
       it 'should allow relations to a model class', ->
         new Weaver.ModelQuery().hasRelationOut('Person.comesFrom', model.CityState).find().should.eventually.have.length.be(1)
 
+      it 'should includes instances of sub classes when querying for a model class', ->
+        building = new model.Building('building').save()
+        office = new model.Office('office').save()
+        house = new model.House('house').save()
+
+        Promise.all([building, office, house]).then(->
+          new Weaver.ModelQuery(model)
+          .class(model.Building)
+          .find()
+        ).then((res)->
+          houseFound = false
+          officeFound = false
+          res.map((n)->
+            assert.equal(n.className, model.Building.className)
+            if n.id() is 'house'  then houseFound = true
+            if n.id() is 'office' then officeFound = true
+          )
+          assert.equal(res.length, 6)
+          assert.equal(houseFound, true)
+          assert.equal(officeFound, true)
+        )
+
+      it 'should query for direct super classes of a model class', ->
+        new Weaver.ModelQuery(model)
+        .class(model.Construction)
+        .find().then((res)->
+          console.log res.map((n)-> "#{n.className} #{n.id()}")
+        )
+
+      it 'should query for deep sub classes of a model class', ->
+        true
+
+      it 'should query for deep super classes of a model class', ->
+        true
+
+
       it 'should correctly find the constructor for multi range', ->
         new Weaver.ModelQuery()
         .class(model.Person)
@@ -269,7 +305,7 @@ describe 'WeaverModelQuery test', ->
         .hasRelationIn('Person.signed', personBas)
         .find()
         .then((instances) ->
-          assert.equal(instances.length, 1)
+          assert.equal(instances.length, 2) # [ Document, DeliveryNotice ]
           expect(instances[0]).to.be.instanceOf(model.td.Document)
         )
 
@@ -312,7 +348,7 @@ describe 'WeaverModelQuery test', ->
           assert.equal(instances.length, 1)
           expect(instances[0]).to.be.instanceOf(model.td.Clerk)
         )
-        
+
       it 'should query inside referenced context implicit', ->
         new Weaver.ModelQuery(model)
         .class(model.td.Clerk)
