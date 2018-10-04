@@ -102654,7 +102654,7 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "^4.10.0",
+    "requiredConnectorVersion": "4.12.1-alpha.0",
     "requiredServerVersion": "^3.13.3"
   },
   "main": "lib/Weaver.js",
@@ -104258,11 +104258,9 @@ module.exports={
 
 },{}],418:[function(require,module,exports){
 (function() {
-  var Error, EventEmitter, Promise, Weaver, WeaverError, WeaverFile, fs, path, ss,
+  var Error, EventEmitter, Promise, Weaver, WeaverError, WeaverFile, getFs, path, ss,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
     hasProp = {}.hasOwnProperty;
-
-  fs = require('fs');
 
   path = require('path');
 
@@ -104277,6 +104275,10 @@ module.exports={
   ss = require('socket.io-stream');
 
   EventEmitter = require('events').EventEmitter;
+
+  getFs = function() {
+    return require('fs');
+  };
 
   WeaverFile = (function(superClass) {
     extend(WeaverFile, superClass);
@@ -104400,13 +104402,13 @@ module.exports={
      */
 
     WeaverFile.prototype._fileExists = function(filePath) {
-      return fs.existsSync(filePath);
+      return getFs().existsSync(filePath);
     };
 
     WeaverFile.prototype._getFileStats = function(filePath) {
       var _stats, err;
       try {
-        _stats = fs.statSync(filePath);
+        _stats = getFs().statSync(filePath);
         this.setName(path.basename(filePath));
         this.setExtension(path.extname(filePath));
         this.fileSize = _stats.size;
@@ -104454,7 +104456,7 @@ module.exports={
       var _uploadedBytes, readStream, stream;
       if (((typeof File !== "undefined" && File !== null) && this.filePath instanceof File) || this._fileExists(this.filePath)) {
         stream = ss.createStream();
-        readStream = (typeof File !== "undefined" && File !== null) && this.filePath instanceof File ? ss.createBlobReadStream(this.filePath) : fs.createReadStream(this.filePath);
+        readStream = (typeof File !== "undefined" && File !== null) && this.filePath instanceof File ? ss.createBlobReadStream(this.filePath) : getFs().createReadStream(this.filePath);
         _uploadedBytes = 0;
         readStream.on('data', (function(_this) {
           return function(chunk) {
@@ -104493,7 +104495,7 @@ module.exports={
         return function(stream) {
           var _downloadedBytes, writeStream;
           _downloadedBytes = 0;
-          writeStream = fs.createWriteStream(_this.filePath);
+          writeStream = getFs().createWriteStream(_this.filePath);
           stream.on('data', function(chunk) {
             var percentage;
             _downloadedBytes += chunk.length;
@@ -106556,14 +106558,16 @@ module.exports={
 
 },{"./Operation":412,"./Weaver":414,"./WeaverError":417,"./WeaverRelationIn":431,"./util":435,"bluebird":75,"cuid":129,"lodash":233}],427:[function(require,module,exports){
 (function() {
-  var Weaver, WeaverPlugin, fs, ss,
+  var Weaver, WeaverPlugin, getFs, ss,
     slice = [].slice;
 
   Weaver = require('./Weaver');
 
   ss = require('socket.io-stream');
 
-  fs = require('fs');
+  getFs = function() {
+    return require('fs');
+  };
 
   WeaverPlugin = (function() {
     function WeaverPlugin(serverObject) {
@@ -106593,9 +106597,9 @@ module.exports={
             fileParameterIndex = f.require.indexOf('file');
             if (fileParameterIndex > -1) {
               file = args[fileParameterIndex];
-              if (((typeof File !== "undefined" && File !== null) && file instanceof File) || fs.existsSync(file)) {
+              if (((typeof File !== "undefined" && File !== null) && file instanceof File) || getFs().existsSync(file)) {
                 stream = ss.createStream();
-                readStream = (typeof File !== "undefined" && File !== null) && file instanceof File ? ss.createBlobReadStream(file) : fs.createReadStream(file);
+                readStream = (typeof File !== "undefined" && File !== null) && file instanceof File ? ss.createBlobReadStream(file) : getFs().createReadStream(file);
                 readStream.pipe(stream);
                 payload['file'] = stream;
               } else {
