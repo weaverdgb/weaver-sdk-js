@@ -136,7 +136,7 @@ class WeaverModelQuery extends Weaver.Query
     # Always get the member relation to map to the correct modelclass
     @alwaysLoadRelations(@model.getMemberKey())
 
-    super()
+    super(@preferredConstructor)
 
   destruct: ->
     delete @model
