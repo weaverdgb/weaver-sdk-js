@@ -70,18 +70,6 @@ class WeaverModelQuery extends Weaver.Query
       new Weaver.ModelQuery(@model).hasRecursiveRelationOut(@model.getInheritKey(), Weaver.Node.getFromGraph(modelClass.classId(), modelClass.context.getGraph()), true)
     )
 
-  subClass: (modelClass, direct = true) ->
-    if direct
-      @hasRelationOut(@model.getMemberKey(), new Weaver.Query().hasRelationOut(@model.getMemberKey(), Weaver.Node.getFromGraph(modelClass.classId(), modelClass.context.getGraph())))
-    else
-      @hasRelationOut(@model.getMemberKey(), new Weaver.Query().hasRecursiveRelationOut(@model.getMemberKey(), Weaver.Node.getFromGraph(modelClass.classId(), modelClass.context.getGraph())))
-
-  superClass: (modelClass, direct = true) ->
-    if direct
-      @hasRelationOut(@model.getMemberKey(), new Weaver.Query().hasRelationIn(@model.getMemberKey(), Weaver.Node.getFromGraph(modelClass.classId(), modelClass.context.getGraph())))
-    else
-      @hasRelationOut(@model.getMemberKey(), new Weaver.Query().hasRecursiveRelationIn(@model.getMemberKey(), Weaver.Node.getFromGraph(modelClass.classId(), modelClass.context.getGraph())))
-
   # Key is composed of Class.modelAttribute
   _mapKeys: (keys, source) ->
     databaseKeys = []
