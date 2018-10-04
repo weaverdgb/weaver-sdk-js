@@ -36,11 +36,13 @@ class WeaverModelClass extends Weaver.Node
     classNode = Weaver.Node.getFromGraph(@constructor.classId(), @context.getGraph())
     @nodeRelation(@model.getMemberKey()).addInGraph(classNode, @graph)
 
-  @getSuperClass: ->
-    @model[@classDefinition.super]
-
-  @getSubClasses: ->
-    (@model[className] for className, classDef of @model.definition.classes when classDef?.super is @className)
+  @getSuperClasses: ->
+    if @classDefinition?.super?
+      # TODO: probably won't work for (n isDeeperThan 2)-dot-referenced models
+      superC = @classDefinition.super.split('.')[1] ?= @classDefinition.super
+      [@model[superC]].concat(@model[superC].getSuperClasses())
+    else
+      []
 
   getInherit: ->
     @nodeRelation(@model.getInheritKey()).all()
