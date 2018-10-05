@@ -178,6 +178,54 @@ describe 'WeaverModelQuery test', ->
       it 'should allow relations to a model class', ->
         new Weaver.ModelQuery().hasRelationOut('Person.comesFrom', model.CityState).find().should.eventually.have.length.be(1)
 
+      it 'should include instances of shallow sub classes when querying for a model class', ->
+        building = new model.Building('building').save()
+        office = new model.Office('office').save()
+        house = new model.House('house').save()
+
+        Promise.all([building, office, house]).then(->
+          new Weaver.ModelQuery(model)
+          .class(model.Building)
+          .find()
+        ).then((res)->
+          houseFound = false
+          officeFound = false
+          res.map((n)->
+            if n.id() is 'house'  then houseFound = true
+            if n.id() is 'office' then officeFound = true
+          )
+          assert.equal(houseFound, true)
+          assert.equal(officeFound, true)
+        )
+
+      it 'should include instances of deep sub classes when querying for a model class', ->
+        new Weaver.ModelQuery(model)
+        .class(model.Construction)
+        .find().then((res)->
+          officeFound = false
+          res.map((n)->
+            if n.id() is 'office' then officeFound = true
+          )
+          assert.equal(officeFound, true)
+        )
+
+      it 'should query correctly for model instances with multiple classes', ->
+        new Weaver.ModelQuery(model)
+        .class(model.Office)
+        .find().then((res)->
+          assert.equal(res[0].id(), 'basshouse')
+        ).then(->
+          new Weaver.ModelQuery(model)
+          .class(model.House)
+          .find()
+        ).then((res)->
+          bassFound = false
+          res.map((n)->
+            if n.id() is 'basshouse' then bassFound = true
+          )
+          assert.equal(bassFound, true)
+        )
+
       it 'should correctly find the constructor for multi range', ->
         new Weaver.ModelQuery()
         .class(model.Person)
@@ -269,7 +317,7 @@ describe 'WeaverModelQuery test', ->
         .hasRelationIn('Person.signed', personBas)
         .find()
         .then((instances) ->
-          assert.equal(instances.length, 1)
+          assert.equal(instances.length, 2) # [ Document, DeliveryNotice ]
           expect(instances[0]).to.be.instanceOf(model.td.Document)
         )
 
@@ -312,7 +360,7 @@ describe 'WeaverModelQuery test', ->
           assert.equal(instances.length, 1)
           expect(instances[0]).to.be.instanceOf(model.td.Clerk)
         )
-        
+
       it 'should query inside referenced context implicit', ->
         new Weaver.ModelQuery(model)
         .class(model.td.Clerk)

@@ -1,5 +1,10 @@
 # Changelist
 
+## Develop
+- adds Weaver.ModelClass.getSuperClass() method
+- changes Weaver.ModelQuery().prototype.class() method to return valid for all subclasses of a model class, as well as the class itself
+- adds Weaver.Model.prototype.getIncludesKey() method
+
 ## 8.11.1-beta.0
 - Use a getter function for fs so it doesnt fail when not required
 

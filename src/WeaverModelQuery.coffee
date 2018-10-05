@@ -65,13 +65,16 @@ class WeaverModelQuery extends Weaver.Query
 
 
   class: (modelClass) ->
-    @hasRelationOut(@model.getMemberKey(), Weaver.Node.getFromGraph(modelClass.classId(), modelClass.context.getGraph()))
+    @preferredConstructor = modelClass
+    @hasRelationOut(@model.getMemberKey(),
+      new Weaver.ModelQuery(@model).hasRecursiveRelationOut(@model.getInheritKey(), Weaver.Node.getFromGraph(modelClass.classId(), modelClass.context.getGraph()), true)
+    )
 
   # Key is composed of Class.modelAttribute
   _mapKeys: (keys, source) ->
     databaseKeys = []
     for key in keys
-      if [@model.getMemberKey(), '*'].includes(key)
+      if [@model.getMemberKey(), @model.getInheritKey(), '*'].includes(key)
         databaseKeys.push(key)
       else
         if key.indexOf('.') is -1
