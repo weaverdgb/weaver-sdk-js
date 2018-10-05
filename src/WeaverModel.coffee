@@ -246,10 +246,6 @@ class WeaverModel extends ModelContext
     console.warn('Deprecated function WeaverModel.getPrototypeKey() used. Use WeaverModel.getMemberKey().')
     @getMemberKey()
 
-  getIncludesKey: (str)->
-    for key,val of @includes
-      return key if val.definition.name is str
-
   bootstrap: (project)->
     @_bootstrap(project)
 
