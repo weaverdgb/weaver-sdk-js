@@ -1166,3 +1166,30 @@ describe 'WeaverNode test', ->
 
     it 'should not match same ids in different graph', ->
       expect(new Weaver.Node('test', 'agraph').equals(new Weaver.Node('test', 'agraph1'))).to.be.false
+
+  describe 'wpath', ->
+    n = undefined
+
+    before ->
+      o = new Weaver.Node('o')
+      p = new Weaver.Node('p')
+      m = new Weaver.Node('m')
+      m.relation('some').add(o)
+      m.relation('some').add(p)
+      n = new Weaver.Node('n')
+      n.relation('has').add(m)
+
+    it 'should parse an expression', ->
+      expect(n.wpath(undefined)).to.be.empty
+      expect(n.wpath('')).to.be.empty
+      expect(n.wpath('/has/some?b').length).equals(2)
+      expect(n.wpath('has?a').length).equals(1)
+      expect(n.wpath('/has?a/some?what').length).equals(2)
+
+    it 'should parse an expression with filters', ->
+      expect(n.wpath('/has?a/some[id=o|id=p]?b').length).equals(2)
+      expect(n.wpath('/has?a/some[id=o]?b').length).equals(1)
+      expect(n.wpath('/has?a/some[id=p]?b').length).equals(1)
+      expect(n.wpath('/has?a/some[id=o&id=p]?b').length).equals(0)
+
+      # expect(n.wpath('/has[class=Aa | id=bbb]?a/some?b', (row)->row.a.relation('yes').add(row.b))

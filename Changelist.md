@@ -1,11 +1,15 @@
 # Changelist
 
-## 9.0.0
-- adds Weaver.ModelClass.getSuperClass() method
-- changes Weaver.ModelQuery().prototype.class() method to return valid for all subclasses of a model class, as well as the class itself
+## Develop
+- Add wpath support with initial two filters.
 
-## 8.11.1-beta.0
-- Use a getter function for fs so it doesnt fail when not required
+## 9.0.0
+- Adds Weaver.ModelClass.getSuperClass() method.
+- Changes Weaver.ModelQuery().prototype.class() method to return valid for 
+  all subclasses of a model class, as well as the class itself.
+
+## 8.11.1
+- Use a getter function for fs so it doesnt fail when not required.
 
 ## 8.11.0
 - Read default data type for attributes from model.
