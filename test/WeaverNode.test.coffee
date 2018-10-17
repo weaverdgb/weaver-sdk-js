@@ -1169,6 +1169,9 @@ describe 'WeaverNode test', ->
 
   describe 'wpath', ->
     n = undefined
+    m = undefined
+    o = undefined
+    p = undefined
 
     before ->
       o = new Weaver.Node('o')
@@ -1182,14 +1185,16 @@ describe 'WeaverNode test', ->
     it 'should parse an expression', ->
       expect(n.wpath(undefined)).to.be.empty
       expect(n.wpath('')).to.be.empty
-      expect(n.wpath('/has/some?b').length).equals(2)
-      expect(n.wpath('has?a').length).equals(1)
-      expect(n.wpath('/has?a/some?what').length).equals(2)
+      assert.deepEqual(n.wpath('/has/some?b'), [{'b':o},{'b':p}])
+      assert.deepEqual(n.wpath('has?a'), [{'a':m}])
+      assert.deepEqual(n.wpath('/has?a/some?what'), [{'a':m, 'what':o}, {'a':m, 'what':p}])
 
     it 'should parse an expression with filters', ->
-      expect(n.wpath('/has?a/some[id=o|id=p]?b').length).equals(2)
-      expect(n.wpath('/has?a/some[id=o]?b').length).equals(1)
-      expect(n.wpath('/has?a/some[id=p]?b').length).equals(1)
-      expect(n.wpath('/has?a/some[id=o&id=p]?b').length).equals(0)
+      assert.deepEqual(n.wpath('/has?a/some[id=o|id=p]?b'), [{'a':m, 'b':o}, {'a':m, 'b':p}])
+      assert.deepEqual(n.wpath('/has?a/some[id=o]?b'), [{'a':m, 'b':o}])
+      assert.deepEqual(n.wpath('/has?a/some[id=p]?b'), [{'a':m, 'b':p}])
+      expect(n.wpath('/has?a/some[id=o&id=p]?b')).to.be.empty
 
-      # expect(n.wpath('/has[class=Aa | id=bbb]?a/some?b', (row)->row.a.relation('yes').add(row.b))
+    it 'should apply functions', ->
+      n.wpath('/has?a/some?b', (row)->row.a.relation('yes').add(row.b))
+      assert.deepEqual(m.relation('yes').all(), [o, p])

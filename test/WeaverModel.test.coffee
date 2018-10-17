@@ -510,6 +510,9 @@ describe 'WeaverModel test', ->
   describe 'wpath with models', ->
     model = {}
     n = undefined
+    m = undefined
+    o = undefined
+    p = undefined
 
     before ->
       Weaver.Model.load("animal-model", "1.0.0").then((m) ->
@@ -526,5 +529,5 @@ describe 'WeaverModel test', ->
       )
 
     it 'should parse class filter', ->
-      expect(n.wpath('/has?a/some[class=animal-model:Animal]?b').length).equals(1)
+      assert.deepEqual(n.wpath('/has?a/some[class=animal-model:Animal]?b'), [{'a':m, 'b':p}])
 
