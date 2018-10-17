@@ -578,6 +578,11 @@ better-assert@~1.0.0:
   dependencies:
     callsite "1.0.0"
 
+biginteger@^1.0.3:
+  version "1.0.3"
+  resolved "https://npm.sysunite.com/biginteger/-/biginteger-1.0.3.tgz#111c682070b852d0677a1621fd33452aab674607"
+  integrity sha1-ERxoIHC4UtBnehYh/TNFKqtnRgc=
+
 binary-extensions@^1.0.0:
   version "1.11.0"
   resolved "https://npm.sysunite.com/binary-extensions/-/binary-extensions-1.11.0.tgz#46aa1751fb6a2f93ee5e689bb1087d4b14c6c205"
@@ -4006,6 +4011,13 @@ js-string-escape@^1.0.0:
   version "1.0.1"
   resolved "https://npm.sysunite.com/js-string-escape/-/js-string-escape-1.0.1.tgz#e2625badbc0d67c7533e9edc1068c587ae4137ef"
   integrity sha1-4mJbrbwNZ8dTPp7cEGjFh65BN+8=
+
+js-xpath@^0.0.4:
+  version "0.0.4"
+  resolved "https://npm.sysunite.com/js-xpath/-/js-xpath-0.0.4.tgz#525604d1e7d0b1bbff53c220abd2a4cd0428aaa4"
+  integrity sha1-UlYE0efQsbv/U8Igq9KkzQQoqqQ=
+  dependencies:
+    biginteger "^1.0.3"
 
 js-yaml@3.x:
   version "3.12.0"

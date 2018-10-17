@@ -506,3 +506,28 @@ describe 'WeaverModel test', ->
       page = new model.WikiPage()
       page.set('location', 'https://en.wikipedia.org/wiki/Giraffe')
       assert.equal(page.getDataType('location'), 'xsd:anyURI')
+
+  describe 'wpath with models', ->
+    model = {}
+    n = undefined
+    m = undefined
+    o = undefined
+    p = undefined
+
+    before ->
+      Weaver.Model.load("animal-model", "1.0.0").then((m) ->
+        model = m
+        model.bootstrap()
+      ).then(->
+        o = new Weaver.Node('o')
+        p = new model.Animal('p')
+        m = new Weaver.Node('m')
+        m.relation('some').add(o)
+        m.relation('some').add(p)  
+        n = new Weaver.Node('n')
+        n.relation('has').add(m)
+      )
+
+    it 'should parse class filter', ->
+      assert.deepEqual(n.wpath('/has?a/some[class=animal-model:Animal]?b'), [{'a':m, 'b':p}])
+
