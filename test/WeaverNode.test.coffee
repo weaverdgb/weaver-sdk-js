@@ -1196,5 +1196,5 @@ describe 'WeaverNode test', ->
       expect(n.wpath('/has?a/some[id=o&id=p]?b')).to.be.empty
 
     it 'should apply functions', ->
-      n.wpath('/has?a/some?b', (row)->row.a.relation('yes').add(row.b))
+      n.wpath('/has?a/some?b', (row)->row['a'].relation('yes').add(row['b']))
       assert.deepEqual(m.relation('yes').all(), [o, p])
