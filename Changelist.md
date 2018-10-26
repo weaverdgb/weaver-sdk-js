@@ -1,11 +1,14 @@
 # Changelist
 
+## Develop
+- changed model class comparison to evaluate against constructor name, instead of doing object comparison between the two constructors (wasn't otherwise able to use multiple references to the same model)
+
 ## 9.1.0
 - Add wpath support with initial two filters.
 
 ## 9.0.0
 - Adds Weaver.ModelClass.getSuperClass() method.
-- Changes Weaver.ModelQuery().prototype.class() method to return valid for 
+- Changes Weaver.ModelQuery().prototype.class() method to return valid for
   all subclasses of a model class, as well as the class itself.
 
 ## 8.11.1
