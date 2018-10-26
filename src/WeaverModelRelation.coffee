@@ -25,7 +25,7 @@ class WeaverModelRelation extends Weaver.Relation
 
   _checkCorrectConstructor: (constructor) ->
     for range in @owner.getRanges(@modelKey)
-      return true if @model.classList[range].className is constructor.className
+      return true if @model.classList[range].className is constructor.className and range is constructor.classId()
     throw new Error("Model #{@className} is not allowed to have relation #{@modelKey} to instance"+
       " of def #{constructor.className}.")
 
