@@ -47,11 +47,16 @@ describe 'WeaverModel test', ->
 
   describe 'with a loaded model', ->
     model = {}
+    model2 = {}
 
     before ->
       Weaver.Model.load("test-model", "1.2.0").then((m) ->
         model = m
         model.bootstrap()
+      ).then(->
+        Weaver.Model.load("test-model", "1.2.0")
+      ).then((m) ->
+          model2 = m
       )
 
     it 'should return the superClasses', ->
@@ -259,6 +264,13 @@ describe 'WeaverModel test', ->
           expect(node).to.be.instanceOf(model.Office)
           expect(node.getGraph()).to.equal('some-graph')
           expect(node.relation('placedIn').first().id()).to.equal(c.id())
+        )
+
+      it 'should be able to load some recently added relations', ->
+        chief = new model.Person('chief')
+        chief.relation('worksIn').add(new model2.Office())
+        chief.save().then(->
+          chief.relation('worksIn').load(model2.Office)
         )
 
       it 'should succeed saving with type definition that is bootstrapped', ->
