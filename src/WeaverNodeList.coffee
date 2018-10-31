@@ -8,7 +8,7 @@ class WeaverNodeList extends Array
     flatten = (node, relsToTraverse, onlyLoaded, current = new WeaverNodeList())->
       current.push(node)
       for key of node.relations?() when relsToTraverse.indexOf(key) isnt -1
-        if node.relation(key)?.first?()?._loaded or (node.relation(key)?.first?()? and not onlyLoaded)
+        if node.relation(key)?.first()?._loaded or (not onlyLoaded and node.relation(key)?.first()?)
           for rel in node.relation(key).all()
             flatten(rel, relsToTraverse, onlyLoaded, current)
       current
