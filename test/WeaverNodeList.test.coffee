@@ -58,3 +58,51 @@ describe 'WeaverNodeList test', ->
         checkNodeInResult(nodes, 'c')
       )
     )
+
+  # it 'should not break on recursive relations', ->
+  #   wipeCurrentProject().then(->
+  #     a = new Weaver.Node('a')
+  #     b = new Weaver.Node('b')
+  #     c = new Weaver.Node('c')
+  #     d = new Weaver.Node('d')
+  #
+  #     a.relation('rel').add(b)
+  #     b.relation('rel').add(c)
+  #     b.relation('rel').add(a)
+  #     c.relation('rel').add(d)
+  #
+  #     a.save().then(->
+  #       new Weaver.Query()
+  #       .restrict(['a'])
+  #       .selectRecursiveOut('rel')
+  #       .find()
+  #     ).then((res)->
+  #       nodes = res.flattenByRelation('rel')
+  #       assert.equal(nodes.length, 4)
+  #     )
+  #   )
+
+    it 'should not break on recursion', ->
+      wipeCurrentProject().then(->
+        a = new Weaver.Node('a')
+        b = new Weaver.Node('b')
+        c = new Weaver.Node('c')
+
+        a.relation('rel').add(b)
+        b.relation('rel').add(c)
+        c.relation('rel').add(a)
+
+        a.save().then(->
+          new Weaver.Query()
+          .restrict(['a'])
+          .selectRecursiveOut('rel')
+          .find()
+        ).then((res)->
+          nodes = res.flattenByRelation('rel')
+          console.log nodes
+          assert.equal(nodes.length, 3)
+          checkNodeInResult(nodes, 'a')
+          checkNodeInResult(nodes, 'b')
+          checkNodeInResult(nodes, 'c')
+        )
+      )
