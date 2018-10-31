@@ -82,14 +82,14 @@ class WeaverQuery
         total
     )
 
-  find: (Constructor) ->
+  find: (Constructor, flattenByRelation) ->
 
     if Constructor?
       @setConstructorFunction(-> Constructor)
 
     Weaver.getCoreManager().query(@).then((result) =>
       Weaver.Query.notify(result)
-      list = []
+      list = new Weaver.NodeList()
       for object in result.nodes
         castedNode = Weaver.Node.loadFromQuery(object, @constructorFunction, !@_selectRelations? && !@_select?, @model)
         list.push(castedNode)
