@@ -82,7 +82,7 @@ class WeaverQuery
         total
     )
 
-  find: (Constructor, flattenByRelation) ->
+  find: (Constructor) ->
 
     if Constructor?
       @setConstructorFunction(-> Constructor)
