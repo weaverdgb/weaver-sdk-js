@@ -8,13 +8,13 @@ class WeaverNodeList extends Array
     @
 
   deeperLoaded = (nodes, rel) ->
-    getRelDepth = (node, curr)->
+    getRelDepth = (node, curr = 0)->
       if node._loaded
         getRelDepth(node.relation(rel).first(), ++curr)
       else
         curr
     nodes.reduce((n1, n2)->
-      if getRelDepth(n1, 0) > getRelDepth(n2, 0)
+      if getRelDepth(n1) > getRelDepth(n2)
         n1
       else
         n2
