@@ -35,7 +35,7 @@ class WeaverNodeList extends Array
       results = results.concat(flatten(node, relToTraverse))
     resultsMap = {}
 
-    results.map((n)->
+    results.map((n)-> # in case of duplicates, keep the node which is most deeply loaded
       if resultsMap[n.id()]
         resultsMap[n.id()] = deeperLoaded([resultsMap[n.id()], n], relToTraverse)
       else
