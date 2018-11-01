@@ -82,17 +82,22 @@ describe 'WeaverFile test', ->
         expect(files.length).to.be.at.least(1)
       )
 
-  it 'should support simultanious upload', ->
+  it 'should support big simultanious upload', ->
     @skip() if window?
     @timeout(15000)
-    file = new Weaver.File(path.join(__dirname,'../icon.png'))
-    file2 = new Weaver.File(path.join(__dirname,'../icon.png'))
+    @listSize = 6
 
-    #Make sure bucket exists
-    Weaver.File.list().then(->
-      Promise.all([file.upload(), file2.upload()])
-    ).then((storedFiles) ->
-      expect(storedFiles.length).to.equal(2)
+    files = (new Weaver.File(path.join(__dirname,'../icon.png')).upload() for i in [0..@listSize-1])
+
+    # Make sure bucket exists
+    Promise.all(files)
+    .then((storedFiles) =>
+      console.log storedFiles.length
+      expect(storedFiles.length).to.equal(@listSize)
+      expect(file.id()).to.exist for file in storedFiles
+      Weaver.File.list()
+    ).then((list) =>
+      expect(list.length).to.equal(@listSize)
     )
 
 
