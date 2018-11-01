@@ -82,24 +82,30 @@ describe 'WeaverFile test', ->
         expect(files.length).to.be.at.least(1)
       )
 
-  it 'should support big simultanious upload', ->
+  it 'should support big simultanious upload for a new project', ->
     @skip() if window?
     @timeout(15000)
-    @listSize = 6
+    listSize = 20
 
-    files = (new Weaver.File(path.join(__dirname,'../icon.png')).upload() for i in [0..@listSize-1])
+    p = weaver.currentProject()
+    test = new Weaver.Project()
+    test.create().then(->
+      weaver.useProject(test)
+    ).then(->
+      
+      files = (new Weaver.File(path.join(__dirname,'../icon.png')).upload() for i in [0..listSize-1])
 
-    # Make sure bucket exists
-    Promise.all(files)
-    .then((storedFiles) =>
-      console.log storedFiles.length
-      expect(storedFiles.length).to.equal(@listSize)
-      expect(file.id()).to.exist for file in storedFiles
-      Weaver.File.list()
-    ).then((list) =>
-      expect(list.length).to.equal(@listSize)
+      Promise.all(files)
+      .then((storedFiles) =>
+        expect(storedFiles.length).to.equal(listSize)
+        expect(file.id()).to.exist for file in storedFiles
+        Weaver.File.list()
+      ).then((list) =>
+        expect(list.length).to.equal(listSize)
+        test.destroy()
+        weaver.useProject(p)
+      )
     )
-
 
   it 'should deny access when uploading with unauthorized user', ->
     @skip() if window?
