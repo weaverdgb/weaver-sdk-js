@@ -4,52 +4,46 @@ class WeaverNodeList extends Array
 
   constructor: (arr = [])->
     super()
-    @push(el) for el in arr
+    @push(el) for el in arr # allows WeaverNodeList to be constructed like so: new WeaverNodeList(Array)
     @
 
+  _getArrayNestedByRel: (rel, arr = @) ->
+    arr.map((n) => n.relation(rel).all())
+    .map((targets) => targets._getArrayNestedByRel(rel, targets))
+    .concat(nodes)
+
+  flattenByRelation: (rel)->
+    _.flattenDeep(@_getArrayNestedByRel(rel))
+
+  getRelationDepth = (node, rel, curr = 0)->
+    return -1 if not node
+    if node._loaded
+      getRelationDepth(node.relation(rel).first(), rel, ++curr)
+    else
+      curr
+
   deeperLoaded = (nodes, rel) ->
-    getRelDepth = (node, curr = 0)->
-      if node._loaded
-        getRelDepth(node.relation(rel).first(), ++curr)
-      else
-        curr
     nodes.reduce((n1, n2)->
-      if getRelDepth(n1) > getRelDepth(n2)
+      if getRelationDepth(n1, rel) > getRelationDepth(n2, rel)
         n1
       else
         n2
     )
 
-  flattenByRelation: (relToTraverse)->
-    results = []
-
-    flatten = (node, relToTraverse, current = [])->
-      current.push(node)
-      for key of node.relations?() when relToTraverse is key
-        if node.relation(key)?.first()?
-          for rel in node.relation(key).all()
-            flatten(rel, relToTraverse, current)
-      current
-
-    for node in @
-      results = results.concat(flatten(node, relToTraverse))
+  reduceDeepestLoaded: (rel)-> # in case of duplicates, keep the node which is most deeply loaded
     resultsMap = {}
-
-    results.map((n)-> # in case of duplicates, keep the node which is most deeply loaded
-      if resultsMap[n.id()]
-        resultsMap[n.id()] = deeperLoaded([resultsMap[n.id()], n], relToTraverse)
-      else
-        resultsMap[n.id()] = n
+    @map((n)->
+      resultsMap[n.id()] = deeperLoaded([resultsMap[n.id()], n], rel)
     )
     new WeaverNodeList(_.values(resultsMap))
+
+  reduceOnlyLoaded: ->
+    @filter((n)-> n._loaded)
 
   ###
     TODO
     unflattenByRelation: (relsToBuild) ->
   ###
-
-  reduceOnlyLoaded: ->
-    @filter((n)-> n._loaded)
 
 # Export
 module.exports = WeaverNodeList
