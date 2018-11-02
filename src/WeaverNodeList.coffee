@@ -14,11 +14,9 @@ class WeaverNodeList extends Array
 
   flattenByRelation: (rel)->
     new WeaverNodeList(_.flattenDeep(@_getArrayNestedByRel(rel)))
-    .reduceDeepestLoaded() # default, remove this to include multiple refs for single node
 
   getRelationDepth = (node, rel, currentDepth = 0)->
-    return -1 if not node
-    if node._loaded
+    if node?._loaded
       getRelationDepth(node.relation(rel).first(), rel, ++currentDepth)
     else
       currentDepth

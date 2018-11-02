@@ -26,6 +26,7 @@ describe 'WeaverNodeList test', ->
         .find()
       ).then((res)->
         nodes = res.flattenByRelation('rel')
+        .reduceDeepestLoaded()
         assert.equal(nodes.length, 4)
         checkNodeInResult(nodes, 'a')
         checkNodeInResult(nodes, 'b')
@@ -52,6 +53,7 @@ describe 'WeaverNodeList test', ->
         .find()
       ).then((res)->
         nodes = res.flattenByRelation('rel')
+        .reduceDeepestLoaded()
         assert.equal(nodes.length, 3)
         checkNodeInResult(nodes, 'a')
         checkNodeInResult(nodes, 'b')
@@ -80,6 +82,7 @@ describe 'WeaverNodeList test', ->
         .find()
       ).then((res)->
         nodes = res.flattenByRelation('rel')
+        .reduceDeepestLoaded()
         assert.equal(nodes.length, 4)
       )
     )
@@ -99,6 +102,7 @@ describe 'WeaverNodeList test', ->
         .find()
       ).then((res)->
         nodes = res.flattenByRelation('rel')
+        .reduceDeepestLoaded()
         assert.equal(nodes.length, 3)
         checkNodeInResult(nodes, 'c')
         nodes.map((n)->
@@ -122,7 +126,9 @@ describe 'WeaverNodeList test', ->
         .hasRelationOut('rel')
         .find()
       ).then((res)->
-        nodes = res.flattenByRelation('rel').reduceOnlyLoaded()
+        nodes = res.flattenByRelation('rel')
+        .reduceDeepestLoaded()
+        .reduceOnlyLoaded()
         assert.equal(nodes.length, 2)
         checkNodeInResult(nodes, 'a')
         checkNodeInResult(nodes, 'b')
