@@ -10,17 +10,18 @@ class WeaverNodeList extends Array
   _getArrayNestedByRel: (rel, arr = @) ->
     arr.map((n) => n.relation(rel).all())
     .map((targets) => targets._getArrayNestedByRel(rel, targets))
-    .concat(nodes)
+    .concat(arr)
 
   flattenByRelation: (rel)->
-    _.flattenDeep(@_getArrayNestedByRel(rel))
+    new WeaverNodeList(_.flattenDeep(@_getArrayNestedByRel(rel)))
+    .reduceDeepestLoaded() # default, remove this to include multiple refs for single node
 
-  getRelationDepth = (node, rel, curr = 0)->
+  getRelationDepth = (node, rel, currentDepth = 0)->
     return -1 if not node
     if node._loaded
-      getRelationDepth(node.relation(rel).first(), rel, ++curr)
+      getRelationDepth(node.relation(rel).first(), rel, ++currentDepth)
     else
-      curr
+      currentDepth
 
   deeperLoaded = (nodes, rel) ->
     nodes.reduce((n1, n2)->
