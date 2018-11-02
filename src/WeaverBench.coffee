@@ -2,21 +2,30 @@ cuid        = require('cuid')
 Promise     = require('bluebird')
 Weaver      = require('./Weaver')
 
-class WeaverDo
+class WeaverBench
+
+  # Execte the operation on call
+  @do: {
+    onlyTo: (node, key, to) ->
+      olds = node.relation(key).all()
+      
+      Promise.map(olds, (old)->
+        node.relation(key).remove(old) if !WeaverBench.equals(to, node)
+      ).then(->
+        node.relation(key).add(to)
+        node.save()
+      )
+
+  }
 
   @removeKeepUpdateAdd: (node, key, to, previous=undefined) ->
-
-    nodeEql = (a, b)->
-      return false if !a?
-      return false if !b?
-      return a.id() is b.id() and a.getGraph() is b.getGraph()
 
     olds = node.relation(key).all()
     
     return Promise.map(olds, (old)->node.relation(key).remove(old)) if !to?
-    return Promise.resolve() for old in olds when nodeEql(to, old)
+    return Promise.resolve() for old in olds when WeaverBench.equals(to, old)
     if previous?
-      node.relation(key).update(old, to) for old in olds when nodeEql(old, previous)
+      node.relation(key).update(old, to) for old in olds when WeaverBench.equals(old, previous)
       node.save()
     else
       node.relation(key).add(to)
@@ -54,5 +63,10 @@ class WeaverDo
         return true
     false
 
+  @equals: (a, b) ->
+    return false if !a? or ! a instanceof Weaver.Node
+    return false if !b? or ! b instanceof Weaver.Node
+    return a.id() is b.id() and a.getGraph() is b.getGraph()
+
 # Export
-module.exports = WeaverUser
+module.exports = WeaverBench
