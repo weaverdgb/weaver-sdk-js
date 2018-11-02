@@ -216,60 +216,6 @@ describe 'Weaver relation and WeaverRelationNode test', ->
       expect(relIds[0]).to.equal(rel.id())
     )
 
-  it 'should add a relation with only once', ->
-    node = new Weaver.Node()
-    to = new Weaver.Node()
-
-    node.save().then(->
-      Weaver.Node.load(node.id())
-    ).then((loadedNode) ->
-      loadedNode.relation('link').onlyOnce(to)
-    ).then(->
-      Weaver.Node.load(node.id())
-    ).then((loadedNode) ->
-      ids = (i.id() for i in loadedNode.relation('link').all())
-      expect(ids).to.have.length.be(1)
-      expect(ids[0]).to.equal(to.id())
-    )
-
-  it 'should keep precisely one with only once', ->
-    node = new Weaver.Node()
-    to = new Weaver.Node()
-    node.relation('link').add(to)
-
-    node.save().then(->
-      Weaver.Node.load(node.id())
-    ).then((loadedNode) ->
-      expect(loadedNode.relation('link').all()).to.have.length.be(1)
-      loadedNode.relation('link').onlyOnce(to)
-    ).then(->
-      Weaver.Node.load(node.id())
-    ).then((loadedNode) ->
-      ids = (i.id() for i in loadedNode.relation('link').all())
-      expect(ids).to.have.length.be(1)
-      expect(ids[0]).to.equal(to.id())
-    )
-
-  it 'should remove too many with only once', ->
-    node = new Weaver.Node()
-    to = new Weaver.Node()
-    node.relation('link').add(to)
-    node.relation('link').add(to)
-    node.relation('link').add(to)
-
-    node.save().then(->
-      Weaver.Node.load(node.id())
-    ).then((loadedNode) ->
-      expect(loadedNode.relation('link').all()).to.have.length.be(3)
-      loadedNode.relation('link').onlyOnce(to)
-    ).then(->
-      Weaver.Node.load(node.id())
-    ).then((loadedNode) ->
-      ids = (i.id() for i in loadedNode.relation('link').all())
-      expect(ids).to.have.length.be(1)
-      expect(ids[0]).to.equal(to.id())
-    )
-
   it 'should load all nodes in the relation', ->
     foo = new Weaver.Node()
     bar = new Weaver.Node()
