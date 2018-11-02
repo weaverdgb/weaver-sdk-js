@@ -1,7 +1,10 @@
 # Changelist
 
 ## Develop
-- changed model class comparison to evaluate against constructor name, instead of doing object comparison between the two constructors (wasn't otherwise able to use multiple references to the same model)
+- Changed model class comparison to evaluate against constructor name, 
+  instead of doing object comparison between the two constructors 
+  (wasn't otherwise able to use multiple references to the same model).
+- Add the relation('link').only(to) call.
 
 ## 9.1.0
 - Add wpath support with initial two filters.
