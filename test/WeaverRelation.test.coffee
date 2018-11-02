@@ -134,6 +134,35 @@ describe 'Weaver relation and WeaverRelationNode test', ->
       expect(i.id() for i in loadedNode.relation('comesBefore').all()).to.have.length.be(1)
     )
 
+  it 'should remove one of some relation', ->
+    foo = new Weaver.Node()
+    bar = new Weaver.Node()
+    foo.relation('comesBefore').add(bar)
+    foo.relation('comesBefore').add(bar)
+    expect(foo.relation('comesBefore').nodes).to.have.length.be(2)
+    expect(foo.relation('comesBefore').relationNodes).to.have.length.be(2)
+    expect(foo.relation('comesBefore').all()).to.have.length.be(2)
+
+    foo.save().then(->
+      Weaver.Node.load(foo.id())
+    ).then((loadedNode) ->
+      expect(loadedNode.relation('comesBefore').nodes).to.have.length.be(1)
+      expect(loadedNode.relation('comesBefore').relationNodes).to.have.length.be(1)
+      expect(loadedNode.relation('comesBefore').all()).to.have.length.be(1)
+
+      loadedNode.relation('comesBefore').remove(bar)
+    ).then( ->
+      expect(loadedNode.relation('comesBefore').nodes).to.have.length.be(1)
+      expect(loadedNode.relation('comesBefore').relationNodes).to.have.length.be(1)
+      expect(loadedNode.relation('comesBefore').all()).to.have.length.be(1)
+
+      Weaver.Node.load(foo.id())
+    ).then((loadedNode) ->
+      expect(loadedNode.relation('comesBefore').nodes).to.have.length.be(1)
+      expect(loadedNode.relation('comesBefore').relationNodes).to.have.length.be(1)
+      expect(loadedNode.relation('comesBefore').all()).to.have.length.be(1)
+    )
+
   it 'should remove and update a relation with only if first ever', ->
     node = new Weaver.Node()
     c = new Weaver.Node()
@@ -185,6 +214,60 @@ describe 'Weaver relation and WeaverRelationNode test', ->
       relIds = (i.id() for i in loadedNode.relation('link').relationNodes)
       expect(relIds).to.have.length.be(1)
       expect(relIds[0]).to.equal(rel.id())
+    )
+
+  it 'should add a relation with only once', ->
+    node = new Weaver.Node()
+    to = new Weaver.Node()
+
+    node.save().then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      loadedNode.relation('link').onlyOnce(to)
+    ).then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      ids = (i.id() for i in loadedNode.relation('link').all())
+      expect(ids).to.have.length.be(1)
+      expect(ids[0]).to.equal(to.id())
+    )
+
+  it 'should keep precisely one with only once', ->
+    node = new Weaver.Node()
+    to = new Weaver.Node()
+    node.relation('link').add(to)
+
+    node.save().then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      expect(loadedNode.relation('link').all()).to.have.length.be(1)
+      loadedNode.relation('link').onlyOnce(to)
+    ).then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      ids = (i.id() for i in loadedNode.relation('link').all())
+      expect(ids).to.have.length.be(1)
+      expect(ids[0]).to.equal(to.id())
+    )
+
+  it 'should remove too many with only once', ->
+    node = new Weaver.Node()
+    to = new Weaver.Node()
+    node.relation('link').add(to)
+    node.relation('link').add(to)
+    node.relation('link').add(to)
+
+    node.save().then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      expect(loadedNode.relation('link').all()).to.have.length.be(3)
+      loadedNode.relation('link').onlyOnce(to)
+    ).then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      ids = (i.id() for i in loadedNode.relation('link').all())
+      expect(ids).to.have.length.be(1)
+      expect(ids[0]).to.equal(to.id())
     )
 
   it 'should load all nodes in the relation', ->
