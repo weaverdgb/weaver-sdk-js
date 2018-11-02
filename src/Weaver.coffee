@@ -14,6 +14,7 @@ class Weaver
     # FIXME: Should probably be done with a for loop or something
     @Node = Weaver.Node
     @DefinedNode = Weaver.DefinedNode
+    @Do = Weaver.Do
     @ACL = Weaver.ACL
     @CoreManager = Weaver.CoreManager
     @History = Weaver.History
@@ -143,22 +144,23 @@ window.Weaver  = Weaver if window?  # Browser
 
 # Require Weaver objects after exporting Weaver to prevent circular dependency
 # issues
-module.exports.Node         = require('./WeaverNode')
-module.exports.DefinedNode  = require('./WeaverDefinedNode')
-module.exports.ACL          = require('./WeaverACL')
-module.exports.CoreManager  = require('./CoreManager')
-module.exports.History      = require('./WeaverHistory')
-module.exports.Plugin       = require('./WeaverPlugin')
-module.exports.Project      = require('./WeaverProject')
-module.exports.Query        = require('./WeaverQuery')
-module.exports.Relation     = require('./WeaverRelation')
-module.exports.RelationNode = require('./WeaverRelationNode')
-module.exports.Role         = require('./WeaverRole')
-module.exports.User         = require('./WeaverUser')
-module.exports.Error        = require('./WeaverError')
-module.exports.LegacyError  = require('./Error')
-module.exports.Model        = require('./WeaverModel')
-module.exports.ModelClass   = require('./WeaverModelClass')
+module.exports.Node          = require('./WeaverNode')
+module.exports.DefinedNode   = require('./WeaverDefinedNode')
+module.exports.Do            = require('./WeaverDo')
+module.exports.ACL           = require('./WeaverACL')
+module.exports.CoreManager   = require('./CoreManager')
+module.exports.History       = require('./WeaverHistory')
+module.exports.Plugin        = require('./WeaverPlugin')
+module.exports.Project       = require('./WeaverProject')
+module.exports.Query         = require('./WeaverQuery')
+module.exports.Relation      = require('./WeaverRelation')
+module.exports.RelationNode  = require('./WeaverRelationNode')
+module.exports.Role          = require('./WeaverRole')
+module.exports.User          = require('./WeaverUser')
+module.exports.Error         = require('./WeaverError')
+module.exports.LegacyError   = require('./Error')
+module.exports.Model         = require('./WeaverModel')
+module.exports.ModelClass    = require('./WeaverModelClass')
 module.exports.ModelRelation = require('./WeaverModelRelation')
 module.exports.ModelQuery    = require('./WeaverModelQuery')
-module.exports.File         = require('./WeaverFile')
+module.exports.File          = require('./WeaverFile')
