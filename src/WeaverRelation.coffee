@@ -99,5 +99,13 @@ class WeaverRelation
     Weaver.publish("node.relation.remove", {node: @owner, key: @key, target: node})
     relNode.destroy()
 
+  only: (node) ->
+    Promise.map(@nodes, (existing)=>
+      @remove(existing) if !existing.equals(node)
+    ).then(=>
+      @add(node) if @nodes.length is 0
+      @owner.save()
+    )
+
 # Export
 module.exports  = WeaverRelation

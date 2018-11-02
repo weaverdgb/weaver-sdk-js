@@ -134,6 +134,59 @@ describe 'Weaver relation and WeaverRelationNode test', ->
       expect(i.id() for i in loadedNode.relation('comesBefore').all()).to.have.length.be(1)
     )
 
+  it 'should remove and update a relation with only if first ever', ->
+    node = new Weaver.Node()
+    c = new Weaver.Node()
+
+    node.save().then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      loadedNode.relation('link').only(c)
+    ).then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      ids = (i.id() for i in loadedNode.relation('link').all())
+      expect(ids).to.have.length.be(1)
+      expect(ids[0]).to.equal(c.id())
+    )
+
+  it 'should remove and update a relation with only if others where there', ->
+    node = new Weaver.Node()
+    a = new Weaver.Node()
+    b = new Weaver.Node()
+    c = new Weaver.Node()
+    node.relation('link').add(a)
+    node.relation('link').add(b)
+
+    node.save().then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      loadedNode.relation('link').only(c)
+    ).then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      ids = (i.id() for i in loadedNode.relation('link').all())
+      expect(ids).to.have.length.be(1)
+      expect(ids[0]).to.equal(c.id())
+    )
+
+  it 'should keep a relation with only', ->
+    node = new Weaver.Node()
+    c = new Weaver.Node()
+    rel = node.relation('link').add(c)
+
+    node.save().then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      loadedNode.relation('link').only(c)
+    ).then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      relIds = (i.id() for i in loadedNode.relation('link').relationNodes)
+      expect(relIds).to.have.length.be(1)
+      expect(relIds[0]).to.equal(rel.id())
+    )
+
   it 'should load all nodes in the relation', ->
     foo = new Weaver.Node()
     bar = new Weaver.Node()
