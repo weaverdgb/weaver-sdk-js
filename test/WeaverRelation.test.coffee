@@ -173,7 +173,7 @@ describe 'Weaver relation and WeaverRelationNode test', ->
   it 'should keep a relation with only', ->
     node = new Weaver.Node()
     c = new Weaver.Node()
-    node.relation('link').add(c)
+    rel = node.relation('link').add(c)
 
     node.save().then(->
       Weaver.Node.load(node.id())
@@ -182,9 +182,9 @@ describe 'Weaver relation and WeaverRelationNode test', ->
     ).then(->
       Weaver.Node.load(node.id())
     ).then((loadedNode) ->
-      ids = (i.id() for i in loadedNode.relation('link').all())
-      expect(ids).to.have.length.be(1)
-      expect(ids[0]).to.equal(c.id())
+      relIds = (i.id() for i in loadedNode.relation('link').relationNodes)
+      expect(relIds).to.have.length.be(1)
+      expect(relIds[0]).to.equal(rel.id())
     )
 
   it 'should load all nodes in the relation', ->
