@@ -27,11 +27,7 @@ describe 'WeaverNodeList test', ->
       ).then((res)->
         nodes = res.flattenByRelation('rel')
         .reduceDeepestLoaded()
-        assert.equal(nodes.length, 4)
-        checkNodeInResult(nodes, 'a')
-        checkNodeInResult(nodes, 'b')
-        checkNodeInResult(nodes, 'c')
-        checkNodeInResult(nodes, 'd')
+        expect(i.id() for i in nodes).to.have.members(['a', 'b', 'c', 'd'])
       )
     )
 
@@ -54,10 +50,7 @@ describe 'WeaverNodeList test', ->
       ).then((res)->
         nodes = res.flattenByRelation('rel')
         .reduceDeepestLoaded()
-        assert.equal(nodes.length, 3)
-        checkNodeInResult(nodes, 'a')
-        checkNodeInResult(nodes, 'b')
-        checkNodeInResult(nodes, 'c')
+        expect(i.id() for i in nodes).to.have.members(['a', 'b', 'c'])
       )
     )
 
@@ -83,7 +76,7 @@ describe 'WeaverNodeList test', ->
       ).then((res)->
         nodes = res.flattenByRelation('rel')
         .reduceDeepestLoaded()
-        assert.equal(nodes.length, 4)
+        expect(i.id() for i in nodes).to.have.members(['a', 'b', 'c', 'd'])
       )
     )
 
@@ -129,8 +122,6 @@ describe 'WeaverNodeList test', ->
         nodes = res.flattenByRelation('rel')
         .reduceDeepestLoaded()
         .reduceOnlyLoaded()
-        assert.equal(nodes.length, 2)
-        checkNodeInResult(nodes, 'a')
-        checkNodeInResult(nodes, 'b')
+        expect(i.id() for i in nodes).to.have.members(['a', 'b'])
       )
     )

@@ -475,6 +475,7 @@ describe 'WeaverQuery Test', ->
         checkNodeInResult(nodes, 'b')
       )
 
+    # WILL NOT BE SUPPORTED
     it.skip 'should be able to do ONLY recursive RelationOut queries with a target', ->
       new Weaver.Query()
       #                         rel,   target,               includesTarget, recursiveOnly
@@ -485,6 +486,7 @@ describe 'WeaverQuery Test', ->
         checkNodeInResult(nodes, 'a')
       )
 
+    # WILL NOT BE SUPPORTED
     it.skip 'should be able to do recursiveRelationOut queries without a target', ->
       # return all nodes that have at least two levels of relations out
       new Weaver.Query()
