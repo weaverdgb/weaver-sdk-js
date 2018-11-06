@@ -6,9 +6,9 @@ Promise     = require('bluebird')
 class WeaverRelation
 
   constructor: (@owner, @key) ->
-    @pendingWrites = []   # All operations that need to get saved
-    @nodes = []           # All nodes that this relation points to
-    @relationNodes = []   # RelationNodes
+    @pendingWrites = []                    # All operations that need to get saved
+    @nodes = new Weaver.NodeList()         # All nodes that this relation points to
+    @relationNodes = new Weaver.NodeList() # RelationNodes
 
   _removeNode: (oldNode) ->
     @nodes = @nodes.filter((x) -> not x.equals(oldNode))

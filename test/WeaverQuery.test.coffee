@@ -465,6 +465,38 @@ describe 'WeaverQuery Test', ->
         checkNodeInResult(nodes, 'c')
       )
 
+    it 'should be able to do recursiveRelationOut queries with a target', ->
+      new Weaver.Query()
+      .hasRecursiveRelationOut('link', Weaver.Node.get('c'))
+      .find()
+      .then((nodes)->
+        expect(nodes.length).to.equal(2)
+        checkNodeInResult(nodes, 'a')
+        checkNodeInResult(nodes, 'b')
+      )
+
+    # WILL NOT BE SUPPORTED
+    it.skip 'should be able to do ONLY recursive RelationOut queries with a target', ->
+      new Weaver.Query()
+      #                         rel,   target,               includesTarget, recursiveOnly
+      .hasRecursiveRelationOut('link', Weaver.Node.get('c'), false,          true)
+      .find()
+      .then((nodes)->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+      )
+
+    # WILL NOT BE SUPPORTED
+    it.skip 'should be able to do recursiveRelationOut queries without a target', ->
+      # return all nodes that have at least two levels of relations out
+      new Weaver.Query()
+      .hasRecursiveRelationOut('link')
+      .find()
+      .then((nodes)->
+        expect(nodes.length).to.equal(1)
+        checkNodeInResult(nodes, 'a')
+      )
+
 
   describe 'other nodes, requiring wipe before each test', ->
 
@@ -1573,4 +1605,3 @@ describe 'WeaverQuery Test', ->
       ).then((nodes) ->
         expect(nodes.length).to.equal(2500)
       )
-      
