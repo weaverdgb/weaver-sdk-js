@@ -13,9 +13,6 @@ class WeaverRelation
   _removeNode: (oldNode) ->
     @nodes = @nodes.filter((x) -> not x.equals(oldNode))
 
-  _replaceNode: (oldNode, newNode) ->
-    @_removeNode(oldNode)
-    @_addNodes(newNode)
 
   _addNodes: (nodes...) ->
     for node in nodes
@@ -83,7 +80,8 @@ class WeaverRelation
     newRelId = cuid()
     oldRel = @_getRelationNodeForTarget(oldNode)
 
-    @_replaceNode(oldNode, newNode)
+    @_removeNode(oldNode)
+    @_addNodes(newNode)
 
     @_removeRelationNodeForTarget(oldNode)
     @relationNodes.push(@_createRelationNode(newRelId, newNode))
