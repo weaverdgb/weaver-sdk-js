@@ -99,8 +99,8 @@ class WeaverNode
     Weaver.publish('node.loaded', @)
     @
 
-  _loadRelationFromQuery: (key, instance, nodeId, graph)->
-    @relation(key).add(instance, nodeId, false, graph)
+  _loadRelationFromQuery: (key, instance, relId, graph)->
+    @relation(key).add(instance, relId, false, graph)
 
   _loadRelationInFromQuery: (key, instance, nodeId, graph)->
     @relationsIn[key] ?= new WeaverRelationIn(key)
