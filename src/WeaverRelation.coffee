@@ -99,7 +99,6 @@ class WeaverRelation
 
   removeRelation: (relNode) ->
     node = @_getNodeForRelationNode(relNode)
-    console.log node
     @_removeRelationNode(relNode)
     relNode.destroy()
     .then(=>
