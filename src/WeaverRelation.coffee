@@ -14,12 +14,6 @@ class WeaverRelation
     @nodes = @nodes.filter((x) -> not x.equals(oldNode))
 
 
-  _addNodes: (nodes...) ->
-    for node in nodes
-      if @nodes.find((x) -> x.equals(node))?
-        @_removeNode(node)
-      @nodes.push(node)
-
   _getRelationNodeForTarget: (node) ->
     (i for i in @relationNodes when i.to().equals(node))[0] or undefined
 
@@ -28,15 +22,14 @@ class WeaverRelation
 
   load: (constructor)->
     new Weaver.Query()
-    .hasRelationIn(@key, @owner)
+    .restrict(@owner)
+    .selectOut(@key)
     .selectRelations(@key)
     .find(constructor)
     .then((nodes)=>
-      Promise.map(nodes, (node)->node.load())
-      .then(=>
-        @_addNodes(nodes...)
-        @nodes
-      )
+      reloadedRelation = nodes[0].relation(@key)
+      @nodes         = reloadedRelation.nodes
+      @relationNodes = reloadedRelation.relationNodes
     )
 
   query: ->
@@ -65,7 +58,7 @@ class WeaverRelation
   add: (node, relId, addToPendingWrites = true, graph) ->
     relId ?= cuid()
     graph ?= @owner.getGraph()
-    @_addNodes(node)
+    @nodes.push(node)
 
     # Currently this assumes having one relation to the same node
     # it should change, but its here now for backwards compatibility
@@ -81,7 +74,7 @@ class WeaverRelation
     oldRel = @_getRelationNodeForTarget(oldNode)
 
     @_removeNode(oldNode)
-    @_addNodes(newNode)
+    @nodes.push(newNode)
 
     @_removeRelationNodeForTarget(oldNode)
     @relationNodes.push(@_createRelationNode(newRelId, newNode))
