@@ -287,7 +287,7 @@ class WeaverModel extends ModelContext
           nodeId = "#{context.definition.name}:#{itemName}"
           node = firstOrCreate(nodeId, context.getGraph(), Weaver.DefinedNode)
           node.model = @
-          node.relation(@getMemberKey()).add(owner)
+          node.relation(@getMemberKey()).onlyOnce(owner)
           # context[className][itemName] = node
 
       # Now add all the nodes that represent a model class
@@ -303,7 +303,7 @@ class WeaverModel extends ModelContext
           superId = context.getNodeNameByKey(classObj.super)
           node = firstOrCreate(id, context.getGraph())
           superNode = firstOrCreate(superId, context.getGraph(), undefined, false)
-          node.relation(@getInheritKey()).add(superNode)
+          node.relation(@getInheritKey()).onlyOnce(superNode)
 
     nodesToCreate
 

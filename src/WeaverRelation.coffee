@@ -112,6 +112,21 @@ class WeaverRelation
       @add(node) if @nodes.length is 0
       @owner.save()
     )
+    
+  onlyOnce: (node) ->
+    
+    [first, existing...] = @_getRelationNodesForTarget(node)
+    if !first?
+      @add(node) if @nodes.length is 0
+      @owner.save()
+    else if existing.length > 0
+      Promise.map(existing, (relNode)=>
+        @_removeRelationNode(relNode)
+        relNode.destroy()
+      )
+    else
+      Promise.resolve()
+
 
 # Export
 module.exports  = WeaverRelation
