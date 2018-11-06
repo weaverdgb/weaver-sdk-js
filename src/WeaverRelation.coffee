@@ -90,7 +90,7 @@ class WeaverRelation
 
   remove: (node) ->
     # TODO: This failes when relation is not saved, should be able to only remove locally
-    Promise.map(@_getRelationNodesForTarget(node), (relNode)->
+    Promise.map(@_getRelationNodesForTarget(node), (relNode)=>
       @_removeRelationNode(relNode)
       relNode.destroy()
     ).then(=>
