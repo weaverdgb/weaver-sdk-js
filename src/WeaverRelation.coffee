@@ -10,20 +10,22 @@ class WeaverRelation
     @nodes = new Weaver.NodeList()         # All nodes that this relation points to
     @relationNodes = new Weaver.NodeList() # RelationNodes
 
-  _removeNode: (oldNode) ->
-    for node, i in @nodes
-      if node.equals(oldNode)
-        relNode = @relationNodes[i]
-        @_removeRelationNode(relNode)
-
   _removeRelationNode: (relNode) ->
-    for node, i in @relationNodes
+    i = 0
+    while i < @relationNodes.length
+      node = @relationNodes[i]
       if node.equals(relNode)
         @nodes.splice(i, 1)
         @relationNodes.splice(i, 1)
+      else
+        i++
 
-  _getRelationNodeForTarget: (node) ->
-    (i for i in @relationNodes when i.to().equals(node))[0] or undefined
+  _getRelationNodesForTarget: (node) ->
+    (i for i in @relationNodes when i.to().equals(node))
+
+  _getNodeForRelationNode: (relNode) ->
+    return @nodes[i] if node.equals(relNode) for node, i in @relationNodes
+      
 
   load: (constructor)->
     new Weaver.Query()
@@ -41,7 +43,7 @@ class WeaverRelation
     Promise.resolve([])
 
   to: (node)->
-    relNode = @_getRelationNodeForTarget(node)
+    relNode = @_getRelationNodesForTarget(node)[0]
     throw new Error("No relation to a node with this id: #{node.id()}") if not relNode?
     Weaver.RelationNode.load(relNode.id(), null, Weaver.RelationNode, true, false, relNode.getGraph())
 
@@ -76,9 +78,9 @@ class WeaverRelation
 
   update: (oldNode, newNode) ->
     newRelId = cuid()
-    oldRel = @_getRelationNodeForTarget(oldNode)
+    oldRel = @_getRelationNodesForTarget(oldNode)[0]
 
-    @_removeNode(oldNode)
+    @_removeRelationNode(oldRel)
     @nodes.push(newNode)
 
     @relationNodes.push(@_createRelationNode(newRelId, newNode))
@@ -88,11 +90,22 @@ class WeaverRelation
 
   remove: (node) ->
     # TODO: This failes when relation is not saved, should be able to only remove locally
-    relNode = @_getRelationNodeForTarget(node)
-    @_removeNode(node)
-    Weaver.publish("node.relation.remove", {node: @owner, key: @key, target: node})
-    relNode.destroy()
+    Promise.map(@_getRelationNodesForTarget(node), (relNode)->
+      @_removeRelationNode(relNode)
+      relNode.destroy()
+    ).then(=>
+      Weaver.publish("node.relation.remove", {node: @owner, key: @key, target: node})
+    )
 
+  removeRelation: (relNode) ->
+    node = @_getNodeForRelationNode(relNode)
+    console.log node
+    @_removeRelationNode(relNode)
+    relNode.destroy()
+    .then(=>
+      Weaver.publish("node.relation.remove", {node: @owner, key: @key, target: node})
+    )
+    
   only: (node) ->
     Promise.map(@nodes, (existing)=>
       @remove(existing) if !existing.equals(node)

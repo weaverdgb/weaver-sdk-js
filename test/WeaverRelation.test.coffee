@@ -134,7 +134,8 @@ describe 'Weaver relation and WeaverRelationNode test', ->
       expect(i.id() for i in loadedNode.relation('comesBefore').all()).to.have.length.be(1)
     )
 
-  it 'should remove one of some relation', ->
+  it 'should remove all in relation', ->
+    loadedNode = undefined
     foo = new Weaver.Node()
     bar = new Weaver.Node()
     foo.relation('comesBefore').add(bar)
@@ -145,10 +146,11 @@ describe 'Weaver relation and WeaverRelationNode test', ->
 
     foo.save().then(->
       Weaver.Node.load(foo.id())
-    ).then((loadedNode) ->
-      expect(loadedNode.relation('comesBefore').nodes).to.have.length.be(1)
-      expect(loadedNode.relation('comesBefore').relationNodes).to.have.length.be(1)
-      expect(loadedNode.relation('comesBefore').all()).to.have.length.be(1)
+    ).then((n) ->
+      loadedNode = n
+      expect(loadedNode.relation('comesBefore').nodes).to.have.length.be(2)
+      expect(loadedNode.relation('comesBefore').relationNodes).to.have.length.be(2)
+      expect(loadedNode.relation('comesBefore').all()).to.have.length.be(2)
 
       loadedNode.relation('comesBefore').remove(bar)
     ).then( ->
@@ -157,7 +159,40 @@ describe 'Weaver relation and WeaverRelationNode test', ->
       expect(loadedNode.relation('comesBefore').all()).to.have.length.be(1)
 
       Weaver.Node.load(foo.id())
-    ).then((loadedNode) ->
+    ).then((n) ->
+      loadedNode = n
+      expect(loadedNode.relation('comesBefore').nodes).to.have.length.be(1)
+      expect(loadedNode.relation('comesBefore').relationNodes).to.have.length.be(1)
+      expect(loadedNode.relation('comesBefore').all()).to.have.length.be(1)
+    )
+
+  it 'should remove one of some relation', ->
+    loadedNode = undefined
+    foo = new Weaver.Node()
+    bar = new Weaver.Node()
+    relA = foo.relation('comesBefore').add(bar)
+    relB = foo.relation('comesBefore').add(bar)
+    expect(foo.relation('comesBefore').nodes).to.have.length.be(2)
+    expect(foo.relation('comesBefore').relationNodes).to.have.length.be(2)
+    expect(foo.relation('comesBefore').all()).to.have.length.be(2)
+
+    foo.save().then(->
+      Weaver.Node.load(foo.id())
+    ).then((n) ->
+      loadedNode = n
+      expect(loadedNode.relation('comesBefore').nodes).to.have.length.be(2)
+      expect(loadedNode.relation('comesBefore').relationNodes).to.have.length.be(2)
+      expect(loadedNode.relation('comesBefore').all()).to.have.length.be(2)
+
+      loadedNode.relation('comesBefore').removeRelation(relA)
+    ).then( ->
+      expect(loadedNode.relation('comesBefore').nodes).to.have.length.be(1)
+      expect(loadedNode.relation('comesBefore').relationNodes).to.have.length.be(1)
+      expect(loadedNode.relation('comesBefore').all()).to.have.length.be(1)
+
+      Weaver.Node.load(foo.id())
+    ).then((n) ->
+      loadedNode = n
       expect(loadedNode.relation('comesBefore').nodes).to.have.length.be(1)
       expect(loadedNode.relation('comesBefore').relationNodes).to.have.length.be(1)
       expect(loadedNode.relation('comesBefore').all()).to.have.length.be(1)
