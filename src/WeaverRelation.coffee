@@ -27,12 +27,12 @@ class WeaverRelation
     return @nodes[i] if node.equals(relNode) for node, i in @relationNodes
       
 
-  load: (constructor)->
+  load: ()->
     new Weaver.Query()
     .restrict(@owner)
     .selectOut(@key)
     .selectRelations(@key)
-    .find(constructor)
+    .find()
     .then((nodes)=>
       reloadedRelation = nodes[0].relation(@key)
       @nodes         = reloadedRelation.nodes
