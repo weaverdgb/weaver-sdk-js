@@ -11,14 +11,19 @@ class WeaverRelation
     @relationNodes = new Weaver.NodeList() # RelationNodes
 
   _removeNode: (oldNode) ->
-    @nodes = @nodes.filter((x) -> not x.equals(oldNode))
+    for node, i in @nodes
+      if node.equals(oldNode)
+        relNode = @relationNodes[i]
+        @_removeRelationNode(relNode)
 
+  _removeRelationNode: (relNode) ->
+    for node, i in @relationNodes
+      if node.equals(relNode)
+        @nodes.splice(i, 1)
+        @relationNodes.splice(i, 1)
 
   _getRelationNodeForTarget: (node) ->
     (i for i in @relationNodes when i.to().equals(node))[0] or undefined
-
-  _removeRelationNodeForTarget: (oldNode) ->
-    @relationNodes = @relationNodes.filter((x) -> not x.to().equals(oldNode))
 
   load: (constructor)->
     new Weaver.Query()
@@ -76,7 +81,6 @@ class WeaverRelation
     @_removeNode(oldNode)
     @nodes.push(newNode)
 
-    @_removeRelationNodeForTarget(oldNode)
     @relationNodes.push(@_createRelationNode(newRelId, newNode))
 
     Weaver.publish("node.relation.update", {node: @owner, key: @key, oldTarget: oldNode, target: newNode})
@@ -85,7 +89,6 @@ class WeaverRelation
   remove: (node) ->
     # TODO: This failes when relation is not saved, should be able to only remove locally
     relNode = @_getRelationNodeForTarget(node)
-    @_removeRelationNodeForTarget(node)
     @_removeNode(node)
     Weaver.publish("node.relation.remove", {node: @owner, key: @key, target: node})
     relNode.destroy()
