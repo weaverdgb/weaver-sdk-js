@@ -7,6 +7,10 @@
 - Add the relation('link').only(to) call.
 - Adds WeaverNodeList
 - Instantiates WeaverRelation.prototype.nodes and WeaverRelation.prototype.relationNodes as WeaverNodeLists
+- Rewrite relation load
+- Remove on relation in a different way
+- Implement relation onlyOnce
+- Completely promisify bootstrap function
 
 ## 9.1.0
 - Add wpath support with initial two filters.
