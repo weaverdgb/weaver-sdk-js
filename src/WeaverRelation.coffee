@@ -37,6 +37,7 @@ class WeaverRelation
       reloadedRelation = nodes[0].relation(@key)
       @nodes         = reloadedRelation.nodes
       @relationNodes = reloadedRelation.relationNodes
+      reloadedRelation.all()
     )
 
   query: ->

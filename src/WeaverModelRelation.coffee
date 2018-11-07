@@ -48,6 +48,7 @@ class WeaverModelRelation extends Weaver.Relation
       reloadedRelation = nodes[0].nodeRelation(@key)
       @nodes         = reloadedRelation.nodes
       @relationNodes = reloadedRelation.relationNodes
+      reloadedRelation.all()
     )
 
 module.exports = WeaverModelRelation
