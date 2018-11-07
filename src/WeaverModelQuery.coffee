@@ -8,6 +8,7 @@ class WeaverModelQuery extends Weaver.Query
     super(target)
     @context = context
     @model = context.model
+    @keyMappingDisabled = false
 
     # Define constructor function
     constructorFunction = (node, owner, key) =>
@@ -70,8 +71,13 @@ class WeaverModelQuery extends Weaver.Query
       new Weaver.ModelQuery(@model).hasRecursiveRelationOut(@model.getInheritKey(), Weaver.Node.getFromGraph(modelClass.classId(), modelClass.context.getGraph()), true)
     )
 
+  disableKeyMapping: ->
+    @keyMappingDisabled = true
+    @
+
   # Key is composed of Class.modelAttribute
   _mapKeys: (keys, source) ->
+    return keys if @keyMappingDisabled
     databaseKeys = []
     for key in keys
       if [@model.getMemberKey(), @model.getInheritKey(), '*'].includes(key)

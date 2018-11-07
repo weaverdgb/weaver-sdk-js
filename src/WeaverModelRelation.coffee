@@ -37,8 +37,17 @@ class WeaverModelRelation extends Weaver.Relation
     @_checkCorrectClass(newNode)
     super(oldNode, newNode)
 
-  load: (constructor)->
-    @_checkCorrectConstructor(constructor)
-    super(constructor)
+  load: (Constructor=Weaver.Node)->
+    new Weaver.ModelQuery(@model)
+    .disableKeyMapping()
+    .restrict(@owner)
+    .selectOut(@key)
+    .selectRelations(@key)
+    .find()
+    .then((nodes)=>
+      reloadedRelation = nodes[0].nodeRelation(@key)
+      @nodes         = reloadedRelation.nodes
+      @relationNodes = reloadedRelation.relationNodes
+    )
 
 module.exports = WeaverModelRelation
