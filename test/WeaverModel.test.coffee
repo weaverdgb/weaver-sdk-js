@@ -320,7 +320,9 @@ describe 'WeaverModel test', ->
 
       it 'should have bootstrapped some instance with two types', ->
         Weaver.Node.loadFromGraph('test-model:EmpireState', model.getGraph()).then((node)->
-          node.relation('rdf:type').all().should.have.length.be(2)
+          toIds = (to.id() for to in node.relation('rdf:type').all())
+          expect(toIds).to.have.length.be(2)
+          expect(toIds).to.have.members(['test-model:City', 'test-model:Building'])
         )
 
       it 'should succeed save inherit relation', ->
