@@ -260,11 +260,10 @@ class WeaverModel extends ModelContext
         existingNodes[n.id()] = n for n in nodes
       )
     ).then(=>
-      nodesToCreate = @_bootstrapClasses(existingNodes)
-      Weaver.Node.batchSave((node for id, node of nodesToCreate), project) if save
+      @_bootstrapClasses(existingNodes, undefined, project, save)
     )
 
-  _bootstrapClasses: (existingNodes, nodesToCreate={}) ->
+  _bootstrapClasses: (existingNodes, nodesToCreate={}, project, save=true) ->
 
     firstOrCreate = (id, graph, Constructor=Weaver.Node, create=true) ->
       return nodesToCreate[id] if nodesToCreate[id]?
@@ -277,6 +276,8 @@ class WeaverModel extends ModelContext
       nodesToCreate[id] = node
       node
 
+    promises = []
+
     # First create all class instances
     for tag, context of @contextMap
       for className, classObj of context.definition.classes when classObj?.init?
@@ -287,7 +288,7 @@ class WeaverModel extends ModelContext
           nodeId = "#{context.definition.name}:#{itemName}"
           node = firstOrCreate(nodeId, context.getGraph(), Weaver.DefinedNode)
           node.model = @
-          node.relation(@getMemberKey()).onlyOnce(owner)
+          promises.push(node.relation(@getMemberKey()).onlyOnce(owner))
           # context[className][itemName] = node
 
       # Now add all the nodes that represent a model class
@@ -303,8 +304,10 @@ class WeaverModel extends ModelContext
           superId = context.getNodeNameByKey(classObj.super)
           node = firstOrCreate(id, context.getGraph())
           superNode = firstOrCreate(superId, context.getGraph(), undefined, false)
-          node.relation(@getInheritKey()).onlyOnce(superNode)
+          promises.push(node.relation(@getInheritKey()).onlyOnce(superNode))
 
-    nodesToCreate
+    Promise.all(promises).then(->
+      Weaver.Node.batchSave((node for id, node of nodesToCreate), project) if save
+    )
 
 module.exports = WeaverModel
