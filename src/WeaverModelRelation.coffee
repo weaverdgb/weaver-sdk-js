@@ -37,7 +37,7 @@ class WeaverModelRelation extends Weaver.Relation
     @_checkCorrectClass(newNode)
     super(oldNode, newNode)
 
-  load: (Constructor=Weaver.Node)->
+  load: () ->
     new Weaver.ModelQuery(@model)
     .disableKeyMapping()
     .restrict(@owner)

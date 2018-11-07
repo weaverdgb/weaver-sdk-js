@@ -40,7 +40,7 @@ describe 'Weaver Model relation test', ->
       expect(j.relation('hasFriend').first()).to.be.instanceOf(model.Person)
     )
 
-  it 'should throw an error when trying Weaver.ModelRelation.prototype.load with a disallowed constructor', ->
+  it.skip 'should throw an error when trying Weaver.ModelRelation.prototype.load with a disallowed constructor', ->
 
     model.Person.load('johnny').then((j)->
       expect(-> j.relation('hasFriend').load(model.Passport)).to.throw()
@@ -66,7 +66,7 @@ describe 'Weaver Model relation test', ->
       expect(j.relation('hasFriend').first().get('fullName')).to.equal('Jill O\' Quill')
     )
 
-  it 'should load the to model nodes of a relation', ->
+  it.skip 'should load the to model nodes of a relation', ->
     loadedNode = null
     p = new model.Person('p')
     o = new model.Office('o')
