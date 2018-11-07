@@ -346,7 +346,7 @@ describe 'Weaver relation and WeaverRelationNode test', ->
       expect(node.relation('relationRelation')).to.have.property('nodes').to.have.length.be(1)
     )
 
-  it 'should use the given constructor, if supplied during Weaver.Relation.prototype.load', ->
+  it.skip 'should use the given constructor, if supplied during Weaver.Relation.prototype.load', ->
     j = {}
 
     class Person extends Weaver.Node
