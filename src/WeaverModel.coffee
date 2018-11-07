@@ -249,7 +249,7 @@ class WeaverModel extends ModelContext
   bootstrap: (project)->
     @_bootstrap(project)
 
-  _bootstrap: (project, save=true)->
+  _bootstrap: (project)->
     existingNodes = {}
 
     Promise.map((context for tag, context of @contextMap), (context)=>
@@ -260,54 +260,70 @@ class WeaverModel extends ModelContext
         existingNodes[n.id()] = n for n in nodes
       )
     ).then(=>
-      @_bootstrapClasses(existingNodes, undefined, project, save)
+      @_bootstrapClasses(existingNodes, undefined, project)
     )
 
-  _bootstrapClasses: (existingNodes, nodesToCreate={}, project, save=true) ->
+  _bootstrapClasses: (existingNodes, nodesToCreate={}, project) ->
 
     firstOrCreate = (id, graph, Constructor=Weaver.Node, create=true) ->
-      return nodesToCreate[id] if nodesToCreate[id]?
+      if nodesToCreate[id]?
+        return Promise.resolve(nodesToCreate[id]) 
       if existingNodes[id]?
         node = existingNodes[id]
         nodesToCreate[id] = node
-        return node
+        return Promise.resolve(node)
       throw new Error("Node #{id} in graph #{graph} should already exist in this phase of bootstrapping") if !create
+
       node = new Constructor(id, graph)
       nodesToCreate[id] = node
-      node
+      node.save(project)
 
-    promises = []
+    initLinks = (context, model, memberkey) ->
+      classNames = (className for className, classObj of context.definition.classes when classObj?.init?)
+      Promise.mapSeries(classNames, (className)->
+        classObj = context.definition.classes[className]
+        ownerId = context.getNodeNameByKey(className)
+        firstOrCreate(ownerId, context.getGraph()).then((owner)->
+          Promise.mapSeries(classObj.init, (itemName)->
+            nodeId = "#{context.definition.name}:#{itemName}"
+            firstOrCreate(nodeId, context.getGraph(), Weaver.DefinedNode)
+            .then((node)->
+              node.model = model
+              node.relation(memberKey).onlyOnce(owner)
+            )
+          )
+        )
+      )
+
+    classes = (context) ->
+      classNames = (className for className, classObj of context.definition.classes)
+      Promise.map(classNames, (className)->
+        id = context.getNodeNameByKey(className)
+        firstOrCreate(id, context.getGraph())
+      )
+
+    inheritenceLinks = (context, inheritKey) ->
+      classNames = (className for className, classObj of context.definition.classes when classObj?.super?)
+      Promise.mapSeries(classNames, (className) ->
+        classObj = context.definition.classes[className]
+        id = context.getNodeNameByKey(className)
+        superId = context.getNodeNameByKey(classObj.super)
+        firstOrCreate(id, context.getGraph()).then((node) ->
+          firstOrCreate(superId, context.getGraph(), undefined, false).then((superNode)->
+            node.relation(inheritKey).onlyOnce(superNode)
+          )
+        )
+      )
 
     # First create all class instances
-    for tag, context of @contextMap
-      for className, classObj of context.definition.classes when classObj?.init?
-        ownerId = context.getNodeNameByKey(className)
-        owner = firstOrCreate(ownerId, context.getGraph())
-
-        for itemName in classObj.init
-          nodeId = "#{context.definition.name}:#{itemName}"
-          node = firstOrCreate(nodeId, context.getGraph(), Weaver.DefinedNode)
-          node.model = @
-          promises.push(node.relation(@getMemberKey()).onlyOnce(owner))
-          # context[className][itemName] = node
-
-      # Now add all the nodes that represent a model class
-      for tag, context of @contextMap
-        for className of context.definition.classes
-          id = context.getNodeNameByKey(className)
-          firstOrCreate(id, context.getGraph())
-
-      # Link inheritance
-      for tag, context of @contextMap
-        for className, classObj of context.definition.classes when classObj?.super?
-          id = context.getNodeNameByKey(className)
-          superId = context.getNodeNameByKey(classObj.super)
-          node = firstOrCreate(id, context.getGraph())
-          superNode = firstOrCreate(superId, context.getGraph(), undefined, false)
-          promises.push(node.relation(@getInheritKey()).onlyOnce(superNode))
-
-    Promise.all(promises).then(->
-      Weaver.Node.batchSave((node for id, node of nodesToCreate), project) if save
-    )
+    model = @model
+    memberKey = @getMemberKey()
+    inheritKey = @getInheritKey()
+    contexts = (context for tag, context of @contextMap)
+    Promise.resolve().then(->
+      Promise.mapSeries(contexts, (context) -> initLinks(context, model, memberKey))).then(->
+      Promise.mapSeries(contexts, (context) -> classes(context))).then(->
+      Promise.mapSeries(contexts, (context) -> inheritenceLinks(context, inheritKey)))
+  
 
 module.exports = WeaverModel

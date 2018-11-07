@@ -88,41 +88,41 @@ class WeaverRelation
     Weaver.publish("node.relation.update", {node: @owner, key: @key, oldTarget: oldNode, target: newNode})
     @pendingWrites.push(Operation.Node(@owner).createRelation(@key, newNode, newRelId, oldRel, Weaver.getInstance()._ignoresOutOfDate))
 
-  remove: (node) ->
+  remove: (node, project) ->
     # TODO: This failes when relation is not saved, should be able to only remove locally
     Promise.map(@_getRelationNodesForTarget(node), (relNode)=>
       @_removeRelationNode(relNode)
-      relNode.destroy()
+      relNode.destroy(project)
     ).then(=>
       Weaver.publish("node.relation.remove", {node: @owner, key: @key, target: node})
     )
 
-  removeRelation: (relNode) ->
+  removeRelation: (relNode, project) ->
     node = @_getNodeForRelationNode(relNode)
     @_removeRelationNode(relNode)
-    relNode.destroy()
+    relNode.destroy(project)
     .then(=>
       Weaver.publish("node.relation.remove", {node: @owner, key: @key, target: node})
     )
     
-  only: (node) ->
+  only: (node, project) ->
     Promise.map(@nodes, (existing)=>
-      @remove(existing) if !existing.equals(node)
+      @remove(existing, project) if !existing.equals(node)
     ).then(=>
       @add(node) if @nodes.length is 0
-      @owner.save()
+      @owner.save(project)
     )
     
-  onlyOnce: (node) ->
+  onlyOnce: (node, project) ->
     
     [first, existing...] = @_getRelationNodesForTarget(node)
     if !first?
-      @add(node) if @nodes.length is 0
-      @owner.save()
+      @add(node) 
+      @owner.save(project)
     else if existing.length > 0
       Promise.map(existing, (relNode)=>
         @_removeRelationNode(relNode)
-        relNode.destroy()
+        relNode.destroy(project)
       )
     else
       Promise.resolve()
