@@ -58,7 +58,7 @@ class WeaverRelation
     @_records
 
   first: ->
-    @.allRecords()[0]?.toNode
+    @allRecords()[0]?.toNode
 
   addInGraph: (node, graph) ->
     @add(node, undefined, true, graph)

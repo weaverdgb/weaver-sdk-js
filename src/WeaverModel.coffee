@@ -86,9 +86,9 @@ class WeaverModel extends ModelContext
     modelClass.className            = className
     modelClass.model                = @
     modelClass.context              = context
-    modelClass.definition           = @.definition
+    modelClass.definition           = @definition
     modelClass.classDefinition      = classDefinition
-    modelClass.classId              = -> @.context.getNodeNameByKey(@.className)
+    modelClass.classId              = -> @context.getNodeNameByKey(@className)
 
     # Also undefind is a valid as agrument for graph
     load = (loadClass) => (nodeId, graph) =>

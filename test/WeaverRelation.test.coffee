@@ -351,7 +351,7 @@ describe 'Weaver relation and WeaverRelationNode test', ->
 
     class Person extends Weaver.Node
       age: ->
-        @.get('age')
+        @get('age')
 
     johnny = new Person('johnny')
     tim = new Person('tim')

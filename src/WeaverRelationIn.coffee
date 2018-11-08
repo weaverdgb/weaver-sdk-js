@@ -9,7 +9,7 @@ class WeaverRelationIn
     @nodes
 
   first: ->
-    @.all()[0]
+    @all()[0]
 
   addSource: (node) ->
     @nodes.push(node)
