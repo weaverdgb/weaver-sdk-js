@@ -3,31 +3,31 @@ Operation   = require('./Operation')
 Weaver      = require('./Weaver')
 Promise     = require('bluebird')
 
+class Record
+
+  constructor: (@toNode, @relNode) ->
+  equals: (record) ->
+    record.relNode.equals(@relNode)
+
 class WeaverRelation
 
   constructor: (@owner, @key) ->
     @pendingWrites = []                    # All operations that need to get saved
-    @nodes = new Weaver.NodeList()         # All nodes that this relation points to
-    @relationNodes = new Weaver.NodeList() # RelationNodes
+    @_records = []
 
-  _removeRelationNode: (relNode) ->
+  _removeRecord: (record) ->
     i = 0
-    while i < @relationNodes.length
-      node = @relationNodes[i]
+    while i < @_records.length
+      node = @_records[i].relNode
       if node.equals(relNode)
-        @nodes.splice(i, 1)
-        @relationNodes.splice(i, 1)
+        @_records.splice(i, 1)
       else
         i++
 
-  _getRelationNodesForTarget: (node) ->
-    (i for i in @relationNodes when i.to().equals(node))
-
-  _getNodeForRelationNode: (relNode) ->
-    return @nodes[i] if node.equals(relNode) for node, i in @relationNodes
+  _getRecordsForToNode: (toNode) ->
+    (record.relNode for record in @_records when record.toNode.equals(toNode))
       
-
-  load: ()->
+  load: () ->
     new Weaver.Query()
     .restrict(@owner)
     .selectOut(@key)
@@ -35,24 +35,28 @@ class WeaverRelation
     .find()
     .then((nodes)=>
       reloadedRelation = nodes[0].relation(@key)
-      @nodes         = reloadedRelation.nodes
-      @relationNodes = reloadedRelation.relationNodes
+      @_records = reloadedRelation.allRecords()
       reloadedRelation.all()
     )
 
   query: ->
     Promise.resolve([])
 
-  to: (node)->
-    relNode = @_getRelationNodesForTarget(node)[0]
+  to: (node) ->
+    relNode = @_getRecordsForToNode(node)[0]?.relNode
     throw new Error("No relation to a node with this id: #{node.id()}") if not relNode?
     Weaver.RelationNode.load(relNode.id(), null, Weaver.RelationNode, true, false, relNode.getGraph())
 
   all: ->
-    @nodes
+    map = {}
+    map[record.toNode.id()] = record.toNode for record in @_records
+    (node for id, node of map)
+
+  allRecords:  ->
+    @_records
 
   first: ->
-    @.all()[0]
+    @.allRecords()[0]?.toNode
 
   addInGraph: (node, graph) ->
     @add(node, undefined, true, graph)
@@ -66,68 +70,92 @@ class WeaverRelation
   add: (node, relId, addToPendingWrites = true, graph) ->
     relId ?= cuid()
     graph ?= @owner.getGraph()
-    @nodes.push(node)
-
-    # Currently this assumes having one relation to the same node
-    # it should change, but its here now for backwards compatibility
     relationNode = @_createRelationNode(relId, node, graph)
-    @relationNodes.push(relationNode)
+    @_records.push(new Record(node, relationNode))
 
     Weaver.publish("node.relation.add", {node: @owner, key: @key, target: node})
     @pendingWrites.push(Operation.Node(@owner).createRelation(@key, node, relId, undefined, false, graph)) if addToPendingWrites
     relationNode
 
   update: (oldNode, newNode) ->
-    newRelId = cuid()
-    oldRel = @_getRelationNodesForTarget(oldNode)[0]
 
-    @_removeRelationNode(oldRel)
-    @nodes.push(newNode)
+    oldRecords = []
+    if oldNode instanceof Record 
+      oldRecords.push(oldNode)
+    else
+      oldRecords = @_getRecordsForToNode(oldNode)
 
-    @relationNodes.push(@_createRelationNode(newRelId, newNode))
+    newRecord = undefined
+    if newNode instanceof Record 
+      newRecord = newNode 
+    else
+      newRelId = cuid()
+      graph = oldRecords[0]?.relNode.getGraph()
+      graph ?= @owner.getGraph()
+      newRelNode = @_createRelationNode(newRelId, newNode, graph)
+      newRecord = new Record(newNode, newRelNode)
 
+    oldRecord = undefined
+    if oldNode instanceof Record 
+      oldRecord = oldNode 
+      @_update(oldRecord, newRecord)
+    else
+      Promise.map(@_getRecordsForToNode(oldNode), (oldRecord) =>
+        @_update(oldRecord, newRecord)
+      )
+
+  _update: (oldRecord, newRecord) ->
+
+    @_removeRecord(oldRecord)
+    @_records.push(newRecord)
+
+    operation = Operation.Node(@owner).createRelation(@key, newRecord.toNode, newRecord.relNode.id(), oldRecord.relNode.id(), Weaver.getInstance()._ignoresOutOfDate, newRecord.relNode.getGraph())
+    @pendingWrites.push(operation)
     Weaver.publish("node.relation.update", {node: @owner, key: @key, oldTarget: oldNode, target: newNode})
-    @pendingWrites.push(Operation.Node(@owner).createRelation(@key, newNode, newRelId, oldRel, Weaver.getInstance()._ignoresOutOfDate))
 
   remove: (node, project) ->
-    # TODO: This failes when relation is not saved, should be able to only remove locally
-    Promise.map(@_getRelationNodesForTarget(node), (relNode)=>
-      @_removeRelationNode(relNode)
-      relNode.destroy(project)
-    ).then(=>
-      Weaver.publish("node.relation.remove", {node: @owner, key: @key, target: node})
-    )
+    if node instanceof Record
+      @_remove(node, project)
+    else 
+      Promise.map(@_getRecordsForToNode(node), (record) =>
+        @_remove(record, project)
+      )
 
-  removeRelation: (relNode, project) ->
-    node = @_getNodeForRelationNode(relNode)
-    @_removeRelationNode(relNode)
-    relNode.destroy(project)
-    .then(=>
+  _remove: (record, project) ->
+    # remove from list
+    @_removeRecord(record)
+    
+    # destroy relation node
+    # TODO: This failed when relation is not saved, should be able to only remove locally: CREATE TEST
+    Promise.resolve()
+    .then(
+      if record.relNode._stored 
+        record.relNode.destroy(project)
+      else 
+        Promise.resolve()
+    ).then(=>
       Weaver.publish("node.relation.remove", {node: @owner, key: @key, target: node})
     )
     
   only: (node, project) ->
-    Promise.map(@nodes, (existing)=>
-      @remove(existing, project) if !existing.equals(node)
+    Promise.map(@_records, (record)=>
+      @_remove(record, project) if !record.toNode.equals(node)
     ).then(=>
-      @add(node) if @nodes.length is 0
+      @add(node) if @_records.length is 0
       @owner.save(project)
     )
     
   onlyOnce: (node, project) ->
-    
-    [first, existing...] = @_getRelationNodesForTarget(node)
+    [first, rest...] = @_getRecordsForToNode(node)
     if !first?
       @add(node) 
       @owner.save(project)
-    else if existing.length > 0
-      Promise.map(existing, (relNode)=>
-        @_removeRelationNode(relNode)
-        relNode.destroy(project)
+    else if rest.length > 0
+      Promise.map(rest, (record) =>
+        @_remove(record, project)
       )
     else
       Promise.resolve()
-
 
 # Export
 module.exports  = WeaverRelation
