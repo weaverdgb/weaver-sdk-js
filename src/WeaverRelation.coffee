@@ -29,7 +29,7 @@ class WeaverRelation
   _getRecordsForToNode: (toNode) ->
     (record.relNode for record in @_records when record.toNode.equals(toNode))
       
-  load: () ->
+  load: ->
     new Weaver.Query()
     .restrict(@owner)
     .selectOut(@key)

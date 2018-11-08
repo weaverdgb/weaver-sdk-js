@@ -21,7 +21,7 @@ describe 'Database Test', ->
     c.relation('knows').add(d)
     d.set('name', 'john')
 
-    Weaver.Node.batchSave([a,b,c,d,e]).then(() ->
+    Weaver.Node.batchSave([a,b,c,d,e]).then(->
       a.set('age', 25)
       d.set('name', 'John')
       c.relation('knows').update(d, e)

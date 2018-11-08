@@ -322,7 +322,7 @@ class WeaverNode
     cm = Weaver.getCoreManager()
     cm.cloneNode(@nodeId, newId, relationTraversal, @graph, graph)
 
-  peekPendingWrites: () ->
+  peekPendingWrites: ->
     @_collectPendingWrites(undefined, false)
 
   # Go through each relation and recursively add all pendingWrites per relation AND that of the objects

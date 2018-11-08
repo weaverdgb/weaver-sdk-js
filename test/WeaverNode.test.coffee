@@ -363,18 +363,18 @@ describe 'WeaverNode test', ->
     c = new Weaver.Node()
 
     Weaver.Node.batchSave([a,b,c])
-    .then(() ->
+    .then(->
       expect(a).to.have.property('_stored').be.equal(true)
       Weaver.Node.load(a.id())
     ).then((loadedNode) ->
       assert.equal(loadedNode.id(), a.id())
     )
-    .then(() ->
+    .then(->
       Weaver.Node.load(b.id())
     ).then((loadedNode) ->
       assert.equal(loadedNode.id(), b.id())
     )
-    .then(() ->
+    .then(->
       Weaver.Node.load(c.id())
     ).then((loadedNode) ->
       assert.equal(loadedNode.id(), c.id())
@@ -644,7 +644,7 @@ describe 'WeaverNode test', ->
     ).then((res)->
       res.set('name','_A')
       res.save()
-    ).then(()->
+    ).then(->
       Weaver.Node.load(a.id())
     ).then((res)->
       assert.equal(res.get('name'),'_A')
