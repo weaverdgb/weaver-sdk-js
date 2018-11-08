@@ -81,9 +81,9 @@ class WeaverRelation
 
   update: (oldNode, newNode) ->
 
-    oldRecords = []
+    oldRecords = undefined
     if oldNode instanceof Record 
-      oldRecords.push(oldNode)
+      oldRecords = [oldNode]
     else
       oldRecords = @_getRecordsForToNode(oldNode)
 
