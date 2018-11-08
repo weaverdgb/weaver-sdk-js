@@ -131,7 +131,7 @@ class WeaverRelation
       else 
         Promise.resolve()
     ).then(=>
-      Weaver.publish("node.relation.remove", {node: @owner, key: @key, target: node})
+      Weaver.publish("node.relation.remove", {node: @owner, key: @key, target: record.toNode})
     )
     
   only: (node, project) ->
