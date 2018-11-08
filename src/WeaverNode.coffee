@@ -344,9 +344,9 @@ class WeaverNode
 
       operations = operations.concat(relation.pendingWrites)
 
-      for node in relation.relationNodes when node not in collected
-          collected.push(node)
-          operations = operations.concat(node._collectPendingWrites(collected, cleanup))
+      for record in relation.allRecords() when record.relNode not in collected
+        collected.push(record.relNode)
+        operations = operations.concat(record.relNode._collectPendingWrites(collected, cleanup))
 
       if cleanup
         i.__pendingOpNode = relation for i in relation.pendingWrites

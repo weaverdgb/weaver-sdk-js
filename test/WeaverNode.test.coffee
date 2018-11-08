@@ -988,8 +988,6 @@ describe 'WeaverNode test', ->
       c.save()
     ).then(->
       a.destroy()
-    ).then(->
-      Weaver.Node.load(a.relation('link').relationNodes.hello.id())
     ).finally(
       weaver.setOptions({unrecoverableRemove: false})
       # Error.code isn't fully working on this one, should have its own code. Node not found is working if node is in the deleted table
