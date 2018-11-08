@@ -11,6 +11,8 @@ class Record
 
 class WeaverRelation
 
+  @Record = Record
+
   constructor: (@owner, @key) ->
     @pendingWrites = []                    # All operations that need to get saved
     @_records = []
