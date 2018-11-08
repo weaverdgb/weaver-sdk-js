@@ -27,7 +27,7 @@ class WeaverRelation
         i++
 
   _getRecordsForToNode: (toNode) ->
-    (record.relNode for record in @_records when record.toNode.equals(toNode))
+    (record for record in @_records when record.toNode.equals(toNode))
       
   load: ->
     new Weaver.Query()
@@ -108,7 +108,7 @@ class WeaverRelation
 
     operation = Operation.Node(@owner).createRelation(@key, newRecord.toNode, newRecord.relNode.id(), oldRecord.relNode.id(), Weaver.getInstance()._ignoresOutOfDate, newRecord.relNode.getGraph())
     @_pendingWrites.push(operation)
-    Weaver.publish("node.relation.update", {node: @owner, key: @key, oldTarget: oldNode, target: newNode})
+    Weaver.publish("node.relation.update", {node: @owner, key: @key, oldTarget: oldRecord.toNode, target: newRecord.toNode})
 
   remove: (node, project) ->
     if node instanceof Record
