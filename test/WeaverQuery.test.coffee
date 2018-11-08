@@ -702,7 +702,7 @@ describe 'WeaverQuery Test', ->
         .find().then((nodes)->
           expect(nodes.length).to.equal(1)
           checkNodeInResult(nodes, 'a')
-          expect(nodes[0].relation('test').nodes[0].get('name')).to.equal('bravo')
+          expect(nodes[0].relation('test').all()[0].get('name')).to.equal('bravo')
         )
       )
 
@@ -721,9 +721,9 @@ describe 'WeaverQuery Test', ->
         .find().then((nodes)->
           expect(nodes.length).to.equal(1)
           checkNodeInResult(nodes, 'a')
-          loadedB = nodes[0].relation('link').nodes[0]
+          loadedB = nodes[0].relation('link').all()[0]
           expect(loadedB).to.exist
-          expect(loadedB.relation('test').nodes[0].get('name')).to.equal('grazitutti')
+          expect(loadedB.relation('test').all()[0].get('name')).to.equal('grazitutti')
         )
       )
 
@@ -757,8 +757,8 @@ describe 'WeaverQuery Test', ->
           expect(nodes.length).to.equal(1)
 
           loadedA = nodes[0]
-          loadedB = nodes[0].relation('link').nodes[0]
-          loadedC = loadedB.relation('test').nodes[0]
+          loadedB = nodes[0].relation('link').all()[0]
+          loadedC = loadedB.relation('test').all()[0]
 
           assert.isTrue(loadedA instanceof SpecialNodeA)
           assert.isTrue(loadedB instanceof Weaver.Node)
@@ -786,8 +786,8 @@ describe 'WeaverQuery Test', ->
       ).then((nodes) ->
         expect(nodes).to.have.length.be(1)
         checkNodeInResult(nodes, 'a')
-        expect(nodes[0].relation('beats').nodes[0].get('name')).to.equal('Seb')
-        expect(nodes[0].relation('beatenBy').nodes[0].get('name')).to.equal('Lewis')
+        expect(nodes[0].relation('beats').all()[0].get('name')).to.equal('Seb')
+        expect(nodes[0].relation('beatenBy').all()[0].get('name')).to.equal('Lewis')
       )
 
     it 'should not 503 on selectOut for no nodes', ->
@@ -834,8 +834,8 @@ describe 'WeaverQuery Test', ->
         .find().then((nodes)->
           expect(nodes.length).to.equal(1)
           checkNodeInResult(nodes, 'a')
-          expect(nodes[0].relation('test').nodes[0].get('name')).to.equal('foxtrot')
-          expect(nodes[0].relation('link').nodes[0].get('name')).to.equal('tango')
+          expect(nodes[0].relation('test').all()[0].get('name')).to.equal('foxtrot')
+          expect(nodes[0].relation('link').all()[0].get('name')).to.equal('tango')
         )
       )
 
@@ -858,7 +858,7 @@ describe 'WeaverQuery Test', ->
         .find()
       ).then((nodes) ->
         expect(nodes.length).to.equal(1)
-        expect(nodes[0].relation('rec').nodes[0].relation('rec').nodes[0].relation('rec').nodes[0].relation('rec').nodes[0].get('name')).to.equal("toprec")
+        expect(nodes[0].relation('rec').all()[0].relation('rec').all()[0].relation('rec').all()[0].relation('rec').all()[0].get('name')).to.equal("toprec")
       )
 
     it 'should support multiple recursive selectOut relations', ->
@@ -875,7 +875,7 @@ describe 'WeaverQuery Test', ->
         .find()
       ).then((nodes) ->
         expect(nodes.length).to.equal(1)
-        expect(nodes[0].relation('rec').nodes[0].relation('test').nodes[0]).to.exist
+        expect(nodes[0].relation('rec').all()[0].relation('test').all()[0]).to.exist
       )
 
     it 'should not break on loops with recursive selectOut', ->
@@ -891,7 +891,7 @@ describe 'WeaverQuery Test', ->
         .find()
       ).then((nodes) ->
         expect(nodes.length).to.equal(1)
-        expect(nodes[0].relation('rec').nodes[0].relation('rec').nodes[0]).to.exist
+        expect(nodes[0].relation('rec').all()[0].relation('rec').all()[0]).to.exist
       )
 
     it 'should be able to combine hasRelationIn queries with hasRelationOut', ->
@@ -948,7 +948,7 @@ describe 'WeaverQuery Test', ->
         .hasRelationOut('link',
           new Weaver.Query().hasRelationOut('link')
         ).find().then((nodes)->
-          expect(nodes[0].relation('link').nodes[0].get('name')).to.be.undefined
+          expect(nodes[0].relation('link').all()[0].get('name')).to.be.undefined
         )
       )
 
@@ -1106,9 +1106,9 @@ describe 'WeaverQuery Test', ->
         # make sure the 'name' attribute for b1 is loaded, and not loaded for b2
         for node in nodes
           if node.id() is 'a1'
-            expect(node.relation('link').nodes['b1'].get('name')).to.equal('bravo-one')
+            expect(node.relation('link').all()['b1'].get('name')).to.equal('bravo-one')
           if node.id() is 'a2'
-            expect(node.relation('link').nodes['b2'].get('name')).to.equal(undefined)
+            expect(node.relation('link').all()['b2'].get('name')).to.equal(undefined)
       )
     )
 
@@ -1159,7 +1159,7 @@ describe 'WeaverQuery Test', ->
         for node in nodes
           switch(node.id())
             when 'space1'
-              expect(node.relation('hasSpaceRequirement').nodes['spaceReq1'].get('name')).to.equal('SpaceRequirementOne')
+              expect(node.relation('hasSpaceRequirement').all()['spaceReq1'].get('name')).to.equal('SpaceRequirementOne')
             when 'space2'
               expect(node.relationIn('to').nodes['spaceConn2'].relationIn('consistsOf').nodes['spaceGroup3'])
             when 'spaceGroup2'
