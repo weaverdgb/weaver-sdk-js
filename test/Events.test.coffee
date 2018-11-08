@@ -170,6 +170,7 @@ describe 'Events test', ->
     n = new Weaver.Node(id)
     n.relation('hasFriend').add(new Weaver.Node("Max"))
     n.relation('hasFriend').update(new Weaver.Node("Max"), new Weaver.Node("Jack"))
+    return # The previous call returns a promise, so hard return nothing
 
 
   it 'should listen to node relation remove', (done) ->
