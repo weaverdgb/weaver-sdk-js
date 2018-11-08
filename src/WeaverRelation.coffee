@@ -97,9 +97,7 @@ class WeaverRelation
       newRelNode = @_createRelationNode(newRelId, newNode, graph)
       newRecord = new Record(newNode, newRelNode)
 
-    Promise.map(oldRecords, (oldRecord) =>
-      @_update(oldRecord, newRecord)
-    )
+    @_update(oldRecord, newRecord) for oldRecord in oldRecords
 
   _update: (oldRecord, newRecord) ->
 
@@ -109,6 +107,7 @@ class WeaverRelation
     operation = Operation.Node(@owner).createRelation(@key, newRecord.toNode, newRecord.relNode.id(), oldRecord.relNode.id(), Weaver.getInstance()._ignoresOutOfDate, newRecord.relNode.getGraph())
     @_pendingWrites.push(operation)
     Weaver.publish("node.relation.update", {node: @owner, key: @key, oldTarget: oldRecord.toNode, target: newRecord.toNode})
+    return
 
   remove: (node, project) ->
     if node instanceof Record
