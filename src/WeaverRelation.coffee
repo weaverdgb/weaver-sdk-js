@@ -95,14 +95,9 @@ class WeaverRelation
       newRelNode = @_createRelationNode(newRelId, newNode, graph)
       newRecord = new Record(newNode, newRelNode)
 
-    oldRecord = undefined
-    if oldNode instanceof Record 
-      oldRecord = oldNode 
+    Promise.map(oldRecords, (oldRecord) =>
       @_update(oldRecord, newRecord)
-    else
-      Promise.map(@_getRecordsForToNode(oldNode), (oldRecord) =>
-        @_update(oldRecord, newRecord)
-      )
+    )
 
   _update: (oldRecord, newRecord) ->
 
