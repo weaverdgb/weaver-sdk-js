@@ -18,8 +18,8 @@ class WeaverRelation
   _removeRecord: (record) ->
     i = 0
     while i < @_records.length
-      node = @_records[i].relNode
-      if node.equals(relNode)
+      rec = @_records[i]
+      if rec.equals(record)
         @_records.splice(i, 1)
       else
         i++
