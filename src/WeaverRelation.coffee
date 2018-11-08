@@ -113,7 +113,7 @@ class WeaverRelation
     if node instanceof Record
       @_remove(node, project)
     else 
-      Promise.map(@_getRecordsForToNode(node), (record) =>
+      Promise.mapSeries(@_getRecordsForToNode(node), (record) =>
         @_remove(record, project)
       )
 
@@ -134,7 +134,7 @@ class WeaverRelation
     )
     
   only: (node, project) ->
-    Promise.map(@_records, (record)=>
+    Promise.mapSeries(@_records, (record)=>
       @_remove(record, project) if !record.toNode.equals(node)
     ).then(=>
       @add(node) if @_records.length is 0
@@ -147,7 +147,7 @@ class WeaverRelation
       @add(node) 
       @owner.save(project)
     else if rest.length > 0
-      Promise.map(rest, (record) =>
+      Promise.mapSeries(rest, (record) =>
         @_remove(record, project)
       )
     else

@@ -119,7 +119,6 @@ describe 'WeaverHistory test', ->
     ).then((node) ->
       history.getHistory(null, null, node.id(),null)
     ).then((res) ->
-      console.log res
       expect(res).to.have.length.be(2)
       assert.equal(res[0].action,'create-relation')
       assert.equal(res[0].key,'is')

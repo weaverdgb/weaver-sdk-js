@@ -140,17 +140,17 @@ describe 'Weaver relation and WeaverRelationNode test', ->
     bar = new Weaver.Node()
     foo.relation('comesBefore').add(bar)
     foo.relation('comesBefore').add(bar)
-    expect(foo.relation('comesBefore').all()).to.have.length.be(2)
+    expect(foo.relation('comesBefore').all()).to.have.length.be(1)
     expect(foo.relation('comesBefore').allRecords()).to.have.length.be(2)
-    expect(foo.relation('comesBefore').all()).to.have.length.be(2)
+    expect(foo.relation('comesBefore').all()).to.have.length.be(1)
 
     foo.save().then(->
       Weaver.Node.load(foo.id())
     ).then((n) ->
       loadedNode = n
-      expect(loadedNode.relation('comesBefore').all()).to.have.length.be(2)
+      expect(loadedNode.relation('comesBefore').all()).to.have.length.be(1)
       expect(loadedNode.relation('comesBefore').allRecords()).to.have.length.be(2)
-      expect(loadedNode.relation('comesBefore').all()).to.have.length.be(2)
+      expect(loadedNode.relation('comesBefore').all()).to.have.length.be(1)
 
       loadedNode.relation('comesBefore').remove(bar)
     ).then( ->
@@ -172,19 +172,20 @@ describe 'Weaver relation and WeaverRelationNode test', ->
     bar = new Weaver.Node()
     relA = foo.relation('comesBefore').add(bar)
     relB = foo.relation('comesBefore').add(bar)
-    expect(foo.relation('comesBefore').all()).to.have.length.be(2)
+    expect(foo.relation('comesBefore').all()).to.have.length.be(1)
     expect(foo.relation('comesBefore').allRecords()).to.have.length.be(2)
-    expect(foo.relation('comesBefore').all()).to.have.length.be(2)
+    expect(foo.relation('comesBefore').all()).to.have.length.be(1)
 
     foo.save().then(->
       Weaver.Node.load(foo.id())
     ).then((n) ->
       loadedNode = n
-      expect(loadedNode.relation('comesBefore').all()).to.have.length.be(2)
+      expect(loadedNode.relation('comesBefore').all()).to.have.length.be(1)
       expect(loadedNode.relation('comesBefore').allRecords()).to.have.length.be(2)
-      expect(loadedNode.relation('comesBefore').all()).to.have.length.be(2)
+      expect(loadedNode.relation('comesBefore').all()).to.have.length.be(1)
 
-      loadedNode.relation('comesBefore').removeRelation(relA)
+      recordA = loadedNode.relation('comesBefore').allRecords()[0]
+      loadedNode.relation('comesBefore').remove(recordA)
     ).then( ->
       expect(loadedNode.relation('comesBefore').all()).to.have.length.be(1)
       expect(loadedNode.relation('comesBefore').allRecords()).to.have.length.be(1)
@@ -343,7 +344,7 @@ describe 'Weaver relation and WeaverRelationNode test', ->
     a.save().then(->
       Weaver.Node.load(relationNode.id(), undefined, undefined, true)
     ).then((node) ->
-      expect(node.relation('relationRelation')).to.have.property('nodes').to.have.length.be(1)
+      expect(node.relation('relationRelation').allRecords()).to.have.length.be(1)
     )
 
   it.skip 'should use the given constructor, if supplied during Weaver.Relation.prototype.load', ->
