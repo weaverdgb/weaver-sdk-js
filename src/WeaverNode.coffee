@@ -369,8 +369,9 @@ class WeaverNode
     @_stored = true
 
     for key, relation of @_relations
-      for node in relation.all()
-        node._setStored() if not node._stored
+      for record in relation.allRecords()
+        record.toNode._setStored() if not record.toNode._stored
+        record.relNode._setStored() if not record.relNode._stored
     @
 
 
