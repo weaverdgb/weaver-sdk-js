@@ -57,8 +57,8 @@ class WeaverModel extends ModelContext
           for itemName in classObj.init
             nodeId = "#{context.definition.name}:#{itemName}"
             node = new context[className](nodeId, context.getGraph(), @)
-            node.pendingWrites = []
-            node.nodeRelation(@getMemberKey).pendingWrites = []
+            node._pendingWrites = []
+            node.nodeRelation(@getMemberKey)._pendingWrites = []
             context[className][itemName] = node
 
       @

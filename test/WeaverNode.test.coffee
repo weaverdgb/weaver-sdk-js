@@ -40,7 +40,7 @@ describe 'WeaverNode test', ->
   it 'should reject forcing an id attribute', ->
     a = new Weaver.Node()
     a.set('placeholder', 'totally-not-id')
-    writeOp = i for i in a.pendingWrites when i.action is 'create-attribute'
+    writeOp = i for i in a._pendingWrites when i.action is 'create-attribute'
     writeOp.key = 'id'
     expect(a.save()).to.be.rejected
 
@@ -1067,12 +1067,12 @@ describe 'WeaverNode test', ->
     node.set('age', 42, 'double', null, 'fifth-graph')
     node.set('age', 43, 'double')
     node.destroy()
-    expect(node.pendingWrites[0].graph).to.equal('first-graph')
-    expect(target.pendingWrites[0].graph).to.equal('second-graph')
-    expect(target2.pendingWrites[0].graph).to.equal('third-graph')
-    expect(node.pendingWrites[1].graph).to.equal('fourth-graph')
-    expect(node.pendingWrites[2].graph).to.equal('fifth-graph')
-    expect(node.pendingWrites[3].graph).to.equal('first-graph')
+    expect(node._pendingWrites[0].graph).to.equal('first-graph')
+    expect(target._pendingWrites[0].graph).to.equal('second-graph')
+    expect(target2._pendingWrites[0].graph).to.equal('third-graph')
+    expect(node._pendingWrites[1].graph).to.equal('fourth-graph')
+    expect(node._pendingWrites[2].graph).to.equal('fifth-graph')
+    expect(node._pendingWrites[3].graph).to.equal('first-graph')
 
 
   it 'should add collect pending writes when one node is loaded multiple times', ->

@@ -14,7 +14,7 @@ class WeaverRelation
   @Record = Record
 
   constructor: (@owner, @key) ->
-    @pendingWrites = []                    # All operations that need to get saved
+    @_pendingWrites = []                    # All operations that need to get saved
     @_records = []
 
   _removeRecord: (record) ->
@@ -76,7 +76,7 @@ class WeaverRelation
     @_records.push(new Record(node, relationNode))
 
     Weaver.publish("node.relation.add", {node: @owner, key: @key, target: node})
-    @pendingWrites.push(Operation.Node(@owner).createRelation(@key, node, relId, undefined, false, graph)) if addToPendingWrites
+    @_pendingWrites.push(Operation.Node(@owner).createRelation(@key, node, relId, undefined, false, graph)) if addToPendingWrites
     relationNode
 
   update: (oldNode, newNode) ->
@@ -107,7 +107,7 @@ class WeaverRelation
     @_records.push(newRecord)
 
     operation = Operation.Node(@owner).createRelation(@key, newRecord.toNode, newRecord.relNode.id(), oldRecord.relNode.id(), Weaver.getInstance()._ignoresOutOfDate, newRecord.relNode.getGraph())
-    @pendingWrites.push(operation)
+    @_pendingWrites.push(operation)
     Weaver.publish("node.relation.update", {node: @owner, key: @key, oldTarget: oldNode, target: newNode})
 
   remove: (node, project) ->
