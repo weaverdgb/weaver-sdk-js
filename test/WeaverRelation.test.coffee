@@ -99,6 +99,22 @@ describe 'Weaver relation and WeaverRelationNode test', ->
       expect(loadedNode.relation('comesBefore').all().find((x) -> x.equals(bar))).to.not.be.defined
     )
 
+  it 'should update a relation with record', ->
+    foo = new Weaver.Node()
+    bar = new Weaver.Node()
+    ono = new Weaver.Node()
+    foo.relation('comesBefore').add(bar)
+    Weaver.Node.batchSave([foo, bar, ono]).then(->
+      record = foo.relation('comesBefore').getRecords(bar)
+      foo.relation('comesBefore').update(record, ono)
+      foo.save()
+    ).then(->
+      Weaver.Node.load(foo.id())
+    ).then((loadedNode) ->
+      expect(loadedNode.relation('comesBefore').all().find((x) -> x.equals(ono))).to.be.defined
+      expect(loadedNode.relation('comesBefore').all().find((x) -> x.equals(bar))).to.not.be.defined
+    )
+
   it 'should remove a relation from the loaded result', ->
     foo = new Weaver.Node()
     bar = new Weaver.Node()
@@ -180,7 +196,7 @@ describe 'Weaver relation and WeaverRelationNode test', ->
       expect(loadedNode.relation('comesBefore').allRecords()).to.have.length.be(2)
       expect(loadedNode.relation('comesBefore').all()).to.have.length.be(1)
 
-      recordA = loadedNode.relation('comesBefore').allRecords()[0]
+      recordA = loadedNode.relation('comesBefore').getRecords(bar)[0]
       loadedNode.relation('comesBefore').remove(recordA)
     ).then( ->
       expect(loadedNode.relation('comesBefore').all()).to.have.length.be(1)

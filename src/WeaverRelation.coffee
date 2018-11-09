@@ -28,6 +28,9 @@ class WeaverRelation
 
   _getRecordsForToNode: (toNode) ->
     (record for record in @_records when record.toNode.equals(toNode))
+
+  getRecords: (node) ->
+    @_getRecordsForToNode(node)
       
   load: ->
     new Weaver.Query()
