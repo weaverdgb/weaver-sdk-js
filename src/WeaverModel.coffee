@@ -320,10 +320,10 @@ class WeaverModel extends ModelContext
     memberKey = @getMemberKey()
     inheritKey = @getInheritKey()
     contexts = (context for tag, context of @contextMap)
-    Promise.resolve().then(->
-      Promise.mapSeries(contexts, (context) -> initLinks(context, model, memberKey))).then(->
-      Promise.mapSeries(contexts, (context) -> classes(context))).then(->
-      Promise.mapSeries(contexts, (context) -> inheritenceLinks(context, inheritKey)))
+    
+    Promise.mapSeries(contexts, (context) -> initLinks(context, model, memberKey)))
+    .then(->Promise.mapSeries(contexts, (context) -> classes(context)))
+    .then(->Promise.mapSeries(contexts, (context) -> inheritenceLinks(context, inheritKey)))
   
 
 module.exports = WeaverModel
