@@ -263,7 +263,7 @@ class WeaverModel extends ModelContext
       @_bootstrapClasses(existingNodes, undefined, project)
     )
 
-  _bootstrapClasses: (existingNodes, nodesToCreate={}, project) ->
+  _bootstrapClasses: (existingNodes, nodesToCreate = {}, project) ->
 
     firstOrCreate = (id, graph, Constructor=Weaver.Node, create=true) ->
       if nodesToCreate[id]?
