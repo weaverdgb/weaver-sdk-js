@@ -142,7 +142,6 @@ describe 'Weaver relation and WeaverRelationNode test', ->
     foo.relation('comesBefore').add(bar)
     expect(foo.relation('comesBefore').all()).to.have.length.be(1)
     expect(foo.relation('comesBefore').allRecords()).to.have.length.be(2)
-    expect(foo.relation('comesBefore').all()).to.have.length.be(1)
 
     foo.save().then(->
       Weaver.Node.load(foo.id())
@@ -150,20 +149,17 @@ describe 'Weaver relation and WeaverRelationNode test', ->
       loadedNode = n
       expect(loadedNode.relation('comesBefore').all()).to.have.length.be(1)
       expect(loadedNode.relation('comesBefore').allRecords()).to.have.length.be(2)
-      expect(loadedNode.relation('comesBefore').all()).to.have.length.be(1)
 
       loadedNode.relation('comesBefore').remove(bar)
     ).then( ->
       expect(loadedNode.relation('comesBefore').all()).to.have.length.be(0)
       expect(loadedNode.relation('comesBefore').allRecords()).to.have.length.be(0)
-      expect(loadedNode.relation('comesBefore').all()).to.have.length.be(0)
 
       Weaver.Node.load(foo.id())
     ).then((n) ->
       loadedNode = n
       expect(loadedNode.relation('comesBefore').all()).to.have.length.be(0)
       expect(loadedNode.relation('comesBefore').allRecords()).to.have.length.be(0)
-      expect(loadedNode.relation('comesBefore').all()).to.have.length.be(0)
     )
 
   it 'should remove one of some relation', ->

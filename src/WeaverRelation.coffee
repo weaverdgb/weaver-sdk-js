@@ -126,16 +126,12 @@ class WeaverRelation
     
     # destroy relation node
     # TODO: This failed when relation is not saved, should be able to only remove locally: CREATE TEST
-    Promise.resolve()
-    .then(
-      if record.relNode._stored 
-        record.relNode.destroy(project)
-      else 
-        Promise.resolve()
-    ).then(=>
+    if !record.relNode._stored
+      Promise.resolve()
+    else 
       Weaver.publish("node.relation.remove", {node: @owner, key: @key, target: record.toNode})
-    )
-    
+      record.relNode.destroy(project)
+      
   only: (node, project) ->
     Promise.mapSeries(@_records, (record)=>
       @_remove(record, project) if !record.toNode.equals(node)
