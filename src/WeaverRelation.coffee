@@ -35,8 +35,7 @@ class WeaverRelation
   load: ->
     new Weaver.Query()
     .restrict(@owner)
-    .selectOut(@key)
-    .selectRelations(@key)
+    .selectOut(@key, '*')
     .find()
     .then((nodes)=>
       reloadedRelation = nodes[0].relation(@key)

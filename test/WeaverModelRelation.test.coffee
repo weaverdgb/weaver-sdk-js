@@ -29,7 +29,7 @@ describe 'Weaver Model relation test', ->
       jill.save()
     )
 
-  it 'should allow Weaver.ModelRelation.prototype.load with an allowed constructor', ->
+  it 'should allow pick the right model constructor for relation load', ->
     j = {}
 
     model.Person.load('johnny')
@@ -40,10 +40,12 @@ describe 'Weaver Model relation test', ->
       expect(j.relation('hasFriend').first()).to.be.instanceOf(model.Person)
     )
 
-  it.skip 'should throw an error when trying Weaver.ModelRelation.prototype.load with a disallowed constructor', ->
-
+  it 'should allow pick the right model constructor from returned set for relation load', ->
     model.Person.load('johnny').then((j)->
-      expect(-> j.relation('hasFriend').load(model.Passport)).to.throw()
+      j.relation('hasFriend').load().then((res) ->
+        for friend in res
+          expect(friend).to.be.instanceOf(model.Person)
+      )
     )
 
   it 'should do Weaver.ModelRelation.prototype.update()', ->
@@ -66,7 +68,7 @@ describe 'Weaver Model relation test', ->
       expect(j.relation('hasFriend').first().get('fullName')).to.equal('Jill O\' Quill')
     )
 
-  it.skip 'should load the to model nodes of a relation', ->
+  it 'should load the to model nodes of a relation', ->
     loadedNode = null
     p = new model.Person('p')
     o = new model.Office('o')
@@ -78,9 +80,8 @@ describe 'Weaver Model relation test', ->
     ).then((node)->
       loadedNode = node
       expect(loadedNode).to.be.instanceOf(model.Person)
-      assert.throws((->loadedNode.relation('worksIn').load(model.Country)))
 
-      loadedNode.relation('worksIn').load(model.Office)
+      loadedNode.relation('worksIn').load()
     ).then(->
       expect(loadedNode.relation('worksIn').first()).to.be.instanceOf(model.Office)
       expect(loadedNode.relation('worksIn').first().relation('placedIn').first()).to.be.instanceOf(model.Country)

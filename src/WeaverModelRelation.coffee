@@ -42,8 +42,7 @@ class WeaverModelRelation extends Weaver.Relation
     new Weaver.ModelQuery(@model)
     .disableKeyMapping()
     .restrict(@owner)
-    .selectOut(@key)
-    .selectRelations(@key)
+    .selectOut(@key, '*')
     .find()
     .then((nodes)=>
       reloadedRelation = nodes[0].nodeRelation(@key)
