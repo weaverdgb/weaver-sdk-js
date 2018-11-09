@@ -292,11 +292,14 @@ describe 'Weaver relation and WeaverRelationNode test', ->
     node.save().then(->
       Weaver.Node.load(node.id())
     ).then((loadedNode) ->
-      expect(loadedNode.relation('link').all()).to.have.length.be(3)
+      expect(loadedNode.relation('link').all()).to.have.length.be(1)
+      expect(loadedNode.relation('link').allRecords()).to.have.length.be(3)
       loadedNode.relation('link').onlyOnce(to)
     ).then(->
       Weaver.Node.load(node.id())
     ).then((loadedNode) ->
+      expect(loadedNode.relation('link').all()).to.have.length.be(1)
+      expect(loadedNode.relation('link').allRecords()).to.have.length.be(1)
       ids = (i.id() for i in loadedNode.relation('link').all())
       expect(ids).to.have.length.be(1)
       expect(ids[0]).to.equal(to.id())
