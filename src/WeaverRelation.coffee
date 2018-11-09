@@ -50,9 +50,12 @@ class WeaverRelation
     Weaver.RelationNode.load(relNode.id(), null, Weaver.RelationNode, true, false, relNode.getGraph())
 
   all: ->
-    map = {}
-    map[record.toNode.id()] = record.toNode for record in @_records
-    (node for id, node of map)
+    list = new Weaver.NodeList()
+    for record in @_records
+      add = true
+      add &&= !record.toNode.equals(node) for node in list
+      list.push(record.toNode) if add
+    list
 
   allRecords:  ->
     @_records
