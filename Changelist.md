@@ -1,14 +1,13 @@
 # Changelist
 
-## Develop
+## 10.0.0
+- Remove nodes and relationNodes on relation
 - Changed model class comparison to evaluate against constructor name,
   instead of doing object comparison between the two constructors
-  (wasn't otherwise able to use multiple references to the same model).
-- Add the relation('link').only(to) call.
+  (wasn't otherwise able to use multiple references to the same model)
+- Add the relation('link').only(to) call
 - Adds WeaverNodeList
-- Instantiates WeaverRelation.prototype.nodes and WeaverRelation.prototype.relationNodes as WeaverNodeLists
-- Rewrite relation load
-- Remove on relation in a different way
+- Rewrite relation load without possibility or need to set preferred constructor
 - Implement relation onlyOnce
 - Completely promisify bootstrap function
 
