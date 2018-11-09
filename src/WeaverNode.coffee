@@ -20,8 +20,8 @@ class WeaverNode
     @relationsIn  = {}
 
     # All operations that need to get saved
-    @pendingWrites = [Operation.Node(@).createNode()]
-    @_createdAt = @pendingWrites[0].timestamp
+    @_pendingWrites = [Operation.Node(@).createNode()]
+    @_createdAt = @_pendingWrites[0].timestamp
     @_createdBy = Weaver.instance?.currentUser()?.userId
 
     Weaver.publish('node.created', @)
@@ -81,7 +81,7 @@ class WeaverNode
 
         instance = new Constructor(relation.source.nodeId, relation.source.graph, model)
         instance._loadFromQuery(relation.source, constructorFunction, fullyLoaded, model)
-        @._loadRelationInFromQuery(key, instance, relation.nodeId, relation.graph)
+        @_loadRelationInFromQuery(key, instance, relation.nodeId, relation.graph)
 
     for key, relations of object.relations
       for relation in relations
@@ -93,14 +93,14 @@ class WeaverNode
 
         instance = new Constructor(relation.target.nodeId, relation.target.graph, model)
         instance._loadFromQuery(relation.target, constructorFunction, fullyLoaded, model)
-        @._loadRelationFromQuery(key, instance, relation.nodeId, relation.graph)
+        @_loadRelationFromQuery(key, instance, relation.nodeId, relation.graph)
 
-    @._clearPendingWrites()
+    @_clearPendingWrites()
     Weaver.publish('node.loaded', @)
     @
 
-  _loadRelationFromQuery: (key, instance, nodeId, graph)->
-    @relation(key).add(instance, nodeId, false, graph)
+  _loadRelationFromQuery: (key, instance, relId, graph)->
+    @relation(key).add(instance, relId, false, graph)
 
   _loadRelationInFromQuery: (key, instance, nodeId, graph)->
     @relationsIn[key] ?= new WeaverRelationIn(key)
@@ -231,7 +231,7 @@ class WeaverNode
 
     @_attributes[field] = [newAttribute]
     Weaver.publish(eventMsg, eventData)
-    @pendingWrites.push(newAttributeOperation)
+    @_pendingWrites.push(newAttributeOperation)
 
     return @
 
@@ -256,8 +256,8 @@ class WeaverNode
       pendingNewValue
     ).catch((error) =>
       if (error.code == WeaverError.WRITE_OPERATION_INVALID)
-        index = @pendingWrites.map((o) => o.key).indexOf(field) # find failed operation
-        @pendingWrites.splice(index, 1) if index > -1 # remove failing operation, otherwise the save() keeps on failing on this node
+        index = @_pendingWrites.map((o) => o.key).indexOf(field) # find failed operation
+        @_pendingWrites.splice(index, 1) if index > -1 # remove failing operation, otherwise the save() keeps on failing on this node
         @_incrementOfOutSync(field, value, project)
       else
         Promise.reject(error)
@@ -299,7 +299,7 @@ class WeaverNode
     currentAttribute = @_attributes[field][0]
 
     # Save change as pending
-    @pendingWrites.push(Operation.Node(@).removeAttribute(currentAttribute.nodeId))
+    @_pendingWrites.push(Operation.Node(@).removeAttribute(currentAttribute.nodeId))
 
     Weaver.publish('node.attribute.unset', {node: @, field})
 
@@ -322,61 +322,62 @@ class WeaverNode
     cm = Weaver.getCoreManager()
     cm.cloneNode(@nodeId, newId, relationTraversal, @graph, graph)
 
-  peekPendingWrites: () ->
+  peekPendingWrites: ->
     @_collectPendingWrites(undefined, false)
 
   # Go through each relation and recursively add all pendingWrites per relation AND that of the objects
   _collectPendingWrites: (collected = [], cleanup=true) ->
     # Register to keep track which nodes have been collected to prevent recursive blowup
     collected.push(@) if @ not in collected
-    operations = @pendingWrites
+    operations = @_pendingWrites
     if not operations?
       return []
 
     if cleanup
-      @pendingWrites = []
+      @_pendingWrites = []
       i.__pendingOpNode = @ for i in operations
 
     for key, relation of @_relations
-      for node in relation.nodes when node not in collected
+      for node in relation.all() when node not in collected
         collected.push(node)
         operations = operations.concat(node._collectPendingWrites(collected, cleanup))
 
-      operations = operations.concat(relation.pendingWrites)
+      operations = operations.concat(relation._pendingWrites)
 
-      for node in relation.relationNodes when node not in collected
-          collected.push(node)
-          operations = operations.concat(node._collectPendingWrites(collected, cleanup))
+      for record in relation.allRecords() when record.relNode not in collected
+        collected.push(record.relNode)
+        operations = operations.concat(record.relNode._collectPendingWrites(collected, cleanup))
 
       if cleanup
-        i.__pendingOpNode = relation for i in relation.pendingWrites
-        relation.pendingWrites = []
+        i.__pendingOpNode = relation for i in relation._pendingWrites
+        relation._pendingWrites = []
 
     operations
 
 
   # Clear all pendingWrites, used for instance after saving or when loading a node
   _clearPendingWrites: ->
-    @pendingWrites = []
+    @_pendingWrites = []
 
     for key, relation of @_relations
-      for id, node of relation.nodes
+      for node in relation.all()
         node._clearPendingWrites() if node.isDirty()
 
-      relation.pendingWrites = []
+      relation._pendingWrites = []
 
   _setStored: ->
     @_stored = true
 
     for key, relation of @_relations
-      for id, node of relation.nodes
-        node._setStored() if not node._stored
+      for record in relation.allRecords()
+        record.toNode._setStored() if not record.toNode._stored
+        record.relNode._setStored() if not record.relNode._stored
     @
 
 
   # Checks whether needs saving
   isDirty: ->
-    @pendingWrites.length isnt 0
+    @_pendingWrites.length isnt 0
 
 
   # Save node and all values / relations and relation objects to server
@@ -394,7 +395,7 @@ class WeaverNode
         # Restore the pending writes to their originating nodes
         # (in reverse order so create-node is done before adding attributes)
         for i in writes by -1
-          i.__pendingOpNode.pendingWrites.unshift(i)
+          i.__pendingOpNode._pendingWrites.unshift(i)
 
         Promise.reject(e)
       )
@@ -413,7 +414,7 @@ class WeaverNode
         # (in reverse order so create-node is done before adding attributes)
 
         for i in writes by -1
-          i.__pendingOpNode.pendingWrites.unshift(i)
+          i.__pendingOpNode._pendingWrites.unshift(i)
 
         Promise.reject(e)
       )

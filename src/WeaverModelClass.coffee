@@ -59,11 +59,11 @@ class WeaverModelClass extends Weaver.Node
     @getMember()
 
   # Override
-  _loadRelationFromQuery: (key, instance, nodeId, graph)->
+  _loadRelationFromQuery: (key, instance, relId, graph)->
     if @totalClassDefinition.relations[key]?
-      @relation(key).add(instance, nodeId, false, graph)
+      @relation(key).add(instance, relId, false, graph)
     else
-      @nodeRelation(key).add(instance, nodeId, false, graph)
+      @nodeRelation(key).add(instance, relId, false, graph)
 
   _getAttributeKey: (field) ->
 

@@ -29,12 +29,12 @@ describe 'Weaver relation and WeaverRelationNode test', ->
 
       Weaver.Node.load(foo.id())
     ).then((loadedNode) ->
-      assert.isDefined(loadedNode.relation('comesBefore').nodes.find((x) -> x.equals(bar)))
+      assert.isDefined(loadedNode.relation('comesBefore').all().find((x) -> x.equals(bar)))
 
       assert(loadedNode._loaded)
       assert(loadedNode._stored)
-      expect(loadedNode.relation('comesBefore').nodes.find((x) -> x.equals(bar))).to.have.property('_loaded').equal(false)
-      assert(loadedNode.relation('comesBefore').nodes.find((x) -> x.equals(bar))._stored)
+      expect(loadedNode.relation('comesBefore').all().find((x) -> x.equals(bar))).to.have.property('_loaded').equal(false)
+      assert(loadedNode.relation('comesBefore').all().find((x) -> x.equals(bar))._stored)
 
       loadedNode.relation('comesBefore').to(bar)
     ).then((relation) ->
@@ -95,8 +95,24 @@ describe 'Weaver relation and WeaverRelationNode test', ->
     ).then(->
       Weaver.Node.load(foo.id())
     ).then((loadedNode) ->
-      expect(loadedNode.relation('comesBefore').nodes.find((x) -> x.equals(ono))).to.be.defined
-      expect(loadedNode.relation('comesBefore').nodes.find((x) -> x.equals(bar))).to.not.be.defined
+      expect(loadedNode.relation('comesBefore').all().find((x) -> x.equals(ono))).to.be.defined
+      expect(loadedNode.relation('comesBefore').all().find((x) -> x.equals(bar))).to.not.be.defined
+    )
+
+  it 'should update a relation with record', ->
+    foo = new Weaver.Node()
+    bar = new Weaver.Node()
+    ono = new Weaver.Node()
+    foo.relation('comesBefore').add(bar)
+    Weaver.Node.batchSave([foo, bar, ono]).then(->
+      record = foo.relation('comesBefore').getRecords(bar)
+      foo.relation('comesBefore').update(record, ono)
+      foo.save()
+    ).then(->
+      Weaver.Node.load(foo.id())
+    ).then((loadedNode) ->
+      expect(loadedNode.relation('comesBefore').all().find((x) -> x.equals(ono))).to.be.defined
+      expect(loadedNode.relation('comesBefore').all().find((x) -> x.equals(bar))).to.not.be.defined
     )
 
   it 'should remove a relation from the loaded result', ->
@@ -132,6 +148,67 @@ describe 'Weaver relation and WeaverRelationNode test', ->
       Weaver.Node.load(foo.id())
     ).then((loadedNode) ->
       expect(i.id() for i in loadedNode.relation('comesBefore').all()).to.have.length.be(1)
+    )
+
+  it 'should remove all in relation', ->
+    loadedNode = undefined
+    foo = new Weaver.Node()
+    bar = new Weaver.Node()
+    foo.relation('comesBefore').add(bar)
+    foo.relation('comesBefore').add(bar)
+    expect(foo.relation('comesBefore').all()).to.have.length.be(1)
+    expect(foo.relation('comesBefore').allRecords()).to.have.length.be(2)
+
+    foo.save().then(->
+      Weaver.Node.load(foo.id())
+    ).then((n) ->
+      loadedNode = n
+      expect(loadedNode.relation('comesBefore').all()).to.have.length.be(1)
+      expect(loadedNode.relation('comesBefore').allRecords()).to.have.length.be(2)
+
+      loadedNode.relation('comesBefore').remove(bar)
+    ).then( ->
+      expect(loadedNode.relation('comesBefore').all()).to.have.length.be(0)
+      expect(loadedNode.relation('comesBefore').allRecords()).to.have.length.be(0)
+
+      Weaver.Node.load(foo.id())
+    ).then((n) ->
+      loadedNode = n
+      expect(loadedNode.relation('comesBefore').all()).to.have.length.be(0)
+      expect(loadedNode.relation('comesBefore').allRecords()).to.have.length.be(0)
+    )
+
+  it 'should remove one of some relation', ->
+    loadedNode = undefined
+    foo = new Weaver.Node()
+    bar = new Weaver.Node()
+    relA = foo.relation('comesBefore').add(bar)
+    relB = foo.relation('comesBefore').add(bar)
+    expect(foo.relation('comesBefore').all()).to.have.length.be(1)
+    expect(foo.relation('comesBefore').allRecords()).to.have.length.be(2)
+    expect(foo.relation('comesBefore').all()).to.have.length.be(1)
+
+    foo.save().then(->
+      Weaver.Node.load(foo.id())
+    ).then((n) ->
+      loadedNode = n
+      expect(loadedNode.relation('comesBefore').all()).to.have.length.be(1)
+      expect(loadedNode.relation('comesBefore').allRecords()).to.have.length.be(2)
+      expect(loadedNode.relation('comesBefore').all()).to.have.length.be(1)
+
+      recordA = loadedNode.relation('comesBefore').getRecords(bar)[0]
+      loadedNode.relation('comesBefore').remove(recordA)
+    ).then( ->
+      expect(loadedNode.relation('comesBefore').all()).to.have.length.be(1)
+      expect(loadedNode.relation('comesBefore').allRecords()).to.have.length.be(1)
+      expect(loadedNode.relation('comesBefore').all()).to.have.length.be(1)
+
+      Weaver.Node.load(foo.id())
+    ).then((n) ->
+      loadedNode = n
+      expect(loadedNode.relation('comesBefore').all()).to.have.length.be(1)
+      expect(loadedNode.relation('comesBefore').allRecords()).to.have.length.be(1)
+      expect(loadedNode.relation('comesBefore').all()).to.have.length.be(1)
     )
 
   it 'should remove and update a relation with only if first ever', ->
@@ -182,9 +259,66 @@ describe 'Weaver relation and WeaverRelationNode test', ->
     ).then(->
       Weaver.Node.load(node.id())
     ).then((loadedNode) ->
-      relIds = (i.id() for i in loadedNode.relation('link').relationNodes)
+      relIds = (record.relNode.id() for record in loadedNode.relation('link').allRecords())
       expect(relIds).to.have.length.be(1)
       expect(relIds[0]).to.equal(rel.id())
+    )
+
+  it 'should add a relation with only once', ->
+    node = new Weaver.Node()
+    to = new Weaver.Node()
+
+    node.save().then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      loadedNode.relation('link').onlyOnce(to)
+    ).then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      ids = (i.id() for i in loadedNode.relation('link').all())
+      expect(ids).to.have.length.be(1)
+      expect(ids[0]).to.equal(to.id())
+    )
+
+  it 'should keep precisely one with only once', ->
+    node = new Weaver.Node()
+    to = new Weaver.Node()
+    node.relation('link').add(to)
+
+    node.save().then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      expect(loadedNode.relation('link').all()).to.have.length.be(1)
+      loadedNode.relation('link').onlyOnce(to)
+    ).then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      ids = (i.id() for i in loadedNode.relation('link').all())
+      expect(ids).to.have.length.be(1)
+      expect(ids[0]).to.equal(to.id())
+    )
+
+  it 'should remove too many with only once', ->
+    node = new Weaver.Node()
+    to = new Weaver.Node()
+    node.relation('link').add(to)
+    node.relation('link').add(to)
+    node.relation('link').add(to)
+
+    node.save().then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      expect(loadedNode.relation('link').all()).to.have.length.be(1)
+      expect(loadedNode.relation('link').allRecords()).to.have.length.be(3)
+      loadedNode.relation('link').onlyOnce(to)
+    ).then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      expect(loadedNode.relation('link').all()).to.have.length.be(1)
+      expect(loadedNode.relation('link').allRecords()).to.have.length.be(1)
+      ids = (i.id() for i in loadedNode.relation('link').all())
+      expect(ids).to.have.length.be(1)
+      expect(ids[0]).to.equal(to.id())
     )
 
   it 'should load all nodes in the relation', ->
@@ -225,30 +359,7 @@ describe 'Weaver relation and WeaverRelationNode test', ->
     a.save().then(->
       Weaver.Node.load(relationNode.id(), undefined, undefined, true)
     ).then((node) ->
-      expect(node.relation('relationRelation')).to.have.property('nodes').to.have.length.be(1)
-    )
-
-  it 'should use the given constructor, if supplied during Weaver.Relation.prototype.load', ->
-    j = {}
-
-    class Person extends Weaver.Node
-      age: ->
-        @.get('age')
-
-    johnny = new Person('johnny')
-    tim = new Person('tim')
-
-    johnny.set('name','Johnny')
-    tim.set('name','Timothy')
-
-    johnny.relation('hasFriend').add(tim)
-    johnny.save().then(->
-      Weaver.Node.load('johnny')
-    ).then((_j)->
-      j = _j
-      j.relation('hasFriend').load(Person)
-    ).then(->
-      expect(j.relation('hasFriend').first().constructor.name).to.equal('Person')
+      expect(node.relation('relationRelation').allRecords()).to.have.length.be(1)
     )
 
   describe 'with graphs', ->

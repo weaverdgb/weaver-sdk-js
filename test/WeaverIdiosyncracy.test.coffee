@@ -153,6 +153,6 @@ describe 'Weaver idiosyncracies examination', ->
   it 'does not allow relation removal on destroyed nodes', ->
     expect(-> removed.relation('test').remove(fromRemoved)).to.throw()
 
-  it 'allows relation removal on destroyed node references', ->
+  it 'should not allow relation removal on destroyed node references', ->
     removedRef2.relation('test').remove(fromRemoved)
     expect(removedRef2.save()).to.be.rejected

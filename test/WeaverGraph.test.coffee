@@ -57,7 +57,7 @@ describe 'WeaverGraph support', ->
       c = new Weaver.Node()
       rel = b.relation('test')
       rel.addInGraph(c, 'somegraph')
-      expect(rel.pendingWrites[0]).to.have.property('graph').be.equal('somegraph')
+      expect(rel._pendingWrites[0]).to.have.property('graph').be.equal('somegraph')
 
   describe 'Graph redirection', ->
     source = 'graph-redir-source'

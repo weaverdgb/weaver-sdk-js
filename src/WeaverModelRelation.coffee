@@ -11,6 +11,7 @@ class WeaverModelRelation extends Weaver.Relation
 
   # Check if relation is allowed according to definition
   _checkCorrectClass: (to) ->
+    to = to.toNode if to instanceof Weaver.Relation.Record
     defs = []
     if to instanceof Weaver.ModelClass or to instanceof Weaver.DefinedNode
       defs = to.getDefinitions()
@@ -37,8 +38,16 @@ class WeaverModelRelation extends Weaver.Relation
     @_checkCorrectClass(newNode)
     super(oldNode, newNode)
 
-  load: (constructor)->
-    @_checkCorrectConstructor(constructor)
-    super(constructor)
+  load: ->
+    new Weaver.ModelQuery(@model)
+    .disableKeyMapping()
+    .restrict(@owner)
+    .selectOut(@key, '*')
+    .find()
+    .then((nodes)=>
+      reloadedRelation = nodes[0].nodeRelation(@key)
+      @_records = reloadedRelation.allRecords()
+      reloadedRelation.all()
+    )
 
 module.exports = WeaverModelRelation

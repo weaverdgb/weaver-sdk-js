@@ -7,11 +7,11 @@ getFs = ->
 class WeaverPlugin
 
   constructor: (serverObject) ->
-    @._name        = serverObject.name
-    @._version     = serverObject.version
-    @._author      = serverObject.author
-    @._description = serverObject.description
-    @._functions   = serverObject.functions
+    @_name        = serverObject.name
+    @_version     = serverObject.version
+    @_author      = serverObject.author
+    @_description = serverObject.description
+    @_functions   = serverObject.functions
 
     # Parse functions that will be accessible from @
     serverObject.functions.forEach((f) =>

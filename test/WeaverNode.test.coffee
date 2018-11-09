@@ -40,7 +40,7 @@ describe 'WeaverNode test', ->
   it 'should reject forcing an id attribute', ->
     a = new Weaver.Node()
     a.set('placeholder', 'totally-not-id')
-    writeOp = i for i in a.pendingWrites when i.action is 'create-attribute'
+    writeOp = i for i in a._pendingWrites when i.action is 'create-attribute'
     writeOp.key = 'id'
     expect(a.save()).to.be.rejected
 
@@ -363,18 +363,18 @@ describe 'WeaverNode test', ->
     c = new Weaver.Node()
 
     Weaver.Node.batchSave([a,b,c])
-    .then(() ->
+    .then(->
       expect(a).to.have.property('_stored').be.equal(true)
       Weaver.Node.load(a.id())
     ).then((loadedNode) ->
       assert.equal(loadedNode.id(), a.id())
     )
-    .then(() ->
+    .then(->
       Weaver.Node.load(b.id())
     ).then((loadedNode) ->
       assert.equal(loadedNode.id(), b.id())
     )
-    .then(() ->
+    .then(->
       Weaver.Node.load(c.id())
     ).then((loadedNode) ->
       assert.equal(loadedNode.id(), c.id())
@@ -403,11 +403,11 @@ describe 'WeaverNode test', ->
       assert.notEqual(cloned.id(), a.id())
       assert.equal(cloned.get('name'), 'Foo')
       assert.equal(cloned.getGraph(), 'my-graph')
-      to = value for value in cloned.relation('to').nodes
+      to = value for value in cloned.relation('to').all()
       assert.equal(to.id(), b.id())
       Weaver.Node.load(c.id())
     ).then((node) ->
-      assert.isDefined(node.relation('to').nodes.find((x) -> x.equals(Weaver.Node.getFromGraph('cloned-a', 'my-graph'))))
+      assert.isDefined(node.relation('to').all().find((x) -> x.equals(Weaver.Node.getFromGraph('cloned-a', 'my-graph'))))
     )
 
   it 'should clone a node to another graph while using loadFromGraph function', ->
@@ -433,11 +433,11 @@ describe 'WeaverNode test', ->
       assert.notEqual(cloned.id(), d.id())
       assert.equal(cloned.get('name'), 'Foo')
       assert.equal(cloned.getGraph(), 'my-graph')
-      to = value for value in cloned.relation('to').nodes
+      to = value for value in cloned.relation('to').all()
       assert.equal(to.id(), e.id())
       Weaver.Node.load(f.id())
     ).then((node) ->
-      assert.isDefined(node.relation('to').nodes.find((x) -> x.equals(Weaver.Node.getFromGraph('cloned-d', 'my-graph'))))
+      assert.isDefined(node.relation('to').all().find((x) -> x.equals(Weaver.Node.getFromGraph('cloned-d', 'my-graph'))))
     )
 
   it 'should clone a node', ->
@@ -462,11 +462,11 @@ describe 'WeaverNode test', ->
     ).then((cloned) ->
       assert.notEqual(cloned.id(), a.id())
       assert.equal(cloned.get('name'), 'Foo')
-      to = value for value in cloned.relation('to').nodes
+      to = value for value in cloned.relation('to').all()
       assert.equal(to.id(), b.id())
       Weaver.Node.load(c.id())
     ).then((node) ->
-      assert.isDefined(node.relation('to').nodes.find((x) -> x.equals(Weaver.Node.get('cloned a'))))
+      assert.isDefined(node.relation('to').all().find((x) -> x.equals(Weaver.Node.get('cloned a'))))
     )
 
   it 'should recursively clone a node', ->
@@ -480,7 +480,7 @@ describe 'WeaverNode test', ->
     ).then(->
       Weaver.Node.load('new-foo')
     ).then((newFoo) ->
-      expect(newFoo.relation('baz').nodes).to.not.have.property('bar')
+      expect(newFoo.relation('baz').all()).to.not.have.property('bar')
     )
 
   it 'should clone loops', ->
@@ -514,7 +514,7 @@ describe 'WeaverNode test', ->
       Weaver.Node.load('2player')
     ).then((pl) ->
       expect(pl.relation('chooses').all()).to.have.length.be(2)
-      expect(pl.relation('chooses').nodes.find((x) -> x.equals(Weaver.Node.get('2sissors')))).to.be.defined
+      expect(pl.relation('chooses').all().find((x) -> x.equals(Weaver.Node.get('2sissors')))).to.be.defined
     )
 
   it 'should load an incomplete node', ->
@@ -644,7 +644,7 @@ describe 'WeaverNode test', ->
     ).then((res)->
       res.set('name','_A')
       res.save()
-    ).then(()->
+    ).then(->
       Weaver.Node.load(a.id())
     ).then((res)->
       assert.equal(res.get('name'),'_A')
@@ -827,11 +827,11 @@ describe 'WeaverNode test', ->
     ).then((cloned) ->
       assert.notEqual(cloned.id(), a.id())
       assert.equal(cloned.get('name'), 'Foo')
-      to = value for value in cloned.relation('to').nodes
+      to = value for value in cloned.relation('to').all()
       assert.equal(to.id(), b.id())
       Weaver.Node.load(c.id())
     ).then((node) ->
-      assert.isDefined(node.relation('to').nodes.find((x) -> x.equals(Weaver.Node.get('cloned-a2'))))
+      assert.isDefined(node.relation('to').all().find((x) -> x.equals(Weaver.Node.get('cloned-a2'))))
     )
 
   it 'should batch delete nodes', ->
@@ -988,8 +988,6 @@ describe 'WeaverNode test', ->
       c.save()
     ).then(->
       a.destroy()
-    ).then(->
-      Weaver.Node.load(a.relation('link').relationNodes.hello.id())
     ).finally(
       weaver.setOptions({unrecoverableRemove: false})
       # Error.code isn't fully working on this one, should have its own code. Node not found is working if node is in the deleted table
@@ -1069,12 +1067,12 @@ describe 'WeaverNode test', ->
     node.set('age', 42, 'double', null, 'fifth-graph')
     node.set('age', 43, 'double')
     node.destroy()
-    expect(node.pendingWrites[0].graph).to.equal('first-graph')
-    expect(target.pendingWrites[0].graph).to.equal('second-graph')
-    expect(target2.pendingWrites[0].graph).to.equal('third-graph')
-    expect(node.pendingWrites[1].graph).to.equal('fourth-graph')
-    expect(node.pendingWrites[2].graph).to.equal('fifth-graph')
-    expect(node.pendingWrites[3].graph).to.equal('first-graph')
+    expect(node._pendingWrites[0].graph).to.equal('first-graph')
+    expect(target._pendingWrites[0].graph).to.equal('second-graph')
+    expect(target2._pendingWrites[0].graph).to.equal('third-graph')
+    expect(node._pendingWrites[1].graph).to.equal('fourth-graph')
+    expect(node._pendingWrites[2].graph).to.equal('fifth-graph')
+    expect(node._pendingWrites[3].graph).to.equal('first-graph')
 
 
   it 'should add collect pending writes when one node is loaded multiple times', ->
