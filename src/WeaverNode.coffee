@@ -3,6 +3,7 @@ Operation        = require('./Operation')
 Weaver           = require('./Weaver')
 util             = require('./util')
 _                = require('lodash')
+moment           = require('moment')
 Promise          = require('bluebird')
 WeaverError      = require('./WeaverError')
 WeaverRelationIn = require('./WeaverRelationIn')
@@ -150,7 +151,7 @@ class WeaverNode
 
   _getAttributeValue: (attribute) ->
     if attribute.dataType is 'date'
-      return new Date(attribute.value)
+      return moment(attribute.value)
     else
       return attribute.value
 
@@ -191,7 +192,7 @@ class WeaverNode
         dataType = 'boolean'
       else if util.isDate(value)
         dataType = 'date'
-        value = value.getTime()
+        value = value.toJSON()
       else
         throw Error("Unsupported datatype for value " + value)
 
