@@ -308,7 +308,8 @@ describe 'WeaverModel test', ->
           Document.load(document.id())
         ).then((loaded)->
           expect(loaded.id()).to.equal(document.id())
-          expect(loaded.get('at').isSame(moment(1483315200001))).to.be.true
+          check = moment(1483315200000)
+          assert(loaded.get('at').isSame(check), "the loaded date #{loaded.get('at').toJSON()} should equal the original date #{check.toJSON()}")
           expect(loaded.get('fileName')).to.equal('print.pdf')
           expect(loaded.getDataType('at')).to.equal('xsd:dateTime')
           expect(loaded.getDataType('hasFileName')).to.equal('string')
