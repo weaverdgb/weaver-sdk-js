@@ -1,6 +1,7 @@
-weaver = require("./test-suite").weaver
+moment             = require('moment')
+weaver             = require("./test-suite").weaver
 wipeCurrentProject = require("./test-suite").wipeCurrentProject
-Weaver = require('../src/Weaver')
+Weaver             = require('../src/Weaver')
 
 describe 'WeaverNode test', ->
   it 'should allow a node to be destroyed', ->
@@ -198,15 +199,21 @@ describe 'WeaverNode test', ->
       assert.equal(loadedNode.getDataType('number'), 'double')
     )
 
-  it 'should set a date attribute', ->
+  it 'should not allow js Date object for  attribute', ->
     node = new Weaver.Node()
     date = new Date()
-    node.set('time', date)
+    expect(-> node.set('time', date)).to.throw()
 
+  it 'should set a date attribute', ->
+    node = new Weaver.Node()
+    date = moment()
+    node.set('time', date)
     node.save().then(->
       Weaver.Node.load(node.id())
     ).then((loadedNode) ->
-      assert.equal(loadedNode.get('time').toJSON(), date.toJSON())
+      loadedDate = loadedNode.get('time')
+      assert(moment.isMoment(loadedDate), 'type of loaded attribute value should be moment')
+      assert(loadedDate.isSame(date), "the loaded date #{loadedDate.toJSON()} should equal the original date #{date.toJSON()}")
     )
 
   it 'should increment an existing number attribute', ->
