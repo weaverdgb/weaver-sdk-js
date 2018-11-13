@@ -1,5 +1,8 @@
 # Changelist
 
+# develop
+- Switch to moment js for supporting dates and related data types
+
 ## 10.0.0
 - Remove nodes and relationNodes on relation
 - Changed model class comparison to evaluate against constructor name,
