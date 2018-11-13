@@ -150,8 +150,9 @@ class WeaverNode
     @_relations
 
   _getAttributeValue: (attribute) ->
-    if attribute.dataType is 'date'
-      return moment(attribute.value)
+    date = util.parseDate(attribute.dataType, attribute.value)
+    if date?
+      return date
     else
       return attribute.value
 

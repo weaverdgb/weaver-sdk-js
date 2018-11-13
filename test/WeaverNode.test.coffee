@@ -216,6 +216,18 @@ describe 'WeaverNode test', ->
       assert(loadedDate.isSame(date), "the loaded date #{loadedDate.toJSON()} should equal the original date #{date.toJSON()}")
     )
 
+  it 'should set a xsd duration attribute', ->
+    node = new Weaver.Node()
+    date = moment.duration('P2Y6M5DT12H35M30S')
+    node.set('duration', date, 'xsd:duration')
+    node.save().then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      loadedDate = loadedNode.get('duration')
+      assert(moment.isDuration(loadedDate), 'type of loaded attribute value should be moment')
+      assert(loadedDate.asMilliseconds() is date.asMilliseconds(), "the loaded date #{loadedDate.toJSON()} should equal the original date #{date.toJSON()}")
+    )
+
   it 'should increment an existing number attribute', ->
     node = new Weaver.Node()
     node.set('length', 3)

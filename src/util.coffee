@@ -30,4 +30,33 @@ module.exports =
     throw new Error('Please use momentjs Date instances') if val instanceof Date
     moment.isMoment(val)
 
+  parseDate: (dataType, value) ->
+    switch dataType
+      when 'date'
+        moment(value)
+      when 'xsd:duration'
+        moment.duration(value)
+      when 'xsd:dateTime'
+        moment(value)
+      when 'xsd:dayTimeDuration'
+        moment.duration(value)
+      when 'xsd:time'
+        moment(value)
+      when 'xsd:date'
+        moment(value)
+      when 'xsd:gYearMonth'
+        moment.year(value)
+      when 'xsd:gYear'
+        moment.year(value)
+      when 'xsd:gMonthDay'
+        moment(value)
+      when 'xsd:gDay'
+        moment.dayOfYear(value)
+      when 'xsd:gMonth'
+        moment.month(value)
+      when 'xsd:yearMonthDuration'
+        moment.duration(value)
+      else
+        undefined
+
   flatten: flatten
