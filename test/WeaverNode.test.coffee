@@ -216,16 +216,126 @@ describe 'WeaverNode test', ->
       assert(loadedDate.isSame(date), "the loaded date #{loadedDate.toJSON()} should equal the original date #{date.toJSON()}")
     )
 
+  it 'should set a xsd dateTime attribute', ->
+    node = new Weaver.Node()
+    date = moment()
+    node.set('date', date, 'xsd:dateTime')
+    node.save().then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      loadedDate = loadedNode.get('date')
+      assert(moment.isMoment(loadedDate), 'type of loaded attribute value should be moment')
+      assert(loadedDate.isSame(date), "the loaded date #{loadedDate.toJSON()} should equal the original date #{date.toJSON()}")
+    )
+
+  it 'should set a xsd time attribute', ->
+    node = new Weaver.Node()
+    date = '13:20:00-05:00'
+    node.set('time', date, 'xsd:time')
+    node.save().then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      loadedDate = loadedNode.get('time')
+      expect(loadedDate).to.equal(date)
+    )
+
+  it 'should set a xsd date attribute', ->
+    node = new Weaver.Node()
+    date = '2004-04-12-05:00'
+    node.set('date', date, 'xsd:date')
+    node.save().then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      loadedDate = loadedNode.get('date')
+      expect(loadedDate).to.equal(date)
+    )
+
+  it 'should set a xsd gYearMonth attribute', ->
+    node = new Weaver.Node()
+    date = '2004-04-05:00'
+    node.set('g', date, 'xsd:gYearMonth')
+    node.save().then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      loadedDate = loadedNode.get('g')
+      expect(loadedDate).to.equal(date)
+    )
+
+  it 'should set a xsd gYear attribute', ->
+    node = new Weaver.Node()
+    date = '12004'
+    node.set('g', date, 'xsd:gYear')
+    node.save().then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      loadedDate = loadedNode.get('g')
+      expect(loadedDate).to.equal(date)
+    )
+
+  it 'should set a xsd gMonthDay attribute', ->
+    node = new Weaver.Node()
+    date = '--04-12Z'
+    node.set('g', date, 'xsd:gMonthDay')
+    node.save().then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      loadedDate = loadedNode.get('g')
+      expect(loadedDate).to.equal(date)
+    )
+
+  it 'should set a xsd gDay attribute', ->
+    node = new Weaver.Node()
+    date = '---02'
+    node.set('g', date, 'xsd:gDay')
+    node.save().then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      loadedDate = loadedNode.get('g')
+      expect(loadedDate).to.equal(date)
+    )
+
+  it 'should set a xsd gMonth attribute', ->
+    node = new Weaver.Node()
+    date = '--04-05:00'
+    node.set('g', date, 'xsd:gMonth')
+    node.save().then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      loadedDate = loadedNode.get('g')
+      expect(loadedDate).to.equal(date)
+    )
+
   it 'should set a xsd duration attribute', ->
     node = new Weaver.Node()
-    date = moment.duration('P2Y6M5DT12H35M30S')
+    date = 'P2Y6M5DT12H35M30S'
     node.set('duration', date, 'xsd:duration')
     node.save().then(->
       Weaver.Node.load(node.id())
     ).then((loadedNode) ->
       loadedDate = loadedNode.get('duration')
-      assert(moment.isDuration(loadedDate), 'type of loaded attribute value should be moment')
-      assert(loadedDate.asMilliseconds() is date.asMilliseconds(), "the loaded date #{loadedDate.toJSON()} should equal the original date #{date.toJSON()}")
+      expect(loadedDate).to.equal(date)
+    )
+
+  it 'should set a xsd dayTimeDuration attribute', ->
+    node = new Weaver.Node()
+    date = 'P1DT2H'
+    node.set('duration', date, 'xsd:dayTimeDuration')
+    node.save().then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      loadedDate = loadedNode.get('duration')
+      expect(loadedDate).to.equal(date)
+    )
+
+  it 'should set a xsd yearMonthDuration attribute', ->
+    node = new Weaver.Node()
+    date = 'P2Y6M'
+    node.set('duration', date, 'xsd:yearMonthDuration')
+    node.save().then(->
+      Weaver.Node.load(node.id())
+    ).then((loadedNode) ->
+      loadedDate = loadedNode.get('duration')
+      expect(loadedDate).to.equal(date)
     )
 
   it 'should increment an existing number attribute', ->
