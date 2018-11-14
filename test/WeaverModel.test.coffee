@@ -1,6 +1,7 @@
 weaver = require("./test-suite").weaver
 Weaver = require('../src/Weaver')
 cuid   = require('cuid')
+moment = require('moment')
 
 describe 'WeaverModel test', ->
 
@@ -295,7 +296,7 @@ describe 'WeaverModel test', ->
           expect(loaded.id()).to.equal(document.id())
         )
 
-      it 'should succeed setting attribuges at an extended type definition of an included model', ->
+      it 'should succeed setting attributes at an extended type definition of an included model', ->
         Document = model.DeliveryNotice
         document = new Document()
         document.set('at', '2017-01-02')
@@ -307,7 +308,8 @@ describe 'WeaverModel test', ->
           Document.load(document.id())
         ).then((loaded)->
           expect(loaded.id()).to.equal(document.id())
-          expect(loaded.get('at')).to.equal(1483315200000)
+          check = moment(1483315200000)
+          assert(loaded.get('at').isSame(check), "the loaded date #{loaded.get('at').toJSON()} should equal the original date #{check.toJSON()}")
           expect(loaded.get('fileName')).to.equal('print.pdf')
           expect(loaded.getDataType('at')).to.equal('xsd:dateTime')
           expect(loaded.getDataType('hasFileName')).to.equal('string')

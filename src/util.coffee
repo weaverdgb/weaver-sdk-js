@@ -1,3 +1,5 @@
+moment = require('moment')
+
 typeShouldBe = (type) -> (val) ->
   Object.prototype.toString.call(val) is type
 
@@ -25,6 +27,13 @@ module.exports =
     typeShouldBe('[object Array]')(val)
 
   isDate: (val) ->
-    typeShouldBe('[object Date]')(val)
+    throw new Error('Please use momentjs Date instances') if val instanceof Date
+    moment.isMoment(val)
+
+  parseDate: (dataType, value) ->
+    switch dataType
+      when 'date'           then moment(value)
+      when 'xsd:dateTime'   then moment(value)
+      else undefined
 
   flatten: flatten
