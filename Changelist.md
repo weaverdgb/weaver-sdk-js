@@ -1,5 +1,8 @@
 # Changelist
 
+## 11.0.1
+- Fixes bug in bootstrapping another project
+
 ## 11.0.0
 - Switch to moment js for supporting dates and related data types
 

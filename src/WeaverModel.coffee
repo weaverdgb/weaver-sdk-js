@@ -289,7 +289,7 @@ class WeaverModel extends ModelContext
             firstOrCreate(nodeId, context.getGraph(), Weaver.DefinedNode)
             .then((node)->
               node.model = model
-              node.relation(memberKey).onlyOnce(owner)
+              node.relation(memberKey).onlyOnce(owner, project)
             )
           )
         )
@@ -310,7 +310,7 @@ class WeaverModel extends ModelContext
         superId = context.getNodeNameByKey(classObj.super)
         firstOrCreate(id, context.getGraph()).then((node) ->
           firstOrCreate(superId, context.getGraph(), undefined, false).then((superNode)->
-            node.relation(inheritKey).onlyOnce(superNode)
+            node.relation(inheritKey).onlyOnce(superNode, project)
           )
         )
       )
