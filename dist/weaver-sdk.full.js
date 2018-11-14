@@ -107154,7 +107154,7 @@ module.exports = yeast;
 },{}],409:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "11.0.0",
+  "version": "11.0.1",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -109607,7 +109607,7 @@ module.exports={
               nodeId = context.definition.name + ":" + itemName;
               return firstOrCreate(nodeId, context.getGraph(), Weaver.DefinedNode).then(function(node) {
                 node.model = model;
-                return node.relation(memberKey).onlyOnce(owner);
+                return node.relation(memberKey).onlyOnce(owner, project);
               });
             });
           });
@@ -109652,7 +109652,7 @@ module.exports={
           superId = context.getNodeNameByKey(classObj["super"]);
           return firstOrCreate(id, context.getGraph()).then(function(node) {
             return firstOrCreate(superId, context.getGraph(), void 0, false).then(function(superNode) {
-              return node.relation(inheritKey).onlyOnce(superNode);
+              return node.relation(inheritKey).onlyOnce(superNode, project);
             });
           });
         });
