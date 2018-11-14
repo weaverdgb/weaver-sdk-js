@@ -190,6 +190,28 @@ describe 'WeaverModel test', ->
       person = new model.Person()
       expect(person.get("totallyNotAnAttributeOfTheModel")).to.be.undefined
 
+    it 'should bootstrap a model in another project with an empty project selected', ->
+      p = weaver.currentProject()
+      empty = new Weaver.Project()
+      empty.create().then(->
+        weaver.useProject(empty)
+      ).then(->
+        project = new Weaver.Project()
+        project.create().then((p) ->
+          projectId = p.id()
+          expect(projectId).to.equal(project.id())
+          model.bootstrap(projectId).then(->
+            new Weaver.Query(projectId).restrict('test-model:Person').find()
+          ).should.eventually.have.length.be(1)
+        ).then(->
+          weaver.useProject(p)
+        ).then(->
+          project.destroy()
+        ).then(->
+          empty.destroy()
+        )
+      )
+
     it 'should bootstrap a model', ->
       model.bootstrap().then(->
         new Weaver.Query().restrict('test-model:Person').find()
