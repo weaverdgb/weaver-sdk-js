@@ -1,6 +1,6 @@
 # Changelist
 
-# develop
+## 11.0.0
 - Switch to moment js for supporting dates and related data types
 
 ## 10.0.0
