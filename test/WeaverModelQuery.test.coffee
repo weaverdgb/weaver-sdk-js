@@ -385,6 +385,18 @@ describe 'WeaverModelQuery test', ->
         .class(model.td.Document)
         assert.throws(->query.hasRecursiveRelationIn('Person.signed', new Weaver.ModelQuery().class(model.td.Document)))
 
+      it 'should load selectIn using proper model class', ->
+        new Weaver.ModelQuery(model)
+        .restrict('basshouse')
+        .selectIn('*')
+        .first()
+        .then((node)->
+          for building in node.relationsIn.livesInSomeBuilding.nodes
+            building.should.be.instanceOf(model.Building)
+          for company in node.relationsIn.worksIn.nodes
+            company.should.be.instanceOf(model.Company)
+        )
+        
   it 'should remove the model from the query when using \'destruct\' function', ->
     q = new Weaver.ModelQuery(model)
     expect(q.model).to.be.not.undefined
