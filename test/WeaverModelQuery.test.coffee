@@ -391,10 +391,10 @@ describe 'WeaverModelQuery test', ->
         .selectIn('*')
         .first()
         .then((node)->
-          for building in node.relationsIn.livesInSomeBuilding.nodes
-            building.should.be.instanceOf(model.Building)
-          for company in node.relationsIn.worksIn.nodes
-            company.should.be.instanceOf(model.Company)
+          for person in node.relationsIn.livesInSomeBuilding.nodes
+            person.should.be.instanceOf(model.Person)
+          for person in node.relationsIn.worksIn.nodes
+            person.should.be.instanceOf(model.Person)
         )
         
   it 'should remove the model from the query when using \'destruct\' function', ->
