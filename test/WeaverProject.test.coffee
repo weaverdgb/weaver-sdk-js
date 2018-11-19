@@ -29,6 +29,13 @@ describe 'WeaverProject Test', ->
       p.destroy()
     )
 
+  it 'should create projects with another given id', ->
+    project = new Weaver.Project("name", "n_3")
+    project.create().then((p) =>
+      expect(p.id()).to.equal("n_3")
+      p.destroy()
+    )
+
   it 'should create projects with no given id', ->
     project = new Weaver.Project()
     project.create().then((p) =>
