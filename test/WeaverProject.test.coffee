@@ -36,6 +36,10 @@ describe 'WeaverProject Test', ->
       p.destroy()
     )
 
+  it 'should not create a project with an illegal id', ->
+    project = new Weaver.Project("name", "Idx")
+    project.create().should.be.rejectedWith('The id Idx is not valid')
+
   it 'should delete projects', ->
     test = new Weaver.Project()
     id = 'deleteid'
