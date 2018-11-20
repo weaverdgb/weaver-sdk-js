@@ -156,6 +156,12 @@ describe 'WeaverModel test', ->
       person.getRanges('livesIn').should.eql(['test-model:House'])
       person.getRanges('isIn').should.eql(['test-model:House', 'test-model:Office'])
 
+    it 'should allow relations with the same database key but with different model key', ->
+      Construction = model.Construction
+      construction = new Construction()
+      construction.relation('materialInterior').add(new model.MaterialInterior)
+      construction.relation('materialExterior').add(new model.MaterialExterior)
+
     it 'should add allowed relations by correct range', ->
       Person = model.Person
       House = model.House
