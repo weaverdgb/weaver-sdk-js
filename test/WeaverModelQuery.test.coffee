@@ -388,6 +388,16 @@ describe 'WeaverModelQuery test', ->
       it 'should load selectIn using proper model class', ->
         new Weaver.ModelQuery(model)
         .restrict('basshouse')
+        .selectIn('livesInSomeBuilding')
+        .first()
+        .then((node)->
+          for person in node.relationsIn.livesInSomeBuilding.nodes
+            person.should.be.instanceOf(model.Person)
+        )
+
+      it 'should load selectIn with wildcard using proper model class', ->
+        new Weaver.ModelQuery(model)
+        .restrict('basshouse')
         .selectIn('*')
         .first()
         .then((node)->
