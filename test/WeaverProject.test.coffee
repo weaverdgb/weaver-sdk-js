@@ -29,12 +29,31 @@ describe 'WeaverProject Test', ->
       p.destroy()
     )
 
+  it 'should create projects with another given id', ->
+    project = new Weaver.Project("name", "n_3")
+    project.create().then((p) =>
+      expect(p.id()).to.equal("n_3")
+      p.destroy()
+    )
+
   it 'should create projects with no given id', ->
     project = new Weaver.Project()
     project.create().then((p) =>
       expect(p.id()).to.equal(project.id())
       p.destroy()
     )
+
+  it 'should not create a project with an illegal id 1', ->
+    new Weaver.Project("name", "Idx").create().should.be.rejectedWith('The id Idx is not valid')
+
+  it 'should not create a project with an illegal id 2', ->
+    new Weaver.Project("name", "_dx").create().should.be.rejectedWith('The id _dx is not valid')
+
+  it 'should not create a project with an illegal id 3', ->
+    new Weaver.Project("name", "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx").create().should.be.rejectedWith('The id xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx is not valid')
+
+  it 'should not create a project with an illegal id 4', ->
+    new Weaver.Project("name", "dx").create().should.be.rejectedWith('The id dx is not valid')
 
   it 'should delete projects', ->
     test = new Weaver.Project()
