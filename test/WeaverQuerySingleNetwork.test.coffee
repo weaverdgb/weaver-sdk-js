@@ -17,6 +17,9 @@ describe 'WeaverQuery with single Network', ->
   vettel           = new Weaver.Node()
   raikonnen        = new Weaver.Node()
   hamilton         = new Weaver.Node()
+  verstappen       = new Weaver.Node()
+  redbull          = new Weaver.Node()
+  kart             = new Weaver.Node()
 
   king             = new Weaver.Node(undefined, 'feudal')
   duke             = new Weaver.Node(undefined, 'feudal')
@@ -35,6 +38,12 @@ describe 'WeaverQuery with single Network', ->
   ferrari.set('could-be-electric', 'maybe-hybrid')
   ferrari.set('testset', '2')
 
+  kart.set('description', 'That thing mario drives')
+  kart.set('testset', '2')
+
+  redbull.set('testset', '2')
+  redbull.set('description', 'Sugar fuelled')
+
   car.set('description', 'Thing with wheels')
   car.set('objectiveValue', '12')
   car.set('testset', '2')
@@ -43,6 +52,7 @@ describe 'WeaverQuery with single Network', ->
   motorizedVehicle.set('could-be-electric', 'sure')
   motorizedVehicle.set('testset', '2')
 
+  ferrari.relation('is-a').add(car)
   ferrari.relation('is-a').add(car)
   car.relation('is-a').add(motorizedVehicle)
 
@@ -54,6 +64,11 @@ describe 'WeaverQuery with single Network', ->
 
   vettel.set('testset', '2')
   vettel.relation('drives').add(ferrari)
+  vettel.relation('drives').add(redbull)
+
+  verstappen.set('testset', '2')
+  verstappen.relation('drives').add(redbull)
+  verstappen.relation('drives').add(kart)
 
   raikonnen.set('testset', '2')
   raikonnen.relation('drives').add(ferrari)
@@ -68,7 +83,7 @@ describe 'WeaverQuery with single Network', ->
 
   before ->
     wipeCurrentProject().then( ->
-      Promise.all([vettel.save(), garden.save(), serf.save()])
+      Weaver.Node.batchSave([vettel, verstappen, garden, serf])
     )
 
   it 'should do hasRelationOut correctly', ->
@@ -77,6 +92,12 @@ describe 'WeaverQuery with single Network', ->
     .find().then((nodes) ->
       expect(i.id() for i in nodes).to.eql([ ferrari.id() ])
     )
+
+  it 'should support multiple hasRelationIn clauses', ->
+    new Weaver.Query()
+      .hasRelationIn('drives', vettel)
+      .hasRelationIn('drives', verstappen)
+    .find().should.eventually.have.length.be(1)
 
   it 'should support wildcard with nested Weaver.Query values', ->
     # Get all nodes which have any relation in from a node that is-a car
