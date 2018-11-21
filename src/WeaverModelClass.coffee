@@ -129,10 +129,6 @@ class WeaverModelClass extends Weaver.Node
     if to instanceof Weaver.ModelClass or to instanceof Weaver.DefinedNode
       defs = to.getDefinitions()
       ranges = @getRanges(key)
-      console.log 'defs'
-      console.log defs
-      console.log ranges
-      console.log key
       (def for def in defs when def in ranges)
     else
       []
