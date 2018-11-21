@@ -15,7 +15,7 @@ class WeaverModelRelation extends Weaver.Relation
     if to instanceof Weaver.ModelClass or to instanceof Weaver.DefinedNode
       defs = to.getDefinitions()
       modelKey = @owner._getModelKey(@relationKey, defs...) or @modelKey
-      found = @owner.getToRanges(modelKey, to) if modelKey
+      found = @owner.getToRanges(modelKey, to) if modelKey?
       if !found? or found.length is 0
         allowed = JSON.stringify(@owner.getRanges(modelKey)) if modelKey?
         throw new Error("""Model #{@className} is not allowed to have relation #{modelKey} to #{to.id()} 
