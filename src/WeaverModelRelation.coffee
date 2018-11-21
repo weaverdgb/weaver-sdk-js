@@ -18,17 +18,12 @@ class WeaverModelRelation extends Weaver.Relation
     else
       return
 
-    found = @owner.getToRanges(@modelKey, to)
-    allowed = @owner.getRanges(@modelKey)
+    modelKey = @owner._getModelKey(@relationKey, defs...) or @modelKey
+    found = @owner.getToRanges(modelKey, to) if modelKey
     return true if found? and found.length > 0
-    throw new Error("Model #{@className} is not allowed to have relation #{@modelKey} to #{to.id()}"+
+    allowed = @owner.getRanges(modelKey) if modelKey?
+    throw new Error("Model #{@className} is not allowed to have relation #{modelKey} to #{to.id()}"+
                     " of def #{JSON.stringify(defs)}, allowed ranges are #{JSON.stringify(allowed)}")
-
-  _checkCorrectConstructor: (constructor) ->
-    for range in @owner.getRanges(@modelKey)
-      return true if @model.classList[range].className is constructor.className and range is constructor.classId()
-    throw new Error("Model #{@className} is not allowed to have relation #{@modelKey} to instance"+
-      " of def #{constructor.className}.")
 
   add: (node, relId, addToPendingWrites = true) ->
     @_checkCorrectClass(node)

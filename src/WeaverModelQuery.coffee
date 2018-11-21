@@ -33,8 +33,9 @@ class WeaverModelQuery extends Weaver.Query
         if owner not instanceof Weaver.ModelClass
           console.info("Could not choose contructing node between type #{JSON.stringify(defs)}")
           return Weaver.DefinedNode
-
-        modelKey = owner.lookUpModelKey(key)
+        defs = node.getDefinitions?()
+        modelKey = owner._getModelKey(key, defs...) or key
+        
         ranges = owner.getToRanges(modelKey, node)
         if ranges.length < 1
           console.warn("Could not find a range for constructing second order node between type #{JSON.stringify(defs)}")
