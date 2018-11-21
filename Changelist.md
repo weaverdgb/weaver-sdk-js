@@ -1,6 +1,6 @@
 # Changelist
 
-## Develop
+## 11.0.2
 - Fix bug in allowed relations when two different modelKeys map to the same key
 
 ## 11.0.1

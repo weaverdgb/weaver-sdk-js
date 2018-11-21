@@ -107154,7 +107154,7 @@ module.exports = yeast;
 },{}],409:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "11.0.1-beta.0",
+  "version": "11.0.2",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -109812,9 +109812,8 @@ module.exports={
       return this.totalClassDefinition.relations[key].key || key;
     };
 
-    WeaverModelClass.prototype._getModelKey = function() {
-      var i, j, len, len1, map, modelKey, range, ref, ref1, relDef, relationKey, res, toClassId, toClassIds;
-      relationKey = arguments[0], toClassIds = 2 <= arguments.length ? slice.call(arguments, 1) : [];
+    WeaverModelClass.prototype._getModelKeyPerRange = function(relationKey) {
+      var i, len, map, modelKey, range, ref, ref1, relDef;
       map = {};
       ref = this.totalClassDefinition.relations;
       for (modelKey in ref) {
@@ -109830,20 +109829,27 @@ module.exports={
           }
         }
       }
-      res = [];
-      for (j = 0, len1 = toClassIds.length; j < len1; j++) {
-        toClassId = toClassIds[j];
+      return map;
+    };
+
+    WeaverModelClass.prototype._getModelKey = function() {
+      var i, keyMatches, len, map, relationKey, toClassId, toClassIds;
+      relationKey = arguments[0], toClassIds = 2 <= arguments.length ? slice.call(arguments, 1) : [];
+      map = this._getModelKeyPerRange(relationKey);
+      keyMatches = [];
+      for (i = 0, len = toClassIds.length; i < len; i++) {
+        toClassId = toClassIds[i];
         if (map[toClassId] != null) {
           if (map[toClassId].length > 1) {
             throw new Error(this.className + " model has multiple modelKeys for a relation to a node of type " + toClassId);
           }
-          res.push(map[toClassId]);
+          keyMatches.push(map[toClassId]);
         }
       }
-      if ((res != null) && res.length > 1) {
-        throw new Error("Finding a modelKey for " + this.className + " with relationKey " + relationKey + " for defs " + (JSON.stringify(toClassIds)) + " faild because mutlipe options where found: " + (JSON.stringify(res)));
+      if (keyMatches.length > 1) {
+        throw new Error("Finding a modelKey for " + this.className + " with relationKey " + relationKey + " for defs " + (JSON.stringify(toClassIds)) + " faild because mutlipe options where found: " + (JSON.stringify(keyMatches)));
       }
-      return res.pop();
+      return keyMatches[0];
     };
 
     WeaverModelClass.prototype.getRanges = function(key) {
@@ -109871,9 +109877,6 @@ module.exports={
       if (to instanceof Weaver.ModelClass || to instanceof Weaver.DefinedNode) {
         defs = to.getDefinitions();
         ranges = this.getRanges(key);
-        console.log('defs');
-        console.log(defs);
-        console.log(ranges);
         results = [];
         for (i = 0, len = defs.length; i < len; i++) {
           def = defs[i];
@@ -110138,11 +110141,7 @@ module.exports={
               return Weaver.DefinedNode;
             }
             defs = typeof node.getDefinitions === "function" ? node.getDefinitions() : void 0;
-            modelKey = owner._getModelKey.apply(owner, [key].concat(slice.call(defs)));
-            console.log('special');
-            console.log(key);
-            console.log(node.id());
-            console.log(modelKey);
+            modelKey = owner._getModelKey.apply(owner, [key].concat(slice.call(defs))) || key;
             ranges = owner.getToRanges(modelKey, node);
             if (ranges.length < 1) {
               console.warn("Could not find a range for constructing second order node between type " + (JSON.stringify(defs)));
@@ -110344,44 +110343,36 @@ module.exports={
       return node.className;
     };
 
-    WeaverModelRelation.prototype._checkCorrectClass = function(to) {
+    WeaverModelRelation.prototype._assertCorrectClass = function(to) {
       var allowed, defs, found, modelKey, ref;
       if (to instanceof Weaver.Relation.Record) {
         to = to.toNode;
       }
-      defs = [];
       if (to instanceof Weaver.ModelClass || to instanceof Weaver.DefinedNode) {
         defs = to.getDefinitions();
-      } else {
-        return;
+        modelKey = (ref = this.owner)._getModelKey.apply(ref, [this.relationKey].concat(slice.call(defs))) || this.modelKey;
+        if (modelKey != null) {
+          found = this.owner.getToRanges(modelKey, to);
+        }
+        if ((found == null) || found.length === 0) {
+          if (modelKey != null) {
+            allowed = JSON.stringify(this.owner.getRanges(modelKey));
+          }
+          throw new Error("Model " + this.className + " is not allowed to have relation " + modelKey + " to " + (to.id()) + " \nof def " + (JSON.stringify(defs)) + ", allowed ranges are " + allowed);
+        }
       }
-      modelKey = (ref = this.owner)._getModelKey.apply(ref, [this.relationKey].concat(slice.call(defs))) || this.modelKey;
-      if (modelKey) {
-        found = this.owner.getToRanges(modelKey, to);
-      }
-      if ((found != null) && found.length > 0) {
-        return true;
-      }
-      if (modelKey != null) {
-        allowed = this.owner.getRanges(modelKey);
-      }
-      throw new Error(("Model " + this.className + " is not allowed to have relation " + modelKey + " to " + (to.id())) + (" of def " + (JSON.stringify(defs)) + ", allowed ranges are " + (JSON.stringify(allowed))));
-    };
-
-    WeaverModelRelation.prototype._checkCorrectConstructor = function(constructor) {
-      return true;
     };
 
     WeaverModelRelation.prototype.add = function(node, relId, addToPendingWrites) {
       if (addToPendingWrites == null) {
         addToPendingWrites = true;
       }
-      this._checkCorrectClass(node);
+      this._assertCorrectClass(node);
       return WeaverModelRelation.__super__.add.call(this, node, relId, addToPendingWrites);
     };
 
     WeaverModelRelation.prototype.update = function(oldNode, newNode) {
-      this._checkCorrectClass(newNode);
+      this._assertCorrectClass(newNode);
       return WeaverModelRelation.__super__.update.call(this, oldNode, newNode);
     };
 
