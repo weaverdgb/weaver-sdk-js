@@ -97,25 +97,30 @@ class WeaverModelClass extends Weaver.Node
 
     @totalClassDefinition.relations[key].key or key
 
-  _getModelKey: (relationKey, toClassIds...) ->
+  _getModelKeyPerRange: (relationKey) ->
     map = {}
     for modelKey, relDef of @totalClassDefinition.relations
       if relDef?.key is relationKey
         for range in relDef.range
           map[range] ?= []
           map[range].push(modelKey)
+    map
 
-    res = []
+  # throws an exception if the number of matches found is greater than 1
+  # returns undefined if no match is found
+  _getModelKey: (relationKey, toClassIds...) ->
+    map = @_getModelKeyPerRange(relationKey)
+    keyMatches = []
     for toClassId in toClassIds
       if map[toClassId]?
         if map[toClassId].length > 1
           throw new Error("#{@className} model has multiple modelKeys for a relation to a node of type #{toClassId}")
-        res.push(map[toClassId]) 
+        keyMatches.push(map[toClassId]) 
 
-    if res? and res.length > 1
-      throw new Error("Finding a modelKey for #{@className} with relationKey #{relationKey} for defs #{JSON.stringify(toClassIds)} faild because mutlipe options where found: #{JSON.stringify(res)}")
+    if keyMatches.length > 1
+      throw new Error("Finding a modelKey for #{@className} with relationKey #{relationKey} for defs #{JSON.stringify(toClassIds)} faild because mutlipe options where found: #{JSON.stringify(keyMatches)}")
 
-    res.pop()
+    keyMatches[0]
 
   getRanges: (key)->
     @totalRangesMap[key]
