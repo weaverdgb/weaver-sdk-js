@@ -42,9 +42,23 @@ classes:
       yearOfConstruction:
         datatype: double
     relations:
+      materialInterior:
+        key: 'hasMaterial'
+        range: [MaterialInterior]
+      materialExterior:
+        key: 'hasMaterial'
+        range: [MaterialExterior]
       buildBy:
         range: [Person]
         card:  [1,2]
+  MaterialInterior:
+    attributes:
+      name:
+        datatype: string
+  MaterialExterior:
+    attributes:
+      name:
+        datatype: string
   Building:
     super: Construction
     init: [EmpireState]

@@ -107154,7 +107154,7 @@ module.exports = yeast;
 },{}],409:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "11.0.1",
+  "version": "11.0.1-beta.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -109812,20 +109812,42 @@ module.exports={
       return this.totalClassDefinition.relations[key].key || key;
     };
 
-    WeaverModelClass.prototype.getRanges = function(key) {
-      return this.totalRangesMap[key];
-    };
-
-    WeaverModelClass.prototype.lookUpModelKey = function(databaseKey) {
-      var key, obj, ref;
+    WeaverModelClass.prototype._getModelKey = function() {
+      var i, j, len, len1, map, modelKey, range, ref, ref1, relDef, relationKey, res, toClassId, toClassIds;
+      relationKey = arguments[0], toClassIds = 2 <= arguments.length ? slice.call(arguments, 1) : [];
+      map = {};
       ref = this.totalClassDefinition.relations;
-      for (key in ref) {
-        obj = ref[key];
-        if ((obj != null) && (obj.key != null) && obj.key === databaseKey) {
-          return key;
+      for (modelKey in ref) {
+        relDef = ref[modelKey];
+        if ((relDef != null ? relDef.key : void 0) === relationKey) {
+          ref1 = relDef.range;
+          for (i = 0, len = ref1.length; i < len; i++) {
+            range = ref1[i];
+            if (map[range] == null) {
+              map[range] = [];
+            }
+            map[range].push(modelKey);
+          }
         }
       }
-      return databaseKey;
+      res = [];
+      for (j = 0, len1 = toClassIds.length; j < len1; j++) {
+        toClassId = toClassIds[j];
+        if (map[toClassId] != null) {
+          if (map[toClassId].length > 1) {
+            throw new Error(this.className + " model has multiple modelKeys for a relation to a node of type " + toClassId);
+          }
+          res.push(map[toClassId]);
+        }
+      }
+      if ((res != null) && res.length > 1) {
+        throw new Error("Finding a modelKey for " + this.className + " with relationKey " + relationKey + " for defs " + (JSON.stringify(toClassIds)) + " faild because mutlipe options where found: " + (JSON.stringify(res)));
+      }
+      return res.pop();
+    };
+
+    WeaverModelClass.prototype.getRanges = function(key) {
+      return this.totalRangesMap[key];
     };
 
     WeaverModelClass.prototype.getDefinitions = function() {
@@ -109849,6 +109871,9 @@ module.exports={
       if (to instanceof Weaver.ModelClass || to instanceof Weaver.DefinedNode) {
         defs = to.getDefinitions();
         ranges = this.getRanges(key);
+        console.log('defs');
+        console.log(defs);
+        console.log(ranges);
         results = [];
         for (i = 0, len = defs.length; i < len; i++) {
           def = defs[i];
@@ -109946,9 +109971,10 @@ module.exports={
       classRelation = (function(superClass1) {
         extend(_Class, superClass1);
 
-        function _Class(parent, key) {
-          _Class.__super__.constructor.call(this, parent, key);
+        function _Class(owner, key) {
+          _Class.__super__.constructor.call(this, owner, key);
           this.modelKey = modelKey;
+          this.relationKey = relationKey;
           this.model = model;
           this.className = className;
           this.definition = definition;
@@ -110111,7 +110137,12 @@ module.exports={
               console.info("Could not choose contructing node between type " + (JSON.stringify(defs)));
               return Weaver.DefinedNode;
             }
-            modelKey = owner.lookUpModelKey(key);
+            defs = typeof node.getDefinitions === "function" ? node.getDefinitions() : void 0;
+            modelKey = owner._getModelKey.apply(owner, [key].concat(slice.call(defs)));
+            console.log('special');
+            console.log(key);
+            console.log(node.id());
+            console.log(modelKey);
             ranges = owner.getToRanges(modelKey, node);
             if (ranges.length < 1) {
               console.warn("Could not find a range for constructing second order node between type " + (JSON.stringify(defs)));
@@ -110289,7 +110320,8 @@ module.exports={
 (function() {
   var Promise, Weaver, WeaverModelRelation, _, cjson, cuid,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
-    hasProp = {}.hasOwnProperty;
+    hasProp = {}.hasOwnProperty,
+    slice = [].slice;
 
   cuid = require('cuid');
 
@@ -110313,7 +110345,7 @@ module.exports={
     };
 
     WeaverModelRelation.prototype._checkCorrectClass = function(to) {
-      var allowed, defs, found;
+      var allowed, defs, found, modelKey, ref;
       if (to instanceof Weaver.Relation.Record) {
         to = to.toNode;
       }
@@ -110323,24 +110355,21 @@ module.exports={
       } else {
         return;
       }
-      found = this.owner.getToRanges(this.modelKey, to);
-      allowed = this.owner.getRanges(this.modelKey);
+      modelKey = (ref = this.owner)._getModelKey.apply(ref, [this.relationKey].concat(slice.call(defs))) || this.modelKey;
+      if (modelKey) {
+        found = this.owner.getToRanges(modelKey, to);
+      }
       if ((found != null) && found.length > 0) {
         return true;
       }
-      throw new Error(("Model " + this.className + " is not allowed to have relation " + this.modelKey + " to " + (to.id())) + (" of def " + (JSON.stringify(defs)) + ", allowed ranges are " + (JSON.stringify(allowed))));
+      if (modelKey != null) {
+        allowed = this.owner.getRanges(modelKey);
+      }
+      throw new Error(("Model " + this.className + " is not allowed to have relation " + modelKey + " to " + (to.id())) + (" of def " + (JSON.stringify(defs)) + ", allowed ranges are " + (JSON.stringify(allowed))));
     };
 
     WeaverModelRelation.prototype._checkCorrectConstructor = function(constructor) {
-      var i, len, range, ref;
-      ref = this.owner.getRanges(this.modelKey);
-      for (i = 0, len = ref.length; i < len; i++) {
-        range = ref[i];
-        if (this.model.classList[range].className === constructor.className && range === constructor.classId()) {
-          return true;
-        }
-      }
-      throw new Error(("Model " + this.className + " is not allowed to have relation " + this.modelKey + " to instance") + (" of def " + constructor.className + "."));
+      return true;
     };
 
     WeaverModelRelation.prototype.add = function(node, relId, addToPendingWrites) {

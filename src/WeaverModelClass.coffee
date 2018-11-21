@@ -97,12 +97,33 @@ class WeaverModelClass extends Weaver.Node
 
     @totalClassDefinition.relations[key].key or key
 
+  _getModelKeyPerRange: (relationKey) ->
+    map = {}
+    for modelKey, relDef of @totalClassDefinition.relations
+      if relDef?.key is relationKey
+        for range in relDef.range
+          map[range] ?= []
+          map[range].push(modelKey)
+    map
+
+  # throws an exception if the number of matches found is greater than 1
+  # returns undefined if no match is found
+  _getModelKey: (relationKey, toClassIds...) ->
+    map = @_getModelKeyPerRange(relationKey)
+    keyMatches = []
+    for toClassId in toClassIds
+      if map[toClassId]?
+        if map[toClassId].length > 1
+          throw new Error("#{@className} model has multiple modelKeys for a relation to a node of type #{toClassId}")
+        keyMatches.push(map[toClassId]) 
+
+    if keyMatches.length > 1
+      throw new Error("Finding a modelKey for #{@className} with relationKey #{relationKey} for defs #{JSON.stringify(toClassIds)} faild because mutlipe options where found: #{JSON.stringify(keyMatches)}")
+
+    keyMatches[0]
+
   getRanges: (key)->
     @totalRangesMap[key]
-
-  lookUpModelKey: (databaseKey)->
-    return key for key, obj of @totalClassDefinition.relations when obj? and obj.key? and obj.key is databaseKey
-    databaseKey
 
   getDefinitions: ->
     defs = (def.id() for def in @nodeRelation(@model.getMemberKey()).all())
@@ -170,9 +191,10 @@ class WeaverModelClass extends Weaver.Node
     relationDefinition = @totalClassDefinition.relations[key]
     classRelation = class extends Weaver.ModelRelation
 
-      constructor: (parent, key)->
-        super(parent, key)
+      constructor: (owner, key)->
+        super(owner, key)
         @modelKey           = modelKey
+        @relationKey        = relationKey
         @model              = model
         @className          = className
         @definition         = definition

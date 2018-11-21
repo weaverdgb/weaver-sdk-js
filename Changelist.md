@@ -1,5 +1,8 @@
 # Changelist
 
+## Develop
+- Fix bug in allowed relations when two different modelKeys map to the same key
+
 ## 11.0.1
 - Fixes bug in bootstrapping another project
 
