@@ -1,6 +1,6 @@
 weaver = require("./test-suite").weaver
 wipeCurrentProject = require("./test-suite").wipeCurrentProject
-Weaver = require('../src/Weaver')
+Weaver = require('../src/node/Weaver')
 
 path     = require('path')
 Promise  = require('bluebird')
