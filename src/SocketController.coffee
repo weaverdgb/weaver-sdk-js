@@ -1,9 +1,8 @@
 # Libs
-io       = require('socket.io-client')
+io       = require('socket.io-client/dist/socket.io')
 Promise  = require('bluebird')
 pjson    = require('../package.json')
 Weaver   = require('./Weaver')
-ss       = require('socket.io-stream')
 
 class SocketController
 
@@ -38,14 +37,17 @@ class SocketController
   disconnect: ->
     @io.disconnect()
 
+  parseBody: (body) ->
+    JSON.stringify(body)
+
+  getSocket: (body) ->
+    @io
+
   emit: (key, body) ->
     new Promise((resolve, reject) =>
       emitStart = Date.now()
-      if body.type isnt 'STREAM'
-        body = JSON.stringify(body)
-        socket = @io
-      else
-        socket = ss(@io)
+      socket = @getSocket(body)
+      body   = @parseBody(body)
 
       socket.emit(key, body, (response) =>
         if response.code? and response.message?
@@ -88,9 +90,6 @@ class SocketController
     @emit(path, body)
 
   POST: (path, body) ->
-    @emit(path, body)
-
-  STREAM: (path, body) ->
     @emit(path, body)
 
 module.exports = SocketController
