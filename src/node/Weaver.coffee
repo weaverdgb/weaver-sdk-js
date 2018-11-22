@@ -1,5 +1,5 @@
 WeaverBase       = require('../Weaver')
-SocketController = require('../SocketController')
+SocketController = require('../SocketControllerWithStream')
 
 class Weaver extends WeaverBase
 
