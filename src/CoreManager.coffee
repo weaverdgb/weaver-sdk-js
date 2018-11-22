@@ -107,14 +107,14 @@ class CoreManager
   shout: (message) ->
     @POST("socket.shout", {message})
 
-  listPlugins: ->
+  listPlugins: (PluginConstructor) ->
     @GET("plugins").then((plugins) ->
-      (new Weaver.Plugin(p) for p in plugins)
+      (new PluginConstructor(p) for p in plugins)
     )
 
-  getPlugin: (name) ->
+  getPlugin: (name, PluginConstructor) ->
     @POST("plugin.read", {name}).then((plugin) ->
-      new Weaver.Plugin(plugin)
+      new PluginConstructor(plugin)
     )
 
   executePluginFunction: (route, payload) ->
