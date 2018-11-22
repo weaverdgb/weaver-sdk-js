@@ -1,10 +1,7 @@
 # Libs
 _                = require('lodash')
-io               = require('socket.io-client')
 cuid             = require('cuid')
 Promise          = require('bluebird')
-request          = require('request')
-SocketController = require('./SocketController')
 LocalController  = require('./LocalController')
 Error            = require('./Error')
 Weaver           = require('./Weaver')
@@ -12,7 +9,7 @@ WeaverError      = require('./WeaverError')
 
 class CoreManager
 
-  constructor: ->
+  constructor: (@CommControllerClass) ->
     @currentProject = null
     @currentModel   = null
     @operationsQueue = Promise.resolve()
@@ -25,7 +22,7 @@ class CoreManager
 
     @options = @options or defaultOptions
     @endpoint = endpoint
-    @commController = new SocketController(endpoint, @options)
+    @commController = new @CommControllerClass(endpoint, @options)
     @commController.connect()
 
   disconnect: ->
