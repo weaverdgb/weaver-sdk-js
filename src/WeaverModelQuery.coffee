@@ -6,7 +6,7 @@ class WeaverModelQuery extends Weaver.Query
 
   constructor: (context = Weaver.currentModel(), target) ->
     super(target)
-    @context = context
+    @context = context or throw new Error('Please specify a model for the ModelQuery either by supplying an argument or setting Weaver.useModel(model)')
     @model = context.model
     @keyMappingDisabled = false
 

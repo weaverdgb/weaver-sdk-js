@@ -417,3 +417,18 @@ describe 'WeaverModelQuery test', ->
     q = new Weaver.ModelQuery(model)
     q.contains('Passport.fileName', 'someFilename')
     expect(q._conditions['hasFileName']).to.be.not.undefined
+
+  it 'should allow omitting the model argument when there is a default model', ->
+    Weaver.Model.load('test-model', '1.2.0')
+    .then((model)->
+      Weaver.useModel(model)
+      new Weaver.ModelQuery()
+      .restrict('jondoeid')
+      .find()
+    ).then((instances)->
+      expect(instances).to.have.length.be(1)
+    )
+
+  it 'should throw an error when no model is selected', ->
+    expect(->new Weaver.ModelQuery()).to.throw('Please specify a model for the ModelQuery')
+
