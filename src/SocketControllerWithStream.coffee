@@ -4,6 +4,9 @@ ss = require('socket.io-stream')
 
 class SocketControllerWithStream extends SocketController
 
+  requireIO: ->
+    require('socket.io-client')
+
   parseBody: (body) ->
     if body.type isnt 'STREAM'
       JSON.stringify(body)

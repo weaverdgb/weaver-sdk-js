@@ -1,5 +1,4 @@
 # Libs
-io       = require('socket.io-client/dist/socket.io')
 Promise  = require('bluebird')
 pjson    = require('../package.json')
 Weaver   = require('./Weaver')
@@ -15,9 +14,12 @@ class SocketController
     @options.reconnection = true
     @options.query = "sdkVersion=#{pjson.version}&requiredServerVersion=#{pjson.com_weaverplatform.requiredServerVersion}&requiredConnectorVersion=#{pjson.com_weaverplatform.requiredConnectorVersion}"
 
+  requireIO: ->
+    require('socket.io-client/dist/socket.io')
+
   connect: ->
     new Promise((resolve, reject) =>
-      @io = io.connect(@address, @options)
+      @io = @requireIO().connect(@address, @options)
 
       @io.on('socket.shout', (msg) ->
         Weaver.publish('socket.shout', msg)
