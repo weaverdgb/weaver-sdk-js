@@ -1,5 +1,8 @@
 # Changelist
 
+## Develop
+- Throw a descriptive error when no model is supplied as agument for a ModelQuery
+
 ## 11.0.2
 - Fix bug in allowed relations when two different modelKeys map to the same key
 
