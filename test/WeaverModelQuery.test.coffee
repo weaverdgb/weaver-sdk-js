@@ -430,5 +430,6 @@ describe 'WeaverModelQuery test', ->
     )
 
   it 'should throw an error when no model is selected', ->
+    Weaver.useModel(null)
     expect(->new Weaver.ModelQuery()).to.throw('Please specify a model for the ModelQuery')
 
