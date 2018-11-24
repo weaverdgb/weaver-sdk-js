@@ -13,6 +13,7 @@
   },
   "main": "lib/node/Weaver.js",
   "files": [
+    "lib/",
     "react-native.js"
   ],
   "license": "GPL-3.0",
