@@ -29383,7 +29383,7 @@ exports.clearImmediate = typeof clearImmediate === "function" ? clearImmediate :
 },{"process/browser.js":8,"timers":11}],12:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "11.1.0-beta.0",
+  "version": "11.1.0-beta.1",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
