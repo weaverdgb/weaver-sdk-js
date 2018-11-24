@@ -29383,7 +29383,7 @@ exports.clearImmediate = typeof clearImmediate === "function" ? clearImmediate :
 },{"process/browser.js":8,"timers":11}],12:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "11.0.3-beta.0",
+  "version": "11.1.0-beta.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -29396,6 +29396,7 @@ module.exports={
   },
   "main": "lib/node/Weaver.js",
   "files": [
+    "lib/",
     "react-native.js"
   ],
   "license": "GPL-3.0",
@@ -29404,7 +29405,7 @@ module.exports={
     "bluebird": "~3.4.1",
     "circular-json": "^0.3.1",
     "config": "^1.24.0",
-    "cuid": "2.1.4",
+    "cuid": "^2.1.4",
     "localforage": "^1.5.0",
     "lodash": "^4.17.4",
     "lokijs": "^1.4.2",
@@ -31917,7 +31918,9 @@ module.exports={
         context = Weaver.currentModel();
       }
       WeaverModelQuery.__super__.constructor.call(this, target);
-      this.context = context;
+      this.context = context || (function() {
+        throw new Error('Please specify a model for the ModelQuery either by supplying an argument or setting Weaver.useModel(model)');
+      })();
       this.model = context.model;
       this.keyMappingDisabled = false;
       constructorFunction = (function(_this) {
