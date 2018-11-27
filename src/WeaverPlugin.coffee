@@ -43,7 +43,7 @@ class WeaverPlugin
 
   # Load given plugin from server
   @load: (name) ->
-    Weaver.getCoreManager().getPlugin(name)
+    Weaver.getCoreManager().getPlugin(name, WeaverPlugin)
 
   # Parse plugin functions for easy reading
   printFunctions: ->
@@ -71,6 +71,6 @@ class WeaverPlugin
     @_description
 
   @list: ->
-    Weaver.getCoreManager().listPlugins()
+    Weaver.getCoreManager().listPlugins(WeaverPlugin)
 
 module.exports = WeaverPlugin

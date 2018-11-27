@@ -1,5 +1,5 @@
 weaver = require("./test-suite").weaver
-Weaver = require('../src/Weaver')
+Weaver = require('../src/node/Weaver')
 
 describe 'WeaverPlugin test', ->
   it 'should list available plugins', ->

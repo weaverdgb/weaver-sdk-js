@@ -1,5 +1,5 @@
 require("./globalize")
-Weaver = require("../src/Weaver.coffee")
+Weaver = require("../src/node/Weaver.coffee")
 weaver = new Weaver()
 
 # Runs before all tests (even across files)
