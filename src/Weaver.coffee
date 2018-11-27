@@ -135,8 +135,7 @@ class Weaver
   @clearAllSubscriptions: PubSub.clearAllSubscriptions
 
 # Export
-module.exports = Weaver             # Node
-window.Weaver  = Weaver if window?  # Browser
+module.exports = Weaver # Node
 
 # Require Weaver objects after exporting Weaver to prevent circular dependency
 # issues
