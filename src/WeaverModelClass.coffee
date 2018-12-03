@@ -90,9 +90,7 @@ class WeaverModelClass extends Weaver.Node
     if key is @model.getMemberKey()
       return key
 
-    if not @totalClassDefinition.relations?
-      throw new Error("#{@className} model is not allowed to have relations")
-    if not @totalClassDefinition.relations[key]?
+    if !@isAllowedRelation(key)
       throw new Error("#{@className} model is not allowed to have the #{key} relation")
 
     @totalClassDefinition.relations[key].key or key
@@ -121,6 +119,9 @@ class WeaverModelClass extends Weaver.Node
       throw new Error("Finding a modelKey for #{@className} with relationKey #{relationKey} for defs #{JSON.stringify(toClassIds)} faild because mutlipe options where found: #{JSON.stringify(keyMatches)}")
 
     keyMatches[0]
+
+  isAllowedRelation: (key) ->
+    @totalClassDefinition.relations?[key]?
 
   getRanges: (key)->
     @totalRangesMap[key]
