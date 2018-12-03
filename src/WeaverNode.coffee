@@ -509,7 +509,7 @@ class WeaverNode
     [key, filter] = key.split('[')
     [filter, ...] = filter.split(']') if filter?
 
-    if not @ instanceof Weaver.ModelClass or @isAllowedRelation(key)
+    if not @ instanceof Weaver.ModelClass or @constructor.isAllowedRelation(key)
       for node in @relation(key).all()
         if @_filterWpath(node, filter)
           row = newRow(trail)
