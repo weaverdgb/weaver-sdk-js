@@ -132,6 +132,10 @@ describe 'WeaverModel test', ->
       d = new model.td.Document()
       s.relation('supports').add(d)
 
+    it 'should inform if a relation is allowed', ->
+      assert.equal(model.Shelf.isAllowedRelation('supports'), true)
+      assert.equal(model.Shelf.isAllowedRelation('produces'), false)
+
     it 'should set attributes on included model instances by inheritance', ->
       p = new model.Passport()
       b = new model.Person()
