@@ -581,3 +581,6 @@ describe 'WeaverModel test', ->
     it 'should parse class filter', ->
       assert.deepEqual(n.wpath('/has?a/some[class=animal-model:Animal]?b'), [{'a':m, 'b':p}])
 
+    it 'should ignore non-allowed relation keys', ->
+      assert.deepEqual(p.wpath('/has?a/some?b'), [])
+
