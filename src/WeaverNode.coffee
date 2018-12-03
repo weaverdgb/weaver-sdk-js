@@ -509,11 +509,12 @@ class WeaverNode
     [key, filter] = key.split('[')
     [filter, ...] = filter.split(']') if filter?
 
-    for node in @relation(key).all()
-      if @_filterWpath(node, filter)
-        row = newRow(trail)
-        row[binding] = node if binding?
-        node._executeWpath(hops, res, row)
+    if not @ instanceof Weaver.ModelClass or @isAllowedRelation(key)
+      for node in @relation(key).all()
+        if @_filterWpath(node, filter)
+          row = newRow(trail)
+          row[binding] = node if binding?
+          node._executeWpath(hops, res, row)
 
   _filterWpath: (node, expr) ->
     return true if !expr?
