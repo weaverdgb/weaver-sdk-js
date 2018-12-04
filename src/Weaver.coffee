@@ -18,7 +18,6 @@ class Weaver
     @ACL = Weaver.ACL
     @CoreManager = Weaver.CoreManager
     @History = Weaver.History
-    @Plugin = Weaver.Plugin
     @Project = Weaver.Project
     @Query = Weaver.Query
     @Relation = Weaver.Relation
@@ -31,9 +30,7 @@ class Weaver
     @ModelClass = Weaver.ModelClass
     @ModelRelation = Weaver.ModelRelation
     @ModelQuery = Weaver.ModelQuery
-    @File = Weaver.File
 
-    @coreManager = new Weaver.CoreManager()
     @_connected  = false
     @_local      = false
 
@@ -65,7 +62,6 @@ class Weaver
 
   getCoreManager: ->
     @coreManager
-
 
   useProject: (project) ->
     @coreManager.currentProject = project
@@ -139,8 +135,7 @@ class Weaver
   @clearAllSubscriptions: PubSub.clearAllSubscriptions
 
 # Export
-module.exports = Weaver             # Node
-window.Weaver  = Weaver if window?  # Browser
+module.exports = Weaver # Node
 
 # Require Weaver objects after exporting Weaver to prevent circular dependency
 # issues
@@ -150,7 +145,6 @@ module.exports.DefinedNode   = require('./WeaverDefinedNode')
 module.exports.ACL           = require('./WeaverACL')
 module.exports.CoreManager   = require('./CoreManager')
 module.exports.History       = require('./WeaverHistory')
-module.exports.Plugin        = require('./WeaverPlugin')
 module.exports.Project       = require('./WeaverProject')
 module.exports.Query         = require('./WeaverQuery')
 module.exports.Relation      = require('./WeaverRelation')
@@ -163,4 +157,3 @@ module.exports.Model         = require('./WeaverModel')
 module.exports.ModelClass    = require('./WeaverModelClass')
 module.exports.ModelRelation = require('./WeaverModelRelation')
 module.exports.ModelQuery    = require('./WeaverModelQuery')
-module.exports.File          = require('./WeaverFile')

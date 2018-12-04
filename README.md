@@ -77,6 +77,13 @@ Weaver = require('weaver-sdk')
 weaver = new Weaver()
 ```
 
+Using in React Native
+```coffeescript
+Weaver = require('weaver-sdk/react-native')
+weaver = new Weaver()
+```
+Note that for react-native, Weaver.File and Weaver.Plugin are currently unsupported
+
 Be sure to only create a single `Weaver` instance. If you need to get a reference to a previously instantiated `Weaver` instance later, or within devtools, just do:
 ```coffeescript
 weaver = Weaver.getInstance()
