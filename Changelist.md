@@ -4,6 +4,7 @@
 - Throw a descriptive error when no model is supplied as agument for a ModelQuery
 - SDK supports React Native when doing require('weaver-sdk/react-native')
 - Fix for Weaver not being set on the window object
+- Add isAllowedRelation function to verify relation key on model class
 
 ## 11.0.2
 - Fix bug in allowed relations when two different modelKeys map to the same key

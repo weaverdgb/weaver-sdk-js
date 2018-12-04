@@ -27,6 +27,9 @@ class WeaverModelClass extends Weaver.Node
   @getNode: ->
     Weaver.Node.getFromGraph(@classId(), @context.getGraph())
 
+  @isAllowedRelation: (key) ->
+    @totalClassDefinition.relations?[key]?
+
   constructor: (nodeId = cuid(), graph, model)->
     super(nodeId, graph)
     @model = model
@@ -90,9 +93,7 @@ class WeaverModelClass extends Weaver.Node
     if key is @model.getMemberKey()
       return key
 
-    if not @totalClassDefinition.relations?
-      throw new Error("#{@className} model is not allowed to have relations")
-    if not @totalClassDefinition.relations[key]?
+    if !@constructor.isAllowedRelation(key)
       throw new Error("#{@className} model is not allowed to have the #{key} relation")
 
     @totalClassDefinition.relations[key].key or key
