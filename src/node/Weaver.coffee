@@ -11,6 +11,7 @@ class Weaver extends WeaverBase
     @coreManager = new Weaver.CoreManager(SocketController)
 
 module.exports = Weaver
+window.Weaver  = Weaver if window?  # Browser
 
 module.exports.Plugin = require('../WeaverPlugin')
 module.exports.File   = require('../WeaverFile')
