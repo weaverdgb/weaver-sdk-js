@@ -1309,7 +1309,7 @@ describe 'WeaverNode test', ->
       n = new Weaver.Node('n')
       n.relation('has').add(m)
 
-    it 'should parse an expression', ->
+    it 'should parse a simple expression', ->
       expect(n.wpath(undefined)).to.be.empty
       expect(n.wpath('')).to.be.empty
       assert.deepEqual(n.wpath('/has/some?b'), [{'b':o},{'b':p}])

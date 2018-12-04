@@ -1,10 +1,11 @@
 cuid             = require('cuid')
+Promise          = require('bluebird')
+_                = require('lodash')
+moment           = require('moment')
 Operation        = require('./Operation')
 Weaver           = require('./Weaver')
 util             = require('./util')
-_                = require('lodash')
-moment           = require('moment')
-Promise          = require('bluebird')
+wpath            = require('./wpath')
 WeaverError      = require('./WeaverError')
 WeaverRelationIn = require('./WeaverRelationIn')
 
@@ -484,69 +485,8 @@ class WeaverNode
   createdBy: ->
     @_createdBy
 
-  wpath: (expr='', func, load=false) ->
-    hops = expr.split('/')
-    hops.splice(0,1) if hops[0] is ''
-    res = []
-    @_executeWpath(hops, res)
-    func(row) for row in res if func?
-    res
-
-  _executeWpath: (hops, res=[], trail={}) ->
-
-    newRow = (blueprint)->
-      row = {}
-      row[binding] = node for binding, node of blueprint
-      row
-
-    [hop, hops...] = hops
-    if !hop?
-      res.push(trail) if _.keys(trail).length > 0
-      return 
-    [key, binding] = hop.split('?')
-
-    # Optionally get the [] filter
-    [key, filter] = key.split('[')
-    [filter, ...] = filter.split(']') if filter?
-
-    if @ not instanceof Weaver.ModelClass or @constructor.isAllowedRelation(key)
-      for node in @relation(key).all()
-        if @_filterWpath(node, filter)
-          row = newRow(trail)
-          row[binding] = node if binding?
-          node._executeWpath(hops, res, row)
-
-  _filterWpath: (node, expr) ->
-    return true if !expr?
-
-    hasOrs = expr.indexOf('|') > -1
-    hasAnds = expr.indexOf('&') > -1
-
-    throw new Error("Wpath does not support combination of AND and OR") if hasOrs && hasAnds
-
-    value = !hasOrs
-
-    conditions = [expr]
-    conditions = expr.split('|') if hasOrs
-    conditions = expr.split('&') if hasAnds
-
-    for condition in conditions
-      met = undefined
-      [action, key] = condition.split('=')
-      switch action.trim()
-        when 'id' 
-          met = node.id() is key
-        when 'class' 
-          met = false
-          if node.model?
-            met |= def.id() is key for def in  node.relation(node.model.getMemberKey()).all()
-        else throw new Error("Key #{action} not supported in wpath")
-      if hasOrs
-        value |= met
-      else 
-        value &= met
-
-    value
+  wpath: (expr, func, load) ->
+    wpath.wpath(@, expr, func, load)
 
 
 # Export
