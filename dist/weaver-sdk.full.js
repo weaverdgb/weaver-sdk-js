@@ -29383,7 +29383,7 @@ exports.clearImmediate = typeof clearImmediate === "function" ? clearImmediate :
 },{"process/browser.js":8,"timers":11}],12:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "11.1.0-beta.1",
+  "version": "11.1.1",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -30462,10 +30462,6 @@ module.exports={
 
   module.exports = Weaver;
 
-  if (typeof window !== "undefined" && window !== null) {
-    window.Weaver = Weaver;
-  }
-
   module.exports.Node = require('./WeaverNode');
 
   module.exports.NodeList = require('./WeaverNodeList');
@@ -31533,6 +31529,11 @@ module.exports={
       return Weaver.Node.getFromGraph(this.classId(), this.context.getGraph());
     };
 
+    WeaverModelClass.isAllowedRelation = function(key) {
+      var ref;
+      return ((ref = this.totalClassDefinition.relations) != null ? ref[key] : void 0) != null;
+    };
+
     function WeaverModelClass(nodeId, graph, model) {
       var classNode;
       if (nodeId == null) {
@@ -31610,10 +31611,7 @@ module.exports={
       if (key === this.model.getMemberKey()) {
         return key;
       }
-      if (this.totalClassDefinition.relations == null) {
-        throw new Error(this.className + " model is not allowed to have relations");
-      }
-      if (this.totalClassDefinition.relations[key] == null) {
+      if (!this.constructor.isAllowedRelation(key)) {
         throw new Error(this.className + " model is not allowed to have the " + key + " relation");
       }
       return this.totalClassDefinition.relations[key].key || key;
@@ -32267,12 +32265,18 @@ module.exports={
 
 },{}],28:[function(require,module,exports){
 (function() {
-  var Operation, Promise, Weaver, WeaverError, WeaverNode, WeaverRelationIn, _, cuid, moment, util,
+  var Operation, Promise, Weaver, WeaverError, WeaverNode, WeaverRelationIn, _, cuid, moment, util, wpath,
     bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     slice = [].slice,
     indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
   cuid = require('cuid');
+
+  Promise = require('bluebird');
+
+  _ = require('lodash');
+
+  moment = require('moment');
 
   Operation = require('./Operation');
 
@@ -32280,11 +32284,7 @@ module.exports={
 
   util = require('./util');
 
-  _ = require('lodash');
-
-  moment = require('moment');
-
-  Promise = require('bluebird');
+  wpath = require('./wpath');
 
   WeaverError = require('./WeaverError');
 
@@ -32963,120 +32963,7 @@ module.exports={
     };
 
     WeaverNode.prototype.wpath = function(expr, func, load) {
-      var hops, j, len, res, row;
-      if (expr == null) {
-        expr = '';
-      }
-      if (load == null) {
-        load = false;
-      }
-      hops = expr.split('/');
-      if (hops[0] === '') {
-        hops.splice(0, 1);
-      }
-      res = [];
-      this._executeWpath(hops, res);
-      if (func != null) {
-        for (j = 0, len = res.length; j < len; j++) {
-          row = res[j];
-          func(row);
-        }
-      }
-      return res;
-    };
-
-    WeaverNode.prototype._executeWpath = function(hops, res, trail) {
-      var binding, filter, hop, j, key, len, newRow, node, ref, ref1, ref2, ref3, ref4, results, row;
-      if (res == null) {
-        res = [];
-      }
-      if (trail == null) {
-        trail = {};
-      }
-      newRow = function(blueprint) {
-        var binding, node, row;
-        row = {};
-        for (binding in blueprint) {
-          node = blueprint[binding];
-          row[binding] = node;
-        }
-        return row;
-      };
-      ref = hops, hop = ref[0], hops = 2 <= ref.length ? slice.call(ref, 1) : [];
-      if (hop == null) {
-        if (_.keys(trail).length > 0) {
-          res.push(trail);
-        }
-        return;
-      }
-      ref1 = hop.split('?'), key = ref1[0], binding = ref1[1];
-      ref2 = key.split('['), key = ref2[0], filter = ref2[1];
-      if (filter != null) {
-        ref3 = filter.split(']'), filter = ref3[0];
-      }
-      ref4 = this.relation(key).all();
-      results = [];
-      for (j = 0, len = ref4.length; j < len; j++) {
-        node = ref4[j];
-        if (this._filterWpath(node, filter)) {
-          row = newRow(trail);
-          if (binding != null) {
-            row[binding] = node;
-          }
-          results.push(node._executeWpath(hops, res, row));
-        } else {
-          results.push(void 0);
-        }
-      }
-      return results;
-    };
-
-    WeaverNode.prototype._filterWpath = function(node, expr) {
-      var action, condition, conditions, def, hasAnds, hasOrs, j, k, key, len, len1, met, ref, ref1, value;
-      if (expr == null) {
-        return true;
-      }
-      hasOrs = expr.indexOf('|') > -1;
-      hasAnds = expr.indexOf('&') > -1;
-      if (hasOrs && hasAnds) {
-        throw new Error("Wpath does not support combination of AND and OR");
-      }
-      value = !hasOrs;
-      conditions = [expr];
-      if (hasOrs) {
-        conditions = expr.split('|');
-      }
-      if (hasAnds) {
-        conditions = expr.split('&');
-      }
-      for (j = 0, len = conditions.length; j < len; j++) {
-        condition = conditions[j];
-        met = void 0;
-        ref = condition.split('='), action = ref[0], key = ref[1];
-        switch (action.trim()) {
-          case 'id':
-            met = node.id() === key;
-            break;
-          case 'class':
-            met = false;
-            if (node.model != null) {
-              ref1 = node.relation(node.model.getMemberKey()).all();
-              for (k = 0, len1 = ref1.length; k < len1; k++) {
-                def = ref1[k];
-                met |= def.id() === key;
-              }
-            }
-            break;
-          default:
-            throw new Error("Key " + action + " not supported in wpath");
-        }
-        if (hasOrs) {
-          value |= met;
-        } else {
-          value &= met;
-        }
-      }
-      return value;
+      return wpath.wpath(this, expr, func, load);
     };
 
     return WeaverNode;
@@ -33087,7 +32974,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Operation":16,"./Weaver":17,"./WeaverError":20,"./WeaverRelationIn":33,"./util":37,"bluebird":1,"cuid":3,"lodash":6,"moment":7}],29:[function(require,module,exports){
+},{"./Operation":16,"./Weaver":17,"./WeaverError":20,"./WeaverRelationIn":33,"./util":37,"./wpath":38,"bluebird":1,"cuid":3,"lodash":6,"moment":7}],29:[function(require,module,exports){
 (function() {
   var WeaverNodeList, _,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
@@ -34697,4 +34584,136 @@ module.exports={
 
 }).call(this);
 
-},{"moment":7}]},{},[17]);
+},{"moment":7}],38:[function(require,module,exports){
+(function() {
+  var Weaver, _, executeWpath, filterWpath,
+    slice = [].slice;
+
+  _ = require('lodash');
+
+  Weaver = require('./Weaver');
+
+  executeWpath = function(node, hops, res, trail) {
+    var binding, filter, hop, i, key, len, newRow, ref, ref1, ref2, ref3, ref4, results, row, to;
+    if (res == null) {
+      res = [];
+    }
+    if (trail == null) {
+      trail = {};
+    }
+    newRow = function(blueprint) {
+      var b, n, row;
+      row = {};
+      for (b in blueprint) {
+        n = blueprint[b];
+        row[b] = n;
+      }
+      return row;
+    };
+    ref = hops, hop = ref[0], hops = 2 <= ref.length ? slice.call(ref, 1) : [];
+    if (hop == null) {
+      if (_.keys(trail).length > 0) {
+        res.push(trail);
+      }
+      return;
+    }
+    ref1 = hop.split('?'), key = ref1[0], binding = ref1[1];
+    ref2 = key.split('['), key = ref2[0], filter = ref2[1];
+    if (filter != null) {
+      ref3 = filter.split(']'), filter = ref3[0];
+    }
+    if (!(node instanceof Weaver.ModelClass) || node.constructor.isAllowedRelation(key)) {
+      ref4 = node.relation(key).all();
+      results = [];
+      for (i = 0, len = ref4.length; i < len; i++) {
+        to = ref4[i];
+        if (filterWpath(to, filter)) {
+          row = newRow(trail);
+          if (binding != null) {
+            row[binding] = to;
+          }
+          results.push(executeWpath(to, hops, res, row));
+        } else {
+          results.push(void 0);
+        }
+      }
+      return results;
+    }
+  };
+
+  filterWpath = function(to, expr) {
+    var action, condition, conditions, def, hasAnds, hasOrs, i, j, key, len, len1, met, ref, ref1, value;
+    if (expr == null) {
+      return true;
+    }
+    hasOrs = expr.indexOf('|') > -1;
+    hasAnds = expr.indexOf('&') > -1;
+    if (hasOrs && hasAnds) {
+      throw new Error("Wpath does not support combination of AND and OR");
+    }
+    value = !hasOrs;
+    conditions = [expr];
+    if (hasOrs) {
+      conditions = expr.split('|');
+    }
+    if (hasAnds) {
+      conditions = expr.split('&');
+    }
+    for (i = 0, len = conditions.length; i < len; i++) {
+      condition = conditions[i];
+      met = void 0;
+      ref = condition.split('='), action = ref[0], key = ref[1];
+      switch (action.trim()) {
+        case 'id':
+          met = to.id() === key;
+          break;
+        case 'class':
+          met = false;
+          if (to.model != null) {
+            ref1 = to.relation(to.model.getMemberKey()).all();
+            for (j = 0, len1 = ref1.length; j < len1; j++) {
+              def = ref1[j];
+              met |= def.id() === key;
+            }
+          }
+          break;
+        default:
+          throw new Error("Key " + action + " not supported in wpath");
+      }
+      if (hasOrs) {
+        value |= met;
+      } else {
+        value &= met;
+      }
+    }
+    return value;
+  };
+
+  module.exports = {
+    wpath: function(node, expr, func, load) {
+      var hops, i, len, res, row;
+      if (expr == null) {
+        expr = '';
+      }
+      if (load == null) {
+        load = false;
+      }
+      hops = expr.split('/');
+      if (hops[0] === '') {
+        hops.splice(0, 1);
+      }
+      res = [];
+      executeWpath(node, hops, res);
+      if (func != null) {
+        for (i = 0, len = res.length; i < len; i++) {
+          row = res[i];
+          func(row);
+        }
+      }
+      return res;
+    }
+  };
+
+}).call(this);
+
+},{"./Weaver":17,"lodash":6}]},{},[17]);
