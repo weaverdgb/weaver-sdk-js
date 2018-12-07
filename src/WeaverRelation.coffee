@@ -105,7 +105,7 @@ class WeaverRelation
     if oldNode?
       @_update(oldRecord, newRecord) for oldRecord in oldRecords
     else
-      @add(oldRecord)
+      @add(newRecord)
 
   _update: (oldRecord, newRecord) ->
 
