@@ -31,7 +31,7 @@ class WeaverRelation
 
   getRecords: (node) ->
     @_getRecordsForToNode(node)
-      
+
   load: ->
     new Weaver.Query()
     .restrict(@owner)
@@ -87,14 +87,14 @@ class WeaverRelation
   update: (oldNode, newNode) ->
 
     oldRecords = undefined
-    if oldNode instanceof Record 
+    if oldNode instanceof Record
       oldRecords = [oldNode]
     else
       oldRecords = @_getRecordsForToNode(oldNode)
 
     newRecord = undefined
-    if newNode instanceof Record 
-      newRecord = newNode 
+    if newNode instanceof Record
+      newRecord = newNode
     else
       newRelId = cuid()
       graph = oldRecords[0]?.relNode.getGraph()
@@ -102,7 +102,10 @@ class WeaverRelation
       newRelNode = @_createRelationNode(newRelId, newNode, graph)
       newRecord = new Record(newNode, newRelNode)
 
-    @_update(oldRecord, newRecord) for oldRecord in oldRecords
+    if oldNode?
+      @_update(oldRecord, newRecord) for oldRecord in oldRecords
+    else
+      @add(newNode)
 
   _update: (oldRecord, newRecord) ->
 
@@ -117,7 +120,7 @@ class WeaverRelation
   remove: (node, project) ->
     if node instanceof Record
       @_remove(node, project)
-    else 
+    else
       Promise.mapSeries(@_getRecordsForToNode(node), (record) =>
         @_remove(record, project)
       )
@@ -126,13 +129,13 @@ class WeaverRelation
     # remove locally
     @_removeRecord(record)
     Weaver.publish("node.relation.remove", {node: @owner, key: @key, target: record.toNode})
-    
+
     # destroy relation
     if !record.relNode._stored
       Promise.resolve()
-    else 
+    else
       record.relNode.destroy(project)
-      
+
   only: (node, project) ->
     Promise.mapSeries(@_records, (record)=>
       @_remove(record, project) if !record.toNode.equals(node)
@@ -140,11 +143,11 @@ class WeaverRelation
       @add(node) if @_records.length is 0
       @owner.save(project)
     )
-    
+
   onlyOnce: (node, project) ->
     [first, rest...] = @_getRecordsForToNode(node)
     if !first?
-      @add(node) 
+      @add(node)
       @owner.save(project)
     else if rest.length > 0
       Promise.mapSeries(rest, (record) =>
