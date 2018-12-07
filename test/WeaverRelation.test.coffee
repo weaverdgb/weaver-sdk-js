@@ -115,6 +115,19 @@ describe 'Weaver relation and WeaverRelationNode test', ->
       expect(loadedNode.relation('comesBefore').all().find((x) -> x.equals(bar))).to.not.be.defined
     )
 
+  it 'should add the new node when the old node is undefined when updating a relation', ->
+    foo = new Weaver.Node()
+    bar = undefined
+    ono = new Weaver.Node()
+    Weaver.Node.batchSave([foo, ono]).then(->
+      foo.relation('comesBefore').update(bar, ono)
+      foo.save()
+    ).then(->
+      Weaver.Node.load(foo.id())
+    ).then((loadedNode) ->
+      expect(loadedNode.relation('comesBefore').all().find((x) -> x.equals(ono))).to.be.defined
+    )
+
   it 'should remove a relation from the loaded result', ->
     foo = new Weaver.Node()
     bar = new Weaver.Node()
