@@ -1,7 +1,7 @@
 # Changelist
 
 ## develop
-- when updating a relation, add newNode if oldNode is undefined
+- When updating a relation, add newNode if oldNode is undefined
 
 ## 11.1.1
 - Fix for Weaver not being set on the window object
