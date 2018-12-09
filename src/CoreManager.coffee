@@ -271,6 +271,13 @@ class CoreManager
       else Promise.reject(res)
     )
 
+  narql: (query, target) ->
+    @POST("query.narql", {query, unparsed: true}, target).then((res) ->
+      if typeof res isnt 'object'
+        JSON.parse(res)
+      else Promise.reject(res)
+    )
+
   nativeQuery: (query, target) ->
     @POST("query.native", {query}, target)
 
