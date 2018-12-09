@@ -17,6 +17,7 @@ class WeaverQuery
 
   constructor: (@target) ->
     @_restrict           = []
+    @_restrictDatabaseIds= []
     @_equals             = {}
     @_orQueries          = []
     @_conditions         = {}
@@ -138,6 +139,8 @@ class WeaverQuery
         @_restrict.push(node)
       else if node instanceof Weaver.Node
         @_restrict.push(node.id())
+      else if util.isNumber(node)
+        @_restrictDatabaseIds.push(node)
 
     if util.isArray(nodes)
       @_restrict = [] # Clear

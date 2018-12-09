@@ -24,4 +24,11 @@ describe 'WeaverQuery Narql Test', ->
       new Weaver.Narql('_ ?a to ?b . ')
       .find().then((res) ->
         console.log res
+
+        firstA = res.a[0]
+        new Weaver.Query()
+        .restrict([firstA])
+        .find()
+      ).then((res) ->
+        console.log res
       )
