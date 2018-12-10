@@ -18,16 +18,17 @@ describe 'WeaverQuery Narql Test', ->
     before ->
       wipeCurrentProject().then( ->
         Promise.all([a.save(), b.save()])
+      ).then( ->
+        a.destroy()
       )
 
     it 'should do a simple narql query', ->
-      new Weaver.Narql('_ ?a to ?b . ')
+      new Weaver.Narql('_ ?x to ?y .')
       .find().then((res) ->
         console.log res
 
-        firstA = res.a[0]
         new Weaver.Query()
-        .restrict([firstA])
+        .restrict(res.a)
         .find()
       ).then((res) ->
         console.log res
