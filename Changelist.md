@@ -2,6 +2,7 @@
 
 ## develop
 - When updating a relation, add newNode if oldNode is undefined
+- Perform a narql query
 
 ## 11.1.1
 - Fix for Weaver not being set on the window object
