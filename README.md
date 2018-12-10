@@ -648,6 +648,32 @@ Any query which contains a node as an argument may instead be passed a nested qu
   )
   # will return all nodes which have an outgoing hasChild relation to a node which has an outgoing attendsSchool relation.
 ```
+<a id="weavernarql"></a>
+---
+### Weaver.Narql
+---
+
+#### Query calls
+```coffeescript
+  new Weaver.Narql('?relationNode ?from link ?to')
+  .find()
+  # Performs a query to find all the nodes ?from that have a link `link` to node ?to
+```
+```coffeescript
+  new Weaver.Narql('?relationNode ?from link \'node_4\'')
+  .find()
+  # Performs a query to find all the nodes ?from that have a link `link` to node with id 'node_4'
+```
+```coffeescript
+  new Weaver.Narql('_ ?from link _')
+  .find()
+  # Performs a query to find all the nodes ?from that have a link `link` to any node, also disregarding the relation node
+```
+```coffeescript
+  new Weaver.Narql('_ ?from link \'node_4\' . _ ?from link \'node_5\'')
+  .find()
+  # Performs a query to find all the nodes ?from that have a link `link` to node 'node_4' and to 'node_5'
+```
 <a id="weaverplugin"></a>
 ---
 ### Weaver.Plugin
