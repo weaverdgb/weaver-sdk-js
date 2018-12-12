@@ -318,14 +318,14 @@ class WeaverQuery
 
   skip: (skip) ->
     if typeof skip isnt 'number' or skip < 0
-      throw new Error('You can only skip by a positive number')
+      throw new Error('Invalid argument: skip should be a positive number')
 
     @_skip = skip
     @
 
   limit: (limit) ->
     if typeof limit isnt 'number' or limit < 0
-      throw new Error('You can only set the limit to a positive number')
+      throw new Error('Invalid argument: limit should be a positive number')
 
     @_limit = limit
     @
