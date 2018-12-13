@@ -29383,7 +29383,7 @@ exports.clearImmediate = typeof clearImmediate === "function" ? clearImmediate :
 },{"process/browser.js":8,"timers":11}],12:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "11.2.0-beta.0",
+  "version": "11.2.0-beta.1",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -29391,8 +29391,8 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "^4.12.0",
-    "requiredServerVersion": "^3.13.3"
+    "requiredConnectorVersion": "4.14.0-beta.9",
+    "requiredServerVersion": "^3.16.0 || 3.16.0-beta.0"
   },
   "main": "lib/node/Weaver.js",
   "files": [
@@ -32297,7 +32297,7 @@ module.exports={
 
     WeaverNarql.prototype.skip = function(skip) {
       if (typeof skip !== 'number' || skip < 0) {
-        throw new Error('You can only skip by a positive number');
+        throw new Error('Invalid argument: skip should be a positive number');
       }
       this._skip = skip;
       return this;
@@ -32305,7 +32305,7 @@ module.exports={
 
     WeaverNarql.prototype.limit = function(limit) {
       if (typeof limit !== 'number' || limit < 0) {
-        throw new Error('You can only set the limit to a positive number');
+        throw new Error('Invalid argument: limit should be a positive number');
       }
       this._limit = limit;
       return this;
@@ -32314,15 +32314,14 @@ module.exports={
     WeaverNarql.prototype.find = function() {
       return Weaver.getCoreManager().narql(this).then((function(_this) {
         return function(result) {
-          var binding, castedNode, i, len, list, object, resultMap;
+          var binding, i, len, list, object, resultMap;
           resultMap = {};
           for (binding in result) {
             list = result[binding];
             resultMap[binding] = new Weaver.NodeList();
             for (i = 0, len = list.length; i < len; i++) {
               object = list[i];
-              castedNode = Weaver.Node.loadFromQuery(object);
-              resultMap[binding].push(castedNode);
+              resultMap[binding].push(Weaver.Node.loadFromQuery(object));
             }
           }
           return resultMap;
@@ -33799,7 +33798,7 @@ module.exports={
 
     WeaverQuery.prototype.skip = function(skip) {
       if (typeof skip !== 'number' || skip < 0) {
-        throw new Error('You can only skip by a positive number');
+        throw new Error('Invalid argument: skip should be a positive number');
       }
       this._skip = skip;
       return this;
@@ -33807,7 +33806,7 @@ module.exports={
 
     WeaverQuery.prototype.limit = function(limit) {
       if (typeof limit !== 'number' || limit < 0) {
-        throw new Error('You can only set the limit to a positive number');
+        throw new Error('Invalid argument: limit should be a positive number');
       }
       this._limit = limit;
       return this;
