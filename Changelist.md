@@ -1,8 +1,10 @@
 # Changelist
 
-## develop
-- When updating a relation, add newNode if oldNode is undefined
+## Develop
 - Introduce a new way of querying the database: [Narql Query](https://github.com/weaverplatform/weaver-docs/blob/master/pages/developers/reference/weaver-sdk-js.md#weavernarql)
+
+## 11.1.2
+- When updating a relation, add newNode if oldNode is undefined
 
 ## 11.1.1
 - Fix for Weaver not being set on the window object
