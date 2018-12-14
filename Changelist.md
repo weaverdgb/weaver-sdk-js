@@ -1,6 +1,6 @@
 # Changelist
 
-## develop
+## 11.1.2
 - When updating a relation, add newNode if oldNode is undefined
 
 ## 11.1.1
