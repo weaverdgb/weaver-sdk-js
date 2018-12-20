@@ -29,7 +29,7 @@ describe 'WeaverQuery Narql Test', ->
       )
 
     it 'should for partly deleted nodes do a simple narql query', ->
-      new Weaver.Narql('_ ?x to ?y')
+      new Weaver.Narql('SELECT * WHERE { _ ?x to ?y }')
       .find()
       .then((res) ->
         assert.equal(2, res.x.length)
@@ -56,7 +56,7 @@ describe 'WeaverQuery Narql Test', ->
       )
 
     it 'should do a simple narql query on a cycle', ->
-      new Weaver.Narql('_ ?x next _')
+      new Weaver.Narql('SELECT * WHERE { _ ?x next _ }')
       .find().then((res) ->
         new Weaver.Query()
         .restrict(res.x)
@@ -72,7 +72,7 @@ describe 'WeaverQuery Narql Test', ->
       )
 
     it 'should find one node from a cycle', ->
-      new Weaver.Narql("_ ?x next '4'")
+      new Weaver.Narql('SELECT * WHERE { _ ?x next 4 }')
       .find().then((res) ->
         new Weaver.Query()
         .restrict(res.x)
@@ -101,7 +101,7 @@ describe 'WeaverQuery Narql Test', ->
       )
 
     it 'should do a simple narql query on a cycle', ->
-      new Weaver.Narql('_ ?x next _')
+      new Weaver.Narql('SELECT * WHERE { _ ?x next _ }')
       .find().then((res) ->
         new Weaver.Query()
         .restrict(res.x)
@@ -117,7 +117,7 @@ describe 'WeaverQuery Narql Test', ->
       )
 
     it 'should find one node from a cycle', ->
-      new Weaver.Narql("_ ?x next '1'")
+      new Weaver.Narql('SELECT * WHERE { _ ?x next 1 }')
       .find().then((res) ->
         new Weaver.Query()
         .restrict(res.x)
