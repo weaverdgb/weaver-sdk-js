@@ -20,11 +20,13 @@ class WeaverNarql
     @_limit = limit
     @
 
-  useCache: ->
-    @_useCache = true
+  useCache: (set=true) ->
+    @_useCache = set
+    @
 
-  refreshCache: ->
-    @_refreshCache = true
+  refreshCache: (set=true) ->
+    @_refreshCache = set
+    @
 
   find:  ->
     Weaver.getCoreManager().narql(@).then((result) =>
