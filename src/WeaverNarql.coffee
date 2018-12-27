@@ -20,6 +20,12 @@ class WeaverNarql
     @_limit = limit
     @
 
+  useCache: ->
+    @_useCache = true
+
+  refreshCache: ->
+    @_refreshCache = true
+
   find:  ->
     Weaver.getCoreManager().narql(@).then((result) =>
       resultMap = {}

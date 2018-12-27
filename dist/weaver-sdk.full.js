@@ -29383,7 +29383,7 @@ exports.clearImmediate = typeof clearImmediate === "function" ? clearImmediate :
 },{"process/browser.js":8,"timers":11}],12:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "11.2.0-beta.1",
+  "version": "11.2.0-beta.3",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -29391,7 +29391,7 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "4.14.0-beta.9",
+    "requiredConnectorVersion": "4.14.0-beta.16",
     "requiredServerVersion": "^3.16.0 || 3.16.0-beta.0"
   },
   "main": "lib/node/Weaver.js",
@@ -32309,6 +32309,14 @@ module.exports={
       }
       this._limit = limit;
       return this;
+    };
+
+    WeaverNarql.prototype.useCache = function() {
+      return this._useCache = true;
+    };
+
+    WeaverNarql.prototype.refreshCache = function() {
+      return this._refreshCache = true;
     };
 
     WeaverNarql.prototype.find = function() {
