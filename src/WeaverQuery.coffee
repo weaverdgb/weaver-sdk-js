@@ -82,6 +82,10 @@ class WeaverQuery
         total
     )
 
+  next: () ->
+    @_continueCursor = true
+    @find()
+
   find: (Constructor) ->
 
     if Constructor?
@@ -328,6 +332,14 @@ class WeaverQuery
       throw new Error('You can only set the limit to a positive number')
 
     @_limit = limit
+    @
+
+  keepOpen: (keepOpen=true) ->
+    @_keepOpen = keepOpen
+    @
+
+  setCursorName: (name) ->
+    @_cursor = name if name?
     @
 
   include: (keys) ->
