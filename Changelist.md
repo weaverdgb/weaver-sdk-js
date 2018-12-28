@@ -1,5 +1,9 @@
 # Changelist
 
+## Develop
+- Add getters and setters for WeaverQuery to keep the result set open
+- Add route to close a connection that was kept open
+
 ## 11.1.2
 - When updating a relation, add newNode if oldNode is undefined
 
