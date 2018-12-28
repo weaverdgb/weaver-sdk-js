@@ -82,6 +82,10 @@ class WeaverQuery
         total
     )
 
+  next: () ->
+    @_continueCursor = true
+    @find()
+
   find: (Constructor) ->
 
     if Constructor?
@@ -330,6 +334,14 @@ class WeaverQuery
     @_limit = limit
     @
 
+  keepOpen: (keepOpen=true) ->
+    @_keepOpen = keepOpen
+    @
+
+  setCursorName: (name) ->
+    @_cursor = name if name?
+    @
+
   include: (keys) ->
     @_include = keys
     @
@@ -435,6 +447,9 @@ class WeaverQuery
 
   nativeQuery: (query)->
     Weaver.getCoreManager().nativeQuery(query, Weaver.getInstance().currentProject().id())
+
+  close: ->
+    Weaver.getCoreManager().closeConnection(@_cursor) if @_cursor?
 
   destruct: ->
     delete @target

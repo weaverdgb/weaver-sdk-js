@@ -3,6 +3,9 @@
 ## Develop
 - Introduce a new way of querying the database: [Narql Query](https://github.com/weaverplatform/weaver-docs/blob/master/pages/developers/reference/weaver-sdk-js.md#weavernarql)
 
+- Add getters and setters for WeaverQuery to keep the result set open
+- Add route to close a connection that was kept open
+
 ## 11.1.2
 - When updating a relation, add newNode if oldNode is undefined
 

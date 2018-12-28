@@ -1605,3 +1605,72 @@ describe 'WeaverQuery Test', ->
       ).then((nodes) ->
         expect(nodes.length).to.equal(2500)
       )
+
+  describe 'query nodes in one stream', ->
+
+    before ->
+      wipeCurrentProject()
+      .then(->
+        Weaver.Node.batchSave((new Weaver.Node(i) for i in [0...5]))
+      )
+
+    it 'should find 5 nodes in steps of 1', ->
+
+      query = new Weaver.Query()
+      .keepOpen()
+      .setCursorName('abc')
+      .limit(1)
+
+      query.find()
+      .then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        query.next()
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        query.next()
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        query.next()
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        query.next()
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        query.next()
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(0)
+      )
+
+    it 'should find 5 nodes in steps of 2', ->
+
+      query = new Weaver.Query()
+      .keepOpen()
+      .setCursorName('abc')
+      .limit(2)
+
+      query.find()
+      .then((nodes) ->
+        expect(nodes.length).to.equal(2)
+        query.next()
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(2)
+        query.next()
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        query.next().should.be.rejectedWith('No open connection for code: abc')
+      )
+
+    it 'should find first three nodes in one step', ->
+
+      query = new Weaver.Query()
+      .keepOpen()
+      .setCursorName('abc')
+      .limit(3)
+
+      query.find()
+      .then((nodes) ->
+        expect(nodes.length).to.equal(3)
+        query.close()
+      ).then( ->
+        query.next().should.be.rejectedWith('No open connection for code: abc')
+      )
