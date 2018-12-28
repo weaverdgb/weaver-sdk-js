@@ -320,6 +320,9 @@ class CoreManager
   cleanup: ->
     @GET("cleanup")
 
+  closeConnection: (code) ->
+    @GET("closeConnection", {code})
+
   enqueue: (functionToEnqueue) ->
     op = @operationsQueue.then(->
       functionToEnqueue()

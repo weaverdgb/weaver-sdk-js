@@ -436,6 +436,9 @@ class WeaverQuery
   nativeQuery: (query)->
     Weaver.getCoreManager().nativeQuery(query, Weaver.getInstance().currentProject().id())
 
+  close: ->
+    Weaver.getCoreManager().closeConnection(@_cursor) if @_cursor?
+
   destruct: ->
     delete @target
     delete @constructorFunction
