@@ -88,6 +88,32 @@ describe 'WeaverQuery Narql Test', ->
           assert.equal(2, previous)
       )
 
+    it 'should get the nodes using a cursor', ->
+      query = new Weaver.Narql('SELECT * WHERE { _ ?x next ?y }')
+      .limit(2)
+      .keepOpen()
+      .setCursorName('xyz')
+
+      query.find()
+      .then((res) ->
+        expect(res.x.length).to.equal(2)
+        query.next()
+      ).then((res) ->
+        expect(res.x.length).to.equal(2)
+        query.next()
+      ).then((res) ->
+        expect(res.x.length).to.equal(2)
+        query.next()
+      ).then((res) ->
+        expect(res.x.length).to.equal(1)
+        query.next()
+      ).then((res) ->
+        expect(res.x.length).to.equal(0)
+        query.close()
+      ).then( ->
+        query.next().should.be.rejectedWith('No held result set could be found for code: xyz')
+      )
+
   describe 'a cycle of size 2', ->
     certainSize = 2
     aleph = new Weaver.Node('א‬')
