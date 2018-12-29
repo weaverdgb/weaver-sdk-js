@@ -6,7 +6,7 @@ services:
     - "5432"
 
   postgresql-connector:
-    image: sysunite/weaver-database-postgresql:4.14.0-beta.19
+    image: sysunite/weaver-database-postgresql:4.14.0-beta.24
     expose:
     - "4567"
     environment:
