@@ -20,6 +20,14 @@ class WeaverNarql
     @_limit = limit
     @
 
+  keepOpen: (keepOpen=true) ->
+    @_keepOpen = keepOpen
+    @
+
+  setCursorName: (name) ->
+    @_cursor = name if name?
+    @
+
   useCache: (set=true) ->
     @_useCache = set
     @
@@ -37,6 +45,13 @@ class WeaverNarql
           resultMap[binding].push(Weaver.Node.loadFromQuery(object))
       resultMap
     )
+
+  next: () ->
+    @_continueCursor = true
+    @find()
+    
+  close: ->
+    Weaver.getCoreManager().closeConnection(@_cursor) if @_cursor?
 
 # Export
 module.exports = WeaverNarql
