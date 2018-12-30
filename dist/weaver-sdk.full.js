@@ -29383,7 +29383,7 @@ exports.clearImmediate = typeof clearImmediate === "function" ? clearImmediate :
 },{"process/browser.js":8,"timers":11}],12:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "11.2.0-beta.3",
+  "version": "11.2.0-beta.4",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -30040,6 +30040,12 @@ module.exports={
 
     CoreManager.prototype.cleanup = function() {
       return this.GET("cleanup");
+    };
+
+    CoreManager.prototype.closeConnection = function(code) {
+      return this.GET("closeConnection", {
+        code: code
+      });
     };
 
     CoreManager.prototype.enqueue = function(functionToEnqueue) {
@@ -32311,12 +32317,35 @@ module.exports={
       return this;
     };
 
-    WeaverNarql.prototype.useCache = function() {
-      return this._useCache = true;
+    WeaverNarql.prototype.keepOpen = function(keepOpen) {
+      if (keepOpen == null) {
+        keepOpen = true;
+      }
+      this._keepOpen = keepOpen;
+      return this;
     };
 
-    WeaverNarql.prototype.refreshCache = function() {
-      return this._refreshCache = true;
+    WeaverNarql.prototype.setCursorName = function(name) {
+      if (name != null) {
+        this._cursor = name;
+      }
+      return this;
+    };
+
+    WeaverNarql.prototype.useCache = function(set) {
+      if (set == null) {
+        set = true;
+      }
+      this._useCache = set;
+      return this;
+    };
+
+    WeaverNarql.prototype.refreshCache = function(set) {
+      if (set == null) {
+        set = true;
+      }
+      this._refreshCache = set;
+      return this;
     };
 
     WeaverNarql.prototype.find = function() {
@@ -32335,6 +32364,17 @@ module.exports={
           return resultMap;
         };
       })(this));
+    };
+
+    WeaverNarql.prototype.next = function() {
+      this._continueCursor = true;
+      return this.find();
+    };
+
+    WeaverNarql.prototype.close = function() {
+      if (this._cursor != null) {
+        return Weaver.getCoreManager().closeConnection(this._cursor);
+      }
     };
 
     return WeaverNarql;
@@ -33466,6 +33506,11 @@ module.exports={
       })(this));
     };
 
+    WeaverQuery.prototype.next = function() {
+      this._continueCursor = true;
+      return this.find();
+    };
+
     WeaverQuery.prototype.find = function(Constructor) {
       if (Constructor != null) {
         this.setConstructorFunction(function() {
@@ -33820,6 +33865,21 @@ module.exports={
       return this;
     };
 
+    WeaverQuery.prototype.keepOpen = function(keepOpen) {
+      if (keepOpen == null) {
+        keepOpen = true;
+      }
+      this._keepOpen = keepOpen;
+      return this;
+    };
+
+    WeaverQuery.prototype.setCursorName = function(name) {
+      if (name != null) {
+        this._cursor = name;
+      }
+      return this;
+    };
+
     WeaverQuery.prototype.include = function(keys) {
       this._include = keys;
       return this;
@@ -33976,6 +34036,12 @@ module.exports={
 
     WeaverQuery.prototype.nativeQuery = function(query) {
       return Weaver.getCoreManager().nativeQuery(query, Weaver.getInstance().currentProject().id());
+    };
+
+    WeaverQuery.prototype.close = function() {
+      if (this._cursor != null) {
+        return Weaver.getCoreManager().closeConnection(this._cursor);
+      }
     };
 
     WeaverQuery.prototype.destruct = function() {

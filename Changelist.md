@@ -1,6 +1,7 @@
 # Changelist
 
 ## Develop
+- Add getters and setters for NarqlQuery to keep the result set open
 - Introduce a new way of querying the database: [Narql Query](https://github.com/weaverplatform/weaver-docs/blob/master/pages/developers/reference/weaver-sdk-js.md#weavernarql)
 
 - Add getters and setters for WeaverQuery to keep the result set open
