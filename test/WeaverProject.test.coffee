@@ -409,9 +409,9 @@ describe 'WeaverProject Test', ->
     )
 
   it 'should not clone a newly created project helloworld', ->
+    id = "helloworld_dupe"
     project = new Weaver.Project("helloworld", "helloworld")
     project.create().then(->
-      id = "helloworld_dupe"
       project.clone(id, 'helloworld_cloned_db_human_readable_name')
     ).should.be.rejectedWith("The id #{id} is not valid")
 
