@@ -30,9 +30,9 @@ describe 'WeaverProject Test', ->
     )
 
   it 'should create projects with another given id', ->
-    project = new Weaver.Project("name", "n_3")
+    project = new Weaver.Project("name", "n-3")
     project.create().then((p) =>
-      expect(p.id()).to.equal("n_3")
+      expect(p.id()).to.equal("n-3")
       p.destroy()
     )
 
@@ -43,17 +43,34 @@ describe 'WeaverProject Test', ->
       p.destroy()
     )
 
-  it 'should not create a project with an illegal id 1', ->
-    new Weaver.Project("name", "Idx").create().should.be.rejectedWith('The id Idx is not valid')
+  it 'should not create a project with an illegal id, no capital allowed', ->
+    id = "Idx"
+    new Weaver.Project("name", id).create().should.be.rejectedWith("The id #{id} is not valid")
 
-  it 'should not create a project with an illegal id 2', ->
-    new Weaver.Project("name", "_dx").create().should.be.rejectedWith('The id _dx is not valid')
+  it 'should not create a project with an illegal id, no _ allowed', ->
+    id = "_dx"
+    new Weaver.Project("name", id).create().should.be.rejectedWith("The id #{id} is not valid")
 
-  it 'should not create a project with an illegal id 3', ->
-    new Weaver.Project("name", "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx").create().should.be.rejectedWith('The id xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx is not valid')
+  it 'should not create a project with an illegal id, more than 30 characters no allowed', ->
+    id = "1234567890-1234567890-1234567890"
+    new Weaver.Project("name", id).create().should.be.rejectedWith("The id #{id} is not valid")
 
-  it 'should not create a project with an illegal id 4', ->
-    new Weaver.Project("name", "dx").create().should.be.rejectedWith('The id dx is not valid')
+  it 'should not create a project with an illegal id, less than 3 characters not allowed', ->
+    id = "dx"
+    new Weaver.Project("name", id).create().should.be.rejectedWith("The id #{id} is not valid")
+
+  it 'should not create a project with an illegal id, no special character than - is allowed', ->
+    id = "d.x"
+    new Weaver.Project("name", id).create().should.be.rejectedWith("The id #{id} is not valid")
+
+  it 'should not create a project with an illegal id, no special character than - is allowed', ->
+    id = "d$x"
+    new Weaver.Project("name", id).create().should.be.rejectedWith("The id #{id} is not valid")
+
+
+  it 'should not create a project with an illegal id, no special character than - is allowed', ->
+    id = "d/x"
+    new Weaver.Project("name", id).create().should.be.rejectedWith("The id #{id} is not valid")
 
   it 'should delete projects', ->
     test = new Weaver.Project()
@@ -375,7 +392,6 @@ describe 'WeaverProject Test', ->
       weaver.coreManager.readyProject(weaver.currentProject().projectId)
     ).should.eventually.contain({ready: true})
 
-
   it 'should not allow unauthorized snapshots', ->
     new Weaver.User('testuser', 'testpass', 'test@example.com').signUp().then(->
       weaver.signInWithUsername('testuser', 'testpass')
@@ -383,14 +399,21 @@ describe 'WeaverProject Test', ->
       weaver.currentProject().getSnapshot()
     ).should.be.rejectedWith(/Permission denied/)
 
-  it.skip 'should clone a newly created project helloworld', ->
+  it 'should clone a newly created project helloworld', ->
     project = new Weaver.Project("helloworld", "helloworld")
     project.create().then(->
-      project.clone('helloworld_dupe', 'helloworld_cloned_db_human_readable_name')
+      project.clone('helloworld-dupe', 'helloworld_cloned_db_human_readable_name')
     ).then((p) ->
-      expect(p.id()).to.equal('helloworld_dupe')
+      expect(p.id()).to.equal('helloworld-dupe')
       p.destroy()
     )
+
+  it 'should not clone a newly created project helloworld', ->
+    project = new Weaver.Project("helloworld", "helloworld")
+    project.create().then(->
+      id = "helloworld_dupe"
+      project.clone(id, 'helloworld_cloned_db_human_readable_name')
+    ).should.be.rejectedWith("The id #{id} is not valid")
 
   it 'should rename a project on the server and local', ->
     p = weaver.currentProject()
