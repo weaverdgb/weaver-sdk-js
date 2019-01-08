@@ -1,5 +1,9 @@
 # Changelist
 
+## Develop
+- Adding more test to validate id names on creating projects
+- Adding test to validate id names on cloning projects
+
 ## 11.1.2
 - When updating a relation, add newNode if oldNode is undefined
 
