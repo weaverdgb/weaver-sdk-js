@@ -199,10 +199,11 @@ describe 'WeaverNode test', ->
       assert.equal(loadedNode.getDataType('number'), 'double')
     )
 
-  it 'should not allow js Date object for  attribute', ->
+  it 'should allow js Date object for  attribute', ->
     node = new Weaver.Node()
     date = new Date()
-    expect(-> node.set('time', date)).to.throw()
+    node.set('time', date)
+    expect(-> node.get('time').isValid()).to.be.true
 
   it 'should set a date attribute', ->
     node = new Weaver.Node()
