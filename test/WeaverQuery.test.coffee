@@ -339,8 +339,6 @@ describe 'WeaverQuery Test', ->
         )
       )
 
-
-
   describe 'clean nodes, with a-b-c named link-relations', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
@@ -387,7 +385,6 @@ describe 'WeaverQuery Test', ->
         checkNodeInResult(nodes, 'a')
         checkNodeInResult(nodes, 'b')
       )
-
 
   describe 'clean nodes, with a-b b-c a-c link-relations', ->
     a = new Weaver.Node('a')
@@ -497,9 +494,7 @@ describe 'WeaverQuery Test', ->
         checkNodeInResult(nodes, 'a')
       )
 
-
   describe 'other nodes, requiring wipe before each test', ->
-
     beforeEach ->
       wipeCurrentProject()
 
@@ -605,7 +600,6 @@ describe 'WeaverQuery Test', ->
       )
 
     it 'should do relation hasRelationOut with subclasses', ->
-
       class SpecialNodeA extends Weaver.Node
 
       a = new Weaver.Node("a")
@@ -684,8 +678,6 @@ describe 'WeaverQuery Test', ->
         )
       )
 
-
-
     it 'should load in some secondary nodes with "selectOut"', ->
       a = new Weaver.Node('a')
       b = new Weaver.Node('b')
@@ -727,9 +719,7 @@ describe 'WeaverQuery Test', ->
         )
       )
 
-
     it 'should support constructors with multiple hops for selectOut', ->
-
       class SpecialNodeA extends Weaver.Node
       class SpecialNodeB extends Weaver.Node
       class SpecialNodeC extends Weaver.Node
@@ -1015,7 +1005,6 @@ describe 'WeaverQuery Test', ->
       expect(err).to.have.property('message').match(/Permission denied/)
     )
 
-
   it 'should load in some secondary nodes with "selectIn"', ->
     a = new Weaver.Node()
     b = new Weaver.Node()
@@ -1178,7 +1167,6 @@ describe 'WeaverQuery Test', ->
     )
 
   it 'should clear profilers', (done) ->
-
     wipeCurrentProject().then(->
       Weaver.Query.profile((queryResult) ->
         expect(queryResult.nodes[0].nodeId).to.equal('someNode')
@@ -1535,7 +1523,6 @@ describe 'WeaverQuery Test', ->
       wipeCurrentProject()
 
     it 'should find 100 nodes', ->
-
       Weaver.Node.batchSave((new Weaver.Node() for i in [0...100]))
       .then(->
         new Weaver.Query().find()
@@ -1553,7 +1540,6 @@ describe 'WeaverQuery Test', ->
       )
 
     it 'should find 1000 nodes', ->
-
       Weaver.Node.batchSave((new Weaver.Node() for i in [0...900]))
       .then(->
         new Weaver.Query().find()
@@ -1571,7 +1557,6 @@ describe 'WeaverQuery Test', ->
       )
 
     it 'should find 1500 nodes', ->
-
       Weaver.Node.batchSave((new Weaver.Node() for i in [0...500]))
       .then(->
         new Weaver.Query().find()
@@ -1589,7 +1574,6 @@ describe 'WeaverQuery Test', ->
       )
 
     it 'should find 2500 nodes', ->
-
       Weaver.Node.batchSave((new Weaver.Node() for i in [0...1000]))
       .then(->
         new Weaver.Query().find()
@@ -1607,7 +1591,6 @@ describe 'WeaverQuery Test', ->
       )
 
   describe 'query nodes in one stream', ->
-
     before ->
       wipeCurrentProject()
       .then(->
@@ -1615,7 +1598,6 @@ describe 'WeaverQuery Test', ->
       )
 
     it 'should find 5 nodes in steps of 1', ->
-
       query = new Weaver.Query()
       .keepOpen()
       .setCursorName('abc')
@@ -1642,7 +1624,6 @@ describe 'WeaverQuery Test', ->
       )
 
     it 'should find 5 nodes in steps of 2', ->
-
       query = new Weaver.Query()
       .keepOpen()
       .setCursorName('abc')
@@ -1661,7 +1642,6 @@ describe 'WeaverQuery Test', ->
       )
 
     it 'should find first three nodes in one step', ->
-
       query = new Weaver.Query()
       .keepOpen()
       .setCursorName('abc')
