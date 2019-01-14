@@ -5,10 +5,10 @@ class Weaver
 
   constructor: (opts)->
 
-    if Weaver::instance?
+    if Weaver.instance?
       throw new Error('Do not instantiate Weaver twice')
 
-    Weaver::instance = @
+    Weaver.instance = @
 
     # Make Weaver objects available through the instance
     # FIXME: Should probably be done with a for loop or something
