@@ -203,7 +203,7 @@ describe 'WeaverNode test', ->
     node = new Weaver.Node()
     date = new Date()
     node.set('time', date)
-    expect(-> node.get('time').isValid()).to.be.true
+    expect(node.get('time').isValid()).to.be.true
 
   it 'should set a date attribute', ->
     node = new Weaver.Node()
