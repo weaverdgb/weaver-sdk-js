@@ -4,6 +4,7 @@
 - Adding more test to validate id names on creating projects
 - Adding test to validate id names on cloning projects
 - Added created by constraint to weaver query
+- Fix checking value for date. Don't throw error on js Date objects
 
 ## 11.1.2
 - When updating a relation, add newNode if oldNode is undefined
