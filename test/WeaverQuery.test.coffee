@@ -1621,6 +1621,8 @@ describe 'WeaverQuery Test', ->
         query.next()
       ).then((nodes) ->
         expect(nodes.length).to.equal(0)
+      ).finally(->
+        query.close()
       )
 
     it 'should find 5 nodes in steps of 2', ->
@@ -1639,6 +1641,8 @@ describe 'WeaverQuery Test', ->
       ).then((nodes) ->
         expect(nodes.length).to.equal(1)
         query.next().should.be.rejectedWith('No open connection for code: abc')
+      ).finally(->
+        query.close()
       )
 
     it 'should find first three nodes in one step', ->
@@ -1653,4 +1657,6 @@ describe 'WeaverQuery Test', ->
         query.close()
       ).then( ->
         query.next().should.be.rejectedWith('No open connection for code: abc')
+      ).finally(->
+        query.close()
       )
