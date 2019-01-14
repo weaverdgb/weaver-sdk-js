@@ -27,8 +27,7 @@ module.exports =
     typeShouldBe('[object Array]')(val)
 
   isDate: (val) ->
-    throw new Error('Please use momentjs Date instances') if val instanceof Date
-    moment.isMoment(val)
+    moment(val).isValid()
 
   parseDate: (dataType, value) ->
     switch dataType
