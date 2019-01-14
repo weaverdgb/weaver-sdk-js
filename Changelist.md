@@ -1,6 +1,8 @@
 # Changelist
 
 ## Develop
+- Adding more test to validate id names on creating projects
+- Adding test to validate id names on cloning projects
 - Add getters and setters for WeaverQuery to keep the result set open
 - Add route to close a connection that was kept open
 
