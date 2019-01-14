@@ -6,9 +6,6 @@ class Weaver extends WeaverBase
   constructor: (opts) ->
     super(opts)
 
-    if Weaver.instance?
-      throw new Error('Do not instantiate Weaver twice')
-
     Weaver.instance = @
 
     @File        = Weaver.File
