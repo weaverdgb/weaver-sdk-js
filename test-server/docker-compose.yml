@@ -28,7 +28,7 @@ services:
     - "9000:9000"
 
   weaver-server:
-    image: weaver-server:3.17.0-alpha.0-transactions
+    image: sysunite/weaver-server:3.17.0-alpha.0-transactions
     expose:
     - "9487"
     ports:
