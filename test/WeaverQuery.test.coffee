@@ -1658,7 +1658,7 @@ describe 'WeaverQuery Test', ->
         expect(nodes.length).to.equal(1)
         query.next().should.be.rejectedWith('No open connection for code: abc')
       ).finally(->
-        query.close()
+        trx.commit()
       )
 
     it 'should find first three nodes in one step', ->
@@ -1671,9 +1671,9 @@ describe 'WeaverQuery Test', ->
       query.find()
       .then((nodes) ->
         expect(nodes.length).to.equal(3)
-        query.close()
+        trx.commit()
       ).then( ->
-        query.next().should.be.rejectedWith('No open connection for code: abc')
+        query.next().should.be.rejectedWith("Could not get transaction for database #{trx.id()}")
       ).finally(->
-        query.close()
+        trx.commit()
       )
