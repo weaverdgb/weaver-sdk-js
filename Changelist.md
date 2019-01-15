@@ -1,6 +1,6 @@
 # Changelist
 
-## Develop
+## 11.2.0
 - Adding more test to validate id names on creating projects
 - Adding test to validate id names on cloning projects
 - Added created by constraint to weaver query
