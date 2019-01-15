@@ -320,8 +320,17 @@ class CoreManager
   cleanup: ->
     @GET("cleanup")
 
-  closeConnection: (code) ->
-    @GET("closeConnection", {code})
+  begin: (id, ttl) ->
+    @GET("transaction.begin", {id, ttl})
+
+  rollback: (id) ->
+    @GET("transaction.rollback", {id})
+
+  commit: (id) ->
+    @GET("transaction.commit", {id})
+
+  keepAlive: (id, ttl) ->
+    @GET("transaction.keepAlive", {id, ttl})
 
   enqueue: (functionToEnqueue) ->
     op = @operationsQueue.then(->

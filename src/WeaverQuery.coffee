@@ -9,8 +9,6 @@ cjson       = require('circular-json')
 quote = (s) ->
   '\\Q' + s.replace('\\E', '\\E\\\\E\\Q') + '\\E'
 
-
-
 class WeaverQuery
 
   @profilers = []
@@ -84,7 +82,7 @@ class WeaverQuery
     )
 
   next: () ->
-    @_continueCursor = true
+    @_nextResults = true
     @find()
 
   find: (Constructor) ->
@@ -339,8 +337,8 @@ class WeaverQuery
     @_keepOpen = keepOpen
     @
 
-  setCursorName: (name) ->
-    @_cursor = name if name?
+  useTransaction: (transaction) ->
+    @_transaction = transaction.id()
     @
 
   include: (keys) ->
@@ -452,9 +450,6 @@ class WeaverQuery
 
   nativeQuery: (query)->
     Weaver.getCoreManager().nativeQuery(query, Weaver.getInstance().currentProject().id())
-
-  close: ->
-    Weaver.getCoreManager().closeConnection(@_cursor) if @_cursor?
 
   destruct: ->
     delete @target
