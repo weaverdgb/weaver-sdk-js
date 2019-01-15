@@ -9,7 +9,7 @@ buffer      = require('vinyl-buffer')
 plumber     = require('gulp-plumber')
 notify      = require("gulp-notify")
 
-errorString = """<%= error.name %>: 
+errorString = """<%= error.name %>:
 					    <%= error.message %>
 					    in file <%= error.filename.substr(error.filename.lastIndexOf('/') + 1) %>
 					    on line <%= error.location.first_line + 1 %>:
@@ -42,7 +42,7 @@ gulp.task('concat', ->
 
 gulp.task('browserify', ->
   browserify({
-    entries: './tmp/Weaver.js',
+    entries: './tmp/node/Weaver.js',
     ignoreMissing: true
   }).bundle()
     .on('error', (error) ->

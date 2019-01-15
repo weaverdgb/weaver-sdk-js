@@ -45,6 +45,20 @@ describe 'WeaverQuery Test', ->
         expect(nodes.length).to.equal(4)
       )
 
+    it 'should restrict nodes with createdBy constraint', ->
+      new Weaver.Query()
+        .createdBy(Weaver.getInstance().currentUser())
+        .find()
+        .then((nodes) ->
+          expect(nodes.length).to.equal(4)
+          otherUser = new Weaver.User('other', 'user')
+          new Weaver.Query()
+            .createdBy(otherUser)
+            .find()
+        ).then((nodes) ->
+          expect(nodes.length).to.equal(0)
+        )
+
     it 'should count', ->
       new Weaver.Query()
       .restrict([a,c])

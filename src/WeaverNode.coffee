@@ -194,7 +194,7 @@ class WeaverNode
         dataType = 'boolean'
       else if util.isDate(value)
         dataType = 'date'
-        value = value.toJSON()
+        value = moment(value).toJSON()
       else
         throw Error("Unsupported datatype for value " + value)
 
