@@ -1604,7 +1604,7 @@ describe 'WeaverQuery Test', ->
         expect(nodes.length).to.equal(2500)
       )
 
-  describe 'query nodes in one stream', ->
+  describe 'query nodes in one stream using a transaction', ->
     before ->
       wipeCurrentProject()
       .then(->
@@ -1612,9 +1612,10 @@ describe 'WeaverQuery Test', ->
       )
 
     it 'should find 5 nodes in steps of 1', ->
+      trx = new Weaver.Transaction()
       query = new Weaver.Query()
       .keepOpen()
-      .setCursorName('abc')
+      .useTransaction(trx)
       .limit(1)
 
       query.find()
@@ -1636,13 +1637,14 @@ describe 'WeaverQuery Test', ->
       ).then((nodes) ->
         expect(nodes.length).to.equal(0)
       ).finally(->
-        query.close()
+        trx.commit()
       )
 
     it 'should find 5 nodes in steps of 2', ->
+      trx = new Weaver.Transaction()
       query = new Weaver.Query()
       .keepOpen()
-      .setCursorName('abc')
+      .useTransaction(trx)
       .limit(2)
 
       query.find()
@@ -1660,9 +1662,10 @@ describe 'WeaverQuery Test', ->
       )
 
     it 'should find first three nodes in one step', ->
+      trx = new Weaver.Transaction()
       query = new Weaver.Query()
       .keepOpen()
-      .setCursorName('abc')
+      .useTransaction(trx)
       .limit(3)
 
       query.find()
