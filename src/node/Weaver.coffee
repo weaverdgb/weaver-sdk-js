@@ -6,6 +6,8 @@ class Weaver extends WeaverBase
   constructor: (opts) ->
     super(opts)
 
+    Weaver.instance = @
+
     @File        = Weaver.File
     @Plugin      = Weaver.Plugin
     @coreManager = new Weaver.CoreManager(SocketController)

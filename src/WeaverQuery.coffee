@@ -20,6 +20,7 @@ class WeaverQuery
     @_equals             = {}
     @_orQueries          = []
     @_conditions         = {}
+    @_createdBy          = undefined
     @_include            = []
     @_select             = undefined
     @_selectRelations    = undefined
@@ -349,6 +350,10 @@ class WeaverQuery
   selectIn: (relationKeys...) ->
     @_selectIn = [] if !@_selectIn?
     @_selectIn.push(relationKeys)
+    @
+
+  createdBy: (user) ->
+    @_createdBy = user.id()
     @
 
   findExistingNodes: (nodes) ->
