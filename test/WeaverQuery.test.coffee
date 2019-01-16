@@ -1613,6 +1613,8 @@ describe 'WeaverQuery Test', ->
 
     it 'should find 5 nodes in steps of 1', ->
       trx = new Weaver.Transaction()
+      trx.begin()
+
       query = new Weaver.Query()
       .keepOpen()
       .useTransaction(trx)
@@ -1642,6 +1644,8 @@ describe 'WeaverQuery Test', ->
 
     it 'should find 5 nodes in steps of 2', ->
       trx = new Weaver.Transaction()
+      trx.begin()
+
       query = new Weaver.Query()
       .keepOpen()
       .useTransaction(trx)
@@ -1663,6 +1667,8 @@ describe 'WeaverQuery Test', ->
 
     it 'should find first three nodes in one step', ->
       trx = new Weaver.Transaction()
+      trx.begin()
+      
       query = new Weaver.Query()
       .keepOpen()
       .useTransaction(trx)
