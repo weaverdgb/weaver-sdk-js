@@ -1660,7 +1660,9 @@ describe 'WeaverQuery Test', ->
         query.next()
       ).then((nodes) ->
         expect(nodes.length).to.equal(1)
-        query.next().should.be.rejectedWith('No open connection for code: abc')
+        query.next()
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(0)
       ).finally(->
         trx.commit()
       )
@@ -1668,7 +1670,7 @@ describe 'WeaverQuery Test', ->
     it 'should find first three nodes in one step', ->
       trx = new Weaver.Transaction()
       trx.begin()
-      
+
       query = new Weaver.Query()
       .keepOpen()
       .useTransaction(trx)
