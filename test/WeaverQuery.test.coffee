@@ -1612,16 +1612,17 @@ describe 'WeaverQuery Test', ->
       )
 
     it 'should find 5 nodes in steps of 1', ->
-      trx = new Weaver.Transaction()
-      trx.begin()
-
       query = new Weaver.Query()
       .keepOpen()
-      .useTransaction(trx)
       .limit(1)
-
-      query.find()
-      .then((nodes) ->
+      
+      trx = new Weaver.Transaction()
+      trx.setTtl(5)
+      trx.begin()
+      .then(
+        query.useTransaction(trx)
+        query.find()
+      ).then((nodes) ->
         expect(nodes.length).to.equal(1)
         query.next()
       ).then((nodes) ->
@@ -1644,15 +1645,15 @@ describe 'WeaverQuery Test', ->
 
     it 'should find 5 nodes in steps of 2', ->
       trx = new Weaver.Transaction()
-      trx.begin()
-
       query = new Weaver.Query()
       .keepOpen()
       .useTransaction(trx)
       .limit(2)
 
-      query.find()
-      .then((nodes) ->
+      trx.begin()
+      .then(
+        query.find()
+      ).then((nodes) ->
         expect(nodes.length).to.equal(2)
         query.next()
       ).then((nodes) ->
@@ -1669,15 +1670,15 @@ describe 'WeaverQuery Test', ->
 
     it 'should find first three nodes in one step', ->
       trx = new Weaver.Transaction()
-      trx.begin()
-
       query = new Weaver.Query()
       .keepOpen()
       .useTransaction(trx)
       .limit(3)
 
-      query.find()
-      .then((nodes) ->
+      trx.begin()
+      .then(
+        query.find()
+      ).then((nodes) ->
         expect(nodes.length).to.equal(3)
         trx.commit()
       ).then( ->
