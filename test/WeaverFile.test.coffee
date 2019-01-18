@@ -261,3 +261,29 @@ describe 'WeaverFile test', ->
         f = files[files.length - 1] # Get the last uploaded file
         expect(f.size()).to.not.be.undefined
       )
+
+    it 'should clone the files to a newly created project helloworld', ->
+      project = null
+      test = null
+      checkList = null
+      Weaver.File.list()
+      .then((list) ->
+        checkList = list
+        console.log 'list'
+        console.log list
+        project = weaver.currentProject()
+        console.log project
+        project.clone('helloworld-dupe', 'helloworld cloned for testing reasons ')
+      ).then((p) ->
+        test = p
+        expect(test.id()).to.equal('helloworld-dupe')
+        weaver.useProject(test)
+        Weaver.File.list()
+      ).then((list) ->
+      #   console.log checkList
+      #   console.log 'vs'
+      #   console.log list
+        test.destroy()
+      ).finally(->
+        weaver.useProject(project)
+      )
