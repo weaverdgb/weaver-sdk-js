@@ -333,6 +333,10 @@ class WeaverQuery
     @_limit = limit
     @
 
+  batchSize: (batchSize) ->
+    @_batchSize = batchSize
+    @
+
   keepOpen: (keepOpen=true) ->
     @_keepOpen = keepOpen
     @

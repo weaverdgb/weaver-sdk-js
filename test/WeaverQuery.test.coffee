@@ -1616,7 +1616,7 @@ describe 'WeaverQuery Test', ->
       query = new Weaver.Query()
       .keepOpen()
       .useTransaction(trx)
-      .limit(1)
+      .batchSize(1)
 
       trx.begin()
       .then(->
@@ -1647,7 +1647,7 @@ describe 'WeaverQuery Test', ->
       query = new Weaver.Query()
       .keepOpen()
       .useTransaction(trx)
-      .limit(2)
+      .batchSize(2)
 
       trx.begin()
       .then(->
@@ -1672,7 +1672,7 @@ describe 'WeaverQuery Test', ->
       query = new Weaver.Query()
       .keepOpen()
       .useTransaction(trx)
-      .limit(3)
+      .batchSize(3)
 
       trx.begin()
       .then(->
