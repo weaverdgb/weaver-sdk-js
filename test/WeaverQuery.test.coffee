@@ -1612,15 +1612,14 @@ describe 'WeaverQuery Test', ->
       )
 
     it 'should find 5 nodes in steps of 1', ->
+      trx = new Weaver.Transaction()
       query = new Weaver.Query()
       .keepOpen()
+      .useTransaction(trx)
       .limit(1)
-      
-      trx = new Weaver.Transaction()
-      trx.setTtl(5)
+
       trx.begin()
-      .then(
-        query.useTransaction(trx)
+      .then(->
         query.find()
       ).then((nodes) ->
         expect(nodes.length).to.equal(1)
@@ -1651,7 +1650,7 @@ describe 'WeaverQuery Test', ->
       .limit(2)
 
       trx.begin()
-      .then(
+      .then(->
         query.find()
       ).then((nodes) ->
         expect(nodes.length).to.equal(2)
@@ -1676,13 +1675,11 @@ describe 'WeaverQuery Test', ->
       .limit(3)
 
       trx.begin()
-      .then(
+      .then(->
         query.find()
       ).then((nodes) ->
         expect(nodes.length).to.equal(3)
         trx.commit()
       ).then( ->
-        query.next().should.be.rejectedWith("Could not get transaction for database #{trx.id()}")
-      ).finally(->
-        trx.commit()
+        query.next().should.be.rejectedWith("Could not get transaction for database")
       )
