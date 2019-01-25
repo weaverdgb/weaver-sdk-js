@@ -89,6 +89,10 @@ class WeaverQuery
 
     if Constructor?
       @setConstructorFunction(-> Constructor)
+    
+    trx = Weaver.getCoreManager().currentTransaction
+    if trx?
+      @_transaction = trx.id()
 
     Weaver.getCoreManager().query(@).then((result) =>
       Weaver.Query.notify(result)
@@ -339,10 +343,6 @@ class WeaverQuery
 
   keepOpen: (keepOpen=true) ->
     @_keepOpen = keepOpen
-    @
-
-  useTransaction: (transaction) ->
-    @_transaction = transaction.id()
     @
 
   include: (keys) ->

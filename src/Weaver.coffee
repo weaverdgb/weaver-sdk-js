@@ -66,6 +66,15 @@ class Weaver
   useProject: (project) ->
     @coreManager.currentProject = project
 
+  startTransaction: ->
+    if @coreManager.currentTransaction?
+      throw new Error("There is already an active transaction, first commit or rollback that one")
+    @coreManager.currentTransaction = new Weaver.Transaction()
+    @coreManager.currentTransaction.begin()
+    .then(=>
+      @coreManager.currentTransaction
+    )
+
   @useModel: (model) ->
     Weaver.getCoreManager().currentModel = model
 
