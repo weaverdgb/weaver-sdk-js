@@ -1681,5 +1681,5 @@ describe 'WeaverQuery Test', ->
         expect(nodes.length).to.equal(3)
         trx.commit()
       ).then( ->
-        query.next().should.be.rejectedWith("Could not get transaction for database")
+        query.next().should.be.rejectedWith("No transaction with id #{trx.id()} is active")
       )
