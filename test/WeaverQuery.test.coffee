@@ -1612,14 +1612,14 @@ describe 'WeaverQuery Test', ->
       )
 
     it 'should find 5 nodes in steps of 1', ->
-      trx = new Weaver.Transaction()
-      query = new Weaver.Query()
-      .keepOpen()
-      .useTransaction(trx)
-      .batchSize(1)
-
-      trx.begin()
-      .then(->
+      query = null
+      transaction = null
+      Weaver.getInstance().startTransaction()
+      .then((trx)->
+        transaction = trx
+        query = new Weaver.Query()
+        .keepOpen()
+        .batchSize(1)
         query.find()
       ).then((nodes) ->
         expect(nodes.length).to.equal(1)
@@ -1639,18 +1639,18 @@ describe 'WeaverQuery Test', ->
       ).then((nodes) ->
         expect(nodes.length).to.equal(0)
       ).finally(->
-        trx.commit()
+        transaction.commit()
       )
 
     it 'should find 5 nodes in steps of 2', ->
-      trx = new Weaver.Transaction()
-      query = new Weaver.Query()
-      .keepOpen()
-      .useTransaction(trx)
-      .batchSize(2)
-
-      trx.begin()
-      .then(->
+      query = null
+      transaction = null
+      Weaver.getInstance().startTransaction()
+      .then((trx)->
+        transaction = trx
+        query = new Weaver.Query()
+        .keepOpen()
+        .batchSize(2)
         query.find()
       ).then((nodes) ->
         expect(nodes.length).to.equal(2)
@@ -1664,22 +1664,22 @@ describe 'WeaverQuery Test', ->
       ).then((nodes) ->
         expect(nodes.length).to.equal(0)
       ).finally(->
-        trx.commit()
+        transaction.commit()
       )
 
     it 'should find first three nodes in one step', ->
-      trx = new Weaver.Transaction()
-      query = new Weaver.Query()
-      .keepOpen()
-      .useTransaction(trx)
-      .batchSize(3)
-
-      trx.begin()
-      .then(->
+      query = null
+      transaction = null
+      Weaver.getInstance().startTransaction()
+      .then((trx)->
+        transaction = trx
+        query = new Weaver.Query()
+        .keepOpen()
+        .batchSize(3)
         query.find()
       ).then((nodes) ->
         expect(nodes.length).to.equal(3)
-        trx.commit()
+        transaction.commit()
       ).then( ->
-        query.next().should.be.rejectedWith("No transaction with id #{trx.id()} is active")
+        query.next().should.be.rejectedWith("No transaction with id #{transaction.id()} is active")
       )

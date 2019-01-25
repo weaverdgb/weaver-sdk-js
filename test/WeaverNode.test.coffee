@@ -1277,6 +1277,61 @@ describe 'WeaverNode test', ->
       expect(savedNode.createdBy()).to.be.defined
     )
 
+  it 'should start and stop a transaction', ->
+    expect(Weaver.getCoreManager().currentTransaction).to.be.undefined
+    
+    Weaver.getInstance().startTransaction()
+    .then((trx)->
+      expect(trx).to.be.instanceOf(Weaver.Transaction)
+      trx.rollback()
+    ).then(->
+      expect(Weaver.getCoreManager().currentTransaction).to.be.undefined
+    )
+
+  it 'should rollback in a transaction', ->
+    transaction = null
+    node = null
+    Weaver.getInstance().startTransaction()
+    .then((trx)->
+      transaction = trx
+      node = new Weaver.Node()
+      node.save()
+    ).then(->
+      new Weaver.Query().restrict(node).find()
+    ).then((nodes)->
+      expect(nodes.length).to.equal(1)
+      transaction.rollback()
+    ).then(->
+      expect(Weaver.getCoreManager().currentTransaction).to.be.undefined
+      new Weaver.Query().restrict(node).find()
+    ).then((nodes)->
+      expect(nodes.length).to.equal(0)
+    ).catch(->
+      transaction.rollback()
+    )
+
+  it 'should commit in transaction', ->
+    transaction = null
+    node = null
+    Weaver.getInstance().startTransaction()
+    .then((trx)->
+      transaction = trx
+      node = new Weaver.Node()
+      node.save()
+    ).then(->
+      new Weaver.Query().restrict(node).find()
+    ).then((nodes)->
+      expect(nodes.length).to.equal(1)
+      transaction.commit()
+    ).then(->
+      expect(Weaver.getCoreManager().currentTransaction).to.be.undefined
+      new Weaver.Query().restrict(node).find()
+    ).then((nodes)->
+      expect(nodes.length).to.equal(1)
+    ).catch(->
+      transaction.rollback()
+    )
+
   describe 'equals', ->
     check = (node1id, node1graph, node2id, node2graph) ->
       node1 = new Weaver.Node(node1id, node1graph)
