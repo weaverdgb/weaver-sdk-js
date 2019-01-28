@@ -1332,6 +1332,24 @@ describe 'WeaverNode test', ->
       transaction.rollback()
     )
 
+  it 'should fail on concurrent modification', ->
+    transaction = null
+    node = new Weaver.Node()
+    node.save()
+    .then(->
+      Weaver.getInstance().startTransaction()
+    ).then((trx)->
+      transaction = trx
+      node.set('age', 43)
+      node.save()
+    ).then(->
+      Weaver.getCoreManager().currentTransaction = undefined
+      node.set('age', 33)
+      node.save().should.be.rejectedWith('due to lock timeout')
+    ).finally(->
+      transaction.rollback()
+    )
+
   describe 'equals', ->
     check = (node1id, node1graph, node2id, node2graph) ->
       node1 = new Weaver.Node(node1id, node1graph)
