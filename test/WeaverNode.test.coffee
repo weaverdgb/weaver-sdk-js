@@ -2,6 +2,7 @@ moment             = require('moment')
 weaver             = require("./test-suite").weaver
 wipeCurrentProject = require("./test-suite").wipeCurrentProject
 Weaver             = require('../src/Weaver')
+cuid               = require('cuid')
 
 describe 'WeaverNode test', ->
   it 'should allow a node to be destroyed', ->
@@ -1204,7 +1205,6 @@ describe 'WeaverNode test', ->
     expect(node._pendingWrites[2].graph).to.equal('fifth-graph')
     expect(node._pendingWrites[3].graph).to.equal('first-graph')
 
-
   it 'should add collect pending writes when one node is loaded multiple times', ->
     thenode = new Weaver.Node('thenode')
     someother = new Weaver.Node('someother')
@@ -1332,9 +1332,10 @@ describe 'WeaverNode test', ->
       transaction.rollback()
     )
 
-  it 'should fail on concurrent modification', ->
+  it 'should fail on broken replace through transactions', ->
     transaction = null
     node = new Weaver.Node()
+    node.set('age', 22)
     node.save()
     .then(->
       Weaver.getInstance().startTransaction()
@@ -1345,6 +1346,25 @@ describe 'WeaverNode test', ->
     ).then(->
       Weaver.getCoreManager().currentTransaction = undefined
       node.set('age', 33)
+      node.save().should.be.rejectedWith('"replaced" violates not-null constraint')
+    ).finally(->
+      transaction.rollback()
+    )
+
+  it 'should fail on lock timeout', ->
+    transaction = null
+    uniqueKey = cuid()
+    node = new Weaver.Node()
+    node.save()
+    .then(->
+      Weaver.getInstance().startTransaction()
+    ).then((trx)->
+      transaction = trx
+      node.set(uniqueKey, 43)
+      node.save()
+    ).then(->
+      Weaver.getCoreManager().currentTransaction = undefined
+      node.set(uniqueKey, 33)
       node.save().should.be.rejectedWith('due to lock timeout')
     ).finally(->
       transaction.rollback()
