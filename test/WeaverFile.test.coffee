@@ -191,7 +191,7 @@ describe 'WeaverFile test', ->
     ).then((destBuff) ->
       readFile(file.path())
       .then((originBuff) ->
-        assert.equal(destBuff.toString(),originBuff.toString())
+        assert.equal(destBuff.toString(), originBuff.toString())
       )
     )
 
@@ -269,10 +269,7 @@ describe 'WeaverFile test', ->
       Weaver.File.list()
       .then((list) ->
         checkList = list
-        console.log 'list'
-        console.log list
         project = weaver.currentProject()
-        console.log project
         project.clone('helloworld-dupe', 'helloworld cloned for testing reasons ')
       ).then((p) ->
         test = p
@@ -280,9 +277,15 @@ describe 'WeaverFile test', ->
         weaver.useProject(test)
         Weaver.File.list()
       ).then((list) ->
-      #   console.log checkList
-      #   console.log 'vs'
-      #   console.log list
+        assert.equal(checkList.length, 5)
+        assert.equal(list.length, 5)
+
+        for file in checkList
+          found = false
+          for candidate in list
+            found = true if candidate.fileId is file.fileId
+          assert found
+
         test.destroy()
       ).finally(->
         weaver.useProject(project)
