@@ -1306,8 +1306,6 @@ describe 'WeaverNode test', ->
       new Weaver.Query().restrict(node).find()
     ).then((nodes)->
       expect(nodes.length).to.equal(0)
-    ).catch(->
-      transaction.rollback()
     )
 
   it 'should commit in transaction', ->
@@ -1328,8 +1326,6 @@ describe 'WeaverNode test', ->
       new Weaver.Query().restrict(node).find()
     ).then((nodes)->
       expect(nodes.length).to.equal(1)
-    ).catch(->
-      transaction.rollback()
     )
 
   it 'should fail on broken replace through transactions', ->

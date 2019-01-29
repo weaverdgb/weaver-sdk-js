@@ -68,7 +68,7 @@ class Weaver
 
   startTransaction: ->
     if @coreManager.currentTransaction?
-      throw new Error("There is already an active transaction, first commit or rollback that one")
+      throw new Error("A transaction is already set, first commit or rollback that one")
     @coreManager.currentTransaction = new Weaver.Transaction()
     @coreManager.currentTransaction.begin()
     .then(=>
