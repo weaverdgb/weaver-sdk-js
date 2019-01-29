@@ -1681,5 +1681,29 @@ describe 'WeaverQuery Test', ->
         expect(nodes.length).to.equal(3)
         transaction.commit()
       ).then( ->
-        query.next().should.be.rejectedWith("No transaction with id #{transaction.id()} is active")
+        query.next().should.be.rejectedWith("No held result set could be found for code")
+      )
+
+    it 'should use transaction implicitly', ->
+      query = null
+      transaction = null
+
+      query = new Weaver.Query()
+      .keepOpen()
+      .batchSize(2)
+      query.find()
+      .then((nodes) ->
+        transaction = Weaver.getCoreManager().currentTransaction
+        expect(nodes.length).to.equal(2)
+        query.next()
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(2)
+        query.next()
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        query.next()
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(0)
+      ).finally(->
+        transaction.commit()
       )

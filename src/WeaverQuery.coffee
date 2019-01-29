@@ -1,7 +1,8 @@
-util        = require('./util')
-Weaver      = require('./Weaver')
 _           = require('lodash')
 cjson       = require('circular-json')
+Promise     = require('bluebird')
+util        = require('./util')
+Weaver      = require('./Weaver')
 
 # Converts a string into a regex that matches it.
 # Surrounding with \Q .. \E does this, we just need to escape any \E's in
@@ -86,15 +87,17 @@ class WeaverQuery
     @find()
 
   find: (Constructor) ->
-
     if Constructor?
       @setConstructorFunction(-> Constructor)
-    
-    trx = Weaver.getCoreManager().currentTransaction
-    if trx?
-      @_transaction = trx.id()
 
-    Weaver.getCoreManager().query(@).then((result) =>
+    trx = Weaver.getCoreManager().currentTransaction
+    transaction = Promise.resolve(trx)
+    transaction = Weaver.getInstance().startTransaction() if !trx? && @_keepOpen? && @_keepOpen
+    transaction.then((trx) =>
+      if trx?
+        @_transaction = trx.id()      
+      Weaver.getCoreManager().query(@)
+    ).then((result) =>
       Weaver.Query.notify(result)
       list = new Weaver.NodeList()
       for object in result.nodes
