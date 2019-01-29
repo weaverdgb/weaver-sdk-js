@@ -35,7 +35,7 @@ class WeaverModelQuery extends Weaver.Query
           return Weaver.DefinedNode
         defs = node.getDefinitions?()
         modelKey = owner._getModelKey(key, defs...) or key
-        
+
         ranges = owner.getToRanges(modelKey, node)
         if ranges.length < 1
           console.warn("Could not find a range for constructing second order node between type #{JSON.stringify(defs)}")
@@ -135,7 +135,7 @@ class WeaverModelQuery extends Weaver.Query
     @
 
   selectRecursiveOut: (keys...) ->
-    super(key) for key in @_mapKeys(keys, "relations")
+    super(@_mapKeys(keys, "relations")...)
     @
 
   selectRelations: (keys...) ->
