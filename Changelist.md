@@ -1,12 +1,18 @@
 # Changelist
 
+## 11.3.0
+- Add getters and setters for WeaverQuery to keep the result set open
+- Add route to close a connection that was kept open
+
+## 11.2.1
+- Fixes selectRecursiveOut calls for ModelQueries with multiple arguments
+- Fixes alwaysLoadRelation calls for ModelQueries
+
 ## 11.2.0
 - Adding more test to validate id names on creating projects
 - Adding test to validate id names on cloning projects
 - Added created by constraint to weaver query
 - Fix checking value for date. Don't throw error on js Date objects
-- Add getters and setters for WeaverQuery to keep the result set open
-- Add route to close a connection that was kept open
 
 ## 11.1.2
 - When updating a relation, add newNode if oldNode is undefined
