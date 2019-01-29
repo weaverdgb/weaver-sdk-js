@@ -131,10 +131,12 @@ describe 'WeaverModelQuery test', ->
       it 'should support multiple selectRecursiveOut clauses', ->
         new Weaver.ModelQuery()
         .class(model.Person)
-        .restrict("personA")
-        .selectRecursiveOut("Person.hasHead", "Person.livesIn")
+        .restrict("personB")
+        .selectRecursiveOut("Person.hasHead", "Person.livesIn", "Building.placedIn")
         .find().then((persons) ->
           expect(persons[0].relation('hasHead').first()).to.have.property('_loaded').be.true
+          expect(persons[0].relation('livesIn').first()).to.have.property('_loaded').be.true
+          expect(persons[0].relation('livesIn').first().relation('placedIn').first()).to.have.property('_loaded').be.true
         )
 
       it 'should load model instances', ->
