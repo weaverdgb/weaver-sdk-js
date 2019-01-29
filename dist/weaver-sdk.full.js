@@ -43291,7 +43291,7 @@ module.exports = yeast;
 },{}],94:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "11.2.0",
+  "version": "11.2.1",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -46452,13 +46452,9 @@ module.exports={
     };
 
     WeaverModelQuery.prototype.selectRecursiveOut = function() {
-      var i, key, keys, len, ref;
+      var keys;
       keys = 1 <= arguments.length ? slice.call(arguments, 0) : [];
-      ref = this._mapKeys(keys, "relations");
-      for (i = 0, len = ref.length; i < len; i++) {
-        key = ref[i];
-        WeaverModelQuery.__super__.selectRecursiveOut.call(this, key);
-      }
+      WeaverModelQuery.__super__.selectRecursiveOut.apply(this, this._mapKeys(keys, "relations"));
       return this;
     };
 
@@ -46466,6 +46462,13 @@ module.exports={
       var keys;
       keys = 1 <= arguments.length ? slice.call(arguments, 0) : [];
       WeaverModelQuery.__super__.selectRelations.apply(this, slice.call(this._mapKeys(keys, "relations")).concat([this.model.definition['member']]));
+      return this;
+    };
+
+    WeaverModelQuery.prototype.alwaysLoadRelations = function() {
+      var keys;
+      keys = 1 <= arguments.length ? slice.call(arguments, 0) : [];
+      WeaverModelQuery.__super__.alwaysLoadRelations.apply(this, this._mapKeys(keys, "relations"));
       return this;
     };
 
