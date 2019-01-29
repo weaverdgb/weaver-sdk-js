@@ -110,6 +110,35 @@ describe 'WeaverModelQuery test', ->
           assert.equal(p.relation('hasHead').first().constructor, model.Head)
         )
 
+      it 'should support a single selectRecursiveOut clause', ->
+        new Weaver.ModelQuery()
+        .class(model.Person)
+        .restrict("personA")
+        .selectRecursiveOut("Person.hasHead")
+        .find().then((persons) ->
+          expect(persons[0].relation('hasHead').first()).to.have.property('_loaded').be.true
+        )
+
+      it 'should support alwaysLoadRelations', ->
+        new Weaver.ModelQuery()
+        .class(model.Person)
+        .restrict("personB")
+        .alwaysLoadRelations("Building.placedIn")
+        .find().then((persons) ->
+          expect(persons[0].relation('livesIn').first().relation('placedIn').first()).to.be.defined
+        )
+
+      it 'should support multiple selectRecursiveOut clauses', ->
+        new Weaver.ModelQuery()
+        .class(model.Person)
+        .restrict("personB")
+        .selectRecursiveOut("Person.hasHead", "Person.livesIn", "Building.placedIn")
+        .find().then((persons) ->
+          expect(persons[0].relation('hasHead').first()).to.have.property('_loaded').be.true
+          expect(persons[0].relation('livesIn').first()).to.have.property('_loaded').be.true
+          expect(persons[0].relation('livesIn').first().relation('placedIn').first()).to.have.property('_loaded').be.true
+        )
+
       it 'should load model instances', ->
         new Weaver.ModelQuery()
           .restrict("personB")
@@ -406,7 +435,7 @@ describe 'WeaverModelQuery test', ->
           for person in node.relationsIn.worksIn.nodes
             person.should.be.instanceOf(model.Person)
         )
-        
+
   it 'should remove the model from the query when using \'destruct\' function', ->
     q = new Weaver.ModelQuery(model)
     expect(q.model).to.be.not.undefined
