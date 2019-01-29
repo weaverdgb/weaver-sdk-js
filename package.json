@@ -9,7 +9,7 @@
   },
   "com_weaverplatform": {
     "requiredConnectorVersion": "4.15.0-beta.0",
-    "requiredServerVersion": "3.17.0-alpha.2-transactions"
+    "requiredServerVersion": "3.17.0-beta.0"
   },
   "main": "lib/node/Weaver.js",
   "files": [
