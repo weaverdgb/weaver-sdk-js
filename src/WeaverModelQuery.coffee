@@ -142,6 +142,10 @@ class WeaverModelQuery extends Weaver.Query
     super(@_mapKeys(keys, "relations")..., @model.definition['member'])
     @
 
+  alwaysLoadRelations: (keys...) ->
+    super(@_mapKeys(keys, "relations")...)
+    @
+
   find: (@preferredConstructor) ->
     # Always get the member relation to map to the correct modelclass
     @alwaysLoadRelations(@model.getMemberKey())

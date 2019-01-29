@@ -119,6 +119,15 @@ describe 'WeaverModelQuery test', ->
           expect(persons[0].relation('hasHead').first()).to.have.property('_loaded').be.true
         )
 
+      it 'should support alwaysLoadRelations', ->
+        new Weaver.ModelQuery()
+        .class(model.Person)
+        .restrict("personB")
+        .alwaysLoadRelations("Building.placedIn")
+        .find().then((persons) ->
+          expect(persons[0].relation('livesIn').first().relation('placedIn').first()).to.be.defined
+        )
+
       it 'should support multiple selectRecursiveOut clauses', ->
         new Weaver.ModelQuery()
         .class(model.Person)
