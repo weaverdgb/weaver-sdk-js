@@ -328,17 +328,23 @@ describe 'WeaverQuery with single Network', ->
       )
 
   it 'should have count and res.length be equal', ->
+    q = new Weaver.Query()
     Promise.all([
-      new Weaver.Query().find().then((res) -> res.length),
-      new Weaver.Query().count()
+      q.find().then((res) ->
+        res.length
+      ),
+      q.count()
     ]).then((counts) ->
       expect(counts[0]).to.equal(counts[1])
     )
 
   it 'should have hasRelationOut count and res.length be equal', ->
+    q = new Weaver.Query().hasRelationOut("*", vettel, raikonnen, ferrari)
     Promise.all([
-      new Weaver.Query().hasRelationOut("*", vettel, raikonnen, ferrari).find().then((res) -> res.length),
-      new Weaver.Query().hasRelationOut("*", vettel, raikonnen, ferrari).count()
+      q.find().then((res) ->
+        res.length
+      ),
+      q.count()
     ]).then((counts) ->
       expect(counts[0]).to.equal(counts[1])
     )

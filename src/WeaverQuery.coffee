@@ -90,13 +90,15 @@ class WeaverQuery
     if Constructor?
       @setConstructorFunction(-> Constructor)
 
+    clone = @preSerialize()
+
     trx = Weaver.getCoreManager().currentTransaction
     transaction = Promise.resolve(trx)
     transaction = Weaver.getInstance().startTransaction() if !trx? && @_keepOpen? && @_keepOpen
     transaction.then((trx) =>
       if trx?
-        @_transaction = trx.id()      
-      Weaver.getCoreManager().query(@)
+        clone._transaction = trx.id()      
+      Weaver.getCoreManager().query(clone)
     ).then((result) =>
       Weaver.Query.notify(result)
       list = new Weaver.NodeList()
@@ -108,7 +110,8 @@ class WeaverQuery
 
   count: ->
     @_count = true
-    Weaver.getCoreManager().query(@).then((result) ->
+    Weaver.getCoreManager().query(@preSerialize())
+    .then((result) ->
       Weaver.Query.notify(result)
       result.count
     ).finally(=>
@@ -117,7 +120,8 @@ class WeaverQuery
 
   countPerGraph: ->
     @_countPerGraph = true
-    Weaver.getCoreManager().query(@).then((result) ->
+    Weaver.getCoreManager().query(@preSerialize())
+    .then((result) ->
       Weaver.Query.notify(result)
       result
     ).finally(=>
@@ -462,6 +466,9 @@ class WeaverQuery
     delete @target
     delete @constructorFunction
     @
+
+  preSerialize: ->
+    _.omit(@, ['model', 'context', 'target', 'preferredConstructor', 'constructorFunction'])
 
 # Export
 module.exports = WeaverQuery
