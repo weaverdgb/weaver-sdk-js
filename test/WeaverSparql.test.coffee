@@ -88,11 +88,11 @@ describe 'WeaverQuery Narql Test', ->
           assert.equal(2, previous)
       )
 
-    it 'should get the nodes using a cursor', ->
+    it 'should get the nodes using a transaction', ->
       query = new Weaver.Narql('SELECT * WHERE { _ ?x next ?y }')
-      .limit(2)
+      .batchSize(2)
       .keepOpen()
-      .setCursorName('xyz')
+      #todo: explicitly start a transaction 
 
       query.find()
       .then((res) ->

@@ -274,10 +274,10 @@ class CoreManager
       else Promise.reject(res)
     )
 
-  narql: (query) ->
+  sparql: (query) ->
     target = query.target
     
-    @POST("query.narql", {query, unparsed: true}, target).then((res) ->
+    @POST("query.sparql", {query, unparsed: true}, target).then((res) ->
       if typeof res isnt 'object'
         JSON.parse(res)
       else Promise.reject(res)

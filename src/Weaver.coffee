@@ -20,7 +20,7 @@ class Weaver
     @History = Weaver.History
     @Project = Weaver.Project
     @Query = Weaver.Query
-    @Narql = Weaver.Narql
+    @Sparql = Weaver.Sparql
     @Relation = Weaver.Relation
     @RelationNode = Weaver.RelationNode
     @Role = Weaver.Role
@@ -157,7 +157,7 @@ module.exports.CoreManager   = require('./CoreManager')
 module.exports.History       = require('./WeaverHistory')
 module.exports.Project       = require('./WeaverProject')
 module.exports.Query         = require('./WeaverQuery')
-module.exports.Narql         = require('./WeaverNarql')
+module.exports.Sparql        = require('./WeaverSparql')
 module.exports.Relation      = require('./WeaverRelation')
 module.exports.RelationNode  = require('./WeaverRelationNode')
 module.exports.Role          = require('./WeaverRole')
