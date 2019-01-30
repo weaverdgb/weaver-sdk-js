@@ -6,7 +6,7 @@ checkNodeInResult = (nodes, nodeId) ->
   ids = (i.id() for i in nodes)
   expect(ids).to.contain(nodeId)
 
-describe 'WeaverQuery Narql Test', ->
+describe 'WeaverQuery Sparql Test', ->
 
   describe 'a simple test set', ->
     x = new Weaver.Node('x')
@@ -28,8 +28,8 @@ describe 'WeaverQuery Narql Test', ->
         c.relation('to').remove(x)
       )
 
-    it 'should for partly deleted nodes do a simple narql query', ->
-      new Weaver.Narql('SELECT * WHERE { _ ?x to ?y }')
+    it 'should for partly deleted nodes do a simple Sparql query', ->
+      new Weaver.Sparql('SELECT * WHERE { _ ?x to ?y }')
       .find()
       .then((res) ->
         assert.equal(2, res.x.length)
@@ -55,8 +55,8 @@ describe 'WeaverQuery Narql Test', ->
         Promise.all([aleph.save(), cycle[0].save()])
       )
 
-    it 'should do a simple narql query on a cycle', ->
-      new Weaver.Narql('SELECT * WHERE { _ ?x next _ }')
+    it 'should do a simple Sparql query on a cycle', ->
+      new Weaver.Sparql('SELECT * WHERE { _ ?x next _ }')
       .find().then((res) ->
         new Weaver.Query()
         .restrict(res.x)
@@ -72,7 +72,7 @@ describe 'WeaverQuery Narql Test', ->
       )
 
     it 'should find one node from a cycle', ->
-      new Weaver.Narql('SELECT * WHERE { _ ?x next 4 }')
+      new Weaver.Sparql('SELECT * WHERE { _ ?x next 4 }')
       .find().then((res) ->
         new Weaver.Query()
         .restrict(res.x)
@@ -89,7 +89,7 @@ describe 'WeaverQuery Narql Test', ->
       )
 
     it 'should get the nodes using a transaction', ->
-      query = new Weaver.Narql('SELECT * WHERE { _ ?x next ?y }')
+      query = new Weaver.Sparql('SELECT * WHERE { _ ?x next ?y }')
       .batchSize(2)
       .keepOpen()
       #todo: explicitly start a transaction 
@@ -126,8 +126,8 @@ describe 'WeaverQuery Narql Test', ->
         Promise.all([aleph.save(), cycle[0].save()])
       )
 
-    it 'should do a simple narql query on a cycle', ->
-      new Weaver.Narql('SELECT * WHERE { _ ?x next _ }')
+    it 'should do a simple Sparql query on a cycle', ->
+      new Weaver.Sparql('SELECT * WHERE { _ ?x next _ }')
       .find().then((res) ->
         new Weaver.Query()
         .restrict(res.x)
@@ -143,7 +143,7 @@ describe 'WeaverQuery Narql Test', ->
       )
 
     it 'should find one node from a cycle', ->
-      new Weaver.Narql('SELECT * WHERE { _ ?x next 1 }')
+      new Weaver.Sparql('SELECT * WHERE { _ ?x next 1 }')
       .find().then((res) ->
         new Weaver.Query()
         .restrict(res.x)
