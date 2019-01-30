@@ -66,6 +66,15 @@ class Weaver
   useProject: (project) ->
     @coreManager.currentProject = project
 
+  startTransaction: ->
+    if @coreManager.currentTransaction?
+      throw new Error("A transaction is already set, first commit or rollback that one")
+    @coreManager.currentTransaction = new Weaver.Transaction()
+    @coreManager.currentTransaction.begin()
+    .then(=>
+      @coreManager.currentTransaction
+    )
+
   @useModel: (model) ->
     Weaver.getCoreManager().currentModel = model
 
@@ -157,3 +166,4 @@ module.exports.Model         = require('./WeaverModel')
 module.exports.ModelClass    = require('./WeaverModelClass')
 module.exports.ModelRelation = require('./WeaverModelRelation')
 module.exports.ModelQuery    = require('./WeaverModelQuery')
+module.exports.Transaction   = require('./WeaverTransaction')

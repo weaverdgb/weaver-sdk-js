@@ -2,6 +2,7 @@ moment             = require('moment')
 weaver             = require("./test-suite").weaver
 wipeCurrentProject = require("./test-suite").wipeCurrentProject
 Weaver             = require('../src/Weaver')
+cuid               = require('cuid')
 
 describe 'WeaverNode test', ->
   it 'should allow a node to be destroyed', ->
@@ -1204,7 +1205,6 @@ describe 'WeaverNode test', ->
     expect(node._pendingWrites[2].graph).to.equal('fifth-graph')
     expect(node._pendingWrites[3].graph).to.equal('first-graph')
 
-
   it 'should add collect pending writes when one node is loaded multiple times', ->
     thenode = new Weaver.Node('thenode')
     someother = new Weaver.Node('someother')
@@ -1275,6 +1275,95 @@ describe 'WeaverNode test', ->
       Weaver.Node.load('test-createdBy')
     ).then((savedNode) ->
       expect(savedNode.createdBy()).to.be.defined
+    )
+
+  it 'should start and stop a transaction', ->
+    expect(Weaver.getCoreManager().currentTransaction).to.be.undefined
+    
+    Weaver.getInstance().startTransaction()
+    .then((trx)->
+      expect(trx).to.be.instanceOf(Weaver.Transaction)
+      trx.rollback()
+    ).then(->
+      expect(Weaver.getCoreManager().currentTransaction).to.be.undefined
+    )
+
+  it 'should rollback in a transaction', ->
+    transaction = null
+    node = null
+    Weaver.getInstance().startTransaction()
+    .then((trx)->
+      transaction = trx
+      node = new Weaver.Node()
+      node.save()
+    ).then(->
+      new Weaver.Query().restrict(node).find()
+    ).then((nodes)->
+      expect(nodes.length).to.equal(1)
+      transaction.rollback()
+    ).then(->
+      expect(Weaver.getCoreManager().currentTransaction).to.be.undefined
+      new Weaver.Query().restrict(node).find()
+    ).then((nodes)->
+      expect(nodes.length).to.equal(0)
+    )
+
+  it 'should commit in transaction', ->
+    transaction = null
+    node = null
+    Weaver.getInstance().startTransaction()
+    .then((trx)->
+      transaction = trx
+      node = new Weaver.Node()
+      node.save()
+    ).then(->
+      new Weaver.Query().restrict(node).find()
+    ).then((nodes)->
+      expect(nodes.length).to.equal(1)
+      transaction.commit()
+    ).then(->
+      expect(Weaver.getCoreManager().currentTransaction).to.be.undefined
+      new Weaver.Query().restrict(node).find()
+    ).then((nodes)->
+      expect(nodes.length).to.equal(1)
+    )
+
+  it 'should fail on broken replace through transactions', ->
+    transaction = null
+    node = new Weaver.Node()
+    node.set('age', 22)
+    node.save()
+    .then(->
+      Weaver.getInstance().startTransaction()
+    ).then((trx)->
+      transaction = trx
+      node.set('age', 43)
+      node.save()
+    ).then(->
+      Weaver.getCoreManager().currentTransaction = undefined
+      node.set('age', 33)
+      node.save().should.be.rejectedWith('"replaced" violates not-null constraint')
+    ).finally(->
+      transaction.rollback()
+    )
+
+  it 'should fail on lock timeout', ->
+    transaction = null
+    uniqueKey = cuid()
+    node = new Weaver.Node()
+    node.save()
+    .then(->
+      Weaver.getInstance().startTransaction()
+    ).then((trx)->
+      transaction = trx
+      node.set(uniqueKey, 43)
+      node.save()
+    ).then(->
+      Weaver.getCoreManager().currentTransaction = undefined
+      node.set(uniqueKey, 33)
+      node.save().should.be.rejectedWith('due to lock timeout')
+    ).finally(->
+      transaction.rollback()
     )
 
   describe 'equals', ->

@@ -70,7 +70,10 @@ class CoreManager
 
   executeOperations: (allOperations, target) ->
     Promise.mapSeries(_.chunk(allOperations, @maxBatchSize), (operations) =>
-      @POST('write', {operations}, target)
+      trx = Weaver.getCoreManager().currentTransaction
+      payload = {operations}
+      payload.transaction = trx.id() if trx?
+      @POST('write', payload, target)
     )
 
 #  serverVersion: ->
@@ -319,6 +322,24 @@ class CoreManager
 
   cleanup: ->
     @GET("cleanup")
+
+  begin: (id, ttl) ->
+    @GET("transaction.begin", {id, ttl})
+
+  rollback: (id) ->
+    @GET("transaction.rollback", {id})
+    .then(=>
+      @currentTransaction = undefined
+    )
+
+  commit: (id) ->
+    @GET("transaction.commit", {id})
+    .then(=>
+      @currentTransaction = undefined
+    )
+
+  keepAlive: (id, ttl) ->
+    @GET("transaction.keepAlive", {id, ttl})
 
   enqueue: (functionToEnqueue) ->
     op = @operationsQueue.then(->

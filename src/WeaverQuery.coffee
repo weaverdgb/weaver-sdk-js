@@ -1,15 +1,14 @@
-util        = require('./util')
-Weaver      = require('./Weaver')
 _           = require('lodash')
 cjson       = require('circular-json')
+Promise     = require('bluebird')
+util        = require('./util')
+Weaver      = require('./Weaver')
 
 # Converts a string into a regex that matches it.
 # Surrounding with \Q .. \E does this, we just need to escape any \E's in
 # the text separately.
 quote = (s) ->
   '\\Q' + s.replace('\\E', '\\E\\\\E\\Q') + '\\E'
-
-
 
 class WeaverQuery
 
@@ -83,12 +82,24 @@ class WeaverQuery
         total
     )
 
-  find: (Constructor) ->
+  next: () ->
+    @_nextResults = true
+    @find()
 
+  find: (Constructor) ->
     if Constructor?
       @setConstructorFunction(-> Constructor)
 
-    Weaver.getCoreManager().query(@).then((result) =>
+    clone = @preSerialize()
+
+    trx = Weaver.getCoreManager().currentTransaction
+    transaction = Promise.resolve(trx)
+    transaction = Weaver.getInstance().startTransaction() if !trx? && @_keepOpen? && @_keepOpen
+    transaction.then((trx) =>
+      if trx?
+        clone._transaction = trx.id()      
+      Weaver.getCoreManager().query(clone)
+    ).then((result) =>
       Weaver.Query.notify(result)
       list = new Weaver.NodeList()
       for object in result.nodes
@@ -99,7 +110,8 @@ class WeaverQuery
 
   count: ->
     @_count = true
-    Weaver.getCoreManager().query(@).then((result) ->
+    Weaver.getCoreManager().query(@preSerialize())
+    .then((result) ->
       Weaver.Query.notify(result)
       result.count
     ).finally(=>
@@ -108,7 +120,8 @@ class WeaverQuery
 
   countPerGraph: ->
     @_countPerGraph = true
-    Weaver.getCoreManager().query(@).then((result) ->
+    Weaver.getCoreManager().query(@preSerialize())
+    .then((result) ->
       Weaver.Query.notify(result)
       result
     ).finally(=>
@@ -331,6 +344,14 @@ class WeaverQuery
     @_limit = limit
     @
 
+  batchSize: (batchSize) ->
+    @_batchSize = batchSize
+    @
+
+  keepOpen: (keepOpen=true) ->
+    @_keepOpen = keepOpen
+    @
+
   include: (keys) ->
     @_include = keys
     @
@@ -445,6 +466,9 @@ class WeaverQuery
     delete @target
     delete @constructorFunction
     @
+
+  preSerialize: ->
+    _.omit(@, ['model', 'context', 'preferredConstructor', 'constructorFunction'])
 
 # Export
 module.exports = WeaverQuery
