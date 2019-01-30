@@ -1,5 +1,11 @@
 # Changelist
 
+## 11.3.0
+- Add getters and setters for WeaverQuery to keep the result set open
+- Add route to close a connection that was kept open
+- Add Weaver.Transaction() and support of transaction usage in Weaver.Query
+  and sending write operations
+
 ## 11.2.1
 - Fixes selectRecursiveOut calls for ModelQueries with multiple arguments
 - Fixes alwaysLoadRelation calls for ModelQueries
