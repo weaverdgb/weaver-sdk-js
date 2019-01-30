@@ -43854,10 +43854,10 @@ module.exports={
       });
     };
 
-    CoreManager.prototype.narql = function(query) {
+    CoreManager.prototype.sparql = function(query) {
       var target;
       target = query.target;
-      return this.POST("query.narql", {
+      return this.POST("query.sparql", {
         query: query,
         unparsed: true
       }, target).then(function(res) {
@@ -44459,7 +44459,7 @@ module.exports={
       this.History = Weaver.History;
       this.Project = Weaver.Project;
       this.Query = Weaver.Query;
-      this.Narql = Weaver.Narql;
+      this.Sparql = Weaver.Sparql;
       this.Relation = Weaver.Relation;
       this.RelationNode = Weaver.RelationNode;
       this.Role = Weaver.Role;
@@ -44627,7 +44627,7 @@ module.exports={
 
   module.exports.Query = require('./WeaverQuery');
 
-  module.exports.Narql = require('./WeaverNarql');
+  module.exports.Sparql = require('./WeaverSparql');
 
   module.exports.Relation = require('./WeaverRelation');
 
@@ -44653,7 +44653,7 @@ module.exports={
 
 }).call(this);
 
-},{"../package.json":94,"./CoreManager":95,"./Error":96,"./WeaverACL":102,"./WeaverDefinedNode":103,"./WeaverError":104,"./WeaverHistory":106,"./WeaverModel":107,"./WeaverModelClass":108,"./WeaverModelQuery":110,"./WeaverModelRelation":111,"./WeaverNarql":113,"./WeaverNode":114,"./WeaverNodeList":115,"./WeaverProject":117,"./WeaverQuery":118,"./WeaverRelation":119,"./WeaverRelationNode":121,"./WeaverRole":122,"./WeaverTransaction":123,"./WeaverUser":124,"bluebird":7,"pubsub-js":49}],102:[function(require,module,exports){
+},{"../package.json":94,"./CoreManager":95,"./Error":96,"./WeaverACL":102,"./WeaverDefinedNode":103,"./WeaverError":104,"./WeaverHistory":106,"./WeaverModel":107,"./WeaverModelClass":108,"./WeaverModelQuery":110,"./WeaverModelRelation":111,"./WeaverNode":113,"./WeaverNodeList":114,"./WeaverProject":116,"./WeaverQuery":117,"./WeaverRelation":118,"./WeaverRelationNode":120,"./WeaverRole":121,"./WeaverSparql":122,"./WeaverTransaction":123,"./WeaverUser":124,"bluebird":7,"pubsub-js":49}],102:[function(require,module,exports){
 (function() {
   var Weaver, WeaverACL, cuid;
 
@@ -46710,104 +46710,6 @@ module.exports={
 
 },{}],113:[function(require,module,exports){
 (function() {
-  var Weaver, WeaverNarql;
-
-  Weaver = require('./Weaver');
-
-  WeaverNarql = (function() {
-    function WeaverNarql(_query, target) {
-      this._query = _query;
-      this.target = target;
-      this._limit = 99999;
-      this._skip = 0;
-    }
-
-    WeaverNarql.prototype.skip = function(skip) {
-      if (typeof skip !== 'number' || skip < 0) {
-        throw new Error('Invalid argument: skip should be a positive number');
-      }
-      this._skip = skip;
-      return this;
-    };
-
-    WeaverNarql.prototype.limit = function(limit) {
-      if (typeof limit !== 'number' || limit < 0) {
-        throw new Error('Invalid argument: limit should be a positive number');
-      }
-      this._limit = limit;
-      return this;
-    };
-
-    WeaverNarql.prototype.keepOpen = function(keepOpen) {
-      if (keepOpen == null) {
-        keepOpen = true;
-      }
-      this._keepOpen = keepOpen;
-      return this;
-    };
-
-    WeaverNarql.prototype.setCursorName = function(name) {
-      if (name != null) {
-        this._cursor = name;
-      }
-      return this;
-    };
-
-    WeaverNarql.prototype.useCache = function(set) {
-      if (set == null) {
-        set = true;
-      }
-      this._useCache = set;
-      return this;
-    };
-
-    WeaverNarql.prototype.refreshCache = function(set) {
-      if (set == null) {
-        set = true;
-      }
-      this._refreshCache = set;
-      return this;
-    };
-
-    WeaverNarql.prototype.find = function() {
-      return Weaver.getCoreManager().narql(this).then((function(_this) {
-        return function(result) {
-          var binding, i, len, list, object, resultMap;
-          resultMap = {};
-          for (binding in result) {
-            list = result[binding];
-            resultMap[binding] = new Weaver.NodeList();
-            for (i = 0, len = list.length; i < len; i++) {
-              object = list[i];
-              resultMap[binding].push(Weaver.Node.loadFromQuery(object));
-            }
-          }
-          return resultMap;
-        };
-      })(this));
-    };
-
-    WeaverNarql.prototype.next = function() {
-      this._continueCursor = true;
-      return this.find();
-    };
-
-    WeaverNarql.prototype.close = function() {
-      if (this._cursor != null) {
-        return Weaver.getCoreManager().closeConnection(this._cursor);
-      }
-    };
-
-    return WeaverNarql;
-
-  })();
-
-  module.exports = WeaverNarql;
-
-}).call(this);
-
-},{"./Weaver":101}],114:[function(require,module,exports){
-(function() {
   var Operation, Promise, Weaver, WeaverError, WeaverNode, WeaverRelationIn, _, cuid, moment, util, wpath,
     bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; },
     slice = [].slice,
@@ -47517,7 +47419,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Operation":98,"./Weaver":101,"./WeaverError":104,"./WeaverRelationIn":120,"./util":126,"./wpath":127,"bluebird":7,"cuid":16,"lodash":42,"moment":43}],115:[function(require,module,exports){
+},{"./Operation":98,"./Weaver":101,"./WeaverError":104,"./WeaverRelationIn":119,"./util":126,"./wpath":127,"bluebird":7,"cuid":16,"lodash":42,"moment":43}],114:[function(require,module,exports){
 (function() {
   var WeaverNodeList, _,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
@@ -47612,7 +47514,7 @@ module.exports={
 
 }).call(this);
 
-},{"lodash":42}],116:[function(require,module,exports){
+},{"lodash":42}],115:[function(require,module,exports){
 (function() {
   var Weaver, WeaverPlugin, getFs, ss,
     slice = [].slice;
@@ -47730,7 +47632,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Weaver":101,"fs":9,"socket.io-stream":77}],117:[function(require,module,exports){
+},{"./Weaver":101,"fs":9,"socket.io-stream":77}],116:[function(require,module,exports){
 (function() {
   var Ops, Weaver, WeaverProject, cuid;
 
@@ -47920,7 +47822,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Operation":98,"./Weaver":101,"cuid":16}],118:[function(require,module,exports){
+},{"./Operation":98,"./Weaver":101,"cuid":16}],117:[function(require,module,exports){
 (function() {
   var Promise, Weaver, WeaverQuery, _, cjson, quote, util,
     slice = [].slice;
@@ -48615,7 +48517,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Weaver":101,"./util":126,"bluebird":7,"circular-json":11,"lodash":42}],119:[function(require,module,exports){
+},{"./Weaver":101,"./util":126,"bluebird":7,"circular-json":11,"lodash":42}],118:[function(require,module,exports){
 (function() {
   var Operation, Promise, Record, Weaver, WeaverRelation, cuid,
     slice = [].slice;
@@ -48885,7 +48787,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Operation":98,"./Weaver":101,"bluebird":7,"cuid":16}],120:[function(require,module,exports){
+},{"./Operation":98,"./Weaver":101,"bluebird":7,"cuid":16}],119:[function(require,module,exports){
 (function() {
   var Weaver, WeaverRelationIn, cuid;
 
@@ -48919,7 +48821,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Weaver":101,"cuid":16}],121:[function(require,module,exports){
+},{"./Weaver":101,"cuid":16}],120:[function(require,module,exports){
 (function() {
   var Operation, Weaver, WeaverNode, WeaverRelationNode, cuid,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
@@ -48966,7 +48868,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Operation":98,"./Weaver":101,"./WeaverNode":114,"cuid":16}],122:[function(require,module,exports){
+},{"./Operation":98,"./Weaver":101,"./WeaverNode":113,"cuid":16}],121:[function(require,module,exports){
 (function() {
   var Weaver, WeaverRole, cuid;
 
@@ -49089,7 +48991,115 @@ module.exports={
 
 }).call(this);
 
-},{"./Weaver":101,"cuid":16}],123:[function(require,module,exports){
+},{"./Weaver":101,"cuid":16}],122:[function(require,module,exports){
+(function() {
+  var Weaver, WeaverSparql;
+
+  Weaver = require('./Weaver');
+
+  WeaverSparql = (function() {
+    function WeaverSparql(_query, target) {
+      this._query = _query;
+      this.target = target;
+      this._limit = 99999;
+      this._skip = 0;
+    }
+
+    WeaverSparql.prototype.next = function() {
+      this._nextResults = true;
+      return this.find();
+    };
+
+    WeaverSparql.prototype.find = function() {
+      var clone, transaction, trx;
+      clone = this.preSerialize();
+      trx = Weaver.getCoreManager().currentTransaction;
+      transaction = Promise.resolve(trx);
+      if ((trx == null) && (this._keepOpen != null) && this._keepOpen) {
+        transaction = Weaver.getInstance().startTransaction();
+      }
+      return transaction.then((function(_this) {
+        return function(trx) {
+          if (trx != null) {
+            clone._transaction = trx.id();
+          }
+          return Weaver.getCoreManager().sparql(clone);
+        };
+      })(this)).then((function(_this) {
+        return function(result) {
+          var binding, i, len, list, object, resultMap;
+          resultMap = {};
+          for (binding in result) {
+            list = result[binding];
+            resultMap[binding] = new Weaver.NodeList();
+            for (i = 0, len = list.length; i < len; i++) {
+              object = list[i];
+              resultMap[binding].push(Weaver.Node.loadFromQuery(object));
+            }
+          }
+          return resultMap;
+        };
+      })(this));
+    };
+
+    WeaverSparql.prototype.skip = function(skip) {
+      if (typeof skip !== 'number' || skip < 0) {
+        throw new Error('Invalid argument: skip should be a positive number');
+      }
+      this._skip = skip;
+      return this;
+    };
+
+    WeaverSparql.prototype.limit = function(limit) {
+      if (typeof limit !== 'number' || limit < 0) {
+        throw new Error('Invalid argument: limit should be a positive number');
+      }
+      this._limit = limit;
+      return this;
+    };
+
+    WeaverSparql.prototype.batchSize = function(batchSize) {
+      this._batchSize = batchSize;
+      return this;
+    };
+
+    WeaverSparql.prototype.keepOpen = function(keepOpen) {
+      if (keepOpen == null) {
+        keepOpen = true;
+      }
+      this._keepOpen = keepOpen;
+      return this;
+    };
+
+    WeaverSparql.prototype.useCache = function(set) {
+      if (set == null) {
+        set = true;
+      }
+      this._useCache = set;
+      return this;
+    };
+
+    WeaverSparql.prototype.refreshCache = function(set) {
+      if (set == null) {
+        set = true;
+      }
+      this._refreshCache = set;
+      return this;
+    };
+
+    WeaverSparql.prototype.preSerialize = function() {
+      return _.omit(this, []);
+    };
+
+    return WeaverSparql;
+
+  })();
+
+  module.exports = WeaverSparql;
+
+}).call(this);
+
+},{"./Weaver":101}],123:[function(require,module,exports){
 (function() {
   var Promise, Weaver, WeaverTransaction, cuid;
 
@@ -49319,7 +49329,7 @@ module.exports={
 
 }).call(this);
 
-},{"../SocketControllerWithStream":100,"../Weaver":101,"../WeaverFile":105,"../WeaverPlugin":116}],126:[function(require,module,exports){
+},{"../SocketControllerWithStream":100,"../Weaver":101,"../WeaverFile":105,"../WeaverPlugin":115}],126:[function(require,module,exports){
 (function() {
   var flatten, moment, typeShouldBe;
 
