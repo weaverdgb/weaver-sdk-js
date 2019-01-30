@@ -266,6 +266,7 @@ class CoreManager
 
   query: (query) ->
     target = query.target
+    delete query.target
 
     @POST("query", {query, unparsed: true}, target).then((res) ->
       if typeof res isnt 'object'

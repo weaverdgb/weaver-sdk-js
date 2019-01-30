@@ -468,7 +468,7 @@ class WeaverQuery
     @
 
   preSerialize: ->
-    _.omit(@, ['model', 'context', 'target', 'preferredConstructor', 'constructorFunction'])
+    _.omit(@, ['model', 'context', 'preferredConstructor', 'constructorFunction'])
 
 # Export
 module.exports = WeaverQuery
