@@ -1,11 +1,23 @@
 # Changelist
 
-## Develop
-- Add getters and setters for NarqlQuery to keep the result set open
-- Introduce a new way of querying the database: [Narql Query](https://github.com/weaverplatform/weaver-docs/blob/master/pages/developers/reference/weaver-sdk-js.md#weavernarql)
+## 11.4.0
+- Introduce a new way of querying the database: [Sparql Query](https://github.com/weaverplatform/weaver-docs/blob/master/pages/developers/reference/weaver-sdk-js.md#weavernarql)
 
+## 11.3.0
 - Add getters and setters for WeaverQuery to keep the result set open
 - Add route to close a connection that was kept open
+- Add Weaver.Transaction() and support of transaction usage in Weaver.Query
+  and sending write operations
+
+## 11.2.1
+- Fixes selectRecursiveOut calls for ModelQueries with multiple arguments
+- Fixes alwaysLoadRelation calls for ModelQueries
+
+## 11.2.0
+- Adding more test to validate id names on creating projects
+- Adding test to validate id names on cloning projects
+- Added created by constraint to weaver query
+- Fix checking value for date. Don't throw error on js Date objects
 
 ## 11.1.2
 - When updating a relation, add newNode if oldNode is undefined

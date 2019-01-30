@@ -191,7 +191,7 @@ describe 'WeaverFile test', ->
     ).then((destBuff) ->
       readFile(file.path())
       .then((originBuff) ->
-        assert.equal(destBuff.toString(),originBuff.toString())
+        assert.equal(destBuff.toString(), originBuff.toString())
       )
     )
 
@@ -260,4 +260,33 @@ describe 'WeaverFile test', ->
       Weaver.File.list().then((files) ->
         f = files[files.length - 1] # Get the last uploaded file
         expect(f.size()).to.not.be.undefined
+      )
+
+    it 'should clone the files to a newly created project helloworld', ->
+      project = null
+      test = null
+      checkList = null
+      Weaver.File.list()
+      .then((list) ->
+        checkList = list
+        project = weaver.currentProject()
+        project.clone('helloworld-dupe', 'helloworld cloned for testing reasons ')
+      ).then((p) ->
+        test = p
+        expect(test.id()).to.equal('helloworld-dupe')
+        weaver.useProject(test)
+        Weaver.File.list()
+      ).then((list) ->
+        assert.equal(checkList.length, 5)
+        assert.equal(list.length, 5)
+
+        for file in checkList
+          found = false
+          for candidate in list
+            found = true if candidate.fileId is file.fileId
+          assert found
+
+        test.destroy()
+      ).finally(->
+        weaver.useProject(project)
       )

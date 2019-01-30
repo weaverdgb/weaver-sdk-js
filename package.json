@@ -1,6 +1,6 @@
 {
   "name": "weaver-sdk",
-  "version": "11.2.0-beta.4",
+  "version": "11.4.0-alpha.0-transactions",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -8,8 +8,8 @@
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "4.14.0-beta.16",
-    "requiredServerVersion": "^3.16.0 || 3.16.0-beta.0"
+    "requiredConnectorVersion": "^4.16.0",
+    "requiredServerVersion": "^3.19.0"
   },
   "main": "lib/node/Weaver.js",
   "files": [

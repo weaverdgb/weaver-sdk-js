@@ -45,6 +45,20 @@ describe 'WeaverQuery Test', ->
         expect(nodes.length).to.equal(4)
       )
 
+    it 'should restrict nodes with createdBy constraint', ->
+      new Weaver.Query()
+        .createdBy(Weaver.getInstance().currentUser())
+        .find()
+        .then((nodes) ->
+          expect(nodes.length).to.equal(4)
+          otherUser = new Weaver.User('other', 'user')
+          new Weaver.Query()
+            .createdBy(otherUser)
+            .find()
+        ).then((nodes) ->
+          expect(nodes.length).to.equal(0)
+        )
+
     it 'should count', ->
       new Weaver.Query()
       .restrict([a,c])
@@ -339,8 +353,6 @@ describe 'WeaverQuery Test', ->
         )
       )
 
-
-
   describe 'clean nodes, with a-b-c named link-relations', ->
     a = new Weaver.Node('a')
     b = new Weaver.Node('b')
@@ -387,7 +399,6 @@ describe 'WeaverQuery Test', ->
         checkNodeInResult(nodes, 'a')
         checkNodeInResult(nodes, 'b')
       )
-
 
   describe 'clean nodes, with a-b b-c a-c link-relations', ->
     a = new Weaver.Node('a')
@@ -497,9 +508,7 @@ describe 'WeaverQuery Test', ->
         checkNodeInResult(nodes, 'a')
       )
 
-
   describe 'other nodes, requiring wipe before each test', ->
-
     beforeEach ->
       wipeCurrentProject()
 
@@ -605,7 +614,6 @@ describe 'WeaverQuery Test', ->
       )
 
     it 'should do relation hasRelationOut with subclasses', ->
-
       class SpecialNodeA extends Weaver.Node
 
       a = new Weaver.Node("a")
@@ -684,8 +692,6 @@ describe 'WeaverQuery Test', ->
         )
       )
 
-
-
     it 'should load in some secondary nodes with "selectOut"', ->
       a = new Weaver.Node('a')
       b = new Weaver.Node('b')
@@ -727,9 +733,7 @@ describe 'WeaverQuery Test', ->
         )
       )
 
-
     it 'should support constructors with multiple hops for selectOut', ->
-
       class SpecialNodeA extends Weaver.Node
       class SpecialNodeB extends Weaver.Node
       class SpecialNodeC extends Weaver.Node
@@ -1015,7 +1019,6 @@ describe 'WeaverQuery Test', ->
       expect(err).to.have.property('message').match(/Permission denied/)
     )
 
-
   it 'should load in some secondary nodes with "selectIn"', ->
     a = new Weaver.Node()
     b = new Weaver.Node()
@@ -1178,7 +1181,6 @@ describe 'WeaverQuery Test', ->
     )
 
   it 'should clear profilers', (done) ->
-
     wipeCurrentProject().then(->
       Weaver.Query.profile((queryResult) ->
         expect(queryResult.nodes[0].nodeId).to.equal('someNode')
@@ -1535,7 +1537,6 @@ describe 'WeaverQuery Test', ->
       wipeCurrentProject()
 
     it 'should find 100 nodes', ->
-
       Weaver.Node.batchSave((new Weaver.Node() for i in [0...100]))
       .then(->
         new Weaver.Query().find()
@@ -1553,7 +1554,6 @@ describe 'WeaverQuery Test', ->
       )
 
     it 'should find 1000 nodes', ->
-
       Weaver.Node.batchSave((new Weaver.Node() for i in [0...900]))
       .then(->
         new Weaver.Query().find()
@@ -1571,7 +1571,6 @@ describe 'WeaverQuery Test', ->
       )
 
     it 'should find 1500 nodes', ->
-
       Weaver.Node.batchSave((new Weaver.Node() for i in [0...500]))
       .then(->
         new Weaver.Query().find()
@@ -1589,7 +1588,6 @@ describe 'WeaverQuery Test', ->
       )
 
     it 'should find 2500 nodes', ->
-
       Weaver.Node.batchSave((new Weaver.Node() for i in [0...1000]))
       .then(->
         new Weaver.Query().find()
@@ -1606,8 +1604,7 @@ describe 'WeaverQuery Test', ->
         expect(nodes.length).to.equal(2500)
       )
 
-  describe 'query nodes in one stream', ->
-
+  describe 'query nodes in one stream using a transaction', ->
     before ->
       wipeCurrentProject()
       .then(->
@@ -1615,14 +1612,16 @@ describe 'WeaverQuery Test', ->
       )
 
     it 'should find 5 nodes in steps of 1', ->
-
-      query = new Weaver.Query()
-      .keepOpen()
-      .setCursorName('abc')
-      .limit(1)
-
-      query.find()
-      .then((nodes) ->
+      query = null
+      transaction = null
+      Weaver.getInstance().startTransaction()
+      .then((trx)->
+        transaction = trx
+        query = new Weaver.Query()
+        .keepOpen()
+        .batchSize(1)
+        query.find()
+      ).then((nodes) ->
         expect(nodes.length).to.equal(1)
         query.next()
       ).then((nodes) ->
@@ -1639,17 +1638,21 @@ describe 'WeaverQuery Test', ->
         query.next()
       ).then((nodes) ->
         expect(nodes.length).to.equal(0)
+      ).finally(->
+        transaction.commit()
       )
 
     it 'should find 5 nodes in steps of 2', ->
-
-      query = new Weaver.Query()
-      .keepOpen()
-      .setCursorName('abc')
-      .limit(2)
-
-      query.find()
-      .then((nodes) ->
+      query = null
+      transaction = null
+      Weaver.getInstance().startTransaction()
+      .then((trx)->
+        transaction = trx
+        query = new Weaver.Query()
+        .keepOpen()
+        .batchSize(2)
+        query.find()
+      ).then((nodes) ->
         expect(nodes.length).to.equal(2)
         query.next()
       ).then((nodes) ->
@@ -1657,20 +1660,50 @@ describe 'WeaverQuery Test', ->
         query.next()
       ).then((nodes) ->
         expect(nodes.length).to.equal(1)
-        query.next().should.be.rejectedWith('No open connection for code: abc')
+        query.next()
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(0)
+      ).finally(->
+        transaction.commit()
       )
 
     it 'should find first three nodes in one step', ->
+      query = null
+      transaction = null
+      Weaver.getInstance().startTransaction()
+      .then((trx)->
+        transaction = trx
+        query = new Weaver.Query()
+        .keepOpen()
+        .batchSize(3)
+        query.find()
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(3)
+        transaction.commit()
+      ).then( ->
+        query.next().should.be.rejectedWith("No held result set could be found for code")
+      )
+
+    it 'should use transaction implicitly', ->
+      query = null
+      transaction = null
 
       query = new Weaver.Query()
       .keepOpen()
-      .setCursorName('abc')
-      .limit(3)
-
+      .batchSize(2)
       query.find()
       .then((nodes) ->
-        expect(nodes.length).to.equal(3)
-        query.close()
-      ).then( ->
-        query.next().should.be.rejectedWith('No open connection for code: abc')
+        transaction = Weaver.getCoreManager().currentTransaction
+        expect(nodes.length).to.equal(2)
+        query.next()
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(2)
+        query.next()
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(1)
+        query.next()
+      ).then((nodes) ->
+        expect(nodes.length).to.equal(0)
+      ).finally(->
+        transaction.commit()
       )
