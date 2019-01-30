@@ -20,7 +20,7 @@ describe 'WeaverGraph support', ->
       Weaver.Node.load(c.id()).should.be.rejected
 
     it 'should not load a node if the wrong graph is specified', ->
-      Weaver.Node.load(b.id(), aInGraph.getGraph()).should.be.rejected
+      Weaver.Node.loadFromGraph(b.id(), aInGraph.getGraph()).should.be.rejected
 
     it 'should load nodes in a graph', ->
       Weaver.Node.loadFromGraph(aInGraph.id(), aInGraph.getGraph()).should.not.be.rejected
