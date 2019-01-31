@@ -170,7 +170,6 @@ class CoreManager
 
     @POST("user.signUp", update, "$SYSTEM")
 
-
   updateUser: (user) ->
     update      = {}
     update[key] = value for key, value of user when key isnt 'authToken'
@@ -367,7 +366,6 @@ class CoreManager
       )
     )
 
-
   GET: (path, payload, target) ->
     @REQUEST("GET", path, payload, target)
 
@@ -376,6 +374,5 @@ class CoreManager
 
   STREAM: (path, payload, target) ->
     @REQUEST("STREAM", path, payload, target)
-
 
 module.exports = CoreManager

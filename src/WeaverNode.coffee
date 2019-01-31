@@ -48,7 +48,6 @@ class WeaverNode
     else
       @load(nodeId, undefined, Constructor, false, false, graph)
 
-
   @loadFromQuery: (object, constructorFunction, fullyLoaded = true, model) ->
 
     if constructorFunction?
@@ -238,7 +237,6 @@ class WeaverNode
 
     return @
 
-
   # Update attribute by incrementing the value, the result depends on concurrent requests, so check the result
   increment: (field, value = 1, project) ->
     if not @_attributes[field]?
@@ -290,7 +288,6 @@ class WeaverNode
       )
     )
 
-
   # Remove attribute
   unset: (field) ->
     if not @_attributes[field]?
@@ -309,7 +306,6 @@ class WeaverNode
     # Unset locally
     delete @_attributes[field]
     @
-
 
   # Create a new Relation
   relation: (key, Constructor = Weaver.Relation) ->
@@ -357,7 +353,6 @@ class WeaverNode
 
     operations
 
-
   # Clear all pendingWrites, used for instance after saving or when loading a node
   _clearPendingWrites: ->
     @_pendingWrites = []
@@ -377,11 +372,9 @@ class WeaverNode
         record.relNode._setStored() if not record.relNode._stored
     @
 
-
   # Checks whether needs saving
   isDirty: ->
     @_pendingWrites.length isnt 0
-
 
   # Save node and all values / relations and relation objects to server
   save: (project) ->
@@ -487,7 +480,6 @@ class WeaverNode
 
   wpath: (expr, func, load) ->
     wpath.wpath(@, expr, func, load)
-
 
 # Export
 module.exports = WeaverNode

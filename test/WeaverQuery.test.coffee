@@ -770,7 +770,6 @@ describe 'WeaverQuery Test', ->
         )
       )
 
-
     it 'should allow multiple selectOut clauses', ->
       a = new Weaver.Node('a')
       b = new Weaver.Node('b')
@@ -1329,6 +1328,7 @@ describe 'WeaverQuery Test', ->
         expect(Object.keys(result).length).to.equal(5000)
       )
     )
+
   describe 'simple nodes, with age', ->
     a = new Weaver.Node("a")
     b = new Weaver.Node("b")

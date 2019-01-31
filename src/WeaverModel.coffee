@@ -164,7 +164,6 @@ class WeaverModel extends ModelContext
 
     addFromSuper(classDefinition, context)
 
-
   _buildRanges: (totalClassDefinition, context) ->
     map = {}
     map[key] = @_getRanges(key, totalClassDefinition, context) for key, obj of totalClassDefinition.relations

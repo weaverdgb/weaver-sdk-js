@@ -104,5 +104,4 @@ class WeaverProject
   redirectGraph: (sourceGraph, oldTargetGraph, newTargetGraph, dryrun = false, performPartial = false) ->
     Weaver.getCoreManager().redirectGraph(@id(), sourceGraph, oldTargetGraph, newTargetGraph, dryrun, performPartial)
 
-
 module.exports = WeaverProject

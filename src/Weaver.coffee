@@ -137,7 +137,6 @@ class Weaver
   @sniff: (callback) ->
     Weaver.subscribe("socket.shout", callback)
 
-
   # Expose PubSub
   @subscribe:             PubSub.subscribe
   @unsubscribe:           PubSub.unsubscribe

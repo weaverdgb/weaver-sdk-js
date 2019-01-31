@@ -1,7 +1,6 @@
 cuid        = require('cuid')
 Weaver  = require('./Weaver')
 
-
 # For projects, users and nodes, you can specify which users and roles are allowed to read, and which
 # users and roles are allowed to modify.
 #
@@ -117,6 +116,5 @@ class WeaverACL
     Weaver.getCoreManager().listACL().then((acl) ->
       (WeaverACL.loadFromServerObject(a) for a in acl)
     )
-
 
 module.exports = WeaverACL

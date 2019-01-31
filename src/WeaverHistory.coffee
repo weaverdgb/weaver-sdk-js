@@ -1,7 +1,5 @@
 Weaver  = require('./Weaver')
 
-
-
 class WeaverHistory
 
   constructor: () ->
@@ -51,7 +49,6 @@ class WeaverHistory
     tos = if typeIsArray toField then toField else [toField] if toField?
     froms = if typeIsArray fromField then fromField else [fromField] if fromField?
     Weaver.getCoreManager().getHistory({ids, keys, froms, tos, @fromDateTime, @beforeDateTime, @users, @limit, @sorted, @offset})
-
 
 # Export
 module.exports = WeaverHistory
