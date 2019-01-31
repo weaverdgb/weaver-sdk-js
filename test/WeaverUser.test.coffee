@@ -366,7 +366,6 @@ describe 'WeaverUser Test', ->
 
   it.skip 'should restrict write access when writing nodes', (done) ->
 
-
   it 'should fail signing up with an existing username', (done) ->
     username = cuid()
     password = cuid()

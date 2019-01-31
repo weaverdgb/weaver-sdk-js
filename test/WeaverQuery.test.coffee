@@ -67,7 +67,6 @@ describe 'WeaverQuery Test', ->
       )
 
     it 'should count per graph', ->
-
       new Weaver.Query()
       .countPerGraph().then((res) ->
         expect(res.count).to.equal(4)
