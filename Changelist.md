@@ -1,6 +1,6 @@
 # Changelist
 
-## 11.4.0
+## Develop
 - Introduce a new way of querying the database: [Sparql Query](https://github.com/weaverplatform/weaver-docs/blob/master/pages/developers/reference/weaver-sdk-js.md#weavernarql)
 
 ## 11.3.0
