@@ -69,7 +69,7 @@ class WeaverQuery
     else
       queries
 
-  unlimited: (chunkSize=500, skip=0, total=[]) ->
+  unlimited: (chunkSize = 500, skip = 0, total = []) ->
     chunkSize = 1000 if chunkSize > 1000
     @limit(chunkSize)
     @skip(skip)
@@ -348,7 +348,7 @@ class WeaverQuery
     @_batchSize = batchSize
     @
 
-  keepOpen: (keepOpen=true) ->
+  keepOpen: (keepOpen = true) ->
     @_keepOpen = keepOpen
     @
 

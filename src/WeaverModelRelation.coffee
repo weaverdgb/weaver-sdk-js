@@ -35,7 +35,7 @@ class WeaverModelRelation extends Weaver.Relation
     .restrict(@owner)
     .selectOut(@key, '*')
     .find()
-    .then((nodes)=>
+    .then((nodes) =>
       reloadedRelation = nodes[0].nodeRelation(@key)
       @_records = reloadedRelation.allRecords()
       reloadedRelation.all()

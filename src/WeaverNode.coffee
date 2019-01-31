@@ -49,7 +49,7 @@ class WeaverNode
       @load(nodeId, undefined, Constructor, false, false, graph)
 
 
-  @loadFromQuery: (object, constructorFunction, fullyLoaded=true, model) ->
+  @loadFromQuery: (object, constructorFunction, fullyLoaded = true, model) ->
 
     if constructorFunction?
       Constructor = constructorFunction(Weaver.Node.loadFromQuery(object, undefined, undefined, model))
@@ -67,7 +67,7 @@ class WeaverNode
       instance.key      = object.relationKey
     instance
 
-  _loadFromQuery: (object, constructorFunction, fullyLoaded=true, model) ->
+  _loadFromQuery: (object, constructorFunction, fullyLoaded = true, model) ->
 
     @_attributes = object.attributes
     @_loaded    = object.creator? && fullyLoaded
@@ -329,7 +329,7 @@ class WeaverNode
     @_collectPendingWrites(undefined, false)
 
   # Go through each relation and recursively add all pendingWrites per relation AND that of the objects
-  _collectPendingWrites: (collected = [], cleanup=true) ->
+  _collectPendingWrites: (collected = [], cleanup = true) ->
     # Register to keep track which nodes have been collected to prevent recursive blowup
     collected.push(@) if @ not in collected
     operations = @_pendingWrites

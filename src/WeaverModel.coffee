@@ -113,7 +113,7 @@ class WeaverModel extends ModelContext
     definition.modelPrefixes[key] = {prefix: key, name: obj.name, version: obj.version, tag: "#{obj.name}@#{obj.version}"} for key, obj of definition.includes
 
     # Depth first to prevent concurrent version checks
-    Promise.mapSeries((inc for key, inc of definition.modelPrefixes), (obj)=>
+    Promise.mapSeries((inc for key, inc of definition.modelPrefixes), (obj) =>
 
       if @loadMap[obj.name]?
         if @loadMap[obj.name] isnt obj.version
@@ -127,7 +127,7 @@ class WeaverModel extends ModelContext
       @modelMap[obj.name] = @ # Deprecated, set for backbward compatibility
 
       WeaverModel._loadDefinition(obj.name, obj.version)
-      .then((includedModel)=>
+      .then((includedModel) =>
         context = new ModelContext(includedModel.definition, @)
         @contextMap[obj.tag] = context
         @includes[obj.prefix] = context  # Deprecated, set for backbward compatibility
@@ -198,7 +198,7 @@ class WeaverModel extends ModelContext
     ranges = _.keys(ranges) if not _.isArray(ranges)
     (range for range in ranges)
 
-  addSupers: (ids, total=[]) ->
+  addSupers: (ids, total = []) ->
     for id in ids
       total.push(id) if id not in total
       node = @classList[id]
@@ -252,7 +252,7 @@ class WeaverModel extends ModelContext
   _bootstrap: (project)->
     existingNodes = {}
 
-    Promise.map((context for tag, context of @contextMap), (context)=>
+    Promise.map((context for tag, context of @contextMap), (context) =>
       new Weaver.Query(project)
       .contains('id', "#{context.definition.name}:")
       .restrictGraphs(context.getGraph())
@@ -265,7 +265,7 @@ class WeaverModel extends ModelContext
 
   _bootstrapClasses: (existingNodes, nodesToCreate = {}, project) ->
 
-    firstOrCreate = (id, graph, Constructor=Weaver.Node, create=true) ->
+    firstOrCreate = (id, graph, Constructor = Weaver.Node, create = true) ->
       if nodesToCreate[id]?
         return Promise.resolve(nodesToCreate[id]) 
       if existingNodes[id]?

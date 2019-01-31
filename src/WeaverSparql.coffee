@@ -49,15 +49,15 @@ class WeaverSparql
     @_batchSize = batchSize
     @
 
-  keepOpen: (keepOpen=true) ->
+  keepOpen: (keepOpen = true) ->
     @_keepOpen = keepOpen
     @
 
-  useCache: (set=true) ->
+  useCache: (set = true) ->
     @_useCache = set
     @
 
-  refreshCache: (set=true) ->
+  refreshCache: (set = true) ->
     @_refreshCache = set
     @
 

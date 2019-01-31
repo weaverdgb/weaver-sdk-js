@@ -55,7 +55,7 @@ class CoreManager
     clientTime - @timeOffset
 
   updateLocalTimeOffset: ->
-    @localTimeOffset().then((offset)=>
+    @localTimeOffset().then((offset) =>
       @timeOffset = offset
       offset
     )
