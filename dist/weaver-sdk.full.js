@@ -43291,7 +43291,7 @@ module.exports = yeast;
 },{}],94:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "11.3.0-alpha.0-sparql",
+  "version": "11.3.0-alpha.1-sparql",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
