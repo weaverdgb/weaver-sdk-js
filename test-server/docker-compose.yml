@@ -6,7 +6,7 @@ services:
     - "5432"
 
   postgresql-connector:
-    image: sysunite/weaver-database-postgresql:4.16.0-alpha.0-sparql
+    image: sysunite/weaver-database-postgresql:4.16.0-alpha.1-sparql
     expose:
     - "4567"
     environment:

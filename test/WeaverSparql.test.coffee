@@ -6,7 +6,7 @@ checkNodeInResult = (nodes, nodeId) ->
   ids = (i.id() for i in nodes)
   expect(ids).to.contain(nodeId)
 
-describe 'WeaverQuery Sparql Test', ->
+describe 'WeaverSparql Test', ->
 
   describe 'a simple test set', ->
     x = new Weaver.Node('x')
@@ -88,11 +88,10 @@ describe 'WeaverQuery Sparql Test', ->
           assert.equal(2, previous)
       )
 
-    it 'should get the nodes using a transaction', ->
+    it 'should get the nodes using an implicit transaction', ->
       query = new Weaver.Sparql('SELECT * WHERE { _ ?x next ?y }')
       .batchSize(2)
       .keepOpen()
-      #todo: explicitly start a transaction 
 
       query.find()
       .then((res) ->
@@ -109,7 +108,38 @@ describe 'WeaverQuery Sparql Test', ->
         query.next()
       ).then((res) ->
         expect(res.x.length).to.equal(0)
-        query.close()
+        transaction = Weaver.getCoreManager().currentTransaction
+        transaction.commit()
+      ).then( ->
+        query.next().should.be.rejectedWith('No held result set could be found for code: xyz')
+      )
+
+    it 'should get the nodes using an explicit transaction', ->
+
+      query = null
+      transaction = null
+      Weaver.getInstance().startTransaction()
+      .then((trx)->
+        transaction = trx
+        query = new Weaver.Sparql('SELECT * WHERE { _ ?x next ?y }')
+        .batchSize(2)
+        .keepOpen()
+        query.find()
+      ).then((res) ->
+        expect(res.x.length).to.equal(2)
+        query.next()
+      ).then((res) ->
+        expect(res.x.length).to.equal(2)
+        query.next()
+      ).then((res) ->
+        expect(res.x.length).to.equal(2)
+        query.next()
+      ).then((res) ->
+        expect(res.x.length).to.equal(1)
+        query.next()
+      ).then((res) ->
+        expect(res.x.length).to.equal(0)
+        transaction.commit()
       ).then( ->
         query.next().should.be.rejectedWith('No held result set could be found for code: xyz')
       )
