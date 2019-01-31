@@ -1,3 +1,4 @@
+_           = require('lodash')
 Weaver      = require('./Weaver')
 
 class WeaverSparql
