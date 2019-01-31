@@ -43291,7 +43291,7 @@ module.exports = yeast;
 },{}],94:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "11.4.0-alpha.0-transactions",
+  "version": "11.3.0-alpha.0-sparql",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -43299,8 +43299,8 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "^4.16.0",
-    "requiredServerVersion": "^3.19.0"
+    "requiredConnectorVersion": "^4.15.0",
+    "requiredServerVersion": "^3.17.0"
   },
   "main": "lib/node/Weaver.js",
   "files": [
@@ -48993,7 +48993,9 @@ module.exports={
 
 },{"./Weaver":101,"cuid":16}],122:[function(require,module,exports){
 (function() {
-  var Weaver, WeaverSparql;
+  var Weaver, WeaverSparql, _;
+
+  _ = require('lodash');
 
   Weaver = require('./Weaver');
 
@@ -49014,6 +49016,9 @@ module.exports={
       var clone, transaction, trx;
       clone = this.preSerialize();
       trx = Weaver.getCoreManager().currentTransaction;
+      if ((trx == null) && (this._nextResults != null) && this._nextResults) {
+        throw new Error('Not able to retrieve next results from a query without open transaction');
+      }
       transaction = Promise.resolve(trx);
       if ((trx == null) && (this._keepOpen != null) && this._keepOpen) {
         transaction = Weaver.getInstance().startTransaction();
@@ -49099,7 +49104,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Weaver":101}],123:[function(require,module,exports){
+},{"./Weaver":101,"lodash":42}],123:[function(require,module,exports){
 (function() {
   var Promise, Weaver, WeaverTransaction, cuid;
 

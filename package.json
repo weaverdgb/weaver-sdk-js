@@ -8,8 +8,8 @@
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "^4.16.0",
-    "requiredServerVersion": "^3.19.0"
+    "requiredConnectorVersion": "^4.15.0",
+    "requiredServerVersion": "^3.17.0"
   },
   "main": "lib/node/Weaver.js",
   "files": [
