@@ -111,11 +111,10 @@ describe 'WeaverSparql Test', ->
         transaction = Weaver.getCoreManager().currentTransaction
         transaction.commit()
       ).then( ->
-        query.next().should.be.rejectedWith('No held result set could be found for code: xyz')
+        expect(->query.next()).to.throw('Not able to retrieve next results from a query without open transaction')
       )
 
     it 'should get the nodes using an explicit transaction', ->
-
       query = null
       transaction = null
       Weaver.getInstance().startTransaction()
@@ -141,7 +140,7 @@ describe 'WeaverSparql Test', ->
         expect(res.x.length).to.equal(0)
         transaction.commit()
       ).then( ->
-        query.next().should.be.rejectedWith('No held result set could be found for code: xyz')
+        expect(->query.next()).to.throw('Not able to retrieve next results from a query without open transaction')
       )
 
   describe 'a cycle of size 2', ->

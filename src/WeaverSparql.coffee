@@ -14,11 +14,12 @@ class WeaverSparql
   find: ->
     clone = @preSerialize()
     trx = Weaver.getCoreManager().currentTransaction
+    throw new Error('Not able to retrieve next results from a query without open transaction') if !trx? && @_nextResults? && @_nextResults
     transaction = Promise.resolve(trx)
     transaction = Weaver.getInstance().startTransaction() if !trx? && @_keepOpen? && @_keepOpen
     transaction.then((trx) =>
       if trx?
-        clone._transaction = trx.id()   
+        clone._transaction = trx.id()
 
       Weaver.getCoreManager().sparql(clone)
     ).then((result) =>
