@@ -277,8 +277,7 @@ describe 'WeaverFile test', ->
         weaver.useProject(test)
         Weaver.File.list()
       ).then((list) ->
-        assert.equal(checkList.length, 5)
-        assert.equal(list.length, 5)
+        assert.equal(checkList.length, list.length)
 
         for file in checkList
           found = false
