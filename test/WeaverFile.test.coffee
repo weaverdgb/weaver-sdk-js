@@ -286,7 +286,7 @@ describe 'WeaverFile test', ->
             found = true if candidate.fileId is file.fileId
           assert found
 
-        test.destroy()
       ).finally(->
         weaver.useProject(project)
+        test.destroy()
       )
