@@ -73,7 +73,7 @@
     "update-deps": "david u -i gulp",
     "test": "istanbul cover _mocha --",
     "test:electron": "electron-mocha --renderer --interactive test/*.test.coffee",
-    "test:chrome": "karma start || true",
+    "test:chrome": "karma start",
     "test:node": "mocha || true",
     "gulp": "gulp"
   }
