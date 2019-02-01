@@ -262,7 +262,7 @@ describe 'WeaverFile test', ->
         expect(f.size()).to.not.be.undefined
       )
 
-    it.skip 'should clone the files to a newly created project helloworld', ->
+    it 'should clone the files to a newly created project helloworld', ->
       project = null
       test = null
       checkList = null

@@ -16,7 +16,7 @@ describe 'WeaverProject Test', ->
   it 'should have currentProject be not neutered', ->
     actualProject(weaver.currentProject())
 
-  it.skip 'should list projects that are not neutered', ->
+  it 'should list projects that are not neutered', ->
     Weaver.Project.list().then((list) ->
       expect(list).to.have.length.be(1)
       actualProject(list[0])
@@ -84,7 +84,7 @@ describe 'WeaverProject Test', ->
       expect(filtered).to.have.length.be(0)
     )
 
-  it.skip 'should list projects', ->
+  it 'should list projects', ->
     a = new Weaver.Project("A", "aaa")
     a.create().then(->
       Weaver.Project.list()
