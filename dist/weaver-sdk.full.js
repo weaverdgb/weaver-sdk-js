@@ -43291,7 +43291,7 @@ module.exports = yeast;
 },{}],94:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "11.3.1",
+  "version": "11.3.2-rc.1",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -43304,6 +43304,7 @@ module.exports={
   },
   "main": "lib/node/Weaver.js",
   "files": [
+    "dist/",
     "lib/",
     "react-native.js"
   ],
