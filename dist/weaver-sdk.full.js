@@ -43291,7 +43291,7 @@ module.exports = yeast;
 },{}],94:[function(require,module,exports){
 module.exports={
   "name": "weaver-sdk",
-  "version": "11.2.1",
+  "version": "11.3.0-alpha.1-sparql",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
@@ -43299,8 +43299,8 @@ module.exports={
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
-    "requiredConnectorVersion": "^4.14.0",
-    "requiredServerVersion": "^3.13.0"
+    "requiredConnectorVersion": "^4.15.0",
+    "requiredServerVersion": "^3.17.0"
   },
   "main": "lib/node/Weaver.js",
   "files": [
@@ -43471,9 +43471,15 @@ module.exports={
     CoreManager.prototype.executeOperations = function(allOperations, target) {
       return Promise.mapSeries(_.chunk(allOperations, this.maxBatchSize), (function(_this) {
         return function(operations) {
-          return _this.POST('write', {
+          var payload, trx;
+          trx = Weaver.getCoreManager().currentTransaction;
+          payload = {
             operations: operations
-          }, target);
+          };
+          if (trx != null) {
+            payload.transaction = trx.id();
+          }
+          return _this.POST('write', payload, target);
         };
       })(this));
     };
@@ -43848,6 +43854,21 @@ module.exports={
       });
     };
 
+    CoreManager.prototype.sparql = function(query) {
+      var target;
+      target = query.target;
+      return this.POST("query.sparql", {
+        query: query,
+        unparsed: true
+      }, target).then(function(res) {
+        if (typeof res !== 'object') {
+          return JSON.parse(res);
+        } else {
+          return Promise.reject(res);
+        }
+      });
+    };
+
     CoreManager.prototype.nativeQuery = function(query, target) {
       return this.POST("query.native", {
         query: query
@@ -43933,6 +43954,40 @@ module.exports={
 
     CoreManager.prototype.cleanup = function() {
       return this.GET("cleanup");
+    };
+
+    CoreManager.prototype.begin = function(id, ttl) {
+      return this.GET("transaction.begin", {
+        id: id,
+        ttl: ttl
+      });
+    };
+
+    CoreManager.prototype.rollback = function(id) {
+      return this.GET("transaction.rollback", {
+        id: id
+      }).then((function(_this) {
+        return function() {
+          return _this.currentTransaction = void 0;
+        };
+      })(this));
+    };
+
+    CoreManager.prototype.commit = function(id) {
+      return this.GET("transaction.commit", {
+        id: id
+      }).then((function(_this) {
+        return function() {
+          return _this.currentTransaction = void 0;
+        };
+      })(this));
+    };
+
+    CoreManager.prototype.keepAlive = function(id, ttl) {
+      return this.GET("transaction.keepAlive", {
+        id: id,
+        ttl: ttl
+      });
     };
 
     CoreManager.prototype.enqueue = function(functionToEnqueue) {
@@ -44209,7 +44264,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Weaver":101,"./util":124,"cuid":16}],99:[function(require,module,exports){
+},{"./Weaver":101,"./util":126,"cuid":16}],99:[function(require,module,exports){
 (function() {
   var Promise, SocketController, Weaver, pjson;
 
@@ -44404,6 +44459,7 @@ module.exports={
       this.History = Weaver.History;
       this.Project = Weaver.Project;
       this.Query = Weaver.Query;
+      this.Sparql = Weaver.Sparql;
       this.Relation = Weaver.Relation;
       this.RelationNode = Weaver.RelationNode;
       this.Role = Weaver.Role;
@@ -44455,6 +44511,18 @@ module.exports={
 
     Weaver.prototype.useProject = function(project) {
       return this.coreManager.currentProject = project;
+    };
+
+    Weaver.prototype.startTransaction = function() {
+      if (this.coreManager.currentTransaction != null) {
+        throw new Error("A transaction is already set, first commit or rollback that one");
+      }
+      this.coreManager.currentTransaction = new Weaver.Transaction();
+      return this.coreManager.currentTransaction.begin().then((function(_this) {
+        return function() {
+          return _this.coreManager.currentTransaction;
+        };
+      })(this));
     };
 
     Weaver.useModel = function(model) {
@@ -44559,6 +44627,8 @@ module.exports={
 
   module.exports.Query = require('./WeaverQuery');
 
+  module.exports.Sparql = require('./WeaverSparql');
+
   module.exports.Relation = require('./WeaverRelation');
 
   module.exports.RelationNode = require('./WeaverRelationNode');
@@ -44579,9 +44649,11 @@ module.exports={
 
   module.exports.ModelQuery = require('./WeaverModelQuery');
 
+  module.exports.Transaction = require('./WeaverTransaction');
+
 }).call(this);
 
-},{"../package.json":94,"./CoreManager":95,"./Error":96,"./WeaverACL":102,"./WeaverDefinedNode":103,"./WeaverError":104,"./WeaverHistory":106,"./WeaverModel":107,"./WeaverModelClass":108,"./WeaverModelQuery":110,"./WeaverModelRelation":111,"./WeaverNode":113,"./WeaverNodeList":114,"./WeaverProject":116,"./WeaverQuery":117,"./WeaverRelation":118,"./WeaverRelationNode":120,"./WeaverRole":121,"./WeaverUser":122,"bluebird":7,"pubsub-js":49}],102:[function(require,module,exports){
+},{"../package.json":94,"./CoreManager":95,"./Error":96,"./WeaverACL":102,"./WeaverDefinedNode":103,"./WeaverError":104,"./WeaverHistory":106,"./WeaverModel":107,"./WeaverModelClass":108,"./WeaverModelQuery":110,"./WeaverModelRelation":111,"./WeaverNode":113,"./WeaverNodeList":114,"./WeaverProject":116,"./WeaverQuery":117,"./WeaverRelation":118,"./WeaverRelationNode":120,"./WeaverRole":121,"./WeaverSparql":122,"./WeaverTransaction":123,"./WeaverUser":124,"bluebird":7,"pubsub-js":49}],102:[function(require,module,exports){
 (function() {
   var Weaver, WeaverACL, cuid;
 
@@ -47347,7 +47419,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Operation":98,"./Weaver":101,"./WeaverError":104,"./WeaverRelationIn":119,"./util":124,"./wpath":125,"bluebird":7,"cuid":16,"lodash":42,"moment":43}],114:[function(require,module,exports){
+},{"./Operation":98,"./Weaver":101,"./WeaverError":104,"./WeaverRelationIn":119,"./util":126,"./wpath":127,"bluebird":7,"cuid":16,"lodash":42,"moment":43}],114:[function(require,module,exports){
 (function() {
   var WeaverNodeList, _,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
@@ -47752,16 +47824,18 @@ module.exports={
 
 },{"./Operation":98,"./Weaver":101,"cuid":16}],117:[function(require,module,exports){
 (function() {
-  var Weaver, WeaverQuery, _, cjson, quote, util,
+  var Promise, Weaver, WeaverQuery, _, cjson, quote, util,
     slice = [].slice;
-
-  util = require('./util');
-
-  Weaver = require('./Weaver');
 
   _ = require('lodash');
 
   cjson = require('circular-json');
+
+  Promise = require('bluebird');
+
+  util = require('./util');
+
+  Weaver = require('./Weaver');
 
   quote = function(s) {
     return '\\Q' + s.replace('\\E', '\\E\\\\E\\Q') + '\\E';
@@ -47876,13 +47950,32 @@ module.exports={
       })(this));
     };
 
+    WeaverQuery.prototype.next = function() {
+      this._nextResults = true;
+      return this.find();
+    };
+
     WeaverQuery.prototype.find = function(Constructor) {
+      var clone, transaction, trx;
       if (Constructor != null) {
         this.setConstructorFunction(function() {
           return Constructor;
         });
       }
-      return Weaver.getCoreManager().query(this).then((function(_this) {
+      clone = this.preSerialize();
+      trx = Weaver.getCoreManager().currentTransaction;
+      transaction = Promise.resolve(trx);
+      if ((trx == null) && (this._keepOpen != null) && this._keepOpen) {
+        transaction = Weaver.getInstance().startTransaction();
+      }
+      return transaction.then((function(_this) {
+        return function(trx) {
+          if (trx != null) {
+            clone._transaction = trx.id();
+          }
+          return Weaver.getCoreManager().query(clone);
+        };
+      })(this)).then((function(_this) {
         return function(result) {
           var castedNode, k, len, list, object, ref;
           Weaver.Query.notify(result);
@@ -47900,7 +47993,7 @@ module.exports={
 
     WeaverQuery.prototype.count = function() {
       this._count = true;
-      return Weaver.getCoreManager().query(this).then(function(result) {
+      return Weaver.getCoreManager().query(this.preSerialize()).then(function(result) {
         Weaver.Query.notify(result);
         return result.count;
       })["finally"]((function(_this) {
@@ -47912,7 +48005,7 @@ module.exports={
 
     WeaverQuery.prototype.countPerGraph = function() {
       this._countPerGraph = true;
-      return Weaver.getCoreManager().query(this).then(function(result) {
+      return Weaver.getCoreManager().query(this.preSerialize()).then(function(result) {
         Weaver.Query.notify(result);
         return result;
       })["finally"]((function(_this) {
@@ -48216,7 +48309,7 @@ module.exports={
 
     WeaverQuery.prototype.skip = function(skip) {
       if (typeof skip !== 'number' || skip < 0) {
-        throw new Error('You can only skip by a positive number');
+        throw new Error('Invalid argument: skip should be a positive number');
       }
       this._skip = skip;
       return this;
@@ -48224,9 +48317,22 @@ module.exports={
 
     WeaverQuery.prototype.limit = function(limit) {
       if (typeof limit !== 'number' || limit < 0) {
-        throw new Error('You can only set the limit to a positive number');
+        throw new Error('Invalid argument: limit should be a positive number');
       }
       this._limit = limit;
+      return this;
+    };
+
+    WeaverQuery.prototype.batchSize = function(batchSize) {
+      this._batchSize = batchSize;
+      return this;
+    };
+
+    WeaverQuery.prototype.keepOpen = function(keepOpen) {
+      if (keepOpen == null) {
+        keepOpen = true;
+      }
+      this._keepOpen = keepOpen;
       return this;
     };
 
@@ -48399,6 +48505,10 @@ module.exports={
       return this;
     };
 
+    WeaverQuery.prototype.preSerialize = function() {
+      return _.omit(this, ['model', 'context', 'preferredConstructor', 'constructorFunction']);
+    };
+
     return WeaverQuery;
 
   })();
@@ -48407,7 +48517,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Weaver":101,"./util":124,"circular-json":11,"lodash":42}],118:[function(require,module,exports){
+},{"./Weaver":101,"./util":126,"bluebird":7,"circular-json":11,"lodash":42}],118:[function(require,module,exports){
 (function() {
   var Operation, Promise, Record, Weaver, WeaverRelation, cuid,
     slice = [].slice;
@@ -48883,6 +48993,166 @@ module.exports={
 
 },{"./Weaver":101,"cuid":16}],122:[function(require,module,exports){
 (function() {
+  var Weaver, WeaverSparql, _;
+
+  _ = require('lodash');
+
+  Weaver = require('./Weaver');
+
+  WeaverSparql = (function() {
+    function WeaverSparql(_query, target) {
+      this._query = _query;
+      this.target = target;
+      this._limit = 99999;
+      this._skip = 0;
+    }
+
+    WeaverSparql.prototype.next = function() {
+      this._nextResults = true;
+      return this.find();
+    };
+
+    WeaverSparql.prototype.find = function() {
+      var clone, transaction, trx;
+      clone = this.preSerialize();
+      trx = Weaver.getCoreManager().currentTransaction;
+      if ((trx == null) && (this._nextResults != null) && this._nextResults) {
+        throw new Error('Not able to retrieve next results from a query without open transaction');
+      }
+      transaction = Promise.resolve(trx);
+      if ((trx == null) && (this._keepOpen != null) && this._keepOpen) {
+        transaction = Weaver.getInstance().startTransaction();
+      }
+      return transaction.then((function(_this) {
+        return function(trx) {
+          if (trx != null) {
+            clone._transaction = trx.id();
+          }
+          return Weaver.getCoreManager().sparql(clone);
+        };
+      })(this)).then((function(_this) {
+        return function(result) {
+          var binding, i, len, list, object, resultMap;
+          resultMap = {};
+          for (binding in result) {
+            list = result[binding];
+            resultMap[binding] = new Weaver.NodeList();
+            for (i = 0, len = list.length; i < len; i++) {
+              object = list[i];
+              resultMap[binding].push(Weaver.Node.loadFromQuery(object));
+            }
+          }
+          return resultMap;
+        };
+      })(this));
+    };
+
+    WeaverSparql.prototype.skip = function(skip) {
+      if (typeof skip !== 'number' || skip < 0) {
+        throw new Error('Invalid argument: skip should be a positive number');
+      }
+      this._skip = skip;
+      return this;
+    };
+
+    WeaverSparql.prototype.limit = function(limit) {
+      if (typeof limit !== 'number' || limit < 0) {
+        throw new Error('Invalid argument: limit should be a positive number');
+      }
+      this._limit = limit;
+      return this;
+    };
+
+    WeaverSparql.prototype.batchSize = function(batchSize) {
+      this._batchSize = batchSize;
+      return this;
+    };
+
+    WeaverSparql.prototype.keepOpen = function(keepOpen) {
+      if (keepOpen == null) {
+        keepOpen = true;
+      }
+      this._keepOpen = keepOpen;
+      return this;
+    };
+
+    WeaverSparql.prototype.useCache = function(set) {
+      if (set == null) {
+        set = true;
+      }
+      this._useCache = set;
+      return this;
+    };
+
+    WeaverSparql.prototype.refreshCache = function(set) {
+      if (set == null) {
+        set = true;
+      }
+      this._refreshCache = set;
+      return this;
+    };
+
+    WeaverSparql.prototype.preSerialize = function() {
+      return _.omit(this, []);
+    };
+
+    return WeaverSparql;
+
+  })();
+
+  module.exports = WeaverSparql;
+
+}).call(this);
+
+},{"./Weaver":101,"lodash":42}],123:[function(require,module,exports){
+(function() {
+  var Promise, Weaver, WeaverTransaction, cuid;
+
+  Promise = require('bluebird');
+
+  cuid = require('cuid');
+
+  Weaver = require('./Weaver');
+
+  WeaverTransaction = (function() {
+    function WeaverTransaction() {
+      this._id = cuid();
+    }
+
+    WeaverTransaction.prototype.id = function() {
+      return this._id;
+    };
+
+    WeaverTransaction.prototype.setTtl = function(ttl) {
+      return this._ttl = ttl;
+    };
+
+    WeaverTransaction.prototype.begin = function() {
+      return Weaver.getCoreManager().begin(this._id, this._ttl);
+    };
+
+    WeaverTransaction.prototype.rollback = function() {
+      return Weaver.getCoreManager().rollback(this._id);
+    };
+
+    WeaverTransaction.prototype.commit = function() {
+      return Weaver.getCoreManager().commit(this._id);
+    };
+
+    WeaverTransaction.prototype.keepAlive = function(ttl) {
+      return Weaver.getCoreManager().keepAlive(this._id, ttl);
+    };
+
+    return WeaverTransaction;
+
+  })();
+
+  module.exports = WeaverTransaction;
+
+}).call(this);
+
+},{"./Weaver":101,"bluebird":7,"cuid":16}],124:[function(require,module,exports){
+(function() {
   var Promise, Weaver, WeaverUser, cuid;
 
   cuid = require('cuid');
@@ -49027,7 +49297,7 @@ module.exports={
 
 }).call(this);
 
-},{"./Weaver":101,"bluebird":7,"cuid":16}],123:[function(require,module,exports){
+},{"./Weaver":101,"bluebird":7,"cuid":16}],125:[function(require,module,exports){
 (function() {
   var SocketController, Weaver, WeaverBase,
     extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
@@ -49064,7 +49334,7 @@ module.exports={
 
 }).call(this);
 
-},{"../SocketControllerWithStream":100,"../Weaver":101,"../WeaverFile":105,"../WeaverPlugin":115}],124:[function(require,module,exports){
+},{"../SocketControllerWithStream":100,"../Weaver":101,"../WeaverFile":105,"../WeaverPlugin":115}],126:[function(require,module,exports){
 (function() {
   var flatten, moment, typeShouldBe;
 
@@ -49119,7 +49389,7 @@ module.exports={
 
 }).call(this);
 
-},{"moment":43}],125:[function(require,module,exports){
+},{"moment":43}],127:[function(require,module,exports){
 (function() {
   var Weaver, _, executeWpath, filterWpath,
     slice = [].slice;
@@ -49251,4 +49521,4 @@ module.exports={
 
 }).call(this);
 
-},{"./Weaver":101,"lodash":42}]},{},[123]);
+},{"./Weaver":101,"lodash":42}]},{},[125]);

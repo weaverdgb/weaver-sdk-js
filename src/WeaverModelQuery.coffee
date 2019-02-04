@@ -65,7 +65,6 @@ class WeaverModelQuery extends Weaver.Query
       else
         throw err
 
-
   class: (modelClass) ->
     @preferredConstructor = modelClass
     @hasRelationOut(@model.getMemberKey(),

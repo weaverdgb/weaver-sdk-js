@@ -1001,7 +1001,6 @@ describe 'WeaverNode test', ->
     )
 
   it 'should handler an error when trying batch delete nodes with any node', ->
-
     Weaver.Node.batchDestroy()
     .catch((error)->
       assert.equal(error, "Cannot batch destroy nodes without any node")

@@ -1,6 +1,5 @@
 weaver = require("./test-suite").weaver
 
-
 describe 'Application test', ->
 
   it 'should get the weaver-server version', ->

@@ -20,6 +20,7 @@ class Weaver
     @History = Weaver.History
     @Project = Weaver.Project
     @Query = Weaver.Query
+    @Sparql = Weaver.Sparql
     @Relation = Weaver.Relation
     @RelationNode = Weaver.RelationNode
     @Role = Weaver.Role
@@ -136,7 +137,6 @@ class Weaver
   @sniff: (callback) ->
     Weaver.subscribe("socket.shout", callback)
 
-
   # Expose PubSub
   @subscribe:             PubSub.subscribe
   @unsubscribe:           PubSub.unsubscribe
@@ -156,6 +156,7 @@ module.exports.CoreManager   = require('./CoreManager')
 module.exports.History       = require('./WeaverHistory')
 module.exports.Project       = require('./WeaverProject')
 module.exports.Query         = require('./WeaverQuery')
+module.exports.Sparql        = require('./WeaverSparql')
 module.exports.Relation      = require('./WeaverRelation')
 module.exports.RelationNode  = require('./WeaverRelationNode')
 module.exports.Role          = require('./WeaverRole')

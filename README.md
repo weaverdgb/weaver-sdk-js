@@ -30,7 +30,6 @@ To get a weaver installation up and running, use the following command:
 ```
 docker-compose -f test-server/docker-compose.yml up
 ```
-
 This starts a weaver-server, database-connector, and file storage (minio)
 container which the SDK can connect to and perform operations on.
 

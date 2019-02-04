@@ -22,7 +22,6 @@ class WeaverPlugin
         payload[r] = args[index] for r, index in f.require when r isnt 'file'
         payload[r] = args[f.require.length + index] for r, index in f.optional
 
-
         fileParameterIndex = f.require.indexOf('file')
         if fileParameterIndex > -1
           file = args[fileParameterIndex]

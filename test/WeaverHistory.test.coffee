@@ -74,7 +74,6 @@ describe 'WeaverHistory test', ->
     )
 
   it 'should retrieve history for a key-value', ->
-
     history = new Weaver.History()
     node = new Weaver.Node()
 
@@ -184,7 +183,6 @@ describe 'WeaverHistory test', ->
     ).then(->
       new Weaver.History().dumpHistory()
     ).should.be.rejectedWith(/Permission denied/)
-
 
   it 'should retrieve 20 rows of history in ascendent mode, default order', ->
     Promise.all((new Weaver.Node()).save() for i in [0..30]).then( ->

@@ -55,7 +55,7 @@ class CoreManager
     clientTime - @timeOffset
 
   updateLocalTimeOffset: ->
-    @localTimeOffset().then((offset)=>
+    @localTimeOffset().then((offset) =>
       @timeOffset = offset
       offset
     )
@@ -170,7 +170,6 @@ class CoreManager
 
     @POST("user.signUp", update, "$SYSTEM")
 
-
   updateUser: (user) ->
     update      = {}
     update[key] = value for key, value of user when key isnt 'authToken'
@@ -274,6 +273,15 @@ class CoreManager
       else Promise.reject(res)
     )
 
+  sparql: (query) ->
+    target = query.target
+    
+    @POST("query.sparql", {query, unparsed: true}, target).then((res) ->
+      if typeof res isnt 'object'
+        JSON.parse(res)
+      else Promise.reject(res)
+    )
+
   nativeQuery: (query, target) ->
     @POST("query.native", {query}, target)
 
@@ -358,7 +366,6 @@ class CoreManager
       )
     )
 
-
   GET: (path, payload, target) ->
     @REQUEST("GET", path, payload, target)
 
@@ -367,6 +374,5 @@ class CoreManager
 
   STREAM: (path, payload, target) ->
     @REQUEST("STREAM", path, payload, target)
-
 
 module.exports = CoreManager

@@ -67,7 +67,6 @@ describe 'WeaverProject Test', ->
     id = "d$x"
     new Weaver.Project("name", id).create().should.be.rejectedWith("The id #{id} is not valid")
 
-
   it 'should not create a project with an illegal id, no special character than - is allowed', ->
     id = "d/x"
     new Weaver.Project("name", id).create().should.be.rejectedWith("The id #{id} is not valid")

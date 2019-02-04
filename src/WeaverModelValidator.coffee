@@ -22,5 +22,4 @@ class WeaverModelValidator
           if not @isClass(range)
             throw new Error("Range #{range} in relation #{className}.#{key} could not be found in the definition.")
 
-
 module.exports = WeaverModelValidator

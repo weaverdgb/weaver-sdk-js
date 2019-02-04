@@ -221,5 +221,4 @@ class WeaverModelClass extends Weaver.Node
 
     super(project)
 
-
 module.exports = WeaverModelClass
