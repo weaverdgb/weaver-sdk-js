@@ -1,6 +1,6 @@
 {
   "name": "weaver-sdk",
-  "version": "11.3.0-alpha.1-sparql",
+  "version": "11.3.0",
   "description": "Weaver SDK for JavaScript",
   "author": {
     "name": "Mohamad Alamili",
