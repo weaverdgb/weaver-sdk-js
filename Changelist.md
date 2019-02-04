@@ -1,5 +1,8 @@
 # Changelist
 
+## 11.3.2
+- Include dist file second try
+
 ## 11.3.1
 - Include dist file
 
