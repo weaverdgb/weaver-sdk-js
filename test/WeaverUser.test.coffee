@@ -233,6 +233,20 @@ describe 'WeaverUser Test', ->
       assert.equal(users.length, 2)
     )
 
+  it 'shoudl create a role with custom id', ->
+    r1 = new Weaver.Role('role1', 'roleID')
+    u = new Weaver.User('abcdef', '123456', 'ghe')
+    u.create().then(->
+      r1.addUser(u)
+      r1.save()
+    ).then(->
+      u.getRoles()
+    ).then((roles) ->
+      assert.equal(roles.length, 1)
+      assert.equal(roles[0].name, 'role1')
+      assert.equal(roles[0].id(), 'roleID')
+    )
+
   it 'should get all roles for user', ->
     r1 = new Weaver.Role('role1')
     r2 = new Weaver.Role('role2')

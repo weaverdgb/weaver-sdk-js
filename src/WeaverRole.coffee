@@ -6,9 +6,9 @@ Weaver      = require('./Weaver')
 # implemented by the WeaverACL class.
 class WeaverRole
 
-  constructor: (@name) ->
+  constructor: (@name, @roleId) ->
     @name = @name or "unnamed"
-    @roleId = cuid()
+    @roleId = @roleId or cuid()
 
     # State
     @_stored = false
