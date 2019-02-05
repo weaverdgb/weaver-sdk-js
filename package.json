@@ -1,10 +1,10 @@
 {
-  "name": "weaver-sdk",
+  "name": "weaverdgb-sdk",
   "version": "9.0.2",
-  "description": "Weaver SDK for JavaScript",
+  "description": "Weaver SDK for JavaScript (DGB Fork)",
   "author": {
     "name": "Mohamad Alamili",
-    "url": "https://github.com/weaverplatform/weaver-sdk-js",
+    "url": "https://github.com/weaverdgb/weaver-sdk-js",
     "email": "mohamad@sysunite.com"
   },
   "com_weaverplatform": {
