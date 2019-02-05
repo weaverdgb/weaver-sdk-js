@@ -1,5 +1,8 @@
 # Changelist
 
+## Develop
+- Add possibility to set a custom id when creating a Role
+
 ## 9.0.0
 - adds Weaver.ModelClass.getSuperClass() method
 - changes Weaver.ModelQuery().prototype.class() method to return valid for all subclasses of a model class, as well as the class itself
