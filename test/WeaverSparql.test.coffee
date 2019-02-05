@@ -108,8 +108,7 @@ describe 'WeaverSparql Test', ->
         query.next()
       ).then((res) ->
         expect(res.x.length).to.equal(0)
-        transaction = Weaver.getCoreManager().currentTransaction
-        transaction.commit()
+        query.close()
       ).then( ->
         expect(->query.next()).to.throw('Not able to retrieve next results from a query without open transaction')
       )

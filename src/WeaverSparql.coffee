@@ -6,30 +6,47 @@ class WeaverSparql
   constructor: (@_query, @target) ->
     @_limit              = 99999
     @_skip               = 0
+    @_nextResults        = false
+    @_keepOpen           = false
+    @_autoClose          = false
 
-  next: () ->
+  next: ->
     @_nextResults = true
     @find()
 
+  _getTransaction: ->
+    trx = Weaver.getCoreManager().currentTransaction
+    if !trx?
+      if @_keepOpen
+        @_autoClose = true
+        Weaver.getInstance().startTransaction()
+      else
+        Promise.resolve(undefined)
+    else
+      Promise.resolve(trx)
+
   find: ->
+    resultMap = {}
     clone = @preSerialize()
     trx = Weaver.getCoreManager().currentTransaction
-    throw new Error('Not able to retrieve next results from a query without open transaction') if !trx? && @_nextResults? && @_nextResults
-    transaction = Promise.resolve(trx)
-    transaction = Weaver.getInstance().startTransaction() if !trx? && @_keepOpen? && @_keepOpen
-    transaction.then((trx) =>
+    throw new Error('Not able to retrieve next results from a query without open transaction') if !trx? && @_nextResults
+    @_getTransaction.then((trx) =>
       if trx?
         clone._transaction = trx.id()
-
       Weaver.getCoreManager().sparql(clone)
     ).then((result) =>
-      resultMap = {}
       for binding, list of result
         resultMap[binding] = new Weaver.NodeList()
         for object in list
           resultMap[binding].push(Weaver.Node.loadFromQuery(object))
+      if @_autoClose && !@_keepOpen
+        Weaver.getCoreManager().currentTransaction.commit()
+    ).then(=>
       resultMap
     )
+
+  close: ->
+    Weaver.getCoreManager().currentTransaction.commit()
   
   skip: (skip) ->
     if typeof skip isnt 'number' or skip < 0

@@ -39,6 +39,9 @@ class WeaverQuery
     @_ascending          = true
     @_arrayCount         = 0
     @_inGraph            = undefined
+    @_nextResults        = false
+    @_keepOpen           = false
+    @_autoClose          = false
 
   getNodeIdFromStringOrNode: (node) ->
     if _.isString(node)
@@ -82,31 +85,45 @@ class WeaverQuery
         total
     )
 
-  next: () ->
+  next: ->
     @_nextResults = true
     @find()
+
+  _getTransaction: ->
+    trx = Weaver.getCoreManager().currentTransaction
+    if !trx?
+      if @_keepOpen
+        @_autoClose = true
+        Weaver.getInstance().startTransaction()
+      else
+        Promise.resolve(undefined)
+    else
+      Promise.resolve(trx)
 
   find: (Constructor) ->
     if Constructor?
       @setConstructorFunction(-> Constructor)
-
+    list = new Weaver.NodeList()
     clone = @preSerialize()
-
     trx = Weaver.getCoreManager().currentTransaction
-    transaction = Promise.resolve(trx)
-    transaction = Weaver.getInstance().startTransaction() if !trx? && @_keepOpen? && @_keepOpen
-    transaction.then((trx) =>
+    throw new Error('Not able to retrieve next results from a query without open transaction') if !trx? && @_nextResults
+    @_getTransaction().then((trx) =>
       if trx?
         clone._transaction = trx.id()      
       Weaver.getCoreManager().query(clone)
     ).then((result) =>
       Weaver.Query.notify(result)
-      list = new Weaver.NodeList()
       for object in result.nodes
         castedNode = Weaver.Node.loadFromQuery(object, @constructorFunction, !@_selectRelations? && !@_select?, @model)
         list.push(castedNode)
+      if @_autoClose && !@_keepOpen
+        Weaver.getCoreManager().currentTransaction.commit()
+    ).then(=>
       list
     )
+
+  close: ->
+    Weaver.getCoreManager().currentTransaction.commit()
 
   count: ->
     @_count = true

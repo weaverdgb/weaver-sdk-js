@@ -1704,5 +1704,5 @@ describe 'WeaverQuery Test', ->
       ).then((nodes) ->
         expect(nodes.length).to.equal(0)
       ).finally(->
-        transaction.commit()
+        query.close()
       )
